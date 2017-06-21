@@ -5,6 +5,9 @@
 
 version: '2'
 
+networks:
+  byfn:
+
 services:
   couchdb0:
     container_name: couchdb0
@@ -13,6 +16,8 @@ services:
     # for example map it to utilize Fauxton User Interface in dev environments.
     ports:
       - "5984:5984"
+    networks:
+      - byfn
 
   peer0.org1.example.com:
     environment:
@@ -28,6 +33,8 @@ services:
     # for example map it to utilize Fauxton User Interface in dev environments.
     ports:
       - "6984:5984"
+    networks:
+      - byfn
 
   peer1.org1.example.com:
     environment:
@@ -43,6 +50,8 @@ services:
     # for example map it to utilize Fauxton User Interface in dev environments.
     ports:
       - "7984:5984"
+    networks:
+      - byfn
 
   peer0.org2.example.com:
     environment:
@@ -58,6 +67,8 @@ services:
     # for example map it to utilize Fauxton User Interface in dev environments.
     ports:
       - "8984:5984"
+    networks:
+      - byfn
 
   peer1.org2.example.com:
     environment:

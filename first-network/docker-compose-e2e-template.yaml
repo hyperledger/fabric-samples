@@ -5,6 +5,8 @@
 
 version: '2'
 
+    networks:
+      byfn:
 services:
   ca0:
     image: hyperledger/fabric-ca
@@ -20,6 +22,8 @@ services:
     volumes:
       - ./crypto-config/peerOrganizations/org1.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
     container_name: ca_peerOrg1
+    networks:
+      - byfn
 
   ca1:
     image: hyperledger/fabric-ca
@@ -35,33 +39,45 @@ services:
     volumes:
       - ./crypto-config/peerOrganizations/org2.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
     container_name: ca_peerOrg2
+    networks:
+      - byfn
 
   orderer.example.com:
     extends:
       file:   base/docker-compose-base.yaml
       service: orderer.example.com
     container_name: orderer.example.com
+    networks:
+      - byfn
 
   peer0.org1.example.com:
     container_name: peer0.org1.example.com
     extends:
       file:  base/docker-compose-base.yaml
       service: peer0.org1.example.com
+    networks:
+      - byfn
 
   peer1.org1.example.com:
     container_name: peer1.org1.example.com
     extends:
       file:  base/docker-compose-base.yaml
       service: peer1.org1.example.com
+    networks:
+      - byfn
 
   peer0.org2.example.com:
     container_name: peer0.org2.example.com
     extends:
       file:  base/docker-compose-base.yaml
       service: peer0.org2.example.com
+    networks:
+      - byfn
 
   peer1.org2.example.com:
     container_name: peer1.org2.example.com
     extends:
       file:  base/docker-compose-base.yaml
       service: peer1.org2.example.com
+    networks:
+      - byfn

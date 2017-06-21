@@ -6,3 +6,8 @@
 .*.sw*
 # installed platform-specific binaries
 /bin
+
+first-network/channel-artifacts/*.tx
+first-network/channel-artifacts/*.block
+first-network/crypto-config/*
+
