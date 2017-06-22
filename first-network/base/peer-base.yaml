@@ -10,9 +10,11 @@ services:
     environment:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       # the following setting starts chaincode containers on the same
-      # bridge network as the peers
+      # bridge network as the peers.
+      # As the docker compose file is in the folder "first-network",
+      # docker will create a default network called "firstnetwork_default"
       # https://docs.docker.com/compose/networking/
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=byfn_default
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=firstnetwork_default
       #- CORE_LOGGING_LEVEL=ERROR
       - CORE_LOGGING_LEVEL=DEBUG
       - CORE_PEER_TLS_ENABLED=true
