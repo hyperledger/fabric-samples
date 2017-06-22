@@ -25,6 +25,9 @@
 # this may be commented out to resolve installed version of tools if desired
 export PATH=${PWD}/../bin:${PWD}:$PATH
 
+# Add FABRIC_CFG_PATH variable to allow configtxgen to find configuration file
+export FABRIC_CFG_PATH=$PWD
+
 # Print the usage message
 function printHelp () {
   echo "Usage: "
