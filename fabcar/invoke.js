@@ -72,8 +72,7 @@ Promise.resolve().then(() => {
         console.log(util.format(
             'Successfully sent Proposal and received ProposalResponse: Status - %s, message - "%s", metadata - "%s", endorsement signature: %s',
             proposalResponses[0].response.status, proposalResponses[0].response.message,
-            proposalResponses[0].response.payload, proposalResponses[0].endorsement
-            .signature));
+            proposalResponses[0].response.payload, proposalResponses[0].endorsement.signature));
         var request = {
             proposalResponses: proposalResponses,
             proposal: proposal,
