@@ -7,8 +7,8 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "dependencies": {
-        "fabric-ca-client": "1.0.0-beta",
-        "fabric-client": "1.0.0-beta"
+        "fabric-ca-client": ">=1.0.0-rc1 <1.0.0-rc1.10",
+        "fabric-client": ">=1.0.0-rc1 <1.0.0-rc1.10"
     },
     "author": "Anthony O'Dowd",
     "license": "Apache-2.0",

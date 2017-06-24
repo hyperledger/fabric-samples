@@ -9,7 +9,7 @@ services:
       - ORDERER_GENERAL_LOGLEVEL=debug
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_GENESISMETHOD=file
-      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/twoorgs.genesis.block
+      - ORDERER_GENERAL_GENESISFILE=/etc/hyperledger/configtx/genesis.block
       - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
       - ORDERER_GENERAL_LOCALMSPDIR=/etc/hyperledger/msp/orderer
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/orderer
@@ -18,9 +18,7 @@ services:
       - 7050:7050
     volumes:
         - ./:/etc/hyperledger/configtx
-        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/etc/hyperledger/msp/orderer
-        - ./crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/:/etc/hyperledger/msp/peerOrg1
-        - ./crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/:/etc/hyperledger/msp/peerOrg2
+        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/etc/hyperledger/msp/orderer
 
   peer0.org1.example.com:
     container_name: peer0.org1.example.com
@@ -46,7 +44,7 @@ services:
       - 7053:7053
     volumes:
         - /var/run/:/host/var/run/
-        - ./crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/:/etc/hyperledger/msp/peer
+        - ./crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/msp/peer
         - ./crypto-config/peerOrganizations/org1.example.com/users:/etc/hyperledger/msp/users
         - .:/etc/hyperledger/configtx
     depends_on:
@@ -71,7 +69,7 @@ services:
       - CORE_PEER_ID=cli
       - CORE_PEER_ADDRESS=peer0.org1.example.com:7051
       - CORE_PEER_LOCALMSPID=Org1MSP
-      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
       - CORE_CHAINCODE_KEEPALIVE=10
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: /bin/bash
@@ -80,7 +78,6 @@ services:
         - ./../chaincode:/opt/gopath/src/github.com/fabcar/
         - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
     depends_on:
-      #- ca.example.com
       - orderer.example.com
       - peer0.org1.example.com
       - couchdb

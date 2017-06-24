@@ -42,7 +42,6 @@ Promise.resolve().then(() => {
     targets.push(peerObj);
     return;
 }).then(() => {
-    //console.log("send Invoke with function name :"+fcn);
     tx_id = client.newTransactionID();
     console.log("Assigning transaction_id: ", tx_id._transaction_id);
     // createCar - requires 5 args, ex: args: ['CAR11', 'Honda', 'Accord', 'Black', 'Tom'],
