@@ -8,7 +8,8 @@
     },
     "dependencies": {
         "fabric-ca-client": "1.0.0-beta",
-        "fabric-client": "1.0.0-beta"
+        "fabric-client": "1.0.0-beta",
+        "grpc":"1.3.9"
     },
     "author": "Anthony O'Dowd",
     "license": "Apache-2.0",
