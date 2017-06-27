@@ -6,6 +6,8 @@
 .*.sw*
 # installed platform-specific binaries
 /bin
+.DS_Store
+.project
 
 first-network/channel-artifacts/*.tx
 first-network/channel-artifacts/*.block
@@ -17,3 +19,7 @@ chaincode-docker-devmode/chaincode/chaincode_example02/chaincode_example02
 
 # fabric sdk node modules
 fabcar/node_modules/
+
+# balance transfer sample
+balance-transfer/.DS_Store
+balance-transfer/node_modules/*
