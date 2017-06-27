@@ -5,8 +5,8 @@
 
 version: '2'
 
-    networks:
-      byfn:
+networks:
+  byfn:
 services:
   ca0:
     image: hyperledger/fabric-ca
