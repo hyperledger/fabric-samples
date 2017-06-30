@@ -95,6 +95,12 @@ function removeUnwantedImages() {
 
 # Generate the needed certificates, the genesis block and start the network.
 function networkUp () {
+  # generate artifacts if they don't exist
+  if [ ! -d "crypto-config" ]; then
+    generateCerts
+    replacePrivateKey
+    generateChannelArtifacts
+  fi
   CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=$CLI_TIMEOUT docker-compose -f $COMPOSE_FILE up -d 2>&1
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to start network"
