@@ -11,7 +11,7 @@ A sample Node.js app to demonstrate **__fabric-client__** & **__fabric-ca-client
 * Download docker images
 
 ```
-cd fabric-sdk-node/examples/balance-transfer/
+cd fabric-samples/balance-transfer/
 docker-compose -f artifacts/docker-compose.yaml pull
 ```
 
@@ -40,7 +40,21 @@ docker-compose -f artifacts/docker-compose.yaml up
 ```
 ##### Terminal Window 2
 
-* Execute the REST APIs from the section [Sample REST APIs Requests](https://github.com/hyperledger/fabric-sdk-node/tree/master/examples/balance-transfer#running-the-sample-program)
+* Install the fabric-client and fabric-ca-client node modules
+
+```
+npm install
+```
+
+* Start the node app on PORT 4000
+
+```
+PORT=4000 node app
+```
+
+##### Terminal Window 3
+
+* Execute the REST APIs from the section [Sample REST APIs Requests](https://github.com/hyperledger/fabric-samples/tree/master/balance-transfer#sample-rest-apis-requests)
 
 
 ### Option 2:
@@ -48,7 +62,7 @@ docker-compose -f artifacts/docker-compose.yaml up
 ##### Terminal Window 1
 
 ```
-cd fabric-sdk-node/examples/balance-transfer
+cd fabric-samples/balance-transfer
 
 ./runApp.sh
 
@@ -67,7 +81,7 @@ instructions [https://stedolan.github.io/jq/](https://stedolan.github.io/jq/)
 
 With the application started in terminal 1, next, test the APIs by executing the script - **testAPIs.sh**:
 ```
-cd fabric-sdk-node/examples/balance-transfer
+cd fabric-samples/balance-transfer
 
 ./testAPIs.sh
 
