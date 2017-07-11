@@ -1,5 +1,9 @@
 'use strict';
-
+/*
+* Copyright IBM Corp All Rights Reserved
+*
+* SPDX-License-Identifier: Apache-2.0
+*/
 /*
  * Hyperledger Fabric Sample Query Program
  */
@@ -8,7 +12,7 @@ var hfc = require('fabric-client');
 var path = require('path');
 
 var options = {
-    wallet_path: path.join(__dirname, './network/creds'),
+    wallet_path: path.join(__dirname, './creds'),
     user_id: 'PeerAdmin',
     channel_id: 'mychannel',
     chaincode_id: 'fabcar',

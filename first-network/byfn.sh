@@ -1,4 +1,9 @@
 #!/bin/bash
+# 
+# Copyright IBM Corp All Rights Reserved
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 
 # This script will orchestrate a sample end-to-end execution of the Hyperledger
 # Fabric network.

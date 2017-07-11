@@ -1,5 +1,9 @@
 'use strict';
-
+/*
+* Copyright IBM Corp All Rights Reserved
+*
+* SPDX-License-Identifier: Apache-2.0
+*/
 /*
  * Chaincode Invoke
  */
@@ -9,7 +13,7 @@ var path = require('path');
 var util = require('util');
 
 var options = {
-    wallet_path: path.join(__dirname, './network/creds'),
+    wallet_path: path.join(__dirname, './creds'),
     user_id: 'PeerAdmin',
     channel_id: 'mychannel',
     chaincode_id: 'fabcar',
