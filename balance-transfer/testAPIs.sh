@@ -113,7 +113,7 @@ curl -s -X POST \
   -d '{
 	"chaincodeName":"mycc",
 	"chaincodeVersion":"v0",
-	"functionName":"init",
+	"fcn":"init",
 	"args":["a","100","b","200"]
 }'
 echo

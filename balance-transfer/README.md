@@ -146,7 +146,7 @@ curl -s -X POST \
 	"peers": ["localhost:7051"],
 	"chaincodeName":"mycc",
 	"chaincodeVersion":"v0",
-	"functionName":"init",
+	"fcn":"init",
 	"args":["a","100","b","200"]
 }'
 ```
