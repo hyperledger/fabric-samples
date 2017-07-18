@@ -27,7 +27,10 @@ var expressJWT = require('express-jwt');
 var jwt = require('jsonwebtoken');
 var bearerToken = require('express-bearer-token');
 var cors = require('cors');
-var config = require('./config.json');
+
+require('./config.js');
+var hfc = require('fabric-client');
+
 var helper = require('./app/helper.js');
 var channels = require('./app/create-channel.js');
 var join = require('./app/join-channel.js');
@@ -35,8 +38,8 @@ var install = require('./app/install-chaincode.js');
 var instantiate = require('./app/instantiate-chaincode.js');
 var invoke = require('./app/invoke-transaction.js');
 var query = require('./app/query.js');
-var host = process.env.HOST || config.host;
-var port = process.env.PORT || config.port;
+var host = process.env.HOST || hfc.getConfigSetting('host');
+var port = process.env.PORT || hfc.getConfigSetting('port');
 ///////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// SET CONFIGURATONS ////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -118,7 +121,7 @@ app.post('/users', function(req, res) {
 		return;
 	}
 	var token = jwt.sign({
-		exp: Math.floor(Date.now() / 1000) + parseInt(config.jwt_expiretime),
+		exp: Math.floor(Date.now() / 1000) + parseInt(hfc.getConfigSetting('jwt_expiretime')),
 		username: username,
 		orgName: orgName
 	}, app.get('secret'));
@@ -235,10 +238,6 @@ app.post('/channels/:channelName/chaincodes', function(req, res) {
 		res.json(getErrorMessage('\'channelName\''));
 		return;
 	}
-	if (!fcn) {
-		res.json(getErrorMessage('\'fcn\''));
-		return;
-	}
 	if (!args) {
 		res.json(getErrorMessage('\'args\''));
 		return;
@@ -260,10 +259,6 @@ app.post('/channels/:channelName/chaincodes/:chaincodeName', function(req, res) 
 	logger.debug('chaincodeName : ' + chaincodeName);
 	logger.debug('fcn  : ' + fcn);
 	logger.debug('args  : ' + args);
-	if (!peers || peers.length == 0) {
-		res.json(getErrorMessage('\'peers\''));
-		return;
-	}
 	if (!chaincodeName) {
 		res.json(getErrorMessage('\'chaincodeName\''));
 		return;
