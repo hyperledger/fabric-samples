@@ -145,7 +145,7 @@ var instantiateChaincode = function(channelName, chaincodeName, chaincodeVersion
 	}).then((response) => {
 		if (response.status === 'SUCCESS') {
 			logger.info('Successfully sent transaction to the orderer.');
-			return 'Chaincode Instantiateion is SUCCESS';
+			return 'Chaincode Instantiation is SUCCESS';
 		} else {
 			logger.error('Failed to order the transaction. Error code: ' + response.status);
 			return 'Failed to order the transaction. Error code: ' + response.status;
