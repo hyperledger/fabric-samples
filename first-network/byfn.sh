@@ -34,7 +34,7 @@ export FABRIC_CFG_PATH=${PWD}
 # Print the usage message
 function printHelp () {
   echo "Usage: "
-  echo "  byfn.sh -m up|down|restart|generate [-c <channel name>] [-t <timeout>]"
+  echo "  byfn.sh -m up|down|restart|generate [-c <channel name>] [-t <timeout>] [-d <delay>] "
   echo "  byfn.sh -h|--help (print this message)"
   echo "    -m <mode> - one of 'up', 'down', 'restart' or 'generate'"
   echo "      - 'up' - bring up the network with docker-compose up"
@@ -43,6 +43,7 @@ function printHelp () {
   echo "      - 'generate' - generate required certificates and genesis block"
   echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
   echo "    -t <timeout> - CLI timeout duration in microseconds (defaults to 10000)"
+  echo "    -d <delay> - delay duration in seconds (defaults to 3)"
   echo
   echo "Typically, one would first generate the required certificates and "
   echo "genesis block, then bring up the network. e.g.:"
@@ -106,7 +107,7 @@ function networkUp () {
     replacePrivateKey
     generateChannelArtifacts
   fi
-  CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=$CLI_TIMEOUT docker-compose -f $COMPOSE_FILE up -d 2>&1
+  CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=$CLI_TIMEOUT DELAY=$CLI_DELAY docker-compose -f $COMPOSE_FILE up -d 2>&1
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to start network"
     docker logs -f cli
@@ -295,13 +296,15 @@ OS_ARCH=$(echo "$(uname -s|tr '[:upper:]' '[:lower:]'|sed 's/mingw64_nt.*/window
 # timeout duration - the duration the CLI should wait for a response from
 # another container before giving up
 CLI_TIMEOUT=10000
+#default for delay
+CLI_DELAY=3
 # channel name defaults to "mychannel"
 CHANNEL_NAME="mychannel"
 # use this as the default docker-compose yaml definition
 COMPOSE_FILE=docker-compose-cli.yaml
 
 # Parse commandline args
-while getopts "h?m:c:t:" opt; do
+while getopts "h?m:c:t:d:" opt; do
   case "$opt" in
     h|\?)
       printHelp
@@ -312,6 +315,8 @@ while getopts "h?m:c:t:" opt; do
     c)  CHANNEL_NAME=$OPTARG
     ;;
     t)  CLI_TIMEOUT=$OPTARG
+    ;;
+    d)  CLI_DELAY=$OPTARG
     ;;
   esac
 done
