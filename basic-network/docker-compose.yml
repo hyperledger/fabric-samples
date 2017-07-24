@@ -82,8 +82,6 @@ services:
     image: hyperledger/fabric-couchdb:x86_64-1.0.0
     ports:
       - 5984:5984
-    environment:
-      DB_URL: http://localhost:5984/member_db
     networks:
       - basic
 
