@@ -10,6 +10,7 @@ echo
 echo "Build your first network (BYFN) end-to-end test"
 echo
 CHANNEL_NAME="$1"
+DELAY="$2"
 : ${CHANNEL_NAME:="mychannel"}
 : ${TIMEOUT:="60"}
 COUNTER=1
@@ -82,6 +83,7 @@ updateAnchorPeers() {
 	cat log.txt
 	verifyResult $res "Anchor peer update failed"
 	echo "===================== Anchor peers for org \"$CORE_PEER_LOCALMSPID\" on \"$CHANNEL_NAME\" is updated successfully ===================== "
+	sleep $DELAY
 	echo
 }
 
@@ -93,7 +95,7 @@ joinWithRetry () {
 	if [ $res -ne 0 -a $COUNTER -lt $MAX_RETRY ]; then
 		COUNTER=` expr $COUNTER + 1`
 		echo "PEER$1 failed to join the channel, Retry after 2 seconds"
-		sleep 2
+		sleep $DELAY
 		joinWithRetry $1
 	else
 		COUNTER=1
@@ -106,7 +108,7 @@ joinChannel () {
 		setGlobals $ch
 		joinWithRetry $ch
 		echo "===================== PEER$ch joined on the channel \"$CHANNEL_NAME\" ===================== "
-		sleep 2
+		sleep $DELAY
 		echo
 	done
 }
@@ -150,7 +152,7 @@ chaincodeQuery () {
   # we either get a successful response, or reach TIMEOUT
   while test "$(($(date +%s)-starttime))" -lt "$TIMEOUT" -a $rc -ne 0
   do
-     sleep 3
+     sleep $DELAY
      echo "Attempting to Query PEER$PEER ...$(($(date +%s)-starttime)) secs"
      peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}' >&log.txt
      test $? -eq 0 && VALUE=$(cat log.txt | awk '/Query Result/ {print $NF}')
