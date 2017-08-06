@@ -74,6 +74,7 @@ services:
         - ./config:/etc/hyperledger/configtx
     depends_on:
       - orderer.example.com
+      - couchdb
     networks:
       - basic
 
