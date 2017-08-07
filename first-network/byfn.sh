@@ -305,7 +305,7 @@ CHANNEL_NAME="mychannel"
 COMPOSE_FILE=docker-compose-cli.yaml
 
 # Parse commandline args
-while getopts "h?m:c:t:d:" opt; do
+while getopts "h?m:c:t:d:f:" opt; do
   case "$opt" in
     h|\?)
       printHelp
