@@ -117,7 +117,7 @@ curl -s -X POST \
   -H "authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0OTQ4NjU1OTEsInVzZXJuYW1lIjoiSmltIiwib3JnTmFtZSI6Im9yZzEiLCJpYXQiOjE0OTQ4NjE5OTF9.yWaJhFDuTvMQRaZIqg20Is5t-JJ_1BP58yrNLOKxtNI" \
   -H "content-type: application/json" \
   -d '{
-	"peers": ["localhost:7051","localhost:7056"]
+	"peers": ["peer1","peer2"]
 }'
 ```
 ### Install chaincode
@@ -128,7 +128,7 @@ curl -s -X POST \
   -H "authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0OTQ4NjU1OTEsInVzZXJuYW1lIjoiSmltIiwib3JnTmFtZSI6Im9yZzEiLCJpYXQiOjE0OTQ4NjE5OTF9.yWaJhFDuTvMQRaZIqg20Is5t-JJ_1BP58yrNLOKxtNI" \
   -H "content-type: application/json" \
   -d '{
-	"peers": ["localhost:7051","localhost:7056"],
+	"peers": ["peer1","peer2"],
 	"chaincodeName":"mycc",
 	"chaincodePath":"github.com/example_cc",
 	"chaincodeVersion":"v0"
@@ -143,10 +143,8 @@ curl -s -X POST \
   -H "authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0OTQ4NjU1OTEsInVzZXJuYW1lIjoiSmltIiwib3JnTmFtZSI6Im9yZzEiLCJpYXQiOjE0OTQ4NjE5OTF9.yWaJhFDuTvMQRaZIqg20Is5t-JJ_1BP58yrNLOKxtNI" \
   -H "content-type: application/json" \
   -d '{
-	"peers": ["localhost:7051"],
 	"chaincodeName":"mycc",
 	"chaincodeVersion":"v0",
-	"fcn":"init",
 	"args":["a","100","b","200"]
 }'
 ```
@@ -159,7 +157,6 @@ curl -s -X POST \
   -H "authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0OTQ4NjU1OTEsInVzZXJuYW1lIjoiSmltIiwib3JnTmFtZSI6Im9yZzEiLCJpYXQiOjE0OTQ4NjE5OTF9.yWaJhFDuTvMQRaZIqg20Is5t-JJ_1BP58yrNLOKxtNI" \
   -H "content-type: application/json" \
   -d '{
-	"peers": ["localhost:7051", "localhost:7056"],
 	"fcn":"move",
 	"args":["a","b","10"]
 }'
@@ -232,7 +229,7 @@ curl -s -X GET \
 
 ### Network configuration considerations
 
-You have the ability to change configuration parameters by editing the network-config.json file.
+You have the ability to change configuration parameters by either directly editing the network-config.json file or provide an additional file for an alternative target network. The app uses an optional environment variable "TARGET_NETWORK" to control the configuration files to use. For example, if you deployed the target network on Amazon Web Services EC2, you can add a file "network-config-aws.json", and set the "TARGET_NETWORK" environment to 'aws'. The app will pick up the settings inside the "network-config-aws.json" file.
 
 #### IP Address** and PORT information
 

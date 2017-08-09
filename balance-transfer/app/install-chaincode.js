@@ -32,7 +32,7 @@ var installChaincode = function(peers, chaincodeName, chaincodePath,
 
 	return helper.getOrgAdmin(org).then((user) => {
 		var request = {
-			targets: helper.newPeers(peers),
+			targets: helper.newPeers(peers, org),
 			chaincodePath: chaincodePath,
 			chaincodeId: chaincodeName,
 			chaincodeVersion: chaincodeVersion

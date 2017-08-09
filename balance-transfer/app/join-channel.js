@@ -67,27 +67,16 @@ var joinChannel = function(channelName, peers, username, org) {
 	}).then((genesis_block) => {
 		tx_id = client.newTransactionID();
 		var request = {
-			targets: helper.newPeers(peers),
+			targets: helper.newPeers(peers, org),
 			txId: tx_id,
 			block: genesis_block
 		};
 
-		for (let key in ORGS[org]) {
-			if (ORGS[org].hasOwnProperty(key)) {
-				if (key.indexOf('peer') === 0) {
-					let data = fs.readFileSync(path.join(__dirname, ORGS[org][key][
-						'tls_cacerts'
-					]));
-					let eh = client.newEventHub();
-					eh.setPeerAddr(ORGS[org][key].events, {
-						pem: Buffer.from(data).toString(),
-						'ssl-target-name-override': ORGS[org][key]['server-hostname']
-					});
-					eh.connect();
-					eventhubs.push(eh);
-					allEventhubs.push(eh);
-				}
-			}
+		eventhubs = helper.newEventHubs(peers, org);
+		for (let key in eventhubs) {
+			let eh = eventhubs[key];
+			eh.connect();
+			allEventhubs.push(eh);
 		}
 
 		var eventPromises = [];
