@@ -261,7 +261,7 @@ var getChannels = function(peer, username, org) {
 function buildTarget(peer, org) {
 	var target = null;
 	if (typeof peer !== 'undefined') {
-		let targets = helper.newPeers([helper.getPeerAddressByName(org, peer)]);
+		let targets = helper.newPeers([peer], org);
 		if (targets && targets.length > 0) target = targets[0];
 	}
 

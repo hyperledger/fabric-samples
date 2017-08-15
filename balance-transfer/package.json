@@ -2,15 +2,18 @@
   "name": "balance-transfer",
   "version": "1.0.0",
   "description": "A balance-transfer example node program to demonstrate using node.js SDK APIs",
-  "main": "app/app.js",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
   "keywords": [
     "fabric-client sample app",
     "balance-transfer node sample",
     "v1.0 fabric nodesdk sample"
   ],
   "engines": {
-    "node": ">=6.9.5",
-    "npm": ">=3.10.10"
+    "node": ">=6.9.5 <7.0",
+    "npm": ">=3.10.10 <4.0"
   },
   "license": "Apache-2.0",
   "dependencies": {

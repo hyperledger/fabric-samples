@@ -24,10 +24,8 @@ var fs = require('fs-extra');
 var User = require('fabric-client/lib/User.js');
 var crypto = require('crypto');
 var copService = require('fabric-ca-client');
-var config = require('../config.json');
 
 var hfc = require('fabric-client');
-hfc.addConfigFile(path.join(__dirname, 'network-config.json'));
 hfc.setLogger(logger);
 var ORGS = hfc.getConfigSetting('network-config');
 
@@ -44,7 +42,7 @@ for (let key in ORGS) {
 		cryptoSuite.setCryptoKeyStore(hfc.newCryptoKeyStore({path: getKeyStoreForOrg(ORGS[key].name)}));
 		client.setCryptoSuite(cryptoSuite);
 
-		let channel = client.newChannel(config.channelName);
+		let channel = client.newChannel(hfc.getConfigSetting('channelName'));
 		channel.addOrderer(newOrderer(client));
 
 		clients[key] = client;
@@ -58,19 +56,18 @@ for (let key in ORGS) {
 }
 
 function setupPeers(channel, org, client) {
-	for (let key in ORGS[org]) {
-		if (key.indexOf('peer') === 0) {
-			let data = fs.readFileSync(path.join(__dirname, ORGS[org][key]['tls_cacerts']));
-			let peer = client.newPeer(
-				ORGS[org][key].requests,
-				{
-					pem: Buffer.from(data).toString(),
-					'ssl-target-name-override': ORGS[org][key]['server-hostname']
-				}
-			);
+	for (let key in ORGS[org].peers) {
+		let data = fs.readFileSync(path.join(__dirname, ORGS[org].peers[key]['tls_cacerts']));
+		let peer = client.newPeer(
+			ORGS[org].peers[key].requests,
+			{
+				pem: Buffer.from(data).toString(),
+				'ssl-target-name-override': ORGS[org].peers[key]['server-hostname']
+			}
+		);
+		peer.setName(key);
 
-			channel.addPeer(peer);
-		}
+		channel.addPeer(peer);
 	}
 }
 
@@ -78,7 +75,7 @@ function newOrderer(client) {
 	var caRootsPath = ORGS.orderer.tls_cacerts;
 	let data = fs.readFileSync(path.join(__dirname, caRootsPath));
 	let caroots = Buffer.from(data).toString();
-	return client.newOrderer(config.orderer, {
+	return client.newOrderer(ORGS.orderer.url, {
 		'pem': caroots,
 		'ssl-target-name-override': ORGS.orderer['server-hostname']
 	});
@@ -100,60 +97,36 @@ function getOrgName(org) {
 }
 
 function getKeyStoreForOrg(org) {
-	return config.keyValueStore + '_' + org;
+	return hfc.getConfigSetting('keyValueStore') + '_' + org;
 }
 
-function newRemotes(urls, forPeers, userOrg) {
-	var targets = [];
-	// find the peer that match the urls
-	outer:
-	for (let index in urls) {
-		let peerUrl = urls[index];
+function newRemotes(names, forPeers, userOrg) {
+	let client = getClientForOrg(userOrg);
 
-		let found = false;
-		for (let key in ORGS) {
-			if (key.indexOf('org') === 0) {
-				// if looking for event hubs, an app can only connect to
-				// event hubs in its own org
-				if (!forPeers && key !== userOrg) {
-					continue;
-				}
+	let targets = [];
+	// find the peer that match the names
+	for (let idx in names) {
+		let peerName = names[idx];
+		if (ORGS[userOrg].peers[peerName]) {
+			// found a peer matching the name
+			let data = fs.readFileSync(path.join(__dirname, ORGS[userOrg].peers[peerName]['tls_cacerts']));
+			let grpcOpts = {
+				pem: Buffer.from(data).toString(),
+				'ssl-target-name-override': ORGS[userOrg].peers[peerName]['server-hostname']
+			};
 
-				let org = ORGS[key];
-				let client = getClientForOrg(key);
-
-				for (let prop in org) {
-					if (prop.indexOf('peer') === 0) {
-						if (org[prop]['requests'].indexOf(peerUrl) >= 0) {
-							// found a peer matching the subject url
-							if (forPeers) {
-								let data = fs.readFileSync(path.join(__dirname, org[prop]['tls_cacerts']));
-								targets.push(client.newPeer('grpcs://' + peerUrl, {
-									pem: Buffer.from(data).toString(),
-									'ssl-target-name-override': org[prop]['server-hostname']
-								}));
-
-								continue outer;
-							} else {
-								let eh = client.newEventHub();
-								let data = fs.readFileSync(path.join(__dirname, org[prop]['tls_cacerts']));
-								eh.setPeerAddr(org[prop]['events'], {
-									pem: Buffer.from(data).toString(),
-									'ssl-target-name-override': org[prop]['server-hostname']
-								});
-								targets.push(eh);
-
-								continue outer;
-							}
-						}
-					}
-				}
+			if (forPeers) {
+				targets.push(client.newPeer(ORGS[userOrg].peers[peerName].requests, grpcOpts));
+			} else {
+				let eh = client.newEventHub();
+				eh.setPeerAddr(ORGS[userOrg].peers[peerName].events, grpcOpts);
+				targets.push(eh);
 			}
 		}
+	}
 
-		if (!found) {
-			logger.error(util.format('Failed to find a peer matching the url %s', peerUrl));
-		}
+	if (targets.length === 0) {
+		logger.error(util.format('Failed to find peers matching the names %s', names));
 	}
 
 	return targets;
@@ -170,12 +143,12 @@ var getClientForOrg = function(org) {
 	return clients[org];
 };
 
-var newPeers = function(urls) {
-	return newRemotes(urls, true);
+var newPeers = function(names, org) {
+	return newRemotes(names, true, org);
 };
 
-var newEventHubs = function(urls, org) {
-	return newRemotes(urls, false, org);
+var newEventHubs = function(names, org) {
+	return newRemotes(names, false, org);
 };
 
 var getMspID = function(org) {
@@ -184,7 +157,7 @@ var getMspID = function(org) {
 };
 
 var getAdminUser = function(userOrg) {
-	var users = config.users;
+	var users = hfc.getConfigSetting('admins');
 	var username = users[0].username;
 	var password = users[0].secret;
 	var member;
@@ -325,18 +298,13 @@ var getOrgAdmin = function(userOrg) {
 };
 
 var setupChaincodeDeploy = function() {
-	process.env.GOPATH = path.join(__dirname, config.GOPATH);
+	process.env.GOPATH = path.join(__dirname, hfc.getConfigSetting('CC_SRC_PATH'));
 };
 
 var getLogger = function(moduleName) {
 	var logger = log4js.getLogger(moduleName);
 	logger.setLevel('DEBUG');
 	return logger;
-};
-
-var getPeerAddressByName = function(org, peer) {
-	var address = ORGS[org][peer].requests;
-	return address.split('grpcs://')[1];
 };
 
 exports.getChannelForOrg = getChannelForOrg;
@@ -347,6 +315,5 @@ exports.getMspID = getMspID;
 exports.ORGS = ORGS;
 exports.newPeers = newPeers;
 exports.newEventHubs = newEventHubs;
-exports.getPeerAddressByName = getPeerAddressByName;
 exports.getRegisteredUsers = getRegisteredUsers;
 exports.getOrgAdmin = getOrgAdmin;
