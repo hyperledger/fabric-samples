@@ -43,7 +43,7 @@ function printHelp () {
   echo "      - 'restart' - restart the network"
   echo "      - 'generate' - generate required certificates and genesis block"
   echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
-  echo "    -t <timeout> - CLI timeout duration in microseconds (defaults to 10000)"
+  echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10000)"
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
   echo "    -f <docker-compose-file> - specify which docker-compose file use (defaults to docker-compose-cli.yaml)"
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
@@ -353,9 +353,9 @@ fi
 
   if [ "${IF_COUCHDB}" == "couchdb" ]; then
         echo
-        echo "${EXPMODE} with channel '${CHANNEL_NAME}' and CLI timeout of '${CLI_TIMEOUT}' using database '${IF_COUCHDB}'"
+        echo "${EXPMODE} with channel '${CHANNEL_NAME}' and CLI timeout of '${CLI_TIMEOUT}' seconds and CLI delay of '${CLI_DELAY}' seconds and using database '${IF_COUCHDB}'"
   else
-        echo "${EXPMODE} with channel '${CHANNEL_NAME}' and CLI timeout of '${CLI_TIMEOUT}'"
+        echo "${EXPMODE} with channel '${CHANNEL_NAME}' and CLI timeout of '${CLI_TIMEOUT}' seconds and CLI delay of '${CLI_DELAY}' seconds"
   fi
 # ask for confirmation to proceed
 askProceed
