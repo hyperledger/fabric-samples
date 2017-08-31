@@ -8,11 +8,10 @@ A sample Node.js app to demonstrate **__fabric-client__** & **__fabric-ca-client
 * [Docker Compose](https://docs.docker.com/compose/overview/) - v1.8 or higher
 * [Git client](https://git-scm.com/downloads) - needed for clone commands
 * **Node.js** v6.9.0 - 6.10.0 ( __Node v7+ is not supported__ )
-* Download docker images
+* [Download Docker images](http://hyperledger-fabric.readthedocs.io/en/latest/samples.html#binaries)
 
 ```
 cd fabric-samples/balance-transfer/
-docker-compose -f artifacts/docker-compose.yaml pull
 ```
 
 Once you have completed the above setup, you will have provisioned a local network with the following docker container configuration:
