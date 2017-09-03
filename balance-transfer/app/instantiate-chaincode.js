@@ -20,10 +20,8 @@ var util = require('util');
 var hfc = require('fabric-client');
 var Peer = require('fabric-client/lib/Peer.js');
 var EventHub = require('fabric-client/lib/EventHub.js');
-var config = require('../config.json');
 var helper = require('./helper.js');
 var logger = helper.getLogger('instantiate-chaincode');
-hfc.addConfigFile(path.join(__dirname, 'network-config.json'));
 var ORGS = hfc.getConfigSetting('network-config');
 var tx_id = null;
 var eh = null;
@@ -49,10 +47,13 @@ var instantiateChaincode = function(channelName, chaincodeName, chaincodeVersion
 		var request = {
 			chaincodeId: chaincodeName,
 			chaincodeVersion: chaincodeVersion,
-			fcn: functionName,
 			args: args,
 			txId: tx_id
 		};
+
+		if (functionName)
+			request.fcn = functionName;
+
 		return channel.sendInstantiateProposal(request);
 	}, (err) => {
 		logger.error('Failed to initialize the channel');
@@ -63,8 +64,8 @@ var instantiateChaincode = function(channelName, chaincodeName, chaincodeVersion
 		var all_good = true;
 		for (var i in proposalResponses) {
 			let one_good = false;
-			if (proposalResponses && proposalResponses[0].response &&
-				proposalResponses[0].response.status === 200) {
+			if (proposalResponses && proposalResponses[i].response &&
+				proposalResponses[i].response.status === 200) {
 				one_good = true;
 				logger.info('instantiate proposal was good');
 			} else {
@@ -88,12 +89,12 @@ var instantiateChaincode = function(channelName, chaincodeName, chaincodeVersion
 			var deployId = tx_id.getTransactionID();
 
 			eh = client.newEventHub();
-			let data = fs.readFileSync(path.join(__dirname, ORGS[org]['peer1'][
+			let data = fs.readFileSync(path.join(__dirname, ORGS[org].peers['peer1'][
 				'tls_cacerts'
 			]));
-			eh.setPeerAddr(ORGS[org]['peer1']['events'], {
+			eh.setPeerAddr(ORGS[org].peers['peer1']['events'], {
 				pem: Buffer.from(data).toString(),
-				'ssl-target-name-override': ORGS[org]['peer1']['server-hostname']
+				'ssl-target-name-override': ORGS[org].peers['peer1']['server-hostname']
 			});
 			eh.connect();
 
@@ -145,7 +146,7 @@ var instantiateChaincode = function(channelName, chaincodeName, chaincodeVersion
 	}).then((response) => {
 		if (response.status === 'SUCCESS') {
 			logger.info('Successfully sent transaction to the orderer.');
-			return 'Chaincode Instantiateion is SUCCESS';
+			return 'Chaincode Instantiation is SUCCESS';
 		} else {
 			logger.error('Failed to order the transaction. Error code: ' + response.status);
 			return 'Failed to order the transaction. Error code: ' + response.status;

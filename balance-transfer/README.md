@@ -8,11 +8,10 @@ A sample Node.js app to demonstrate **__fabric-client__** & **__fabric-ca-client
 * [Docker Compose](https://docs.docker.com/compose/overview/) - v1.8 or higher
 * [Git client](https://git-scm.com/downloads) - needed for clone commands
 * **Node.js** v6.9.0 - 6.10.0 ( __Node v7+ is not supported__ )
-* Download docker images
+* [Download Docker images](http://hyperledger-fabric.readthedocs.io/en/latest/samples.html#binaries)
 
 ```
-cd fabric-sdk-node/examples/balance-transfer/
-docker-compose -f artifacts/docker-compose.yaml pull
+cd fabric-samples/balance-transfer/
 ```
 
 Once you have completed the above setup, you will have provisioned a local network with the following docker container configuration:
@@ -40,7 +39,21 @@ docker-compose -f artifacts/docker-compose.yaml up
 ```
 ##### Terminal Window 2
 
-* Execute the REST APIs from the section [Sample REST APIs Requests](https://github.com/hyperledger/fabric-sdk-node/tree/master/examples/balance-transfer#running-the-sample-program)
+* Install the fabric-client and fabric-ca-client node modules
+
+```
+npm install
+```
+
+* Start the node app on PORT 4000
+
+```
+PORT=4000 node app
+```
+
+##### Terminal Window 3
+
+* Execute the REST APIs from the section [Sample REST APIs Requests](https://github.com/hyperledger/fabric-samples/tree/master/balance-transfer#sample-rest-apis-requests)
 
 
 ### Option 2:
@@ -48,7 +61,7 @@ docker-compose -f artifacts/docker-compose.yaml up
 ##### Terminal Window 1
 
 ```
-cd fabric-sdk-node/examples/balance-transfer
+cd fabric-samples/balance-transfer
 
 ./runApp.sh
 
@@ -67,7 +80,7 @@ instructions [https://stedolan.github.io/jq/](https://stedolan.github.io/jq/)
 
 With the application started in terminal 1, next, test the APIs by executing the script - **testAPIs.sh**:
 ```
-cd fabric-sdk-node/examples/balance-transfer
+cd fabric-samples/balance-transfer
 
 ./testAPIs.sh
 
@@ -117,7 +130,7 @@ curl -s -X POST \
   -H "authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0OTQ4NjU1OTEsInVzZXJuYW1lIjoiSmltIiwib3JnTmFtZSI6Im9yZzEiLCJpYXQiOjE0OTQ4NjE5OTF9.yWaJhFDuTvMQRaZIqg20Is5t-JJ_1BP58yrNLOKxtNI" \
   -H "content-type: application/json" \
   -d '{
-	"peers": ["localhost:7051","localhost:7056"]
+	"peers": ["peer1","peer2"]
 }'
 ```
 ### Install chaincode
@@ -128,7 +141,7 @@ curl -s -X POST \
   -H "authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0OTQ4NjU1OTEsInVzZXJuYW1lIjoiSmltIiwib3JnTmFtZSI6Im9yZzEiLCJpYXQiOjE0OTQ4NjE5OTF9.yWaJhFDuTvMQRaZIqg20Is5t-JJ_1BP58yrNLOKxtNI" \
   -H "content-type: application/json" \
   -d '{
-	"peers": ["localhost:7051","localhost:7056"],
+	"peers": ["peer1","peer2"],
 	"chaincodeName":"mycc",
 	"chaincodePath":"github.com/example_cc",
 	"chaincodeVersion":"v0"
@@ -143,10 +156,8 @@ curl -s -X POST \
   -H "authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0OTQ4NjU1OTEsInVzZXJuYW1lIjoiSmltIiwib3JnTmFtZSI6Im9yZzEiLCJpYXQiOjE0OTQ4NjE5OTF9.yWaJhFDuTvMQRaZIqg20Is5t-JJ_1BP58yrNLOKxtNI" \
   -H "content-type: application/json" \
   -d '{
-	"peers": ["localhost:7051"],
 	"chaincodeName":"mycc",
 	"chaincodeVersion":"v0",
-	"functionName":"init",
 	"args":["a","100","b","200"]
 }'
 ```
@@ -159,7 +170,6 @@ curl -s -X POST \
   -H "authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0OTQ4NjU1OTEsInVzZXJuYW1lIjoiSmltIiwib3JnTmFtZSI6Im9yZzEiLCJpYXQiOjE0OTQ4NjE5OTF9.yWaJhFDuTvMQRaZIqg20Is5t-JJ_1BP58yrNLOKxtNI" \
   -H "content-type: application/json" \
   -d '{
-	"peers": ["localhost:7051", "localhost:7056"],
 	"fcn":"move",
 	"args":["a","b","10"]
 }'
@@ -232,7 +242,7 @@ curl -s -X GET \
 
 ### Network configuration considerations
 
-You have the ability to change configuration parameters by editing the network-config.json file.
+You have the ability to change configuration parameters by either directly editing the network-config.json file or provide an additional file for an alternative target network. The app uses an optional environment variable "TARGET_NETWORK" to control the configuration files to use. For example, if you deployed the target network on Amazon Web Services EC2, you can add a file "network-config-aws.json", and set the "TARGET_NETWORK" environment to 'aws'. The app will pick up the settings inside the "network-config-aws.json" file.
 
 #### IP Address** and PORT information
 
