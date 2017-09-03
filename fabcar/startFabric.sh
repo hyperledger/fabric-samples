@@ -15,7 +15,7 @@ starttime=$(date +%s)
 if [ ! -d ~/.hfc-key-store/ ]; then
 	mkdir ~/.hfc-key-store/
 fi
-cp $PWD/creds/* ~/.hfc-key-store/
+cp "$PWD"/creds/* ~/.hfc-key-store/
 # launch network; create channel and join peer to channel
 cd ../basic-network
 ./start.sh
