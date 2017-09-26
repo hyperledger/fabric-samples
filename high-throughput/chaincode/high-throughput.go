@@ -12,7 +12,7 @@
  * of millions of rows of data.
  *
  * @author	Alexandre Pauwels for IBM
- * @created	17 Aug 2017 
+ * @created	17 Aug 2017
  */
 
 package main
@@ -22,8 +22,8 @@ package main
  * 2 specific Hyperledger Fabric specific libraries for Smart Contracts
  */
 import (
-	"strconv"
 	"fmt"
+	"strconv"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	sc "github.com/hyperledger/fabric/protos/peer"
@@ -35,8 +35,8 @@ type SmartContract struct {
 
 // Define Status codes for the response
 const (
-      OK = 200
-      ERROR = 500
+	OK    = 200
+	ERROR = 500
 )
 
 // Init is called when the smart contract is instantiated
@@ -76,7 +76,7 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 }
 
 /**
- * Updates the ledger to include a new delta for a particluar variable. If this is the first time
+ * Updates the ledger to include a new delta for a particular variable. If this is the first time
  * this variable is being added to the ledger, then its initial value is assumed to be 0. The arguments
  * to give in the args array are as follows:
  *	- args[0] -> name of the variable
@@ -110,7 +110,7 @@ func (s *SmartContract) update(APIstub shim.ChaincodeStubInterface, args []strin
 	// Retrieve info needed for the update procedure
 	txid := APIstub.GetTxID()
 	compositeIndexName := "varName~op~value~txID"
-	
+
 	// Create the composite key that will allow us to query for all deltas on a particular variable
 	compositeKey, compositeErr := APIstub.CreateCompositeKey(compositeIndexName, []string{name, op, args[1], txid})
 	if compositeErr != nil {
@@ -122,7 +122,7 @@ func (s *SmartContract) update(APIstub shim.ChaincodeStubInterface, args []strin
 	if compositePutErr != nil {
 		return shim.Error(fmt.Sprintf("Could not put operation for %s in the ledger: %s", name, compositePutErr.Error()))
 	}
-	
+
 	return shim.Success([]byte(fmt.Sprintf("Successfully added %s%s to %s", op, args[1], name)))
 }
 
@@ -175,7 +175,7 @@ func (s *SmartContract) get(APIstub shim.ChaincodeStubInterface, args []string) 
 		// Retrieve the delta value and operation
 		operation := keyParts[1]
 		valueStr := keyParts[2]
-		
+
 		// Convert the value string and perform the operation
 		value, convErr := strconv.ParseFloat(valueStr, 64)
 		if convErr != nil {
@@ -190,7 +190,7 @@ func (s *SmartContract) get(APIstub shim.ChaincodeStubInterface, args []string) 
 		default:
 			return shim.Error(fmt.Sprintf("Unrecognized operation %s", operation))
 		}
-	}	
+	}
 
 	return shim.Success([]byte(strconv.FormatFloat(finalVal, 'f', -1, 64)))
 }
@@ -248,7 +248,7 @@ func (s *SmartContract) pruneFast(APIstub shim.ChaincodeStubInterface, args []st
 		// Retrieve the operation and value
 		operation := keyParts[1]
 		valueStr := keyParts[2]
-		
+
 		// Convert the value to a float
 		value, convErr := strconv.ParseFloat(valueStr, 64)
 		if convErr != nil {
@@ -270,8 +270,8 @@ func (s *SmartContract) pruneFast(APIstub shim.ChaincodeStubInterface, args []st
 		default:
 			return shim.Error(fmt.Sprintf("Unrecognized operation %s", operation))
 		}
-	}	
-	
+	}
+
 	// Update the ledger with the final value and return
 	updateResp := s.update(APIstub, []string{name, strconv.FormatFloat(finalVal, 'f', -1, 64), "+"})
 	if updateResp.Status == OK {
@@ -339,8 +339,8 @@ func (s *SmartContract) pruneSafe(APIstub shim.ChaincodeStubInterface, args []st
 		if deltaRowDelErr != nil {
 			return shim.Error(fmt.Sprintf("Could not delete delta row: %s", deltaRowDelErr.Error()))
 		}
-	}	
-	
+	}
+
 	// Insert new row for the final value
 	updateResp := s.update(APIstub, []string{name, valueStr, "+"})
 	if updateResp.Status == ERROR {
@@ -427,7 +427,7 @@ func main() {
 	}
 }
 
-/** 
+/**
  * All functions below this are for testing traditional editing of a single row
  */
 func (s *SmartContract) putStandard(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
@@ -443,7 +443,7 @@ func (s *SmartContract) putStandard(APIstub shim.ChaincodeStubInterface, args []
 	if putErr != nil {
 		return shim.Error(fmt.Sprintf("Failed to put state: %s", putErr.Error()))
 	}
- 
+
 	return shim.Success(nil)
 }
 

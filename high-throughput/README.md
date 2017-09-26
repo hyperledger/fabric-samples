@@ -16,7 +16,7 @@ frequently added to or removed from. For example, with a bank or credit card acc
 of money in the account is the result of all of these additions and subtractions aggregated together. A typical person's bank account may not be
 used frequently enough to require highly-parallel throughput, but an organizational account used to store the money collected from customers on an
 e-commerce platform may very well receive a very high number of transactions from all over the world all at once. In fact, this use case is the only
-use case for cryptocurrencies like Bitcoin: a user's unspent transaction output (UTXO) is the result of all transactions he or she has been a part of
+use case for crypto currencies like Bitcoin: a user's unspent transaction output (UTXO) is the result of all transactions he or she has been a part of
 since joining the blockchain. Other use cases that can employ this technique might be IOT sensors which frequently update their sensed value in the
 cloud.
 
