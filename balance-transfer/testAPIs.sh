@@ -11,7 +11,46 @@ if [ $? -ne 0 ]; then
 	echo
 	exit 1
 fi
+
 starttime=$(date +%s)
+
+# Print the usage message
+function printHelp () {
+  echo "Usage: "
+  echo "  ./testAPIs.sh -l golang|node"
+  echo "    -l <language> - chaincode language (defaults to \"golang\")"
+}
+# Language defaults to "golang"
+LANGUAGE="golang"
+
+# Parse commandline args
+while getopts "h?l:" opt; do
+  case "$opt" in
+    h|\?)
+      printHelp
+      exit 0
+    ;;
+    l)  LANGUAGE=$OPTARG
+    ;;
+  esac
+done
+
+##set chaincode path
+function setChaincodePath(){
+	LANGUAGE=`echo "$LANGUAGE" | tr '[:upper:]' '[:lower:]'`
+	case "$LANGUAGE" in
+		"golang")
+		CC_SRC_PATH="github.com/example_cc/go"
+		;;
+		"node")
+		CC_SRC_PATH="$PWD/artifacts/src/github.com/example_cc/node"
+		;;
+		*) printf "\n ------ Language $LANGUAGE is not supported yet ------\n"$
+		exit 1
+	esac
+}
+
+setChaincodePath
 
 echo "POST request Enroll on Org1  ..."
 echo
@@ -79,15 +118,15 @@ curl -s -X POST \
   http://localhost:4000/chaincodes \
   -H "authorization: Bearer $ORG1_TOKEN" \
   -H "content-type: application/json" \
-  -d '{
-	"peers": ["peer1", "peer2"],
-	"chaincodeName":"mycc",
-	"chaincodePath":"github.com/example_cc",
-	"chaincodeVersion":"v0"
-}'
+  -d "{
+	\"peers\": [\"peer1\", \"peer2\"],
+	\"chaincodeName\":\"mycc\",
+	\"chaincodePath\":\"$CC_SRC_PATH\",
+	\"chaincodeType\": \"$LANGUAGE\",
+	\"chaincodeVersion\":\"v0\"
+}"
 echo
 echo
-
 
 echo "POST Install chaincode on Org2"
 echo
@@ -95,12 +134,13 @@ curl -s -X POST \
   http://localhost:4000/chaincodes \
   -H "authorization: Bearer $ORG2_TOKEN" \
   -H "content-type: application/json" \
-  -d '{
-	"peers": ["peer1","peer2"],
-	"chaincodeName":"mycc",
-	"chaincodePath":"github.com/example_cc",
-	"chaincodeVersion":"v0"
-}'
+  -d "{
+	\"peers\": [\"peer1\",\"peer2\"],
+	\"chaincodeName\":\"mycc\",
+	\"chaincodePath\":\"$CC_SRC_PATH\",
+	\"chaincodeType\": \"$LANGUAGE\",
+	\"chaincodeVersion\":\"v0\"
+}"
 echo
 echo
 
@@ -110,11 +150,12 @@ curl -s -X POST \
   http://localhost:4000/channels/mychannel/chaincodes \
   -H "authorization: Bearer $ORG1_TOKEN" \
   -H "content-type: application/json" \
-  -d '{
-	"chaincodeName":"mycc",
-	"chaincodeVersion":"v0",
-	"args":["a","100","b","200"]
-}'
+  -d "{
+	\"chaincodeName\":\"mycc\",
+	\"chaincodeVersion\":\"v0\",
+	\"chaincodeType\": \"$LANGUAGE\",
+	\"args\":[\"a\",\"100\",\"b\",\"200\"]
+}"
 echo
 echo
 

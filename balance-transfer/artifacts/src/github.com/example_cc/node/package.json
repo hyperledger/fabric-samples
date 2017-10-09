@@ -1,0 +1,15 @@
+{
+	"name": "example_cc",
+	"version": "1.0.0",
+	"description": "node-js version of example_02.go chaincode",
+	"engines": {
+		"node": ">=8.4.0",
+		"npm": ">=5.3.0"
+	},
+	"scripts": { "start" : "node example_cc.js" },
+	"engine-strict": true,
+	"license": "Apache-2.0",
+	"dependencies": {
+		"fabric-shim": "unstable"
+	}
+}
