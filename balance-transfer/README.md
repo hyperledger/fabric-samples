@@ -27,6 +27,7 @@ Once you have completed the above setup, you will have provisioned a local netwo
 ## Running the sample program
 
 There are two options available for running the balance-transfer sample
+For each of these options, you may choose to run with chaincode written in golang or in node.js.
 
 ### Option 1:
 
@@ -82,9 +83,15 @@ With the application started in terminal 1, next, test the APIs by executing the
 ```
 cd fabric-samples/balance-transfer
 
-./testAPIs.sh
+## To use golang chaincode execute the following command
 
+./testAPIs.sh -l golang
+
+## OR use node.js chaincode
+
+./testAPIs.sh -l node
 ```
+
 
 ## Sample REST APIs Requests
 
@@ -144,8 +151,24 @@ curl -s -X POST \
 	"peers": ["peer1","peer2"],
 	"chaincodeName":"mycc",
 	"chaincodePath":"github.com/example_cc",
+	"chaincodeType": "golang",
 	"chaincodeVersion":"v0"
 }'
+```
+**NOTE:** *chaincodeType* must be set to **node** when node.js chaincode is used and *chaincodePath* must be set to the location of the node.js chaincode.
+```
+ex:
+curl -s -X POST \
+  http://localhost:4000/chaincodes \
+  -H "authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE0OTQ4NjU1OTEsInVzZXJuYW1lIjoiSmltIiwib3JnTmFtZSI6Im9yZzEiLCJpYXQiOjE0OTQ4NjE5OTF9.yWaJhFDuTvMQRaZIqg20Is5t-JJ_1BP58yrNLOKxtNI" \
+  -H "content-type: application/json" \
+  -d "{
+	\"peers\": [\"peer1\",\"peer2\"],
+	\"chaincodeName\":\"mycc\",
+	\"chaincodePath\":\"$PWD/artifacts/src/github.com/example_cc/node\",
+	\"chaincodeType\": \"node\",
+	\"chaincodeVersion\":\"v0\"
+}"
 ```
 
 ### Instantiate chaincode
@@ -158,9 +181,11 @@ curl -s -X POST \
   -d '{
 	"chaincodeName":"mycc",
 	"chaincodeVersion":"v0",
+	"chaincodeType": "golang",
 	"args":["a","100","b","200"]
 }'
 ```
+**NOTE:** *chaincodeType* must be set to **node** when node.js chaincode is used
 
 ### Invoke request
 

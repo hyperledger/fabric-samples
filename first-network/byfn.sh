@@ -47,12 +47,14 @@ function printHelp () {
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
   echo "    -f <docker-compose-file> - specify which docker-compose file use (defaults to docker-compose-cli.yaml)"
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
+  echo "    -l <language> - the chaincode language: golang (default) or node"
   echo
   echo "Typically, one would first generate the required certificates and "
   echo "genesis block, then bring up the network. e.g.:"
   echo
   echo "	byfn.sh -m generate -c mychannel"
   echo "	byfn.sh -m up -c mychannel -s couchdb"
+  echo "	byfn.sh -m up -l node"
   echo "	byfn.sh -m down -c mychannel"
   echo
   echo "Taking all defaults:"
@@ -111,9 +113,9 @@ function networkUp () {
     generateChannelArtifacts
   fi
   if [ "${IF_COUCHDB}" == "couchdb" ]; then
-      CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=$CLI_TIMEOUT DELAY=$CLI_DELAY docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH up -d 2>&1
+      CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=$CLI_TIMEOUT DELAY=$CLI_DELAY LANG=$LANGUAGE docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH up -d 2>&1
   else
-      CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=$CLI_TIMEOUT DELAY=$CLI_DELAY docker-compose -f $COMPOSE_FILE up -d 2>&1
+      CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=$CLI_TIMEOUT DELAY=$CLI_DELAY LANG=$LANGUAGE docker-compose -f $COMPOSE_FILE up -d 2>&1
   fi
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to start network"
@@ -312,9 +314,10 @@ CHANNEL_NAME="mychannel"
 COMPOSE_FILE=docker-compose-cli.yaml
 #
 COMPOSE_FILE_COUCH=docker-compose-couch.yaml
-
+# use golang as the default language for chaincode
+LANGUAGE=golang
 # Parse commandline args
-while getopts "h?m:c:t:d:f:s:" opt; do
+while getopts "h?m:c:t:d:f:s:l:" opt; do
   case "$opt" in
     h|\?)
       printHelp
@@ -331,6 +334,8 @@ while getopts "h?m:c:t:d:f:s:" opt; do
     f)  COMPOSE_FILE=$OPTARG
     ;;
     s)  IF_COUCHDB=$OPTARG
+    ;;
+    l)  LANGUAGE=$OPTARG
     ;;
   esac
 done

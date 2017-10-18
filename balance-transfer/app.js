@@ -187,10 +187,12 @@ app.post('/chaincodes', function(req, res) {
 	var chaincodeName = req.body.chaincodeName;
 	var chaincodePath = req.body.chaincodePath;
 	var chaincodeVersion = req.body.chaincodeVersion;
+	var chaincodeType = req.body.chaincodeType;
 	logger.debug('peers : ' + peers); // target peers list
 	logger.debug('chaincodeName : ' + chaincodeName);
 	logger.debug('chaincodePath  : ' + chaincodePath);
 	logger.debug('chaincodeVersion  : ' + chaincodeVersion);
+	logger.debug('chaincodeType  : ' + chaincodeType);
 	if (!peers || peers.length == 0) {
 		res.json(getErrorMessage('\'peers\''));
 		return;
@@ -207,8 +209,11 @@ app.post('/chaincodes', function(req, res) {
 		res.json(getErrorMessage('\'chaincodeVersion\''));
 		return;
 	}
-
-	install.installChaincode(peers, chaincodeName, chaincodePath, chaincodeVersion, req.username, req.orgname)
+	if (!chaincodeType) {
+		res.json(getErrorMessage('\'chaincodeType\''));
+		return;
+	}
+	install.installChaincode(peers, chaincodeName, chaincodePath, chaincodeVersion, chaincodeType, req.username, req.orgname)
 	.then(function(message) {
 		res.send(message);
 	});
@@ -219,11 +224,13 @@ app.post('/channels/:channelName/chaincodes', function(req, res) {
 	var chaincodeName = req.body.chaincodeName;
 	var chaincodeVersion = req.body.chaincodeVersion;
 	var channelName = req.params.channelName;
+	var chaincodeType = req.body.chaincodeType;
 	var fcn = req.body.fcn;
 	var args = req.body.args;
 	logger.debug('channelName  : ' + channelName);
 	logger.debug('chaincodeName : ' + chaincodeName);
 	logger.debug('chaincodeVersion  : ' + chaincodeVersion);
+	logger.debug('chaincodeType  : ' + chaincodeType);
 	logger.debug('fcn  : ' + fcn);
 	logger.debug('args  : ' + args);
 	if (!chaincodeName) {
@@ -238,11 +245,15 @@ app.post('/channels/:channelName/chaincodes', function(req, res) {
 		res.json(getErrorMessage('\'channelName\''));
 		return;
 	}
+	if (!chaincodeType) {
+		res.json(getErrorMessage('\'chaincodeType\''));
+		return;
+	}
 	if (!args) {
 		res.json(getErrorMessage('\'args\''));
 		return;
 	}
-	instantiate.instantiateChaincode(channelName, chaincodeName, chaincodeVersion, fcn, args, req.username, req.orgname)
+	instantiate.instantiateChaincode(channelName, chaincodeName, chaincodeVersion, chaincodeType, fcn, args, req.username, req.orgname)
 	.then(function(message) {
 		res.send(message);
 	});

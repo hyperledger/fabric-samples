@@ -26,7 +26,8 @@ var ORGS = hfc.getConfigSetting('network-config');
 var tx_id = null;
 var eh = null;
 
-var instantiateChaincode = function(channelName, chaincodeName, chaincodeVersion, functionName, args, username, org) {
+var instantiateChaincode = function(channelName, chaincodeName, chaincodeVersion, functionName, chaincodeType,
+	args, username, org) {
 	logger.debug('\n============ Instantiate chaincode on organization ' + org +
 		' ============\n');
 
@@ -46,6 +47,7 @@ var instantiateChaincode = function(channelName, chaincodeName, chaincodeVersion
 		// send proposal to endorser
 		var request = {
 			chaincodeId: chaincodeName,
+			chaincodeType: chaincodeType,
 			chaincodeVersion: chaincodeVersion,
 			args: args,
 			txId: tx_id
