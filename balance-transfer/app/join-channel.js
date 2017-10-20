@@ -17,123 +17,144 @@ var util = require('util');
 var path = require('path');
 var fs = require('fs');
 
-var Peer = require('fabric-client/lib/Peer.js');
-var EventHub = require('fabric-client/lib/EventHub.js');
-var tx_id = null;
-var nonce = null;
-var config = require('../config.json');
 var helper = require('./helper.js');
 var logger = helper.getLogger('Join-Channel');
-//helper.hfc.addConfigFile(path.join(__dirname, 'network-config.json'));
-var ORGS = helper.ORGS;
-var allEventhubs = [];
 
-//
-//Attempt to send a request to the orderer with the sendCreateChain method
-//
-var joinChannel = function(channelName, peers, username, org) {
-	// on process exit, always disconnect the event hub
-	var closeConnections = function(isSuccess) {
-		if (isSuccess) {
-			logger.debug('\n============ Join Channel is SUCCESS ============\n');
-		} else {
-			logger.debug('\n!!!!!!!! ERROR: Join Channel FAILED !!!!!!!!\n');
+/*
+ * Have an organization join a channel
+ */
+var joinChannel = async function(channel_name, peers, username, org_name) {
+	logger.debug('\n\n============ Join Channel start ============\n')
+	var error_message = null;
+	var all_eventhubs = [];
+	try {
+		logger.info('Calling peers in organization "%s" to join the channel', org_name);
+
+		// first setup the client for this org
+		var client = await helper.getClientForOrg(org_name, username);
+		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
+		var channel = client.getChannel(channel_name);
+		if(!channel) {
+			let message = util.format('Channel %s was not defined in the connection profile', channel_name);
+			logger.error(message);
+			throw new Error(message);
 		}
-		logger.debug('');
-		for (var key in allEventhubs) {
-			var eventhub = allEventhubs[key];
-			if (eventhub && eventhub.isconnected()) {
-				//logger.debug('Disconnecting the event hub');
-				eventhub.disconnect();
-			}
-		}
-	};
-	//logger.debug('\n============ Join Channel ============\n')
-	logger.info(util.format(
-		'Calling peers in organization "%s" to join the channel', org));
 
-	var client = helper.getClientForOrg(org);
-	var channel = helper.getChannelForOrg(org);
-	var eventhubs = [];
-
-	return helper.getOrgAdmin(org).then((admin) => {
-		logger.info(util.format('received member object for admin of the organization "%s": ', org));
-		tx_id = client.newTransactionID();
+		// next step is to get the genesis_block from the orderer,
+		// the starting point for the channel that we want to join
 		let request = {
-			txId : 	tx_id
+			txId : 	client.newTransactionID(true) //get an admin based transactionID
 		};
+		let genesis_block = await channel.getGenesisBlock(request);
 
-		return channel.getGenesisBlock(request);
-	}).then((genesis_block) => {
-		tx_id = client.newTransactionID();
-		var request = {
-			targets: helper.newPeers(peers, org),
-			txId: tx_id,
-			block: genesis_block
-		};
-
-		eventhubs = helper.newEventHubs(peers, org);
-		for (let key in eventhubs) {
-			let eh = eventhubs[key];
-			eh.connect();
-			allEventhubs.push(eh);
-		}
-
-		var eventPromises = [];
-		eventhubs.forEach((eh) => {
-			let txPromise = new Promise((resolve, reject) => {
-				let handle = setTimeout(reject, parseInt(config.eventWaitTime));
-				eh.registerBlockEvent((block) => {
-					clearTimeout(handle);
-					// in real-world situations, a peer may have more than one channels so
-					// we must check that this block came from the channel we asked the peer to join
+		// tell each peer to join and wait for the event hub of each peer to tell us
+		// that the channel has been created on each peer
+		var promises = [];
+		var block_registration_numbers = [];
+		let event_hubs = client.getEventHubsForOrg(org_name);
+		event_hubs.forEach((eh) => {
+			let configBlockPromise = new Promise((resolve, reject) => {
+				let event_timeout = setTimeout(() => {
+					let message = 'REQUEST_TIMEOUT:' + eh._ep._endpoint.addr;
+					logger.error(message);
+					eh.disconnect();
+					reject(new Error(message));
+				}, 60000);
+				let block_registration_number = eh.registerBlockEvent((block) => {
+					clearTimeout(event_timeout);
+					// a peer may have more than one channel so
+					// we must check that this block came from the channel we
+					// asked the peer to join
 					if (block.data.data.length === 1) {
 						// Config block must only contain one transaction
 						var channel_header = block.data.data[0].payload.header.channel_header;
-						if (channel_header.channel_id === channelName) {
-							resolve();
-						}
-						else {
-							reject();
+						if (channel_header.channel_id === channel_name) {
+							let message = util.format('EventHub % has reported a block update for channel %s',eh._ep._endpoint.addr,channel_name);
+							logger.info(message)
+							resolve(message);
+						} else {
+							let message = util.format('Unknown channel block event received from %s',eh._ep._endpoint.addr);
+							logger.error(message);
+							reject(new Error(message));
 						}
 					}
+				}, (err) => {
+					clearTimeout(event_timeout);
+					let message = 'Problem setting up the event hub :'+ err.toString();
+					logger.error(message);
+					reject(new Error(message));
 				});
+				// save the registration handle so able to deregister
+				block_registration_numbers.push(block_registration_number);
+				all_eventhubs.push(eh); //save for later so that we can shut it down
 			});
-			eventPromises.push(txPromise);
+			promises.push(configBlockPromise);
+			eh.connect(); //this opens the event stream that must be shutdown at some point with a disconnect()
 		});
-		let sendPromise = channel.joinChannel(request);
-		return Promise.all([sendPromise].concat(eventPromises));
-	}, (err) => {
-		logger.error('Failed to enroll user \'' + username + '\' due to error: ' +
-			err.stack ? err.stack : err);
-		throw new Error('Failed to enroll user \'' + username +
-			'\' due to error: ' + err.stack ? err.stack : err);
-	}).then((results) => {
+
+		let join_request = {
+			targets: peers, //using the peer names which only is allowed when a connection profile is loaded
+			txId: client.newTransactionID(true), //get an admin based transactionID
+			block: genesis_block
+		};
+		let join_promise = channel.joinChannel(join_request);
+		promises.push(join_promise);
+		let results = await Promise.all(promises);
 		logger.debug(util.format('Join Channel R E S P O N S E : %j', results));
-		if (results[0] && results[0][0] && results[0][0].response && results[0][0]
-			.response.status == 200) {
-			logger.info(util.format(
-				'Successfully joined peers in organization %s to the channel \'%s\'',
-				org, channelName));
-			closeConnections(true);
-			let response = {
-				success: true,
-				message: util.format(
-					'Successfully joined peers in organization %s to the channel \'%s\'',
-					org, channelName)
-			};
-			return response;
-		} else {
-			logger.error(' Failed to join channel');
-			closeConnections();
-			throw new Error('Failed to join channel');
+
+		// lets check the results of sending to the peers which is
+		// last in the results array
+		let peers_results = results.pop();
+		// then each peer results
+		for(let i in peers_results) {
+			let peer_result = peers_results[i];
+			if(peer_result.response && peer_result.response.status == 200) {
+				logger.info('Successfully joined peer to the channel %s',channel_name);
+			} else {
+				let message = util.format('Failed to joined peer to the channel %s',channel_name);
+				error_message = message;
+				logger.error(message);
+			}
 		}
-	}, (err) => {
-		logger.error('Failed to join channel due to error: ' + err.stack ? err.stack :
-			err);
-		closeConnections();
-		throw new Error('Failed to join channel due to error: ' + err.stack ? err.stack :
-			err);
+		// now see what each of the event hubs reported
+		for(let i in results) {
+			let event_hub_result = results[i];
+			let event_hub = event_hubs[i];
+			let block_registration_number = block_registration_numbers[i];
+			logger.debug('Event results for event hub :%s',event_hub._ep._endpoint.addr);
+			if(typeof event_hub_result === 'string') {
+				logger.debug(event_hub_result);
+			} else {
+				if(!error_message) error_message = event_hub_result.toString();
+				logger.debug(event_hub_result.toString());
+			}
+			event_hub.unregisterBlockEvent(block_registration_number);
+		}
+	} catch(error) {
+		logger.error('Failed to join channel due to error: ' + error.stack ? error.stack : error);
+		error_message = error.toString();
+	}
+
+	// need to shutdown open event streams
+	all_eventhubs.forEach((eh) => {
+		eh.disconnect();
 	});
+
+	if (!error_message) {
+		let message = util.format(
+			'Successfully joined peers in organization %s to the channel:%s',
+			org_name, channel_name);
+		logger.info(message);
+		// build a response to send back to the REST caller
+		let response = {
+			success: true,
+			message: message
+		};
+		return response;
+	} else {
+		let message = util.format('Failed to join all peers to channel. cause:%s',error_message);
+		logger.error(message);
+		throw new Error(message);
+	}
 };
 exports.joinChannel = joinChannel;

@@ -18,32 +18,31 @@ var path = require('path');
 var fs = require('fs');
 var util = require('util');
 var hfc = require('fabric-client');
-var Peer = require('fabric-client/lib/Peer.js');
-var EventHub = require('fabric-client/lib/EventHub.js');
 var helper = require('./helper.js');
 var logger = helper.getLogger('instantiate-chaincode');
-var ORGS = hfc.getConfigSetting('network-config');
-var tx_id = null;
-var eh = null;
 
-var instantiateChaincode = function(channelName, chaincodeName, chaincodeVersion, functionName, chaincodeType,
-	args, username, org) {
-	logger.debug('\n============ Instantiate chaincode on organization ' + org +
+var instantiateChaincode = async function(channelName, chaincodeName, chaincodeVersion, functionName, chaincodeType, args, username, org_name) {
+	logger.debug('\n\n============ Instantiate chaincode on channel ' + channelName +
 		' ============\n');
+	var error_message = null;
+	var eventhubs_in_use = [];
+	try {
+		// first setup the client for this org
+		var client = await helper.getClientForOrg(org_name, username);
+		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
+		var channel = client.getChannel(channelName);
+		if(!channel) {
+			let message = util.format('Channel %s was not defined in the connection profile', channelName);
+			logger.error(message);
+			throw new Error(message);
+		}
+		var tx_id = client.newTransactionID(true); // Get an admin based transactionID
+		                                       // An admin based transactionID will
+		                                       // indicate that admin identity should
+		                                       // be used to sign the proposal request.
+		// will need the transaction ID string for the event registration later
+		var deployId = tx_id.getTransactionID();
 
-	var channel = helper.getChannelForOrg(org);
-	var client = helper.getClientForOrg(org);
-
-	return helper.getOrgAdmin(org).then((user) => {
-		// read the config block from the orderer for the channel
-		// and initialize the verify MSPs based on the participating
-		// organizations
-		return channel.initialize();
-	}, (err) => {
-		logger.error('Failed to enroll user \'' + username + '\'. ' + err);
-		throw new Error('Failed to enroll user \'' + username + '\'. ' + err);
-	}).then((success) => {
-		tx_id = client.newTransactionID();
 		// send proposal to endorser
 		var request = {
 			chaincodeId: chaincodeName,
@@ -56,13 +55,17 @@ var instantiateChaincode = function(channelName, chaincodeName, chaincodeVersion
 		if (functionName)
 			request.fcn = functionName;
 
-		return channel.sendInstantiateProposal(request);
-	}, (err) => {
-		logger.error('Failed to initialize the channel');
-		throw new Error('Failed to initialize the channel');
-	}).then((results) => {
+		let results = await channel.sendInstantiateProposal(request, 60000); //instantiate takes much longer
+
+		// the returned object has both the endorsement results
+		// and the actual proposal, the proposal will be needed
+		// later when we send a transaction to the orderer
 		var proposalResponses = results[0];
 		var proposal = results[1];
+
+		// lets have a look at the responses to see if they are
+		// all good, if good they will also include signatures
+		// required to be committed
 		var all_good = true;
 		for (var i in proposalResponses) {
 			let one_good = false;
@@ -75,89 +78,118 @@ var instantiateChaincode = function(channelName, chaincodeName, chaincodeVersion
 			}
 			all_good = all_good & one_good;
 		}
+
 		if (all_good) {
 			logger.info(util.format(
 				'Successfully sent Proposal and received ProposalResponse: Status - %s, message - "%s", metadata - "%s", endorsement signature: %s',
 				proposalResponses[0].response.status, proposalResponses[0].response.message,
 				proposalResponses[0].response.payload, proposalResponses[0].endorsement
 				.signature));
-			var request = {
+
+			// tell each peer to join and wait for the event hub of each peer to tell us
+			// that the channel has been created on each peer
+			var promises = [];
+			let event_hubs = client.getEventHubsForOrg(org_name);
+			logger.debug('found %s eventhubs for this organization %s',event_hubs.length, org_name);
+			event_hubs.forEach((eh) => {
+				let instantiateEventPromise = new Promise((resolve, reject) => {
+					logger.debug('instantiateEventPromise - setting up event');
+					let event_timeout = setTimeout(() => {
+						let message = 'REQUEST_TIMEOUT:' + eh._ep._endpoint.addr;
+						logger.error(message);
+						eh.disconnect();
+						reject(new Error(message));
+					}, 60000);
+					eh.registerTxEvent(deployId, (tx, code) => {
+						logger.info('The chaincode instantiate transaction has been committed on peer %s',eh._ep._endpoint.addr);
+						clearTimeout(event_timeout);
+						eh.unregisterTxEvent(deployId);
+
+						if (code !== 'VALID') {
+							let message = until.format('The chaincode instantiate transaction was invalid, code:%s',code);
+							logger.error(message);
+							reject(new Error(message));
+						} else {
+							let message = 'The chaincode instantiate transaction was valid.';
+							logger.info(message);
+							resolve(message);
+						}
+					}, (err) => {
+						clearTimeout(event_timeout);
+						eh.unregisterTxEvent(deployId);
+						let message = 'Problem setting up the event hub :'+ err.toString();
+						logger.error(message);
+						reject(new Error(message));
+					});
+				});
+				promises.push(instantiateEventPromise);
+				eh.connect();
+				eventhubs_in_use.push(eh);
+			});
+
+			var orderer_request = {
+				txId: tx_id, //must includethe transaction id so that the outbound
+				             // transaction to the orderer will be signed by the admin
+							 // id as was the proposal above, notice that transactionID
+							 // generated above was based on the admin id not userContext.
 				proposalResponses: proposalResponses,
 				proposal: proposal
 			};
-			// set the transaction listener and set a timeout of 30sec
-			// if the transaction did not get committed within the timeout period,
-			// fail the test
-			var deployId = tx_id.getTransactionID();
+			var sendPromise = channel.sendTransaction(orderer_request);
+			// put the send to the orderer last so that the events get registered and
+			// are ready for the orderering and committing
+			promises.push(sendPromise);
+			let results = await Promise.all(promises);
+			logger.debug(util.format('------->>> R E S P O N S E : %j', results));
+			let response = results.pop(); //  orderer results are last in the results
+			if (response.status === 'SUCCESS') {
+				logger.info('Successfully sent transaction to the orderer.');
+			} else {
+				error_message = util.format('Failed to order the transaction. Error code: %s',response.status);
+				logger.debug(error_message);
+			}
 
-			eh = client.newEventHub();
-			let data = fs.readFileSync(path.join(__dirname, ORGS[org].peers['peer1'][
-				'tls_cacerts'
-			]));
-			eh.setPeerAddr(ORGS[org].peers['peer1']['events'], {
-				pem: Buffer.from(data).toString(),
-				'ssl-target-name-override': ORGS[org].peers['peer1']['server-hostname']
-			});
-			eh.connect();
-
-			let txPromise = new Promise((resolve, reject) => {
-				let handle = setTimeout(() => {
-					eh.disconnect();
-					reject();
-				}, 30000);
-
-				eh.registerTxEvent(deployId, (tx, code) => {
-					logger.info(
-						'The chaincode instantiate transaction has been committed on peer ' +
-						eh._ep._endpoint.addr);
-					clearTimeout(handle);
-					eh.unregisterTxEvent(deployId);
-					eh.disconnect();
-
-					if (code !== 'VALID') {
-						logger.error('The chaincode instantiate transaction was invalid, code = ' + code);
-						reject();
-					} else {
-						logger.info('The chaincode instantiate transaction was valid.');
-						resolve();
-					}
-				});
-			});
-
-			var sendPromise = channel.sendTransaction(request);
-			return Promise.all([sendPromise].concat([txPromise])).then((results) => {
-				logger.debug('Event promise all complete and testing complete');
-				return results[0]; // the first returned value is from the 'sendPromise' which is from the 'sendTransaction()' call
-			}).catch((err) => {
-				logger.error(
-					util.format('Failed to send instantiate transaction and get notifications within the timeout period. %s', err)
-				);
-				return 'Failed to send instantiate transaction and get notifications within the timeout period.';
-			});
+			// now see what each of the event hubs reported
+			for(let i in results) {
+				let event_hub_result = results[i];
+				let event_hub = event_hubs[i];
+				logger.debug('Event results for event hub :%s',event_hub._ep._endpoint.addr);
+				if(typeof event_hub_result === 'string') {
+					logger.debug(event_hub_result);
+				} else {
+					if(!error_message) error_message = event_hub_result.toString();
+					logger.debug(event_hub_result.toString());
+				}
+			}
 		} else {
-			logger.error(
-				'Failed to send instantiate Proposal or receive valid response. Response null or status is not 200. exiting...'
-			);
-			return 'Failed to send instantiate Proposal or receive valid response. Response null or status is not 200. exiting...';
+			error_message = util.format('Failed to send Proposal and receive all good ProposalResponse');
+			logger.debug(error_message);
 		}
-	}, (err) => {
-		logger.error('Failed to send instantiate proposal due to error: ' + err.stack ?
-			err.stack : err);
-		return 'Failed to send instantiate proposal due to error: ' + err.stack ?
-			err.stack : err;
-	}).then((response) => {
-		if (response.status === 'SUCCESS') {
-			logger.info('Successfully sent transaction to the orderer.');
-			return 'Chaincode Instantiation is SUCCESS';
-		} else {
-			logger.error('Failed to order the transaction. Error code: ' + response.status);
-			return 'Failed to order the transaction. Error code: ' + response.status;
-		}
-	}, (err) => {
-		logger.error('Failed to send instantiate due to error: ' + err.stack ? err
-			.stack : err);
-		return 'Failed to send instantiate due to error: ' + err.stack ? err.stack :
-			err;
+	} catch (error) {
+		logger.error('Failed to send instantiate due to error: ' + error.stack ? error.stack : error);
+		error_message = error.toString();
+	}
+
+	// need to shutdown open event streams
+	eventhubs_in_use.forEach((eh) => {
+		eh.disconnect();
 	});
+
+	if (!error_message) {
+		let message = util.format(
+			'Successfully instantiate chaingcode in organization %s to the channel \'%s\'',
+			org_name, channelName);
+		logger.info(message);
+		// build a response to send back to the REST caller
+		let response = {
+			success: true,
+			message: message
+		};
+		return response;
+	} else {
+		let message = util.format('Failed to instantiate. cause:%s',error_message);
+		logger.error(message);
+		throw new Error(message);
+	}
 };
 exports.instantiateChaincode = instantiateChaincode;

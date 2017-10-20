@@ -22,29 +22,36 @@ var helper = require('./helper.js');
 var logger = helper.getLogger('install-chaincode');
 var tx_id = null;
 
-var installChaincode = function(peers, chaincodeName, chaincodePath,
-	chaincodeVersion, chaincodeType, username, org) {
-	logger.debug(
-		'\n============ Install chaincode on organizations ============\n');
+var installChaincode = async function(peers, chaincodeName, chaincodePath,
+	chaincodeVersion, chaincodeType, username, org_name) {
+	logger.debug('\n\n============ Install chaincode on organizations ============\n');
 	helper.setupChaincodeDeploy();
-	var channel = helper.getChannelForOrg(org);
-	var client = helper.getClientForOrg(org);
+	let error_message = null;
+	try {
+		logger.info('Calling peers in organization "%s" to join the channel', org_name);
 
-	return helper.getOrgAdmin(org).then((user) => {
+		// first setup the client for this org
+		var client = await helper.getClientForOrg(org_name, username);
+		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
+
+		tx_id = client.newTransactionID(true); //get an admin transactionID
 		var request = {
-			targets: helper.newPeers(peers, org),
+			targets: peers,
 			chaincodePath: chaincodePath,
 			chaincodeId: chaincodeName,
 			chaincodeVersion: chaincodeVersion,
 			chaincodeType: chaincodeType
 		};
-		return client.installChaincode(request);
-	}, (err) => {
-		logger.error('Failed to enroll user \'' + username + '\'. ' + err);
-		throw new Error('Failed to enroll user \'' + username + '\'. ' + err);
-	}).then((results) => {
+		let results = await client.installChaincode(request);
+		// the returned object has both the endorsement results
+		// and the actual proposal, the proposal will be needed
+		// later when we send a transaction to the orederer
 		var proposalResponses = results[0];
 		var proposal = results[1];
+
+		// lets have a look at the responses to see if they are
+		// all good, if good they will also include signatures
+		// required to be committed
 		var all_good = true;
 		for (var i in proposalResponses) {
 			let one_good = false;
@@ -53,28 +60,34 @@ var installChaincode = function(peers, chaincodeName, chaincodePath,
 				one_good = true;
 				logger.info('install proposal was good');
 			} else {
-				logger.error('install proposal was bad');
+				logger.error('install proposal was bad %j',proposalResponses.toJSON());
 			}
 			all_good = all_good & one_good;
 		}
 		if (all_good) {
-			logger.info(util.format(
-				'Successfully sent install Proposal and received ProposalResponse: Status - %s',
-				proposalResponses[0].response.status));
-			logger.debug('\nSuccessfully Installed chaincode on organization ' + org +
-				'\n');
-			return 'Successfully Installed chaincode on organization ' + org;
+			logger.info('Successfully sent install Proposal and received ProposalResponse');
 		} else {
-			logger.error(
-				'Failed to send install Proposal or receive valid response. Response null or status is not 200. exiting...'
-			);
-			return 'Failed to send install Proposal or receive valid response. Response null or status is not 200. exiting...';
+			error_message = 'Failed to send install Proposal or receive valid response. Response null or status is not 200'
+			logger.error(error_message);
 		}
-	}, (err) => {
-		logger.error('Failed to send install proposal due to error: ' + err.stack ?
-			err.stack : err);
-		throw new Error('Failed to send install proposal due to error: ' + err.stack ?
-			err.stack : err);
-	});
+	} catch(error) {
+		logger.error('Failed to install due to error: ' + error.stack ? error.stack : error);
+		error_message = error.toString();
+	}
+
+	if (!error_message) {
+		let message = util.format('Successfully install chaincode');
+		logger.info(message);
+		// build a response to send back to the REST caller
+		let response = {
+			success: true,
+			message: message
+		};
+		return response;
+	} else {
+		let message = util.format('Failed to install due to:%s',error_message);
+		logger.error(message);
+		throw new Error(message);
+	}
 };
 exports.installChaincode = installChaincode;
