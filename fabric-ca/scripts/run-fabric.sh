@@ -13,9 +13,9 @@ function main {
 
    done=false
 
-   # Wait for setup to complete and then wait another 5 seconds for the orderer and peers to start
-   awaitSetup 10
-   sleep 5
+   # Wait for setup to complete and then wait another 10 seconds for the orderer and peers to start
+   awaitSetup
+   sleep 10
 
    trap finish EXIT
 
