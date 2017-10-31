@@ -67,7 +67,7 @@ The intermediate CA certificate is also written to the *data* directory.
 3. The *setup* container registers identities with the intermediate CAs,
 generates the genesis block, and other artifacts needed to setup the
 blockchain network.  This is performed by the
-*fabric-samples/fabric-ca/scripts/run-fabric.sh* script.  Note that the
+*fabric-samples/fabric-ca/scripts/setup-fabric.sh* script.  Note that the
 admin identity is registered with **abac.init=true:ecert**
 (see the *registerPeerIdentities* function of this script).  This causes
 the admin's enrollment certificate (ECert) to have an attribute named "abac.init"
