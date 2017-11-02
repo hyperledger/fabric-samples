@@ -7,8 +7,8 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "dependencies": {
-        "fabric-ca-client": "^1.0.2",
-        "fabric-client": "^1.0.2",
+        "fabric-ca-client": "unstable",
+        "fabric-client": "unstable",
         "grpc": "^1.6.0"
     },
     "author": "Anthony O'Dowd",
