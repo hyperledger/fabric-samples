@@ -204,6 +204,9 @@ function generateCerts (){
   echo "##### Generate certificates using cryptogen tool #########"
   echo "##########################################################"
 
+  if [ -d "crypto-config" ]; then
+    rm -Rf crypto-config
+  fi
   cryptogen generate --config=./crypto-config.yaml
   if [ "$?" -ne 0 ]; then
     echo "Failed to generate certificates..."
