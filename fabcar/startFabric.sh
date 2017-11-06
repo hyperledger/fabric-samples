@@ -16,6 +16,9 @@ if [ "$LANGUAGE" = "node" -o "$LANGUAGE" = "NODE" ]; then
 	CC_SRC_PATH=/opt/gopath/src/github.com/fabcar/node
 fi
 
+# clean the keystore
+rm -rf ./hfc-key-store
+
 # launch network; create channel and join peer to channel
 cd ../basic-network
 ./start.sh
