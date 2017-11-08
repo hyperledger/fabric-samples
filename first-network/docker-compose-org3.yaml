@@ -1,0 +1,83 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+
+networks:
+  byfn:
+
+services:
+
+  peer0.org3.example.com:
+    container_name: peer0.org3.example.com
+    extends:
+      file: base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.org3.example.com
+      - CORE_PEER_ADDRESS=peer0.org3.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org3.example.com:7051
+      - CORE_PEER_LOCALMSPID=Org3MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./org3-artifacts/crypto-config/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp:/etc/hyperledger/fabric/msp
+        - ./org3-artifacts/crypto-config/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 11051:7051
+      - 11053:7053
+    networks:
+      - byfn
+
+  peer1.org3.example.com:
+    container_name: peer1.org3.example.com
+    extends:
+      file: base/peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.org3.example.com
+      - CORE_PEER_ADDRESS=peer1.org3.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org3.example.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org3.example.com:7051
+      - CORE_PEER_LOCALMSPID=Org3MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./org3-artifacts/crypto-config/peerOrganizations/org3.example.com/peers/peer1.org3.example.com/msp:/etc/hyperledger/fabric/msp
+        - ./org3-artifacts/crypto-config/peerOrganizations/org3.example.com/peers/peer1.org3.example.com/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 12051:7051
+      - 12053:7053
+    networks:
+      - byfn
+
+
+  Org3cli:
+    container_name: Org3cli
+    image: hyperledger/fabric-tools
+    tty: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_LOGGING_LEVEL=DEBUG
+      - CORE_PEER_ID=Org3cli
+      - CORE_PEER_ADDRESS=peer0.org3.example.com:7051
+      - CORE_PEER_LOCALMSPID=Org3MSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash -c 'sleep 10000'
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./../chaincode/:/opt/gopath/src/github.com/chaincode
+        - ./org3-artifacts/crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+    depends_on:
+      - peer0.org3.example.com
+      - peer1.org3.example.com
+    networks:
+      - byfn
