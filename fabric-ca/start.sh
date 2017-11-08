@@ -46,10 +46,10 @@ log "Creating docker containers ..."
 docker-compose up -d
 
 # Wait for the setup container to complete
-dowait "the 'setup' container to finish registering identities, creating the genesis block and other artifacts" 10 $SDIR/$SETUP_LOGFILE $SDIR/$SETUP_SUCCESS_FILE
+dowait "the 'setup' container to finish registering identities, creating the genesis block and other artifacts" 90 $SDIR/$SETUP_LOGFILE $SDIR/$SETUP_SUCCESS_FILE
 
 # Wait for the run container to start and then tails it's summary log
-dowait "the docker 'run' container to start" 15 ${SDIR}/${SETUP_LOGFILE} ${SDIR}/${RUN_SUMFILE}
+dowait "the docker 'run' container to start" 60 ${SDIR}/${SETUP_LOGFILE} ${SDIR}/${RUN_SUMFILE}
 tail -f ${SDIR}/${RUN_SUMFILE}&
 TAIL_PID=$!
 

@@ -12,7 +12,6 @@
 #
 
 function main {
-   sleep 1
    log "Beginning building channel artifacts ..."
    registerIdentities
    getCACerts
@@ -22,9 +21,9 @@ function main {
    touch /$SETUP_SUCCESS_FILE
 }
 
-# Enroll as the CA admin
+# Enroll the CA administrator
 function enrollCAAdmin {
-   dowait "$CA_NAME to start" 10 $CA_LOGFILE $CA_CHAINFILE
+   waitPort "$CA_NAME to start" 90 $CA_LOGFILE $CA_HOST 7054
    log "Enrolling with $CA_NAME as bootstrap identity ..."
    export FABRIC_CA_CLIENT_HOME=$HOME/cas/$CA_NAME
    export FABRIC_CA_CLIENT_TLS_CERTFILES=$CA_CHAINFILE

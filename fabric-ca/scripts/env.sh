@@ -50,7 +50,10 @@ CHANNEL_NAME=mychannel
 # Query timeout in seconds
 QUERY_TIMEOUT=15
 
-# Log directory 
+# Setup timeout in seconds (for setup container to complete)
+SETUP_TIMEOUT=120
+
+# Log directory
 LOGDIR=$DATA/logs
 LOGPATH=/$LOGDIR
 
@@ -208,7 +211,7 @@ function initPeerVars {
 # Switch to the current org's admin identity.  Enroll if not previously enrolled.
 function switchToAdminIdentity {
    if [ ! -d $ORG_ADMIN_HOME ]; then
-      dowait "$CA_NAME to start" 10 $CA_LOGFILE $CA_CHAINFILE
+      dowait "$CA_NAME to start" 60 $CA_LOGFILE $CA_CHAINFILE
       log "Enrolling admin '$ADMIN_NAME' with $CA_HOST ..."
       export FABRIC_CA_CLIENT_HOME=$ORG_ADMIN_HOME
       export FABRIC_CA_CLIENT_TLS_CERTFILES=$CA_CHAINFILE
@@ -229,7 +232,7 @@ function switchToUserIdentity {
    export FABRIC_CA_CLIENT_HOME=/etc/hyperledger/fabric/orgs/$ORG/user
    export CORE_PEER_MSPCONFIGPATH=$FABRIC_CA_CLIENT_HOME/msp
    if [ ! -d $FABRIC_CA_CLIENT_HOME ]; then
-      dowait "$CA_NAME to start" 10 $CA_LOGFILE $CA_CHAINFILE
+      dowait "$CA_NAME to start" 60 $CA_LOGFILE $CA_CHAINFILE
       log "Enrolling user for organization $ORG with home directory $FABRIC_CA_CLIENT_HOME ..."
       export FABRIC_CA_CLIENT_TLS_CERTFILES=$CA_CHAINFILE
       fabric-ca-client enroll -d -u https://$USER_NAME:$USER_PASS@$CA_HOST:7054
@@ -251,7 +254,7 @@ function copyAdminCert {
    if $ADMINCERTS; then
       dstDir=$1/admincerts
       mkdir -p $dstDir
-      dowait "$ORG administator to enroll" 10 $SETUP_LOGFILE $ORG_ADMIN_CERT
+      dowait "$ORG administator to enroll" 60 $SETUP_LOGFILE $ORG_ADMIN_CERT
       cp $ORG_ADMIN_CERT $dstDir
    fi
 }
@@ -273,7 +276,7 @@ function finishMSPSetup {
 }
 
 function awaitSetup {
-   dowait "the 'setup' container to finish registering identities, creating the genesis block and other artifacts" $1 $SETUP_LOGFILE /$SETUP_SUCCESS_FILE
+   dowait "the 'setup' container to finish registering identities, creating the genesis block and other artifacts" $SETUP_TIMEOUT $SETUP_LOGFILE /$SETUP_SUCCESS_FILE
 }
 
 # Wait for one or more files to exist
@@ -304,6 +307,36 @@ function dowait {
    done
    echo ""
 }
+
+# Wait for a process to begin to listen on a particular host and port
+# Usage: waitPort <what> <timeoutInSecs> <errorLogFile> <host> <port>
+function waitPort {
+   set +e
+   local what=$1
+   local secs=$2
+   local logFile=$3
+   local host=$4
+   local port=$5
+   nc -z $host $port > /dev/null 2>&1
+   if [ $? -ne 0 ]; then
+      log -n "Waiting for $what ..."
+      local starttime=$(date +%s)
+      while true; do
+         sleep 1
+         nc -z $host $port > /dev/null 2>&1
+         if [ $? -eq 0 ]; then
+            break
+         fi
+         if [ "$(($(date +%s)-starttime))" -gt "$secs" ]; then
+            fatal "Failed waiting for $what; see $logFile"
+         fi
+         echo -n "."
+      done
+      echo ""
+   fi
+   set -e
+}
+
 
 # log a message
 function log {
