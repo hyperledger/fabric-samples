@@ -8,6 +8,7 @@
 set -e
 
 # Shut down the Docker containers for the system tests.
+docker rm -f $(docker ps -f name=dev-peer* -q) 
 docker-compose -f docker-compose.yml kill && docker-compose -f docker-compose.yml down
 
 # remove the local state
