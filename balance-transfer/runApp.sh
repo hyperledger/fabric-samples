@@ -30,9 +30,8 @@ function dkrm(){
 function restartNetwork() {
 	echo
 
-        #teardown the network and clean the containers and intermediate images
-	cd artifacts
-	docker-compose down
+  #teardown the network and clean the containers and intermediate images
+	docker-compose -f ./artifacts/docker-compose.yaml down
 	dkcl
 	dkrm
 
@@ -40,8 +39,7 @@ function restartNetwork() {
 	rm -rf ./fabric-client-kv-org*
 
 	#Start the network
-	docker-compose up -d
-	cd -
+	docker-compose -f ./artifacts/docker-compose.yaml up -d
 	echo
 }
 
