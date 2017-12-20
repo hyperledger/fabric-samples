@@ -1,0 +1,37 @@
+{
+  "name": "balance-transfer-typescript",
+  "version": "0.1.0",
+  "description": "The balance transfer sample written using typescript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kapil Sachdeva",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/body-parser": "^1.16.5",
+    "@types/cors": "^2.8.1",
+    "@types/express-jwt": "0.0.37",
+    "@types/express-session": "^1.15.3",
+    "@types/jsonwebtoken": "^7.2.3",
+    "@types/log4js": "0.0.33",
+    "@types/node": "^8.0.33",
+    "express-bearer-token": "^2.1.0",
+    "jsonwebtoken": "^8.1.0",
+    "ts-node": "^3.3.0",
+    "tslint": "^5.6.0",
+    "tslint-microsoft-contrib": "^5.0.1",
+    "typescript": "^2.5.3"
+  },
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.4",
+    "express": "^4.16.1",
+    "express-jwt": "^5.3.0",
+    "express-session": "^1.15.6",
+    "fabric-ca-client": "^1.0.2",
+    "fabric-client": "^1.0.2",
+    "log4js": "^0.6.38"
+  }
+}
