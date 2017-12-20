@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #
 # Copyright IBM Corp All Rights Reserved
 #
@@ -35,15 +34,15 @@ export FABRIC_CFG_PATH=${PWD}
 # Print the usage message
 function printHelp () {
   echo "Usage: "
-  echo "  byfn.sh -m up|down|restart|generate [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>]"
+  echo "  byfn.sh up|down|restart|generate [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>]"
   echo "  byfn.sh -h|--help (print this message)"
-  echo "    -m <mode> - one of 'up', 'down', 'restart' or 'generate'"
+  echo "    <mode> - one of 'up', 'down', 'restart' or 'generate'"
   echo "      - 'up' - bring up the network with docker-compose up"
   echo "      - 'down' - clear the network with docker-compose down"
   echo "      - 'restart' - restart the network"
   echo "      - 'generate' - generate required certificates and genesis block"
   echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
-  echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10000)"
+  echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10)"
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
   echo "    -f <docker-compose-file> - specify which docker-compose file use (defaults to docker-compose-cli.yaml)"
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
@@ -52,22 +51,22 @@ function printHelp () {
   echo "Typically, one would first generate the required certificates and "
   echo "genesis block, then bring up the network. e.g.:"
   echo
-  echo "	byfn.sh -m generate -c mychannel"
-  echo "	byfn.sh -m up -c mychannel -s couchdb"
-  echo "	byfn.sh -m up -l node"
-  echo "	byfn.sh -m down -c mychannel"
+  echo "	byfn.sh generate -c mychannel"
+  echo "	byfn.sh up -c mychannel -s couchdb"
+  echo "	byfn.sh up -l node"
+  echo "	byfn.sh down -c mychannel"
   echo
   echo "Taking all defaults:"
-  echo "	byfn.sh -m generate"
-  echo "	byfn.sh -m up"
-  echo "	byfn.sh -m down"
+  echo "	byfn.sh generate"
+  echo "	byfn.sh up"
+  echo "	byfn.sh down"
 }
 
 # Ask user for confirmation to proceed
 function askProceed () {
-  read -p "Continue (y/n)? " ans
+  read -p "Continue? [Y/n] " ans
   case "$ans" in
-    y|Y )
+    y|Y|"" )
       echo "proceeding ..."
     ;;
     n|N )
@@ -113,16 +112,20 @@ function networkUp () {
     generateChannelArtifacts
   fi
   if [ "${IF_COUCHDB}" == "couchdb" ]; then
-      CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=$CLI_TIMEOUT DELAY=$CLI_DELAY LANG=$LANGUAGE docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH up -d 2>&1
+      docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH up -d 2>&1
   else
-      CHANNEL_NAME=$CHANNEL_NAME TIMEOUT=$CLI_TIMEOUT DELAY=$CLI_DELAY LANG=$LANGUAGE docker-compose -f $COMPOSE_FILE up -d 2>&1
+      docker-compose -f $COMPOSE_FILE up -d 2>&1
   fi
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to start network"
-    docker logs -f cli
     exit 1
   fi
-  docker logs -f cli
+  # now run the end to end script
+  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT
+  if [ $? -ne 0 ]; then
+    echo "ERROR !!!! Test failed"
+    exit 1
+  fi
 }
 
 # Tear down running network
@@ -309,7 +312,7 @@ OS_ARCH=$(echo "$(uname -s|tr '[:upper:]' '[:lower:]'|sed 's/mingw64_nt.*/window
 # timeout duration - the duration the CLI should wait for a response from
 # another container before giving up
 CLI_TIMEOUT=10
-#default for delay
+# default for delay between commands
 CLI_DELAY=3
 # channel name defaults to "mychannel"
 CHANNEL_NAME="mychannel"
@@ -320,13 +323,29 @@ COMPOSE_FILE_COUCH=docker-compose-couch.yaml
 # use golang as the default language for chaincode
 LANGUAGE=golang
 # Parse commandline args
-while getopts "h?m:c:t:d:f:s:l:" opt; do
+if [ "$1" = "-m" ];then	# supports old usage, muscle memory is powerful!
+    shift
+fi
+MODE=$1;shift
+# Determine whether starting, stopping, restarting or generating for announce
+if [ "$MODE" == "up" ]; then
+  EXPMODE="Starting"
+elif [ "$MODE" == "down" ]; then
+  EXPMODE="Stopping"
+elif [ "$MODE" == "restart" ]; then
+  EXPMODE="Restarting"
+elif [ "$MODE" == "generate" ]; then
+  EXPMODE="Generating certs and genesis block for"
+else
+  printHelp
+  exit 1
+fi
+
+while getopts "h?c:t:d:f:s:l:a?" opt; do
   case "$opt" in
     h|\?)
       printHelp
       exit 0
-    ;;
-    m)  MODE=$OPTARG
     ;;
     c)  CHANNEL_NAME=$OPTARG
     ;;
@@ -343,20 +362,6 @@ while getopts "h?m:c:t:d:f:s:l:" opt; do
   esac
 done
 
-# Determine whether starting, stopping, restarting or generating for announce
-if [ "$MODE" == "up" ]; then
-  EXPMODE="Starting"
-  elif [ "$MODE" == "down" ]; then
-  EXPMODE="Stopping"
-  elif [ "$MODE" == "restart" ]; then
-  EXPMODE="Restarting"
-  elif [ "$MODE" == "generate" ]; then
-  EXPMODE="Generating certs and genesis block for"
-else
-  printHelp
-  exit 1
-fi
-
 # Announce what was requested
 
   if [ "${IF_COUCHDB}" == "couchdb" ]; then
@@ -371,13 +376,13 @@ askProceed
 #Create the network using docker compose
 if [ "${MODE}" == "up" ]; then
   networkUp
-  elif [ "${MODE}" == "down" ]; then ## Clear the network
+elif [ "${MODE}" == "down" ]; then ## Clear the network
   networkDown
-  elif [ "${MODE}" == "generate" ]; then ## Generate Artifacts
+elif [ "${MODE}" == "generate" ]; then ## Generate Artifacts
   generateCerts
   replacePrivateKey
   generateChannelArtifacts
-  elif [ "${MODE}" == "restart" ]; then ## Restart the network
+elif [ "${MODE}" == "restart" ]; then ## Restart the network
   networkDown
   networkUp
 else
