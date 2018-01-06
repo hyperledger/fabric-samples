@@ -100,7 +100,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 						eh.unregisterTxEvent(tx_id_string);
 
 						if (code !== 'VALID') {
-							let message = until.format('The invoke chaincode transaction was invalid, code:%s',code);
+							let message = util.format('The invoke chaincode transaction was invalid, code:%s',code);
 							logger.error(message);
 							reject(new Error(message));
 						} else {
