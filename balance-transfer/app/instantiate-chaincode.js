@@ -25,7 +25,7 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 	logger.debug('\n\n============ Instantiate chaincode on channel ' + channelName +
 		' ============\n');
 	var error_message = null;
-	var eventhubs_in_use = [];
+
 	try {
 		// first setup the client for this org
 		var client = await helper.getClientForOrg(org_name, username);
@@ -84,27 +84,25 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 			logger.info(util.format(
 				'Successfully sent Proposal and received ProposalResponse: Status - %s, message - "%s", metadata - "%s", endorsement signature: %s',
 				proposalResponses[0].response.status, proposalResponses[0].response.message,
-				proposalResponses[0].response.payload, proposalResponses[0].endorsement
-				.signature));
+				proposalResponses[0].response.payload, proposalResponses[0].endorsement.signature));
 
-			// tell each peer to join and wait for the event hub of each peer to tell us
-			// that the channel has been created on each peer
+			// wait for the channel-based event hub to tell us that the
+			// instantiate transaction was committed on the peer
 			var promises = [];
-			let event_hubs = client.getEventHubsForOrg(org_name);
+			let event_hubs = channel.getChannelEventHubsForOrg();
 			logger.debug('found %s eventhubs for this organization %s',event_hubs.length, org_name);
 			event_hubs.forEach((eh) => {
 				let instantiateEventPromise = new Promise((resolve, reject) => {
 					logger.debug('instantiateEventPromise - setting up event');
 					let event_timeout = setTimeout(() => {
-						let message = 'REQUEST_TIMEOUT:' + eh._ep._endpoint.addr;
+						let message = 'REQUEST_TIMEOUT:' + eh.getPeerAddr();
 						logger.error(message);
 						eh.disconnect();
-						reject(new Error(message));
 					}, 60000);
-					eh.registerTxEvent(deployId, (tx, code) => {
-						logger.info('The chaincode instantiate transaction has been committed on peer %s',eh._ep._endpoint.addr);
+					eh.registerTxEvent(deployId, (tx, code, block_num) => {
+						logger.info('The chaincode instantiate transaction has been committed on peer %s',eh.getPeerAddr());
+						logger.info('Transaction %s has status of %s in blocl %s', tx, code, block_num);
 						clearTimeout(event_timeout);
-						eh.unregisterTxEvent(deployId);
 
 						if (code !== 'VALID') {
 							let message = until.format('The chaincode instantiate transaction was invalid, code:%s',code);
@@ -117,15 +115,18 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 						}
 					}, (err) => {
 						clearTimeout(event_timeout);
-						eh.unregisterTxEvent(deployId);
-						let message = 'Problem setting up the event hub :'+ err.toString();
-						logger.error(message);
-						reject(new Error(message));
-					});
+						logger.error(err);
+						reject(err);
+					},
+						// the default for 'unregister' is true for transaction listeners
+						// so no real need to set here, however for 'disconnect'
+						// the default is false as most event hubs are long running
+						// in this use case we are using it only once
+						{unregister: true, disconnect: true}
+					);
+					eh.connect();
 				});
 				promises.push(instantiateEventPromise);
-				eh.connect();
-				eventhubs_in_use.push(eh);
 			});
 
 			var orderer_request = {
@@ -155,7 +156,7 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 			for(let i in results) {
 				let event_hub_result = results[i];
 				let event_hub = event_hubs[i];
-				logger.debug('Event results for event hub :%s',event_hub._ep._endpoint.addr);
+				logger.debug('Event results for event hub :%s',event_hub.getPeerAddr());
 				if(typeof event_hub_result === 'string') {
 					logger.debug(event_hub_result);
 				} else {
@@ -171,11 +172,6 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 		logger.error('Failed to send instantiate due to error: ' + error.stack ? error.stack : error);
 		error_message = error.toString();
 	}
-
-	// need to shutdown open event streams
-	eventhubs_in_use.forEach((eh) => {
-		eh.disconnect();
-	});
 
 	if (!error_message) {
 		let message = util.format(
