@@ -11,7 +11,10 @@ source $(dirname "$0")/env.sh
 
 awaitSetup
 
-# Enroll the peer to get a TLS cert
+# Although a peer may use the same TLS key and certificate file for both inbound and outbound TLS,
+# we generate a different key and certificate for inbound and outbound TLS simply to show that it is permissible
+
+# Generate server TLS cert and key pair for the peer
 fabric-ca-client enroll -d --enrollment.profile tls -u $ENROLLMENT_URL -M /tmp/tls --csr.hosts $PEER_HOST
 
 # Copy the TLS key and cert to the appropriate place
@@ -20,6 +23,12 @@ mkdir -p $TLSDIR
 cp /tmp/tls/signcerts/* $CORE_PEER_TLS_CERT_FILE
 cp /tmp/tls/keystore/* $CORE_PEER_TLS_KEY_FILE
 rm -rf /tmp/tls
+
+# Generate client TLS cert and key pair for the peer
+genClientTLSCert $PEER_NAME $CORE_PEER_TLS_CLIENTCERT_FILE $CORE_PEER_TLS_CLIENTKEY_FILE
+
+# Generate client TLS cert and key pair for the peer CLI
+genClientTLSCert $PEER_NAME /$DATA/tls/$PEER_NAME-cli-client.crt /$DATA/tls/$PEER_NAME-cli-client.key
 
 # Enroll the peer to get an enrollment certificate and set up the core's local MSP directory
 fabric-ca-client enroll -d -u $ENROLLMENT_URL -M $CORE_PEER_MSPCONFIGPATH
