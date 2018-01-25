@@ -11,4 +11,7 @@ source $SDIR/scripts/env.sh
 
 log "Stopping docker containers ..."
 docker-compose down
+# Stop chaincode containers and images as well
+docker rm -f $(docker ps -aq --filter name=dev-peer)
+docker rmi $(docker images | awk '$1 ~ /dev-peer/ { print $3 }')
 log "Docker containers have been stopped"
