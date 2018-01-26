@@ -49,8 +49,8 @@ function registerOrdererIdentities {
          COUNT=$((COUNT+1))
       done
       log "Registering admin identity with $CA_NAME"
-      # The admin identity has the "hf.admin" attribute which is added to ECert by default
-      fabric-ca-client register -d --id.name $ADMIN_NAME --id.secret $ADMIN_PASS --id.attrs "hf.admin=true:ecert"
+      # The admin identity has the "admin" attribute which is added to ECert by default
+      fabric-ca-client register -d --id.name $ADMIN_NAME --id.secret $ADMIN_PASS --id.attrs "admin=true:ecert"
    done
 }
 
@@ -67,8 +67,8 @@ function registerPeerIdentities {
          COUNT=$((COUNT+1))
       done
       log "Registering admin identity with $CA_NAME"
-      # The admin identity has the "hf.admin" attribute which is added to ECert by default
-      fabric-ca-client register -d --id.name $ADMIN_NAME --id.secret $ADMIN_PASS --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,hf.admin=true:ecert,abac.init=true:ecert"
+      # The admin identity has the "admin" attribute which is added to ECert by default
+      fabric-ca-client register -d --id.name $ADMIN_NAME --id.secret $ADMIN_PASS --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
       log "Registering user identity with $CA_NAME"
       fabric-ca-client register -d --id.name $USER_NAME --id.secret $USER_PASS
    done
