@@ -13,7 +13,7 @@ CHANNEL_NAME="$1"
 DELAY="$2"
 LANGUAGE="$3"
 : ${CHANNEL_NAME:="mychannel"}
-: ${TIMEOUT:="60"}
+: ${TIMEOUT:="10"}
 : ${LANGUAGE:="golang"}
 LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
@@ -38,21 +38,22 @@ verifyResult () {
 }
 
 setGlobals () {
-
-	if [ $1 -eq 0 -o $1 -eq 1 ] ; then
+	PEER=$1
+	ORG=$2
+	if [ $ORG -eq 1 ] ; then
 		CORE_PEER_LOCALMSPID="Org1MSP"
 		CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
 		CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
-		if [ $1 -eq 0 ]; then
+		if [ $PEER -eq 0 ]; then
 			CORE_PEER_ADDRESS=peer0.org1.example.com:7051
 		else
 			CORE_PEER_ADDRESS=peer1.org1.example.com:7051
 		fi
-	else
+	elif [ $ORG -eq 2 ] ; then
 		CORE_PEER_LOCALMSPID="Org2MSP"
 		CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
 		CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
-		if [ $1 -eq 2 ]; then
+		if [ $PEER -eq 0 ]; then
 			CORE_PEER_ADDRESS=peer0.org2.example.com:7051
 		else
 			CORE_PEER_ADDRESS=peer1.org2.example.com:7051
@@ -63,9 +64,9 @@ setGlobals () {
 }
 
 createChannel() {
-	setGlobals 0
+	setGlobals 0 0
 
-  if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
+	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
 		peer channel create -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/channel.tx >&log.txt
 	else
 		peer channel create -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/channel.tx --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA >&log.txt
@@ -79,13 +80,14 @@ createChannel() {
 
 updateAnchorPeers() {
   PEER=$1
-  setGlobals $PEER
+  ORG=$2
+  setGlobals $PEER $ORG
 
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
 		peer channel update -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx >&log.txt
-	else
+  else
 		peer channel update -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA >&log.txt
-	fi
+  fi
 	res=$?
 	cat log.txt
 	verifyResult $res "Anchor peer update failed"
@@ -96,44 +98,51 @@ updateAnchorPeers() {
 
 ## Sometimes Join takes time hence RETRY at least for 5 times
 joinWithRetry () {
+	PEER=$1
+	ORG=$2
+
 	peer channel join -b $CHANNEL_NAME.block  >&log.txt
 	res=$?
 	cat log.txt
 	if [ $res -ne 0 -a $COUNTER -lt $MAX_RETRY ]; then
 		COUNTER=` expr $COUNTER + 1`
-		echo "PEER$1 failed to join the channel, Retry after 2 seconds"
+		echo "peer${PEER}.org${ORG} failed to join the channel, Retry after $DELAY seconds"
 		sleep $DELAY
-		joinWithRetry $1
+		joinWithRetry $PEER $ORG
 	else
 		COUNTER=1
 	fi
-  verifyResult $res "After $MAX_RETRY attempts, PEER$ch has failed to Join the Channel"
+	verifyResult $res "After $MAX_RETRY attempts, peer${PEER}.org${ORG} has failed to Join the Channel"
 }
 
 joinChannel () {
-	for ch in 0 1 2 3; do
-		setGlobals $ch
-		joinWithRetry $ch
-		echo "===================== PEER$ch joined on the channel \"$CHANNEL_NAME\" ===================== "
+	for org in 1 2; do
+	    for peer in 0 1; do
+		setGlobals $peer $org
+		joinWithRetry $peer $org
+		echo "===================== peer${peer}.org${org} joined on the channel \"$CHANNEL_NAME\" ===================== "
 		sleep $DELAY
 		echo
+	    done
 	done
 }
 
 installChaincode () {
 	PEER=$1
-	setGlobals $PEER
+	ORG=$2
+	setGlobals $PEER $ORG
 	peer chaincode install -n mycc -v 1.0 -l ${LANGUAGE} -p ${CC_SRC_PATH} >&log.txt
 	res=$?
 	cat log.txt
-        verifyResult $res "Chaincode installation on remote peer PEER$PEER has Failed"
-	echo "===================== Chaincode is installed on remote peer PEER$PEER ===================== "
+	verifyResult $res "Chaincode installation on peer${PEER}.org${ORG} has Failed"
+	echo "===================== Chaincode is installed on peer${PEER}.org${ORG} ===================== "
 	echo
 }
 
 instantiateChaincode () {
 	PEER=$1
-	setGlobals $PEER
+	ORG=$2
+	setGlobals $PEER $ORG
 	# while 'peer chaincode' command can get the orderer endpoint from the peer (if join was successful),
 	# lets supply it directly as we know it using the "-o" option
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
@@ -143,15 +152,17 @@ instantiateChaincode () {
 	fi
 	res=$?
 	cat log.txt
-	verifyResult $res "Chaincode instantiation on PEER$PEER on channel '$CHANNEL_NAME' failed"
-	echo "===================== Chaincode Instantiation on PEER$PEER on channel '$CHANNEL_NAME' is successful ===================== "
+	verifyResult $res "Chaincode instantiation on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' failed"
+	echo "===================== Chaincode Instantiation on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' is successful ===================== "
 	echo
 }
 
 chaincodeQuery () {
   PEER=$1
-  echo "===================== Querying on PEER$PEER on channel '$CHANNEL_NAME'... ===================== "
-  setGlobals $PEER
+  ORG=$2
+  setGlobals $PEER $ORG
+  EXPECTED_RESULT=$3
+  echo "===================== Querying on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
   local rc=1
   local starttime=$(date +%s)
 
@@ -160,17 +171,17 @@ chaincodeQuery () {
   while test "$(($(date +%s)-starttime))" -lt "$TIMEOUT" -a $rc -ne 0
   do
      sleep $DELAY
-     echo "Attempting to Query PEER$PEER ...$(($(date +%s)-starttime)) secs"
+     echo "Attempting to Query peer${PEER}.org${ORG} ...$(($(date +%s)-starttime)) secs"
      peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}' >&log.txt
      test $? -eq 0 && VALUE=$(cat log.txt | awk '/Query Result/ {print $NF}')
-     test "$VALUE" = "$2" && let rc=0
+     test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
   done
   echo
   cat log.txt
   if test $rc -eq 0 ; then
-	echo "===================== Query on PEER$PEER on channel '$CHANNEL_NAME' is successful ===================== "
+	echo "===================== Query on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' is successful ===================== "
   else
-	echo "!!!!!!!!!!!!!!! Query result on PEER$PEER is INVALID !!!!!!!!!!!!!!!!"
+	echo "!!!!!!!!!!!!!!! Query result on peer${PEER}.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
         echo "================== ERROR !!! FAILED to execute End-2-End Scenario =================="
 	echo
 	exit 1
@@ -179,7 +190,8 @@ chaincodeQuery () {
 
 chaincodeInvoke () {
 	PEER=$1
-	setGlobals $PEER
+	ORG=$2
+	setGlobals $PEER $ORG
 	# while 'peer chaincode' command can get the orderer endpoint from the peer (if join was successful),
 	# lets supply it directly as we know it using the "-o" option
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
@@ -189,8 +201,8 @@ chaincodeInvoke () {
 	fi
 	res=$?
 	cat log.txt
-	verifyResult $res "Invoke execution on PEER$PEER failed "
-	echo "===================== Invoke transaction on PEER$PEER on channel '$CHANNEL_NAME' is successful ===================== "
+	verifyResult $res "Invoke execution on peer${PEER}.org${ORG} failed "
+	echo "===================== Invoke transaction on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' is successful ===================== "
 	echo
 }
 
@@ -204,35 +216,35 @@ joinChannel
 
 ## Set the anchor peers for each org in the channel
 echo "Updating anchor peers for org1..."
-updateAnchorPeers 0
+updateAnchorPeers 0 1
 echo "Updating anchor peers for org2..."
-updateAnchorPeers 2
+updateAnchorPeers 0 2
 
-## Install chaincode on Peer0/Org1 and Peer2/Org2
-echo "Installing chaincode on org1/peer0..."
-installChaincode 0
-echo "Install chaincode on org2/peer2..."
-installChaincode 2
+## Install chaincode on peer0.org1 and peer0.org2
+echo "Installing chaincode on peer0.org1..."
+installChaincode 0 1
+echo "Install chaincode on peer0.org2..."
+installChaincode 0 2
 
-#Instantiate chaincode on Peer2/Org2
-echo "Instantiating chaincode on org2/peer2..."
-instantiateChaincode 2
+# Instantiate chaincode on peer0.org2
+echo "Instantiating chaincode on peer0.org2..."
+instantiateChaincode 0 2
 
-#Query on chaincode on Peer0/Org1
-echo "Querying chaincode on org1/peer0..."
-chaincodeQuery 0 100
+# Query chaincode on peer0.org1
+echo "Querying chaincode on peer0.org1..."
+chaincodeQuery 0 1 100
 
-#Invoke on chaincode on Peer0/Org1
-echo "Sending invoke transaction on org1/peer0..."
-chaincodeInvoke 0
+# Invoke chaincode on peer0.org1
+echo "Sending invoke transaction on peer0.org1..."
+chaincodeInvoke 0 1
 
-## Install chaincode on Peer3/Org2
-echo "Installing chaincode on org2/peer3..."
-installChaincode 3
+## Install chaincode on peer1.org2
+echo "Installing chaincode on peer1.org2..."
+installChaincode 1 2
 
-#Query on chaincode on Peer3/Org2, check if the result is 90
-echo "Querying chaincode on org2/peer3..."
-chaincodeQuery 3 90
+# Query on chaincode on peer1.org2, check if the result is 90
+echo "Querying chaincode on peer1.org2..."
+chaincodeQuery 1 2 90
 
 echo
 echo "========= All GOOD, BYFN execution completed =========== "
