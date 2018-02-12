@@ -341,7 +341,7 @@ else
   exit 1
 fi
 
-while getopts "h?c:t:d:f:s:l:a?" opt; do
+while getopts "h?c:t:d:f:s:l:" opt; do
   case "$opt" in
     h|\?)
       printHelp
