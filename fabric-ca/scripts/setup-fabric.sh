@@ -45,7 +45,7 @@ function registerOrdererIdentities {
       while [[ "$COUNT" -le $NUM_ORDERERS ]]; do
          initOrdererVars $ORG $COUNT
          log "Registering $ORDERER_NAME with $CA_NAME"
-         fabric-ca-client register -d --id.name $ORDERER_NAME --id.secret $ORDERER_PASS
+         fabric-ca-client register -d --id.name $ORDERER_NAME --id.secret $ORDERER_PASS --id.type orderer
          COUNT=$((COUNT+1))
       done
       log "Registering admin identity with $CA_NAME"
@@ -63,7 +63,7 @@ function registerPeerIdentities {
       while [[ "$COUNT" -le $NUM_PEERS ]]; do
          initPeerVars $ORG $COUNT
          log "Registering $PEER_NAME with $CA_NAME"
-         fabric-ca-client register -d --id.name $PEER_NAME --id.secret $PEER_PASS
+         fabric-ca-client register -d --id.name $PEER_NAME --id.secret $PEER_PASS --id.type peer
          COUNT=$((COUNT+1))
       done
       log "Registering admin identity with $CA_NAME"
