@@ -89,8 +89,7 @@ function main {
    switchToUserIdentity
 
    # Revoke the user and generate CRL using admin's credentials
-   revokeFabricUser
-   generateCRL
+   revokeFabricUserAndGenerateCRL
 
    # Fetch config block
    fetchConfigBlock
