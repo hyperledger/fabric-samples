@@ -31,6 +31,7 @@ function printHelp () {
   echo "    -f <docker-compose-file> - specify which docker-compose file use (defaults to docker-compose-cli.yaml)"
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -l <language> - the chaincode language: golang (default) or node"
+  echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
   echo
   echo "Typically, one would first generate the required certificates and "
   echo "genesis block, then bring up the network. e.g.:"
@@ -97,9 +98,9 @@ function networkUp () {
   fi
   # start org3 peers
   if [ "${IF_COUCHDB}" == "couchdb" ]; then
-      docker-compose -f $COMPOSE_FILE_ORG3 -f $COMPOSE_FILE_COUCH_ORG3 up -d 2>&1
+      IMAGE_TAG=${IMAGETAG} docker-compose -f $COMPOSE_FILE_ORG3 -f $COMPOSE_FILE_COUCH_ORG3 up -d 2>&1
   else
-      docker-compose -f $COMPOSE_FILE_ORG3 up -d 2>&1
+      IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE_ORG3 up -d 2>&1
   fi
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to start Org3 network"
@@ -241,6 +242,8 @@ COMPOSE_FILE_ORG3=docker-compose-org3.yaml
 COMPOSE_FILE_COUCH_ORG3=docker-compose-couch-org3.yaml
 # use golang as the default language for chaincode
 LANGUAGE=golang
+# default image tag
+IMAGETAG="latest"
 
 # Parse commandline args
 if [ "$1" = "-m" ];then	# supports old usage, muscle memory is powerful!
@@ -260,7 +263,7 @@ else
   printHelp
   exit 1
 fi
-while getopts "h?c:t:d:f:s:l:" opt; do
+while getopts "h?c:t:d:f:s:l:i:" opt; do
   case "$opt" in
     h|\?)
       printHelp
@@ -277,6 +280,8 @@ while getopts "h?c:t:d:f:s:l:" opt; do
     s)  IF_COUCHDB=$OPTARG
     ;;
     l)  LANGUAGE=$OPTARG
+    ;;
+    i)  IMAGETAG=$OPTARG
     ;;
   esac
 done
