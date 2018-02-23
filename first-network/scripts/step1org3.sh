@@ -33,39 +33,37 @@ echo
 echo "========= Creating config transaction to add org3 to network =========== "
 echo
 
-echo "Installing and starting configtxlater"
+echo "Installing jq"
 apt-get -y update && apt-get -y install jq
-configtxlator start >/dev/null 2>&1 &
-CONFIGTXLATOR_URL=http://127.0.0.1:7059
 
 echo "Fetching the most recent configuration block for the channel"
 peer channel fetch config config_block.pb -o orderer.example.com:7050 -c ${CHANNEL_NAME} --tls --cafile ${ORDERER_CA}
 
 echo "Creating config transaction adding org3 to the network"
 # translate channel configuration block into JSON format
-curl -X POST --data-binary @config_block.pb "$CONFIGTXLATOR_URL/protolator/decode/common.Block" | jq . > config_block.json
+configtxlator proto_decode --input config_block.pb --type common.Block --output config_block.json
 
 # strip away all of the encapsulating wrappers
 jq .data.data[0].payload.data.config config_block.json > config.json
 
 # append new org to the configuration
-jq -s '.[0] * {"channel_group":{"groups":{"Application":{"groups": {"Org3MSP":.[1]}}}}}' config.json ./channel-artifacts/org3.json >& updated_config.json
+jq -s '.[0] * {"channel_group":{"groups":{"Application":{"groups": {"Org3MSP":.[1]}}}}}' config.json ./channel-artifacts/org3.json > modified_config.json
 
 # translate json config files back to protobuf
-curl -X POST --data-binary @config.json "$CONFIGTXLATOR_URL/protolator/encode/common.Config" > config.pb
-curl -X POST --data-binary @updated_config.json "$CONFIGTXLATOR_URL/protolator/encode/common.Config" > updated_config.pb
+configtxlator proto_encode --input config.json --type common.Config --output config.pb
+configtxlator proto_encode --input modified_config.json --type common.Config --output modified_config.pb
 
 # get delta between old and new configs
-curl -X POST -F channel=${CHANNEL_NAME} -F "original=@config.pb" -F "updated=@updated_config.pb" "${CONFIGTXLATOR_URL}/configtxlator/compute/update-from-configs" > org3_update.pb
+configtxlator compute_update --channel_id ${CHANNEL_NAME} --original config.pb --updated modified_config.pb --output org3_update.pb
 
 # translate protobuf delta to json
-curl -X POST --data-binary @org3_update.pb "$CONFIGTXLATOR_URL/protolator/decode/common.ConfigUpdate" | jq . > org3_update.json
+configtxlator proto_decode --input org3_update.pb --type common.ConfigUpdate --output org3_update.json
 
 # wrap delta in an envelope message
 echo '{"payload":{"header":{"channel_header":{"channel_id":"'${CHANNEL_NAME}'", "type":2}},"data":{"config_update":'$(cat org3_update.json)'}}}' | jq . > org3_update_in_envelope.json
 
 # translate json back to protobuf
-curl -X POST --data-binary @org3_update_in_envelope.json "$CONFIGTXLATOR_URL/protolator/encode/common.Envelope" > org3_update_in_envelope.pb
+configtxlator proto_encode --input org3_update_in_envelope.json --type common.Envelope --output org3_update_in_envelope.pb
 
 echo
 echo "========= Config transaction to add org3 to network created ===== "
