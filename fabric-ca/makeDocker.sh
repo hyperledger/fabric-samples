@@ -133,6 +133,7 @@ function writeRootCA {
       - FABRIC_CA_SERVER_DEBUG=true
       - BOOTSTRAP_USER_PASS=$ROOT_CA_ADMIN_USER_PASS
       - TARGET_CERTFILE=$ROOT_CA_CERTFILE
+      - FABRIC_ORGS="$ORGS"
     volumes:
       - ./scripts:/scripts
       - ./$DATA:/$DATA
@@ -157,6 +158,7 @@ function writeIntermediateCA {
       - PARENT_URL=https://$ROOT_CA_ADMIN_USER_PASS@$ROOT_CA_HOST:7054
       - TARGET_CHAINFILE=$INT_CA_CHAINFILE
       - ORG=$ORG
+      - FABRIC_ORGS="$ORGS"
     volumes:
       - ./scripts:/scripts
       - ./$DATA:/$DATA
