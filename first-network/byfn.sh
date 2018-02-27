@@ -48,6 +48,7 @@ function printHelp () {
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -l <language> - the chaincode language: golang (default) or node"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
+  echo "    -p - persist the ledgers of the containers to the ./ledgers/<container> directory"
   echo
   echo "Typically, one would first generate the required certificates and "
   echo "genesis block, then bring up the network. e.g.:"
@@ -113,10 +114,20 @@ function networkUp () {
     replacePrivateKey
     generateChannelArtifacts
   fi
-  if [ "${IF_COUCHDB}" == "couchdb" ]; then
-      IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH up -d 2>&1
-  else
-      IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE up -d 2>&1
+  if $PERSIST ; then
+      echo "Persisting ledgers to ./ledgers/"
+      mkdir -p ./ledgers/
+      if [ "${IF_COUCHDB}" == "couchdb" ]; then
+          IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_PERSIST -f $COMPOSE_FILE_COUCH up -d 2>&1
+      else
+          IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_PERSIST up -d 2>&1
+      fi
+   else
+      if [ "${IF_COUCHDB}" == "couchdb" ]; then
+          IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH up -d 2>&1
+      else
+          IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE up -d 2>&1
+      fi
   fi
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to start network"
@@ -136,6 +147,8 @@ function networkDown () {
   docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH down
   # Don't remove containers, images, etc if restarting
   if [ "$MODE" != "restart" ]; then
+    #Delete any persisted ledgers
+    docker run -v $PWD:/tmp/first-network --rm hyperledger/fabric-tools:$IMAGETAG rm -Rf /tmp/first-network/ledgers
     #Cleanup the chaincode containers
     clearContainers
     #Cleanup images
@@ -326,6 +339,9 @@ COMPOSE_FILE_COUCH=docker-compose-couch.yaml
 LANGUAGE=golang
 # default image tag
 IMAGETAG="latest"
+# By default, to not use volume mounts for the ledgers
+PERSIST="false"
+COMPOSE_FILE_PERSIST=docker-compose-persist.yaml
 # Parse commandline args
 if [ "$1" = "-m" ];then	# supports old usage, muscle memory is powerful!
     shift
@@ -345,7 +361,7 @@ else
   exit 1
 fi
 
-while getopts "h?c:t:d:f:s:l:i:" opt; do
+while getopts "h?m:c:t:d:f:s:l:i:p" opt; do
   case "$opt" in
     h|\?)
       printHelp
@@ -364,6 +380,8 @@ while getopts "h?c:t:d:f:s:l:i:" opt; do
     l)  LANGUAGE=$OPTARG
     ;;
     i)  IMAGETAG=`uname -m`"-"$OPTARG
+    ;;
+    p)  PERSIST=true
     ;;
   esac
 done
