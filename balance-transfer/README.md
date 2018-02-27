@@ -267,6 +267,16 @@ curl -s -X GET \
   -H "content-type: application/json"
 ```
 
+### Clean the network
+
+The network will still be running at this point. Before starting the network manually again, here are the commands which cleans the containers and artifacts.
+
+```
+docker rm -f $(docker ps -aq)
+docker rmi -f $(docker images | grep dev | awk '{print $3}')
+rm -rf fabric-client-kv-org[1-2]
+```
+
 ### Network configuration considerations
 
 You have the ability to change configuration parameters by either directly editing the network-config.yaml file or provide an additional file for an alternative target network. The app uses an optional environment variable "TARGET_NETWORK" to control the configuration files to use. For example, if you deployed the target network on Amazon Web Services EC2, you can add a file "network-config-aws.yaml", and set the "TARGET_NETWORK" environment to 'aws'. The app will pick up the settings inside the "network-config-aws.yaml" file.
