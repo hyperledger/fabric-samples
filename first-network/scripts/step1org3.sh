@@ -29,6 +29,9 @@ if [ "$LANGUAGE" = "node" ]; then
 	CC_SRC_PATH="/opt/gopath/src/github.com/chaincode/chaincode_example02/node/"
 fi
 
+# import utils
+. scripts/utils.sh
+
 echo
 echo "========= Creating config transaction to add org3 to network =========== "
 echo
@@ -36,34 +39,14 @@ echo
 echo "Installing jq"
 apt-get -y update && apt-get -y install jq
 
-echo "Fetching the most recent configuration block for the channel"
-peer channel fetch config config_block.pb -o orderer.example.com:7050 -c ${CHANNEL_NAME} --tls --cafile ${ORDERER_CA}
+# Fetch the config for the channel, writing it to config.json
+fetchChannelConfig ${CHANNEL_NAME} config.json
 
-echo "Creating config transaction adding org3 to the network"
-# translate channel configuration block into JSON format
-configtxlator proto_decode --input config_block.pb --type common.Block --output config_block.json
-
-# strip away all of the encapsulating wrappers
-jq .data.data[0].payload.data.config config_block.json > config.json
-
-# append new org to the configuration
+# Modify the configuration to append the new org
 jq -s '.[0] * {"channel_group":{"groups":{"Application":{"groups": {"Org3MSP":.[1]}}}}}' config.json ./channel-artifacts/org3.json > modified_config.json
 
-# translate json config files back to protobuf
-configtxlator proto_encode --input config.json --type common.Config --output config.pb
-configtxlator proto_encode --input modified_config.json --type common.Config --output modified_config.pb
-
-# get delta between old and new configs
-configtxlator compute_update --channel_id ${CHANNEL_NAME} --original config.pb --updated modified_config.pb --output org3_update.pb
-
-# translate protobuf delta to json
-configtxlator proto_decode --input org3_update.pb --type common.ConfigUpdate --output org3_update.json
-
-# wrap delta in an envelope message
-echo '{"payload":{"header":{"channel_header":{"channel_id":"'${CHANNEL_NAME}'", "type":2}},"data":{"config_update":'$(cat org3_update.json)'}}}' | jq . > org3_update_in_envelope.json
-
-# translate json back to protobuf
-configtxlator proto_encode --input org3_update_in_envelope.json --type common.Envelope --output org3_update_in_envelope.pb
+# Compute a config update, based on the differences between config.json and modified_config.json, write it as a transaction to org3_update_in_envelope.pb
+createConfigUpdate ${CHANNEL_NAME} config.json modified_config.json org3_update_in_envelope.pb
 
 echo
 echo "========= Config transaction to add org3 to network created ===== "
@@ -71,15 +54,12 @@ echo
 
 echo "Signing config transaction"
 echo
-peer channel signconfigtx -f org3_update_in_envelope.pb
+signConfigtxAsPeerOrg 1 org3_update_in_envelope.pb
 
 echo
 echo "========= Submitting transaction from a different peer (peer0.org2) which also signs it ========= "
 echo
-export CORE_PEER_LOCALMSPID="Org2MSP"
-export CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
-export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
-export CORE_PEER_ADDRESS=peer0.org2.example.com:7051
+setGlobals 0 2
 peer channel update -f org3_update_in_envelope.pb -c ${CHANNEL_NAME} -o orderer.example.com:7050 --tls --cafile ${ORDERER_CA}
 
 echo

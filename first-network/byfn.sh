@@ -34,13 +34,14 @@ export FABRIC_CFG_PATH=${PWD}
 # Print the usage message
 function printHelp () {
   echo "Usage: "
-  echo "  byfn.sh up|down|restart|generate [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>] [-i <imagetag>]"
+  echo "  byfn.sh up|down|restart|generate|upgrade [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>] [-i <imagetag>]"
   echo "  byfn.sh -h|--help (print this message)"
   echo "    <mode> - one of 'up', 'down', 'restart' or 'generate'"
   echo "      - 'up' - bring up the network with docker-compose up"
   echo "      - 'down' - clear the network with docker-compose down"
   echo "      - 'restart' - restart the network"
   echo "      - 'generate' - generate required certificates and genesis block"
+  echo "      - 'upgrade'  - upgrade the network from v1.0.x to v1.1"
   echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
   echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10)"
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
@@ -58,6 +59,7 @@ function printHelp () {
   echo "        byfn.sh up -c mychannel -s couchdb -i 1.1.0-alpha"
   echo "	byfn.sh up -l node"
   echo "	byfn.sh down -c mychannel"
+  echo "        byfn.sh upgrade -c mychannel"
   echo
   echo "Taking all defaults:"
   echo "	byfn.sh generate"
@@ -141,6 +143,65 @@ function networkUp () {
   fi
 }
 
+# Upgrade the network from v1.0.x to v1.1
+# Stop the orderer and peers, backup the ledger from orderer and peers, cleanup chaincode containers and images
+# and relaunch the orderer and peers with latest tag
+function upgradeNetwork () {
+  if [ ! -d ledgers ]; then
+    echo "ERROR !!!! There is no persisted ledgers directory, did you start your network with -p?"
+    exit 1
+  fi
+
+  LEDGERS_BACKUP=./ledgers-backup
+
+  # create ledger-backup directory
+  mkdir -p $LEDGERS_BACKUP
+
+  export IMAGE_TAG=$IMAGETAG
+  if [ "${IF_COUCHDB}" == "couchdb" ]; then
+      COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_PERSIST -f $COMPOSE_FILE_COUCH"
+  else
+      COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_PERSIST"
+  fi
+
+  # removing the cli container
+  docker-compose $COMPOSE_FILES stop cli
+  docker-compose $COMPOSE_FILES up -d --no-deps cli
+
+  echo "Upgrading orderer"
+  docker-compose $COMPOSE_FILES stop orderer.example.com
+  docker cp -a orderer.example.com:/var/hyperledger/production/orderer $LEDGERS_BACKUP/orderer.example.com
+  docker-compose $COMPOSE_FILES up -d --no-deps orderer.example.com
+
+  for PEER in peer0.org1.example.com peer1.org1.example.com peer0.org2.example.com peer1.org2.example.com; do
+    echo "Upgrading peer $PEER"
+
+    # Stop the peer and backup its ledger
+    docker-compose $COMPOSE_FILES stop $PEER
+    docker cp -a $PEER:/var/hyperledger/production $LEDGERS_BACKUP/$PEER/
+
+    # Remove any old containers and images for this peer
+    CC_CONTAINERS=$(docker ps | grep dev-$PEER | awk '{print $1}')
+    if [ -n "$CC_CONTAINERS" ] ; then
+        docker rm -f $CC_CONTAINERS
+    fi
+    CC_IMAGES=$(docker images | grep dev-$PEER | awk '{print $1}')
+    if [ -n "$CC_IMAGES" ] ; then
+        docker rmi -f $CC_IMAGES
+    fi
+
+    # Start the peer again
+    docker-compose $COMPOSE_FILES up -d --no-deps $PEER
+  done
+
+  docker exec cli scripts/upgrade_to_v11.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT
+  if [ $? -ne 0 ]; then
+    echo "ERROR !!!! Test failed"
+    exit 1
+  fi
+}
+
+
 # Tear down running network
 function networkDown () {
   docker-compose -f $COMPOSE_FILE down
@@ -149,6 +210,7 @@ function networkDown () {
   if [ "$MODE" != "restart" ]; then
     #Delete any persisted ledgers
     docker run -v $PWD:/tmp/first-network --rm hyperledger/fabric-tools:$IMAGETAG rm -Rf /tmp/first-network/ledgers
+    docker run -v $PWD:/tmp/first-network --rm hyperledger/fabric-tools:$IMAGETAG rm -Rf /tmp/first-network/ledgers-backup
     #Cleanup the chaincode containers
     clearContainers
     #Cleanup images
@@ -356,6 +418,8 @@ elif [ "$MODE" == "restart" ]; then
   EXPMODE="Restarting"
 elif [ "$MODE" == "generate" ]; then
   EXPMODE="Generating certs and genesis block for"
+elif [ "$MODE" == "upgrade" ]; then
+  EXPMODE="Upgrading the network"
 else
   printHelp
   exit 1
@@ -409,6 +473,8 @@ elif [ "${MODE}" == "generate" ]; then ## Generate Artifacts
 elif [ "${MODE}" == "restart" ]; then ## Restart the network
   networkDown
   networkUp
+elif [ "${MODE}" == "upgrade" ]; then ## Upgrade the network from v1.0.x to v1.1
+  upgradeNetwork
 else
   printHelp
   exit 1
