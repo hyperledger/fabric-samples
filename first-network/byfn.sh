@@ -49,7 +49,6 @@ function printHelp () {
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -l <language> - the chaincode language: golang (default) or node"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
-  echo "    -p - persist the ledgers of the containers to the ./ledgers/<container> directory"
   echo
   echo "Typically, one would first generate the required certificates and "
   echo "genesis block, then bring up the network. e.g.:"
@@ -154,20 +153,10 @@ function networkUp () {
     replacePrivateKey
     generateChannelArtifacts
   fi
-  if $PERSIST ; then
-      echo "Persisting ledgers to ./ledgers/"
-      mkdir -p ./ledgers/
-      if [ "${IF_COUCHDB}" == "couchdb" ]; then
-          IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_PERSIST -f $COMPOSE_FILE_COUCH up -d 2>&1
-      else
-          IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_PERSIST up -d 2>&1
-      fi
-   else
-      if [ "${IF_COUCHDB}" == "couchdb" ]; then
-          IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH up -d 2>&1
-      else
-          IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE up -d 2>&1
-      fi
+  if [ "${IF_COUCHDB}" == "couchdb" ]; then
+    IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH up -d 2>&1
+  else
+    IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE up -d 2>&1
   fi
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to start network"
@@ -185,8 +174,9 @@ function networkUp () {
 # Stop the orderer and peers, backup the ledger from orderer and peers, cleanup chaincode containers and images
 # and relaunch the orderer and peers with latest tag
 function upgradeNetwork () {
-  if [ ! -d ledgers ]; then
-    echo "ERROR !!!! There is no persisted ledgers directory, did you start your network with -p?"
+  docker inspect  -f '{{.Config.Volumes}}' orderer.example.com |grep -q '/var/hyperledger/production/orderer'
+  if [ $? -ne 0 ]; then
+    echo "ERROR !!!! This network does not appear to be using volumes for its ledgers, did you start from fabric-samples >= v1.0.6?"
     exit 1
   fi
 
@@ -197,9 +187,9 @@ function upgradeNetwork () {
 
   export IMAGE_TAG=$IMAGETAG
   if [ "${IF_COUCHDB}" == "couchdb" ]; then
-      COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_PERSIST -f $COMPOSE_FILE_COUCH"
+      COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH"
   else
-      COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_PERSIST"
+      COMPOSE_FILES="-f $COMPOSE_FILE"
   fi
 
   # removing the cli container
@@ -242,12 +232,12 @@ function upgradeNetwork () {
 
 # Tear down running network
 function networkDown () {
-  docker-compose -f $COMPOSE_FILE down
-  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH down
-  # Don't remove containers, images, etc if restarting
+  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH down --volumes
+  docker-compose -f $COMPOSE_FILE down --volumes
+  # Don't remove the generated artifacts -- note, the ledgers are always removed
   if [ "$MODE" != "restart" ]; then
-    #Delete any persisted ledgers
-    docker run -v $PWD:/tmp/first-network --rm hyperledger/fabric-tools:$IMAGETAG rm -Rf /tmp/first-network/ledgers
+    # Bring down the network, deleting the volumes
+    #Delete any ledger backups
     docker run -v $PWD:/tmp/first-network --rm hyperledger/fabric-tools:$IMAGETAG rm -Rf /tmp/first-network/ledgers-backup
     #Cleanup the chaincode containers
     clearContainers
@@ -439,9 +429,6 @@ COMPOSE_FILE_COUCH=docker-compose-couch.yaml
 LANGUAGE=golang
 # default image tag
 IMAGETAG="latest"
-# By default, to not use volume mounts for the ledgers
-PERSIST="false"
-COMPOSE_FILE_PERSIST=docker-compose-persist.yaml
 # Parse commandline args
 if [ "$1" = "-m" ];then	# supports old usage, muscle memory is powerful!
     shift
@@ -463,7 +450,7 @@ else
   exit 1
 fi
 
-while getopts "h?m:c:t:d:f:s:l:i:p" opt; do
+while getopts "h?m:c:t:d:f:s:l:i:" opt; do
   case "$opt" in
     h|\?)
       printHelp
@@ -482,8 +469,6 @@ while getopts "h?m:c:t:d:f:s:l:i:p" opt; do
     l)  LANGUAGE=$OPTARG
     ;;
     i)  IMAGETAG=`uname -m`"-"$OPTARG
-    ;;
-    p)  PERSIST=true
     ;;
   esac
 done
