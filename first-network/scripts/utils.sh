@@ -69,9 +69,13 @@ updateAnchorPeers() {
   setGlobals $PEER $ORG
 
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
+                set -x
 		peer channel update -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx >&log.txt
+                set +x
   else
+                set -x
 		peer channel update -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA >&log.txt
+                set +x
   fi
 	res=$?
 	cat log.txt
@@ -87,7 +91,9 @@ joinChannelWithRetry () {
 	ORG=$2
 	setGlobals $PEER $ORG
 
+        set -x
 	peer channel join -b $CHANNEL_NAME.block  >&log.txt
+        set +x
 	res=$?
 	cat log.txt
 	if [ $res -ne 0 -a $COUNTER -lt $MAX_RETRY ]; then
@@ -106,7 +112,9 @@ installChaincode () {
 	ORG=$2
 	setGlobals $PEER $ORG
 	VERSION=${3:-1.0}
+        set -x
 	peer chaincode install -n mycc -v ${VERSION} -l ${LANGUAGE} -p ${CC_SRC_PATH} >&log.txt
+        set +x
 	res=$?
 	cat log.txt
 	verifyResult $res "Chaincode installation on peer${PEER}.org${ORG} has Failed"
@@ -123,9 +131,13 @@ instantiateChaincode () {
 	# while 'peer chaincode' command can get the orderer endpoint from the peer (if join was successful),
 	# lets supply it directly as we know it using the "-o" option
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
+                set -x
 		peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v ${VERSION} -c '{"Args":["init","a","100","b","200"]}' -P "OR	('Org1MSP.peer','Org2MSP.peer')" >&log.txt
+                set +x
 	else
+                set -x
 		peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v 1.0 -c '{"Args":["init","a","100","b","200"]}' -P "OR	('Org1MSP.peer','Org2MSP.peer')" >&log.txt
+                set +x
 	fi
 	res=$?
 	cat log.txt
@@ -139,7 +151,9 @@ upgradeChaincode () {
     ORG=$2
     setGlobals $PEER $ORG
 
+    set -x
     peer chaincode upgrade -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -v 2.0 -c '{"Args":["init","a","90","b","210"]}' -P "OR ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer')"
+    set +x
     res=$?
     cat log.txt
     verifyResult $res "Chaincode upgrade on org${ORG} peer${PEER} has Failed"
@@ -162,7 +176,9 @@ chaincodeQuery () {
   do
      sleep $DELAY
      echo "Attempting to Query peer${PEER}.org${ORG} ...$(($(date +%s)-starttime)) secs"
+     set -x
      peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}' >&log.txt
+     set +x
      test $? -eq 0 && VALUE=$(cat log.txt | awk '/Query Result/ {print $NF}')
      test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
   done
@@ -188,13 +204,19 @@ fetchChannelConfig() {
 
   echo "Fetching the most recent configuration block for the channel"
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
+    set -x
     peer channel fetch config config_block.pb -o orderer.example.com:7050 -c $CHANNEL --cafile $ORDERER_CA
+    set +x
   else
+    set -x
     peer channel fetch config config_block.pb -o orderer.example.com:7050 -c $CHANNEL --tls --cafile $ORDERER_CA
+    set +x
   fi
 
   echo "Decoding config block to JSON and isolating config to ${OUTPUT}"
+  set -x
   configtxlator proto_decode --input config_block.pb --type common.Block | jq .data.data[0].payload.data.config > "${OUTPUT}"
+  set +x
 }
 
 # signConfigtxAsPeerOrg <org> <configtx.pb>
@@ -203,7 +225,9 @@ signConfigtxAsPeerOrg() {
         PEERORG=$1
         TX=$2
         setGlobals 0 $PEERORG
+        set -x
         peer channel signconfigtx -f "${TX}"
+        set +x
 }
 
 # createConfigUpdate <channel_id> <original_config.json> <modified_config.json> <output.pb>
@@ -214,12 +238,14 @@ createConfigUpdate() {
   MODIFIED=$3
   OUTPUT=$4
 
+  set -x
   configtxlator proto_encode --input "${ORIGINAL}" --type common.Config > original_config.pb
   configtxlator proto_encode --input "${MODIFIED}" --type common.Config > modified_config.pb
   configtxlator compute_update --channel_id "${CHANNEL}" --original original_config.pb --updated modified_config.pb > config_update.pb
   configtxlator proto_decode --input config_update.pb  --type common.ConfigUpdate > config_update.json
   echo '{"payload":{"header":{"channel_header":{"channel_id":"'$CHANNEL'", "type":2}},"data":{"config_update":'$(cat config_update.json)'}}}' | jq . > config_update_in_envelope.json
   configtxlator proto_encode --input config_update_in_envelope.json --type common.Envelope > "${OUTPUT}"
+  set +x
 }
 
 chaincodeInvoke () {
@@ -229,9 +255,13 @@ chaincodeInvoke () {
 	# while 'peer chaincode' command can get the orderer endpoint from the peer (if join was successful),
 	# lets supply it directly as we know it using the "-o" option
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
+                set -x
 		peer chaincode invoke -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -c '{"Args":["invoke","a","b","10"]}' >&log.txt
+                set +x
 	else
+                set -x
 		peer chaincode invoke -o orderer.example.com:7050  --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -c '{"Args":["invoke","a","b","10"]}' >&log.txt
+                set +x
 	fi
 	res=$?
 	cat log.txt
