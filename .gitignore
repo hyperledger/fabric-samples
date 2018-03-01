@@ -12,6 +12,9 @@
 first-network/channel-artifacts/*.tx
 first-network/channel-artifacts/*.block
 first-network/crypto-config/*
+first-network/docker-compose-e2e.yaml
+first-network/ledgers
+first-network/ledgers-backup
 
 chaincode-docker-devmode/myc.block
 chaincode-docker-devmode/chaincode/sacc/sacc

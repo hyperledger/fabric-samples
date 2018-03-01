@@ -43,7 +43,9 @@ apt-get -y update && apt-get -y install jq
 fetchChannelConfig ${CHANNEL_NAME} config.json
 
 # Modify the configuration to append the new org
+set -x
 jq -s '.[0] * {"channel_group":{"groups":{"Application":{"groups": {"Org3MSP":.[1]}}}}}' config.json ./channel-artifacts/org3.json > modified_config.json
+set +x
 
 # Compute a config update, based on the differences between config.json and modified_config.json, write it as a transaction to org3_update_in_envelope.pb
 createConfigUpdate ${CHANNEL_NAME} config.json modified_config.json org3_update_in_envelope.pb
@@ -60,7 +62,9 @@ echo
 echo "========= Submitting transaction from a different peer (peer0.org2) which also signs it ========= "
 echo
 setGlobals 0 2
+set -x
 peer channel update -f org3_update_in_envelope.pb -c ${CHANNEL_NAME} -o orderer.example.com:7050 --tls --cafile ${ORDERER_CA}
+set +x
 
 echo
 echo "========= Config transaction to add org3 to network submitted! =========== "
