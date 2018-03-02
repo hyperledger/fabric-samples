@@ -174,7 +174,7 @@ function queryAsRevokedUser {
       sleep 1
       peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}' >& log.txt
       if [ $? -ne 0 ]; then
-        err=$(cat log.txt | grep "The certificate has been revoked")
+        err=$(cat log.txt | grep "access denied")
         if [ "$err" != "" ]; then
            logr "Expected error occurred when the revoked user '$USER_NAME' queried the chaincode in the channel '$CHANNEL_NAME'"
            set -e
