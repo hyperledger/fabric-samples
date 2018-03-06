@@ -127,7 +127,7 @@ function initOrgVars {
    ORG_ADMIN_CERT=${ORG_MSP_DIR}/admincerts/cert.pem
    ORG_ADMIN_HOME=/${DATA}/orgs/$ORG/admin
 
-   if $USE_INTERMEDIATE_CA; then
+   if test "$USE_INTERMEDIATE_CA" = "true"; then
       CA_NAME=$INT_CA_NAME
       CA_HOST=$INT_CA_HOST
       CA_CHAINFILE=$INT_CA_CHAINFILE
@@ -169,7 +169,7 @@ function initOrdererVars {
    TLSDIR=$MYHOME/tls
    export ORDERER_GENERAL_TLS_PRIVATEKEY=$TLSDIR/server.key
    export ORDERER_GENERAL_TLS_CERTIFICATE=$TLSDIR/server.crt
-   export ORDERER_GENERAL_TLS_ROOTCAS=[$INT_CA_CHAINFILE]
+   export ORDERER_GENERAL_TLS_ROOTCAS=[$CA_CHAINFILE]
 }
 
 function genClientTLSCert {
@@ -221,7 +221,7 @@ function initPeerVars {
    export CORE_LOGGING_LEVEL=DEBUG
    export CORE_PEER_TLS_ENABLED=true
    export CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
-   export CORE_PEER_TLS_ROOTCERT_FILE=$INT_CA_CHAINFILE
+   export CORE_PEER_TLS_ROOTCERT_FILE=$CA_CHAINFILE
    export CORE_PEER_TLS_CLIENTCERT_FILE=/$DATA/tls/$PEER_NAME-cli-client.crt
    export CORE_PEER_TLS_CLIENTKEY_FILE=/$DATA/tls/$PEER_NAME-cli-client.key
    export CORE_PEER_PROFILE_ENABLED=true
