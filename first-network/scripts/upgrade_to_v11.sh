@@ -87,13 +87,14 @@ addCapabilityToChannel() {
         if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
                 set -x
                 peer channel update -f config_update_in_envelope.pb -c $CH_NAME -o orderer.example.com:7050 --cafile $ORDERER_CA
+                res=$?
                 set +x
         else
                 set -x
                 peer channel update -f config_update_in_envelope.pb -c $CH_NAME -o orderer.example.com:7050 --tls true --cafile $ORDERER_CA
+                res=$?
                 set +x
         fi
-        res=$?
         verifyResult $res "Config update for \"$GROUP\" on \"$CH_NAME\" failed"
         echo "===================== Config update for \"$GROUP\" on \"$CH_NAME\" is completed ===================== "
 

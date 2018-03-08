@@ -186,8 +186,9 @@ function generateCerts (){
   (cd org3-artifacts
    set -x
    cryptogen generate --config=./org3-crypto.yaml
+   res=$?
    set +x
-   if [ "$?" -ne 0 ]; then
+   if [ $res -ne 0 ]; then
      echo "Failed to generate certificates..."
      exit 1
    fi
@@ -209,8 +210,9 @@ function generateChannelArtifacts() {
    export FABRIC_CFG_PATH=$PWD
    set -x
    configtxgen -printOrg Org3MSP > ../channel-artifacts/org3.json
+   res=$?
    set +x
-   if [ "$?" -ne 0 ]; then
+   if [ $res -ne 0 ]; then
      echo "Failed to generate Org3 config material..."
      exit 1
    fi

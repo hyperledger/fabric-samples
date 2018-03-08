@@ -71,13 +71,14 @@ updateAnchorPeers() {
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
                 set -x
 		peer channel update -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx >&log.txt
+		res=$?
                 set +x
   else
                 set -x
 		peer channel update -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA >&log.txt
+		res=$?
                 set +x
   fi
-	res=$?
 	cat log.txt
 	verifyResult $res "Anchor peer update failed"
 	echo "===================== Anchor peers for org \"$CORE_PEER_LOCALMSPID\" on \"$CHANNEL_NAME\" is updated successfully ===================== "
@@ -93,8 +94,8 @@ joinChannelWithRetry () {
 
         set -x
 	peer channel join -b $CHANNEL_NAME.block  >&log.txt
-        set +x
 	res=$?
+        set +x
 	cat log.txt
 	if [ $res -ne 0 -a $COUNTER -lt $MAX_RETRY ]; then
 		COUNTER=` expr $COUNTER + 1`
@@ -114,8 +115,8 @@ installChaincode () {
 	VERSION=${3:-1.0}
         set -x
 	peer chaincode install -n mycc -v ${VERSION} -l ${LANGUAGE} -p ${CC_SRC_PATH} >&log.txt
-        set +x
 	res=$?
+        set +x
 	cat log.txt
 	verifyResult $res "Chaincode installation on peer${PEER}.org${ORG} has Failed"
 	echo "===================== Chaincode is installed on peer${PEER}.org${ORG} ===================== "
@@ -133,13 +134,14 @@ instantiateChaincode () {
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
                 set -x
 		peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v ${VERSION} -c '{"Args":["init","a","100","b","200"]}' -P "OR	('Org1MSP.peer','Org2MSP.peer')" >&log.txt
+		res=$?
                 set +x
 	else
                 set -x
 		peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v 1.0 -c '{"Args":["init","a","100","b","200"]}' -P "OR	('Org1MSP.peer','Org2MSP.peer')" >&log.txt
+		res=$?
                 set +x
 	fi
-	res=$?
 	cat log.txt
 	verifyResult $res "Chaincode instantiation on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' failed"
 	echo "===================== Chaincode Instantiation on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' is successful ===================== "
@@ -153,8 +155,8 @@ upgradeChaincode () {
 
     set -x
     peer chaincode upgrade -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -v 2.0 -c '{"Args":["init","a","90","b","210"]}' -P "OR ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer')"
-    set +x
     res=$?
+	set +x
     cat log.txt
     verifyResult $res "Chaincode upgrade on org${ORG} peer${PEER} has Failed"
     echo "===================== Chaincode is upgraded on org${ORG} peer${PEER} ===================== "
@@ -178,8 +180,9 @@ chaincodeQuery () {
      echo "Attempting to Query peer${PEER}.org${ORG} ...$(($(date +%s)-starttime)) secs"
      set -x
      peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}' >&log.txt
+	 res=$?
      set +x
-     test $? -eq 0 && VALUE=$(cat log.txt | awk '/Query Result/ {print $NF}')
+     test $res -eq 0 && VALUE=$(cat log.txt | awk '/Query Result/ {print $NF}')
      test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
   done
   echo
@@ -257,13 +260,14 @@ chaincodeInvoke () {
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
                 set -x
 		peer chaincode invoke -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -c '{"Args":["invoke","a","b","10"]}' >&log.txt
+		res=$?
                 set +x
 	else
                 set -x
 		peer chaincode invoke -o orderer.example.com:7050  --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -c '{"Args":["invoke","a","b","10"]}' >&log.txt
+		res=$?
                 set +x
 	fi
-	res=$?
 	cat log.txt
 	verifyResult $res "Invoke execution on peer${PEER}.org${ORG} failed "
 	echo "===================== Invoke transaction on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' is successful ===================== "

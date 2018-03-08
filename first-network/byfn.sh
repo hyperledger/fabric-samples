@@ -317,8 +317,9 @@ function generateCerts (){
   fi
   set -x
   cryptogen generate --config=./crypto-config.yaml
+  res=$?
   set +x
-  if [ "$?" -ne 0 ]; then
+  if [ $res -ne 0 ]; then
     echo "Failed to generate certificates..."
     exit 1
   fi
@@ -377,8 +378,9 @@ function generateChannelArtifacts() {
   # named orderer.genesis.block or the orderer will fail to launch!
   set -x
   configtxgen -profile TwoOrgsOrdererGenesis -outputBlock ./channel-artifacts/genesis.block
+  res=$?
   set +x
-  if [ "$?" -ne 0 ]; then
+  if [ $res -ne 0 ]; then
     echo "Failed to generate orderer genesis block..."
     exit 1
   fi
@@ -388,8 +390,9 @@ function generateChannelArtifacts() {
   echo "#################################################################"
   set -x
   configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/channel.tx -channelID $CHANNEL_NAME
+  res=$?
   set +x
-  if [ "$?" -ne 0 ]; then
+  if [ $res -ne 0 ]; then
     echo "Failed to generate channel configuration transaction..."
     exit 1
   fi
@@ -400,8 +403,9 @@ function generateChannelArtifacts() {
   echo "#################################################################"
   set -x
   configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org1MSP
+  res=$?
   set +x
-  if [ "$?" -ne 0 ]; then
+  if [ $res -ne 0 ]; then
     echo "Failed to generate anchor peer update for Org1MSP..."
     exit 1
   fi
@@ -413,8 +417,9 @@ function generateChannelArtifacts() {
   set -x
   configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate \
   ./channel-artifacts/Org2MSPanchors.tx -channelID $CHANNEL_NAME -asOrg Org2MSP
+  res=$?
   set +x
-  if [ "$?" -ne 0 ]; then
+  if [ $res -ne 0 ]; then
     echo "Failed to generate anchor peer update for Org2MSP..."
     exit 1
   fi
