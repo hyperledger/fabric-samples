@@ -9,25 +9,3 @@
 /config
 .DS_Store
 .project
-
-first-network/channel-artifacts/*.tx
-first-network/channel-artifacts/*.block
-first-network/crypto-config/*
-first-network/docker-compose-e2e.yaml
-first-network/ledgers
-first-network/ledgers-backup
-
-chaincode-docker-devmode/myc.block
-chaincode-docker-devmode/chaincode/sacc/sacc
-chaincode-docker-devmode/chaincode/chaincode_example02/chaincode_example02
-
-# fabric sdk node modules
-fabcar/node_modules/
-fabcar/package-lock.json
-fabcar/hfc-key-store/
-
-# balance transfer sample
-balance-transfer/.DS_Store
-balance-transfer/node_modules/*
-balance-transfer/package-lock.json
-balance-transfer/fabric-client-kv-org*
