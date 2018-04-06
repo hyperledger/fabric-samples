@@ -232,8 +232,10 @@ function upgradeNetwork () {
 
 # Tear down running network
 function networkDown () {
-  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH down --volumes
-  docker-compose -f $COMPOSE_FILE down --volumes
+  # stop org3 containers also in addition to org1 and org2, in case we were running sample to add org3
+  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_ORG3 down --volumes
+  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_ORG3 down --volumes
+
   # Don't remove the generated artifacts -- note, the ledgers are always removed
   if [ "$MODE" != "restart" ]; then
     # Bring down the network, deleting the volumes
@@ -440,6 +442,9 @@ CHANNEL_NAME="mychannel"
 COMPOSE_FILE=docker-compose-cli.yaml
 #
 COMPOSE_FILE_COUCH=docker-compose-couch.yaml
+# org3 docker compose file
+COMPOSE_FILE_ORG3=docker-compose-org3.yaml
+#
 # use golang as the default language for chaincode
 LANGUAGE=golang
 # default image tag
