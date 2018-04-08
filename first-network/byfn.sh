@@ -257,7 +257,7 @@ function networkDown () {
 # configuration
 function replacePrivateKey () {
   # sed on MacOSX does not support -i flag with a null extension. We will use
-  # 't' for our back-up's extension and depete it at the end of the function
+  # 't' for our back-up's extension and delete it at the end of the function
   ARCH=`uname -s | grep Darwin`
   if [ "$ARCH" == "Darwin" ]; then
     OPTS="-it"
