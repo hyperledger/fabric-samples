@@ -184,6 +184,9 @@ chaincodeQuery () {
      set +x
      test $res -eq 0 && VALUE=$(cat log.txt | awk '/Query Result/ {print $NF}')
      test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
+     # removed the string "Query Result" from peer chaincode query command result, as a result, have to support both options until the change is merged.
+     test $rc -ne 0 && VALUE=$(cat log.txt | egrep '^[0-9]+$')
+     test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
   done
   echo
   cat log.txt

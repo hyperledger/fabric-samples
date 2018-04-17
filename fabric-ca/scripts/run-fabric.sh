@@ -157,6 +157,14 @@ function chaincodeQuery {
          logr "Query of channel '$CHANNEL_NAME' on peer '$PEER_HOST' was successful"
          set -e
          return 0
+      else
+         # removed the string "Query Result" from peer chaincode query command result, as a result, have to support both options until the change is merged.
+         VALUE=$(cat log.txt | egrep '^[0-9]+$')
+         if [ $? -eq 0 -a "$VALUE" = "$1" ]; then
+            logr "Query of channel '$CHANNEL_NAME' on peer '$PEER_HOST' was successful"
+            set -e
+            return 0
+         fi
       fi
       echo -n "."
    done
