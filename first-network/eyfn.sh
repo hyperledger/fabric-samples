@@ -14,6 +14,7 @@
 # this may be commented out to resolve installed version of tools if desired
 export PATH=${PWD}/../bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=${PWD}
+export VERBOSE=false
 
 # Print the usage message
 function printHelp () {
@@ -32,6 +33,7 @@ function printHelp () {
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -l <language> - the chaincode language: golang (default) or node"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
+  echo "    -v - verbose mode"
   echo
   echo "Typically, one would first generate the required certificates and "
   echo "genesis block, then bring up the network. e.g.:"
@@ -80,7 +82,7 @@ function clearContainers () {
 # specifically the following images are often left behind:
 # TODO list generated image naming patterns
 function removeUnwantedImages() {
-  DOCKER_IMAGE_IDS=$(docker images | grep "dev\|none\|test-vp\|peer[0-9]-" | awk '{print $3}')
+  DOCKER_IMAGE_IDS=$(docker images|awk '($1 ~ /dev-peer.*.mycc.*/) {print $3}')
   if [ -z "$DOCKER_IMAGE_IDS" -o "$DOCKER_IMAGE_IDS" == " " ]; then
     echo "---- No images available for deletion ----"
   else
@@ -110,7 +112,7 @@ function networkUp () {
   echo "###############################################################"
   echo "############### Have Org3 peers join network ##################"
   echo "###############################################################"
-  docker exec Org3cli ./scripts/step2org3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT
+  docker exec Org3cli ./scripts/step2org3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to have Org3 peers join network"
     exit 1
@@ -119,13 +121,13 @@ function networkUp () {
   echo "###############################################################"
   echo "##### Upgrade chaincode to have Org3 peers on the network #####"
   echo "###############################################################"
-  docker exec cli ./scripts/step3org3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT
+  docker exec cli ./scripts/step3org3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to add Org3 peers on network"
     exit 1
   fi
   # finish by running the test
-  docker exec Org3cli ./scripts/testorg3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT
+  docker exec Org3cli ./scripts/testorg3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to run test"
     exit 1
@@ -160,7 +162,7 @@ function createConfigTx () {
   echo "###############################################################"
   echo "####### Generate and submit config tx to add Org3 #############"
   echo "###############################################################"
-  docker exec cli scripts/step1org3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT
+  docker exec cli scripts/step1org3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to create config tx"
     exit 1
@@ -271,7 +273,7 @@ else
   printHelp
   exit 1
 fi
-while getopts "h?c:t:d:f:s:l:i:" opt; do
+while getopts "h?c:t:d:f:s:l:i:v" opt; do
   case "$opt" in
     h|\?)
       printHelp
@@ -290,6 +292,8 @@ while getopts "h?c:t:d:f:s:l:i:" opt; do
     l)  LANGUAGE=$OPTARG
     ;;
     i)  IMAGETAG=$OPTARG
+    ;;
+    v)  VERBOSE=true
     ;;
   esac
 done

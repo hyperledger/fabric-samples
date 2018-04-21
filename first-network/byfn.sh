@@ -30,6 +30,7 @@
 # this may be commented out to resolve installed version of tools if desired
 export PATH=${PWD}/../bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=${PWD}
+export VERBOSE=false
 
 # Print the usage message
 function printHelp () {
@@ -49,6 +50,7 @@ function printHelp () {
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -l <language> - the chaincode language: golang (default) or node"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
+  echo "    -v - verbose mode"
   echo
   echo "Typically, one would first generate the required certificates and "
   echo "genesis block, then bring up the network. e.g.:"
@@ -163,7 +165,7 @@ function networkUp () {
     exit 1
   fi
   # now run the end to end script
-  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT
+  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Test failed"
     exit 1
@@ -222,7 +224,7 @@ function upgradeNetwork () {
     docker-compose $COMPOSE_FILES up -d --no-deps $PEER
   done
 
-  docker exec cli scripts/upgrade_to_v11.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT
+  docker exec cli scripts/upgrade_to_v11.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Test failed"
     exit 1
@@ -470,7 +472,7 @@ else
   exit 1
 fi
 
-while getopts "h?m:c:t:d:f:s:l:i:" opt; do
+while getopts "h?m:c:t:d:f:s:l:i:v" opt; do
   case "$opt" in
     h|\?)
       printHelp
@@ -489,6 +491,8 @@ while getopts "h?m:c:t:d:f:s:l:i:" opt; do
     l)  LANGUAGE=$OPTARG
     ;;
     i)  IMAGETAG=`uname -m`"-"$OPTARG
+    ;;
+    v)  VERBOSE=true
     ;;
   esac
 done
