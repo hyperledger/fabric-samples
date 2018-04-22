@@ -35,9 +35,8 @@ export VERBOSE=false
 # Print the usage message
 function printHelp () {
   echo "Usage: "
-  echo "  byfn.sh up|down|restart|generate|upgrade [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>] [-i <imagetag>]"
-  echo "  byfn.sh -h|--help (print this message)"
-  echo "    <mode> - one of 'up', 'down', 'restart' or 'generate'"
+  echo "  byfn.sh <mode> [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>] [-l <language>] [-i <imagetag>] [-v]"
+  echo "    <mode> - one of 'up', 'down', 'restart', 'generate' or 'upgrade'"
   echo "      - 'up' - bring up the network with docker-compose up"
   echo "      - 'down' - clear the network with docker-compose down"
   echo "      - 'restart' - restart the network"
@@ -51,6 +50,7 @@ function printHelp () {
   echo "    -l <language> - the chaincode language: golang (default) or node"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
   echo "    -v - verbose mode"
+  echo "  byfn.sh -h (print this message)"
   echo
   echo "Typically, one would first generate the required certificates and "
   echo "genesis block, then bring up the network. e.g.:"
@@ -456,7 +456,7 @@ if [ "$1" = "-m" ];then	# supports old usage, muscle memory is powerful!
     shift
 fi
 MODE=$1;shift
-# Determine whether starting, stopping, restarting or generating for announce
+# Determine whether starting, stopping, restarting, generating or upgrading
 if [ "$MODE" == "up" ]; then
   EXPMODE="Starting"
 elif [ "$MODE" == "down" ]; then
@@ -472,7 +472,7 @@ else
   exit 1
 fi
 
-while getopts "h?m:c:t:d:f:s:l:i:v" opt; do
+while getopts "h?c:t:d:f:s:l:i:v" opt; do
   case "$opt" in
     h|\?)
       printHelp
