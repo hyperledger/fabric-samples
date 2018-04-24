@@ -1,4 +1,8 @@
 /*
+ * Copyright IBM Corp All Rights Reserved
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
  * Demonstrates how to handle data in an application with a high transaction volume where the transactions
  * all attempt to change the same key-value pair in the ledger. Such an application will have trouble
  * as multiple transactions may read a value at a certain version, which will then be invalid when the first
