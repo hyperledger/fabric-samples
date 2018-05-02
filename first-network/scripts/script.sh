@@ -22,7 +22,6 @@ VERBOSE="$5"
 LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=5
-ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 
 CC_SRC_PATH="github.com/chaincode/chaincode_example02/go/"
 if [ "$LANGUAGE" = "node" ]; then
@@ -50,7 +49,7 @@ createChannel() {
 	fi
 	cat log.txt
 	verifyResult $res "Channel creation failed"
-	echo "===================== Channel \"$CHANNEL_NAME\" is created successfully ===================== "
+	echo "===================== Channel '$CHANNEL_NAME' created ===================== "
 	echo
 }
 
@@ -58,7 +57,7 @@ joinChannel () {
 	for org in 1 2; do
 	    for peer in 0 1; do
 		joinChannelWithRetry $peer $org
-		echo "===================== peer${peer}.org${org} joined on the channel \"$CHANNEL_NAME\" ===================== "
+		echo "===================== peer${peer}.org${org} joined channel '$CHANNEL_NAME' ===================== "
 		sleep $DELAY
 		echo
 	    done
@@ -93,9 +92,9 @@ instantiateChaincode 0 2
 echo "Querying chaincode on peer0.org1..."
 chaincodeQuery 0 1 100
 
-# Invoke chaincode on peer0.org1
-echo "Sending invoke transaction on peer0.org1..."
-chaincodeInvoke 0 1
+# Invoke chaincode on peer0.org1 and peer0.org2
+echo "Sending invoke transaction on peer0.org1 peer0.org2..."
+chaincodeInvoke 0 1 0 2
 
 ## Install chaincode on peer1.org2
 echo "Installing chaincode on peer1.org2..."

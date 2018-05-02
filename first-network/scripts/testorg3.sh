@@ -32,7 +32,6 @@ VERBOSE="$5"
 LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=5
-ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 
 CC_SRC_PATH="github.com/chaincode/chaincode_example02/go/"
 if [ "$LANGUAGE" = "node" ]; then
@@ -44,8 +43,16 @@ echo "Channel name : "$CHANNEL_NAME
 # import functions
 . scripts/utils.sh
 
+# Query chaincode on peer0.org3, check if the result is 90
+echo "Querying chaincode on peer0.org3..."
 chaincodeQuery 0 3 90
-chaincodeInvoke 0 3
+
+# Invoke chaincode on peer0.org1, peer0.org2, and peer0.org3
+echo "Sending invoke transaction on peer0.org1 peer0.org2 peer0.org3..."
+chaincodeInvoke 0 1 0 2 0 3
+
+# Query on chaincode on peer0.org3, check if the result is 80
+echo "Querying chaincode on peer0.org3..."
 chaincodeQuery 0 3 80
 
 echo
