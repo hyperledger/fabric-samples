@@ -246,8 +246,8 @@ function createConfigUpdatePayloadWithCRL {
    jq .data.data[0].payload.data.config config_block.json > config.json
 
    # Update crl in the config json
-   crl=$(cat $CORE_PEER_MSPCONFIGPATH/crls/crl*.pem | base64 | tr -d '\n')
-   cat config.json | jq '.channel_group.groups.Application.groups.'"${ORG}"'.values.MSP.value.config.revocation_list = ["'"${crl}"'"]' > updated_config.json
+   CRL=$(cat $CORE_PEER_MSPCONFIGPATH/crls/crl*.pem | base64 | tr -d '\n')
+   cat config.json | jq --arg org "$ORG" --arg crl "$CRL" '.channel_group.groups.Application.groups[$org].values.MSP.value.config.revocation_list = [$crl]' > updated_config.json
 
    # Create the config diff protobuf
    curl -X POST --data-binary @config.json $CTLURL/protolator/encode/common.Config > config.pb
@@ -274,6 +274,7 @@ function finish {
    else
       logr "Tests did not complete successfully; see $RUN_LOGFILE for more details"
       touch /$RUN_FAIL_FILE
+      exit 1
    fi
 }
 
