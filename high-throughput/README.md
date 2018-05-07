@@ -1,3 +1,9 @@
+<!--
+ Copyright IBM Corp All Rights Reserved
+
+ SPDX-License-Identifier: Apache-2.0
+-->
+
 # High-Throughput Network
 
 ## Purpose
@@ -106,9 +112,9 @@ and run some invocations are provided below.
     `./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/` --> 
     `./../high-throughput/scripts/:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/`
 
-  * Finally, comment out the `command` section by placing a `#` before it, e.g.
-    
-    `#command: /bin/bash -c './scripts/script.sh ${CHANNEL_NAME}; sleep $TIMEOUT'`
+  * Finally, comment out the `docker exec cli scripts/script.sh` command from the `byfn.sh` script by placing a `#` before it so that the standard BYFN end to end script doesn't run, e.g.
+
+    `#  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE`
 
 3. We can now bring our network up by typing in `./byfn.sh -m up -c mychannel`
 4. Open a new terminal window and enter the CLI container using `docker exec -it cli bash`, all operations on the network will happen within
