@@ -148,7 +148,7 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 	if (results && results[0] && results[0].status === 'SUCCESS') {
 		console.log('Successfully sent transaction to the orderer.');
 	} else {
-		console.error('Failed to order the transaction. Error code: ' + response.status);
+		console.error('Failed to order the transaction. Error code: ' + results[0].status);
 	}
 
 	if(results && results[1] && results[1].event_status === 'VALID') {
