@@ -18,11 +18,14 @@ import * as util from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as helper from './helper';
+import { ChannelEventHub, Peer, ProposalResponse, ChaincodeInvokeRequest,
+         ChaincodeQueryRequest, ChannelInfo } from 'fabric-client';
+
 const logger = helper.getLogger('ChannelApi');
 // tslint:disable-next-line:no-var-requires
 const config = require('../app_config.json');
 
-const allEventhubs: EventHub[] = [];
+const allEventhubs: ChannelEventHub[] = [];
 
 function buildTarget(peer: string, org: string): Peer {
     let target: Peer = null;
@@ -132,40 +135,10 @@ export async function joinChannel(
         block: genesisBlock
     };
 
-    const eventhubs = helper.newEventHubs(peers, org);
-    eventhubs.forEach((eh) => {
-        eh.connect();
-        allEventhubs.push(eh);
-    });
-
-    const eventPromises: Array<Promise<any>> = [];
-    eventhubs.forEach((eh) => {
-        const txPromise = new Promise((resolve, reject) => {
-            const handle = setTimeout(reject, parseInt(config.eventWaitTime, 10));
-            eh.registerBlockEvent((block: any) => {
-                clearTimeout(handle);
-                // in real-world situations, a peer may have more than one channels so
-                // we must check that this block came from the channel we asked the peer to join
-                if (block.data.data.length === 1) {
-                    // Config block must only contain one transaction
-                    const channel_header = block.data.data[0].payload.header.channel_header;
-                    if (channel_header.channel_id === channelName) {
-                        resolve();
-                    } else {
-                        reject();
-                    }
-                }
-            });
-        });
-        eventPromises.push(txPromise);
-    });
-
-    const sendPromise = channel.joinChannel(request2);
-    const results = await Promise.all([sendPromise].concat(eventPromises));
+    const results = await channel.joinChannel(request2);
 
     logger.debug(util.format('Join Channel R E S P O N S E : %j', results));
-    if (results[0] && results[0][0] && results[0][0].response && results[0][0]
-        .response.status === 200) {
+    if (results[0] && results[0].response && results[0].response.status === 200) {
         logger.info(util.format(
             'Successfully joined peers in organization %s to the channel \'%s\'',
             org, channelName));
@@ -216,7 +189,7 @@ export async function instantiateChainCode(
 
         let allGood = true;
 
-        proposalResponses.forEach((pr) => {
+        proposalResponses.forEach((pr: ProposalResponse) => {
             let oneGood = false;
             if (pr.response && pr.response.status === 200) {
                 oneGood = true;
@@ -228,15 +201,17 @@ export async function instantiateChainCode(
         });
 
         if (allGood) {
+            const responses = proposalResponses as ProposalResponse[];
+            const proposalResponse = responses[0];
             logger.info(util.format(
                 // tslint:disable-next-line:max-line-length
                 'Successfully sent Proposal and received ProposalResponse: Status - %s, message - "%s", metadata - "%s", endorsement signature: %s',
-                proposalResponses[0].response.status, proposalResponses[0].response.message,
-                proposalResponses[0].response.payload, proposalResponses[0].endorsement
+                proposalResponse.response.status, proposalResponse.response.message,
+                proposalResponse.response.payload, proposalResponse.endorsement
                     .signature));
 
             const request2 = {
-                proposalResponses,
+                proposalResponses: responses,
                 proposal
             };
             // set the transaction listener and set a timeout of 30sec
@@ -245,15 +220,7 @@ export async function instantiateChainCode(
             const deployId = txId.getTransactionID();
             const ORGS = helper.getOrgs();
 
-            const eh = client.newEventHub();
-            const data = fs.readFileSync(path.join(__dirname, ORGS[org].peers['peer1'][
-                'tls_cacerts'
-            ]));
-
-            eh.setPeerAddr(ORGS[org].peers['peer1']['events'], {
-                'pem': Buffer.from(data).toString(),
-                'ssl-target-name-override': ORGS[org].peers['peer1']['server-hostname']
-            });
+            const eh = channel.newChannelEventHub('peer1');
             eh.connect();
 
             const txPromise: Promise<any> = new Promise((resolve, reject) => {
@@ -262,7 +229,7 @@ export async function instantiateChainCode(
                     reject();
                 }, 30000);
 
-                eh.registerTxEvent(deployId, (tx, code) => {
+                eh.registerTxEvent(deployId, (tx: string, code: string) => {
                     // logger.info(
                     //  'The chaincode instantiate transaction has been committed on peer ' +
                     // eh._ep._endpoint.addr);
@@ -346,7 +313,7 @@ export async function invokeChaincode(
         const proposal = results[1];
         let allGood = true;
 
-        proposalResponses.forEach((pr) => {
+        proposalResponses.forEach((pr: ProposalResponse) => {
             let oneGood = false;
             if (pr.response && pr.response.status === 200) {
                 oneGood = true;
@@ -358,15 +325,17 @@ export async function invokeChaincode(
         });
 
         if (allGood) {
+            const responses = proposalResponses as ProposalResponse[];
+            const proposalResponse = responses[0];
             logger.debug(util.format(
                 // tslint:disable-next-line:max-line-length
                 'Successfully sent Proposal and received ProposalResponse: Status - %s, message - "%s", metadata - "%s", endorsement signature: %s',
-                proposalResponses[0].response.status, proposalResponses[0].response.message,
-                proposalResponses[0].response.payload, proposalResponses[0].endorsement
+                proposalResponse.response.status, proposalResponse.response.message,
+                proposalResponse.response.payload, proposalResponse.endorsement
                     .signature));
 
             const request2 = {
-                proposalResponses,
+                proposalResponses: responses,
                 proposal
             };
 
@@ -384,7 +353,7 @@ export async function invokeChaincode(
 
             const eventhubs = helper.newEventHubs(peerNames, org);
 
-            eventhubs.forEach((eh: EventHub) => {
+            eventhubs.forEach((eh: ChannelEventHub) => {
                 eh.connect();
 
                 const txPromise = new Promise((resolve, reject) => {
@@ -452,11 +421,9 @@ export async function queryChaincode(
 
     const user = await helper.getRegisteredUsers(username, org);
 
-    const txId = client.newTransactionID();
     // send query
     const request: ChaincodeQueryRequest = {
         chaincodeId: chaincodeName,
-        txId,
         fcn,
         args
     };
@@ -470,7 +437,7 @@ export async function queryChaincode(
 
         if (responsePayloads) {
 
-            responsePayloads.forEach((rp) => {
+            responsePayloads.forEach((rp: Buffer) => {
                 logger.info(args[0] + ' now has ' + rp.toString('utf8') +
                     ' after the move');
                 return args[0] + ' now has ' + rp.toString('utf8') +
@@ -501,7 +468,7 @@ export async function getBlockByNumber(
         const responsePayloads = await channel.queryBlock(parseInt(blockNumber, 10), target);
 
         if (responsePayloads) {
-            logger.debug(responsePayloads);
+            logger.debug(responsePayloads.toString());
             return responsePayloads; // response_payloads.data.data[0].buffer;
         } else {
             logger.error('response_payloads is null');
@@ -554,7 +521,7 @@ export async function getChainInfo(peer: string, username: string, org: string) 
         if (blockChainInfo) {
             // FIXME: Save this for testing 'getBlockByHash'  ?
             logger.debug('===========================================');
-            logger.debug(blockChainInfo.currentBlockHash);
+            logger.debug(blockChainInfo.currentBlockHash.toString());
             logger.debug('===========================================');
             // logger.debug(blockchainInfo);
             return blockChainInfo;
@@ -583,7 +550,7 @@ export async function getChannels(peer: string, username: string, org: string) {
         if (response) {
             logger.debug('<<< channels >>>');
             const channelNames: string[] = [];
-            response.channels.forEach((ci) => {
+            response.channels.forEach((ci: ChannelInfo) => {
                 channelNames.push('channel id: ' + ci.channel_id);
             });
             return response;

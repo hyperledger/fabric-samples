@@ -18,6 +18,7 @@ import * as util from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as helper from './helper';
+import { Peer, ProposalResponse, ChaincodeQueryResponse } from 'fabric-client';
 
 // tslint:disable-next-line:no-var-requires
 const config = require('../app_config.json');
@@ -53,7 +54,8 @@ export async function installChaincode(
         targets: helper.newPeers(peers, org),
         chaincodePath,
         chaincodeId: chaincodeName,
-        chaincodeVersion
+        chaincodeVersion,
+        txId: client.newTransactionID(true)
     };
 
     try {
@@ -64,7 +66,7 @@ export async function installChaincode(
         const proposal = results[1];
         let allGood = true;
 
-        proposalResponses.forEach((pr) => {
+        proposalResponses.forEach((pr: ProposalResponse) => {
             let oneGood = false;
             if (pr.response && pr.response.status === 200) {
                 oneGood = true;
@@ -76,9 +78,10 @@ export async function installChaincode(
         });
 
         if (allGood) {
+            const proposalResponse = proposalResponses[0] as ProposalResponse;
             logger.info(util.format(
                 'Successfully sent install Proposal and received ProposalResponse: Status - %s',
-                proposalResponses[0].response.status));
+                proposalResponse.response.status));
             logger.debug('\nSuccessfully Installed chaincode on organization ' + org +
                 '\n');
             return 'Successfully Installed chaincode on organization ' + org;
