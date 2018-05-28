@@ -13,7 +13,7 @@ of compiling chaincode and driving calls.
 Install Fabric Samples
 ----------------------
 
-If you haven't already done so, please install the doc [samples](http://hyperledger-fabric.readthedocs.io/en/latest/samples.html).
+If you haven't already done so, please install the `Hyperledger Fabric Samples <https://hyperledger-fabric.readthedocs.io/en/release-1.1/samples.html>`_.
 
 Navigate to the ``chaincode-docker-devmode`` directory of the ``fabric-samples``
 clone:
@@ -27,37 +27,30 @@ Download docker images
 
 We need four docker images in order for "dev mode" to run against the supplied
 docker compose script.  If you installed the ``fabric-samples`` repo clone and
-followed the instructions to [download-platform-specific-binaries](http://hyperledger-fabric.readthedocs.io/en/latest/samples.html#download-platform-specific-binaries), then
+followed the instructions to `download-platform-specific-binaries <http://hyperledger-fabric.readthedocs.io/en/latest/samples.html#download-platform-specific-binaries>`_, then
 you should have the necessary Docker images installed locally.
 
-.. note:: If you choose to manually pull the images then you must retag them as
-          ``latest``.
+Hyperledger Fabric does not provide 'latest' tag for the docker images (see `FAB-8338 <https://jira.hyperledger.org/browse/FAB-8338>`_ for reference), which means that one has to specify tag explicitly when pulling the images.
 
-Issue a ``docker images`` command to reveal your local Docker Registry.  You
-should see something similar to following:
+This repository provides default tag via `docker-compose environment variables <https://docs.docker.com/compose/environment-variables/>`_. 
+The default tag is specified in the `.env <.env>`_ file.
+
+If you want to use different tag either update `.env <.env>`_ file, or override the TAG variable while running docker-compose. 
 
 .. code:: bash
 
-  docker images
-  REPOSITORY                     TAG                                  IMAGE ID            CREATED             SIZE
-  hyperledger/fabric-tools       latest                c584c20ac82b        9 days ago         1.42 GB
-  hyperledger/fabric-tools       x86_64-1.1.0-preview  c584c20ac82b        9 days ago         1.42 GB
-  hyperledger/fabric-orderer     latest                2fccc91736df        9 days ago         159 MB
-  hyperledger/fabric-orderer     x86_64-1.1.0-preview  2fccc91736df        9 dyas ago         159 MB
-  hyperledger/fabric-peer        latest                337f3d90b452        9 days ago         165 MB
-  hyperledger/fabric-peer        x86_64-1.1.0-preview  337f3d90b452        9 days ago         165 MB
-  hyperledger/fabric-ccenv       latest                82489d1c11e8        9 days ago         1.35 GB
-  hyperledger/fabric-ccenv       x86_64-1.1.0-preview  82489d1c11e8        9 days ago         1.35 GB
+  TAG=1.1.0-pre docker-compose -f docker-compose-simple.yaml up
 
-.. note:: If you retrieved the images through the [download-platform-specific-binaries](http://hyperledger-fabric.readthedocs.io/en/latest/samples.html#download-platform-specific-binaries),
+.. note:: If you retrieved the images through the `download-platform-specific-binaries <http://hyperledger-fabric.readthedocs.io/en/latest/samples.html#download-platform-specific-binaries>`_,
           then you will see additional images listed.  However, we are only concerned with
           these four.
 
-Now open three terminals and navigate to your ``chaincode-docker-devmode``
-directory in each.
+Now 
 
 Terminal 1 - Start the network
 ------------------------------
+Open three terminals and navigate to your ``chaincode-docker-devmode``
+directory in each.
 
 .. code:: bash
 
@@ -93,7 +86,7 @@ Now run the chaincode:
 
 .. code:: bash
 
-  CORE_PEER_ADDRESS=peer:7052 CORE_CHAINCODE_ID_NAME=mycc:0 ./chaincode_example02
+  CORE_CHAINCODE_ID_NAME=mycc:0 ./chaincode_example02
 
 The chaincode is started with peer and chaincode logs indicating successful registration with the peer.
 Note that at this stage the chaincode is not associated with any channel. This is done in subsequent steps
