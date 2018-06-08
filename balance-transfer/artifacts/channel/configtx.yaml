@@ -6,34 +6,6 @@
 ---
 ################################################################################
 #
-#   Profile
-#
-#   - Different configuration profiles may be encoded here to be specified
-#   as parameters to the configtxgen tool
-#
-################################################################################
-Profiles:
-
-    TwoOrgsOrdererGenesis:
-        Orderer:
-            <<: *OrdererDefaults
-            Organizations:
-                - *OrdererOrg
-        Consortiums:
-            SampleConsortium:
-                Organizations:
-                    - *Org1
-                    - *Org2
-    TwoOrgsChannel:
-        Consortium: SampleConsortium
-        Application:
-            <<: *ApplicationDefaults
-            Organizations:
-                - *Org1
-                - *Org2
-
-################################################################################
-#
 #   Section: Organizations
 #
 #   - This section defines the different organizational identities which will
@@ -91,6 +63,20 @@ Organizations:
 
 ################################################################################
 #
+#   SECTION: Application
+#
+#   - This section defines the values to encode into a config transaction or
+#   genesis block for application related parameters
+#
+################################################################################
+Application: &ApplicationDefaults
+
+    # Organizations is the list of orgs which are defined as participants on
+    # the application side of the network
+    Organizations:
+
+################################################################################
+#
 #   SECTION: Orderer
 #
 #   - This section defines the values to encode into a config transaction or
@@ -136,14 +122,28 @@ Orderer: &OrdererDefaults
 
 ################################################################################
 #
-#   SECTION: Application
+#   Profile
 #
-#   - This section defines the values to encode into a config transaction or
-#   genesis block for application related parameters
+#   - Different configuration profiles may be encoded here to be specified
+#   as parameters to the configtxgen tool
 #
 ################################################################################
-Application: &ApplicationDefaults
+Profiles:
 
-    # Organizations is the list of orgs which are defined as participants on
-    # the application side of the network
-    Organizations:
+    TwoOrgsOrdererGenesis:
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *Org1
+                    - *Org2
+    TwoOrgsChannel:
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *Org1
+                - *Org2

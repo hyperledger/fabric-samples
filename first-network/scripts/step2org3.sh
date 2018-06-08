@@ -18,14 +18,15 @@ CHANNEL_NAME="$1"
 DELAY="$2"
 LANGUAGE="$3"
 TIMEOUT="$4"
+VERBOSE="$5"
 : ${CHANNEL_NAME:="mychannel"}
 : ${DELAY:="3"}
 : ${LANGUAGE:="golang"}
 : ${TIMEOUT:="10"}
+: ${VERBOSE:="false"}
 LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=5
-ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 
 CC_SRC_PATH="github.com/chaincode/chaincode_example02/go/"
 if [ "$LANGUAGE" = "node" ]; then
@@ -43,17 +44,15 @@ set +x
 cat log.txt
 verifyResult $res "Fetching config block from orderer has Failed"
 
-echo "===================== Having peer0.org3 join the channel ===================== "
 joinChannelWithRetry 0 3
-echo "===================== peer0.org3 joined the channel \"$CHANNEL_NAME\" ===================== "
-echo "===================== Having peer1.org3 join the channel ===================== "
+echo "===================== peer0.org3 joined channel '$CHANNEL_NAME' ===================== "
 joinChannelWithRetry 1 3
-echo "===================== peer1.org3 joined the channel \"$CHANNEL_NAME\" ===================== "
+echo "===================== peer1.org3 joined channel '$CHANNEL_NAME' ===================== "
 echo "Installing chaincode 2.0 on peer0.org3..."
 installChaincode 0 3 2.0
 
 echo
-echo "========= Got Org3 halfway onto your first network ========= "
+echo "========= Org3 is now halfway onto your first network ========= "
 echo
 
 exit 0

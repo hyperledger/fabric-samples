@@ -13,7 +13,7 @@ of compiling chaincode and driving calls.
 Install Fabric Samples
 ----------------------
 
-If you haven't already done so, please install the doc [samples](http://hyperledger-fabric.readthedocs.io/en/latest/samples.html).
+If you haven't already done so, please `install samples <http://hyperledger-fabric.readthedocs.io/en/latest/install.html>`_.
 
 Navigate to the ``chaincode-docker-devmode`` directory of the ``fabric-samples``
 clone:
@@ -27,7 +27,7 @@ Download docker images
 
 We need four docker images in order for "dev mode" to run against the supplied
 docker compose script.  If you installed the ``fabric-samples`` repo clone and
-followed the instructions to [download-platform-specific-binaries](http://hyperledger-fabric.readthedocs.io/en/latest/samples.html#download-platform-specific-binaries), then
+followed the instructions to `install samples, binaries and docker images <http://hyperledger-fabric.readthedocs.io/en/latest/install.html>`_, then
 you should have the necessary Docker images installed locally.
 
 .. note:: If you choose to manually pull the images then you must retag them as
@@ -49,7 +49,7 @@ should see something similar to following:
   hyperledger/fabric-ccenv       latest                82489d1c11e8        9 days ago         1.35 GB
   hyperledger/fabric-ccenv       x86_64-1.1.0-preview  82489d1c11e8        9 days ago         1.35 GB
 
-.. note:: If you retrieved the images through the [download-platform-specific-binaries](http://hyperledger-fabric.readthedocs.io/en/latest/samples.html#download-platform-specific-binaries),
+.. note:: If you retrieved the images through the `install samples, binaries and docker images <http://hyperledger-fabric.readthedocs.io/en/latest/install.html>`_,
           then you will see additional images listed.  However, we are only concerned with
           these four.
 

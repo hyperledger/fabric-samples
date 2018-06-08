@@ -81,7 +81,7 @@ with a value of "true".  Note further that the chaincode used by this sample
 requires this attribute be included in the certificate of the identity that
 invokes its Init function.  See the chaincode at *fabric-samples/chaincode/abac/abac.go*).
 For more information on Attribute-Based Access Control (ABAC), see
-https://github.com/hyperledger/fabric/tree/release/core/chaincode/lib/cid/README.md.
+https://github.com/hyperledger/fabric/blob/master/core/chaincode/lib/cid/README.md.
 
 4. The orderer and peer containers are started.  The naming of these containers
 is straight-forward as is their log files in the *data/logs* directory.

@@ -170,7 +170,7 @@ TRX_ID=$(curl -s -X POST \
 	"fcn":"move",
 	"args":["a","b","10"]
 }')
-echo "Transacton ID is $TRX_ID"
+echo "Transaction ID is $TRX_ID"
 echo
 echo
 
