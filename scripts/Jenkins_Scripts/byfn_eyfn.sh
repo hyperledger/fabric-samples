@@ -41,18 +41,18 @@ fi
  echo "############### BYFN,EYFN CUSTOM CHANNEL WITH COUCHDB TEST ##############"
  echo "#########################################################################"
  echo y | ./byfn.sh -m up -c custom-channel-couchdb -s couchdb -t 60
- err_check $? custom-channel-couch couchdb
+ err_Check $? custom-channel-couch couchdb
  echo y | ./eyfn.sh -m up -c custom-channel-couchdb -s couchdb -t 60
- err_check $? custom-channel-couch
+ err_Check $? custom-channel-couch
  echo y | ./eyfn.sh -m down
  echo
 
  echo "############### BYFN,EYFN WITH NODE Chaincode. TEST ################"
  echo "####################################################################"
  echo y | ./byfn.sh -m up -l node -t 60
- err_check $? default-channel-node
+ err_Check $? default-channel-node
  echo y | ./eyfn.sh -m up -l node -t 60
- err_check $? default-channel-node
+ err_Check $? default-channel-node
  echo y | ./eyfn.sh -m down
 
  echo "############### FABRIC-CA SAMPLES TEST ########################"

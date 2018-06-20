@@ -2,7 +2,7 @@
     "mod_policy": "Admins",
     "value": {
       "capabilities": {
-        "V1_1": {}
+        "V1_2": {}
       }
     },
     "version": "0"

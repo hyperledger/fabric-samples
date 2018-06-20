@@ -41,7 +41,7 @@ function printHelp() {
   echo "      - 'down' - clear the network with docker-compose down"
   echo "      - 'restart' - restart the network"
   echo "      - 'generate' - generate required certificates and genesis block"
-  echo "      - 'upgrade'  - upgrade the network from v1.0.x to v1.1"
+  echo "      - 'upgrade'  - upgrade the network from version 1.1.x to 1.2.x"
   echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
   echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10)"
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
@@ -57,7 +57,7 @@ function printHelp() {
   echo
   echo "	byfn.sh generate -c mychannel"
   echo "	byfn.sh up -c mychannel -s couchdb"
-  echo "        byfn.sh up -c mychannel -s couchdb -i 1.1.0-alpha"
+  echo "        byfn.sh up -c mychannel -s couchdb -i 1.2.x"
   echo "	byfn.sh up -l node"
   echo "	byfn.sh down -c mychannel"
   echo "        byfn.sh upgrade -c mychannel"
@@ -172,13 +172,13 @@ function networkUp() {
   fi
 }
 
-# Upgrade the network from v1.0.x to v1.1
-# Stop the orderer and peers, backup the ledger from orderer and peers, cleanup chaincode containers and images
+# Upgrade the network components which are at version 1.1.x to 1.2.x
+# Stop the orderer and peers, backup the ledger for orderer and peers, cleanup chaincode containers and images
 # and relaunch the orderer and peers with latest tag
 function upgradeNetwork() {
   docker inspect -f '{{.Config.Volumes}}' orderer.example.com | grep -q '/var/hyperledger/production/orderer'
   if [ $? -ne 0 ]; then
-    echo "ERROR !!!! This network does not appear to be using volumes for its ledgers, did you start from fabric-samples >= v1.0.6?"
+    echo "ERROR !!!! This network does not appear to be using volumes for its ledgers, did you start from fabric-samples >= v1.1.x?"
     exit 1
   fi
 
@@ -224,7 +224,7 @@ function upgradeNetwork() {
     docker-compose $COMPOSE_FILES up -d --no-deps $PEER
   done
 
-  docker exec cli scripts/upgrade_to_v11.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+  docker exec cli scripts/upgrade_to_v12.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Test failed"
     exit 1
@@ -429,7 +429,7 @@ function generateChannelArtifacts() {
 }
 
 # Obtain the OS and Architecture string that will be used to select the correct
-# native binaries for your platform
+# native binaries for your platform, e.g., darwin-amd64 or linux-amd64
 OS_ARCH=$(echo "$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
 # timeout duration - the duration the CLI should wait for a response from
 # another container before giving up
@@ -463,7 +463,7 @@ elif [ "$MODE" == "down" ]; then
 elif [ "$MODE" == "restart" ]; then
   EXPMODE="Restarting"
 elif [ "$MODE" == "generate" ]; then
-  EXPMODE="Generating certs and genesis block for"
+  EXPMODE="Generating certs and genesis block"
 elif [ "$MODE" == "upgrade" ]; then
   EXPMODE="Upgrading the network"
 else
@@ -496,7 +496,7 @@ while getopts "h?c:t:d:f:s:l:i:v" opt; do
     LANGUAGE=$OPTARG
     ;;
   i)
-    IMAGETAG=$(uname -m)"-"$OPTARG
+    IMAGETAG=$(go env GOARCH)"-"$OPTARG
     ;;
   v)
     VERBOSE=true
@@ -504,13 +504,14 @@ while getopts "h?c:t:d:f:s:l:i:v" opt; do
   esac
 done
 
+
 # Announce what was requested
 
 if [ "${IF_COUCHDB}" == "couchdb" ]; then
   echo
-  echo "${EXPMODE} with channel '${CHANNEL_NAME}' and CLI timeout of '${CLI_TIMEOUT}' seconds and CLI delay of '${CLI_DELAY}' seconds and using database '${IF_COUCHDB}'"
+  echo "${EXPMODE} for channel '${CHANNEL_NAME}' with CLI timeout of '${CLI_TIMEOUT}' seconds and CLI delay of '${CLI_DELAY}' seconds and using database '${IF_COUCHDB}'"
 else
-  echo "${EXPMODE} with channel '${CHANNEL_NAME}' and CLI timeout of '${CLI_TIMEOUT}' seconds and CLI delay of '${CLI_DELAY}' seconds"
+  echo "${EXPMODE} for channel '${CHANNEL_NAME}' with CLI timeout of '${CLI_TIMEOUT}' seconds and CLI delay of '${CLI_DELAY}' seconds"
 fi
 # ask for confirmation to proceed
 askProceed
@@ -527,7 +528,7 @@ elif [ "${MODE}" == "generate" ]; then ## Generate Artifacts
 elif [ "${MODE}" == "restart" ]; then ## Restart the network
   networkDown
   networkUp
-elif [ "${MODE}" == "upgrade" ]; then ## Upgrade the network from v1.0.x to v1.1
+elif [ "${MODE}" == "upgrade" ]; then ## Upgrade the network from version 1.1.x to 1.2.x
   upgradeNetwork
 else
   printHelp
