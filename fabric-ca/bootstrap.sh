@@ -6,13 +6,9 @@
 #
 
 # current version of fabric-ca released
-export CA_VERSION=${1:-1.1.0}
-export ARCH=$(echo "$(uname -s|tr '[:upper:]' '[:lower:]'|sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
-#Set MARCH variable i.e ppc64le,s390x,x86_64,i386
-MARCH=`uname -m`
+export CA_TAG=${1:-1.2.0}
 
 dockerCaPull() {
-      local CA_TAG=$1
       echo "==> FABRIC CA IMAGE"
       echo
       for image in "" "-tools" "-orderer" "-peer"; do
@@ -21,10 +17,8 @@ dockerCaPull() {
       done
 }
 
-: ${CA_TAG:="$MARCH-$CA_VERSION"}
-
 echo "===> Pulling fabric ca Image"
 dockerCaPull ${CA_TAG}
 
 echo "===> List out hyperledger docker images"
-docker images | grep hyperledger*
+docker images | grep hyperledger/fabric-ca
