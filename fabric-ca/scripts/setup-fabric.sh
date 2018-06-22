@@ -124,7 +124,42 @@ function printPeerOrg {
 
 function makeConfigTxYaml {
    {
-   echo "################################################################################
+   echo "
+################################################################################
+#
+#   Section: Organizations
+#
+#   - This section defines the different organizational identities which will
+#   be referenced later in the configuration.
+#
+################################################################################
+Organizations:"
+
+   for ORG in $ORDERER_ORGS; do
+      printOrdererOrg $ORG
+   done
+
+   for ORG in $PEER_ORGS; do
+      printPeerOrg $ORG 1
+   done
+
+   echo "
+################################################################################
+#
+#   SECTION: Application
+#
+#   This section defines the values to encode into a config transaction or
+#   genesis block for application related parameters
+#
+################################################################################
+Application: &ApplicationDefaults
+
+    # Organizations is the list of orgs which are defined as participants on
+    # the application side of the network
+    Organizations:
+"
+   echo "
+################################################################################
 #
 #   Profile
 #
@@ -207,41 +242,6 @@ Profiles:
       initOrgVars $ORG
       echo "        - *${ORG_CONTAINER_NAME}"
    done
-
-   echo "
-################################################################################
-#
-#   Section: Organizations
-#
-#   - This section defines the different organizational identities which will
-#   be referenced later in the configuration.
-#
-################################################################################
-Organizations:"
-
-   for ORG in $ORDERER_ORGS; do
-      printOrdererOrg $ORG
-   done
-
-   for ORG in $PEER_ORGS; do
-      printPeerOrg $ORG 1
-   done
-
-   echo "
-################################################################################
-#
-#   SECTION: Application
-#
-#   This section defines the values to encode into a config transaction or
-#   genesis block for application related parameters
-#
-################################################################################
-Application: &ApplicationDefaults
-
-    # Organizations is the list of orgs which are defined as participants on
-    # the application side of the network
-    Organizations:
-"
 
    } > /etc/hyperledger/fabric/configtx.yaml
    # Copy it to the data directory to make debugging easier

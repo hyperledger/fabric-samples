@@ -5,50 +5,50 @@ The Hyperledger Fabric CA sample demonstrates the following:
 * How to use the Hyperledger Fabric CA client and server to generate all crypto
   material rather than using cryptogen.  The cryptogen tool is not intended for
   a production environment because it generates all private keys in one location
-  which must then be copied to the appropriate host or container. This sample demonstrates
-  how to generate crypto material for orderers, peers, administrators, and end
-  users so that private keys never leave the host or container in which they are generated.
+  which must then be copied to the appropriate host or container. This sample
+  demonstrates how to generate crypto material for orderers, peers,
+  administrators, and end users so that private keys never leave the host or
+  container in which they are generated.
 
-* How to use Attribute-Based Access Control (ABAC). See fabric-samples/chaincode/abac/abac.go and
-  note the use of the *github.com/hyperledger/fabric/core/chaincode/lib/cid* package to extract
-  attributes from the invoker's identity.  Only identities with the *abac.init* attribute value of
-  *true* can successfully call the *Init* function to instantiate the chaincode.
+* How to use Attribute-Based Access Control (ABAC). See
+  fabric-samples/chaincode/abac/abac.go and note the use of the *github.com/hyperledger/fabric/core/chaincode/lib/cid* package to extract
+  attributes from the invoker's identity.  Only identities with the *abac.init*
+  attribute value of *true* can successfully call the *Init* function to
+  instantiate the chaincode.
 
 ## Running this sample
 
 1. The following images are required to run this sample:
 *hyperledger/fabric-ca-orderer*, *hyperledger/fabric-ca-peer*, and *hyperledger/fabric-ca-tools*
 
-    #### 1.1.0
-    Run the *bootstrap.sh* script provided with this sample to download the required images for
-    fabric-ca sample.
+    #### install the images
+    Run the *bootstrap.sh* script provided with this sample to download the
+    required images for fabric-ca sample. For the v1.2.0-rc1 release, you
+    will need to specify the version as follows:
 
-    #### 1.0.X
-    These images are new in the v1.1.0 release of the *github.com/hyperledger/fabric-ca*.
-    In order to run this sample prior to the v1.1.0 release, you must build these
-    images manually as follows:
-    a) pull the master branch of the *github.com/hyperledger/fabric* and
-       *github.com/hyperledger/fabric-ca* repositories;
-    b) make sure these repositories are on your GOPATH;
-    c) run the *build-images.sh* script provided with this sample.
+    ```
+    bootstrap.sh 1.2.0-rc1
+    ```
 
-2. To run this sample, simply run the *start.sh* script.  You may do this multiple times in a row as needed
-since the *start.sh* script cleans up before starting each time.
+2. To run this sample, simply run the *start.sh* script.  You may do this
+multiple times in a row as needed since the *start.sh* script cleans up before
+starting each time.
 
 3. To stop the containers which are started by the *start.sh* script, you may run the *stop.sh* script.
 
 ## Understanding this sample
 
-There are some variables at the top of *fabric-samples/fabric-ca/scripts/env.sh* script which
-define the names and topology of this sample.  You may modify these as described in the comments
-of the script in order to customize this sample.  By default, there are three organizations.
-The orderer organization is *org0*, and two peer organizations are *org1* and *org2*.
+There are some variables at the top of *fabric-samples/fabric-ca/scripts/env.sh*
+script which define the names and topology of this sample.  You may modify these
+as described in the comments of the script in order to customize this sample.
+By default, there are three organizations. The orderer organization is *org0*,
+and two peer organizations are *org1* and *org2*.
 
 The *start.sh* script first builds the *docker-compose.yml* file (by invoking the
 *makeDocker.sh* script) and then starts the docker containers.
 The *data* directory is a volume mount for all containers.
-This volume mount is not be needed in a real scenario, but it is used by this sample
-for the following reasons:
+This volume mount is not be needed in a real scenario, but it is used by this
+sample for the following reasons:
   a) so that all containers can write their logs to a common directory
      (i.e. *the *data/logs* directory) to make debugging easier;
   b) to synchronize the sequence in which containers start as described below
