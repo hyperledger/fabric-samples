@@ -2,7 +2,7 @@
 
 First of all start the three terminals.
 
-## Terminal 1 Start the Fabric Network##
+## Terminal 1 Start the Fabric Network ##
 *To start the fabric network on your local machine, First navigate to the chaincode-docker-devmode directory and tag the all images as latest in the docker-compose-simple.yaml file.*
 
 **docker-compose -f docker-compose-simple.yaml up**
