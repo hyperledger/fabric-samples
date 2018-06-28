@@ -91,4 +91,7 @@ node ('hyp-x') { // trigger build on x86_64 node
                  throw err
            }
       }
+      stage("Archive Build artifacts") {
+          archiveArtifacts artifacts: '**/*.log'
+      }
 }
