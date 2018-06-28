@@ -31,6 +31,27 @@ First of all start the three terminals.
 
 **CORE_PEER_ADDRESS=peer:7051 CORE_CHAINCODE_ID_NAME=xyz:0 ./sacc**
 
+##  Terminal 3 - Use the chaincode ## 
+
+We’ll leverage the CLI container to drive these calls.
+
+**docker exec -it cli bash**
+
+*You should see the following:*
+
+ root@d2629980e76b:/opt/gopath/src/chaincode#
+
+**peer chaincode install -p chaincodedev/chaincode/sacc -n xyz -v 0**
+
+**peer chaincode instantiate -n xyz -v 0 -c '{"Args":["a","50"]}' -C myc**
+
+*Now issue an invoke to change the value of “a” to “500”.*
+
+**peer chaincode invoke -n xyz -c '{"Function":"set","Args":["a", "500"]}' -C myc**
+
+*Finally, query a. We should see a value of 500.*
+
+**peer chaincode query -n xyz -c '{"Function":"get","Args":["query","a"]}' -C myc**
 
 
 ## License <a name="license"></a>
