@@ -175,7 +175,7 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 
 	if (!error_message) {
 		let message = util.format(
-			'Successfully instantiate chaingcode in organization %s to the channel \'%s\'',
+			'Successfully instantiate chaincode in organization %s to the channel \'%s\'',
 			org_name, channelName);
 		logger.info(message);
 		// build a response to send back to the REST caller
