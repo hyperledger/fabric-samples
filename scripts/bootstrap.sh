@@ -10,7 +10,7 @@ export VERSION=1.2.0
 # if ca version not passed in, default to latest released version
 export CA_VERSION=$VERSION
 # current version of thirdparty images (couchdb, kafka and zookeeper) released
-export THIRDPARTY_IMAGE_VERSION=0.4.8
+export THIRDPARTY_IMAGE_VERSION=0.4.10
 export ARCH=$(echo "$(uname -s|tr '[:upper:]' '[:lower:]'|sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')")
 export MARCH=$(uname -m)
 
@@ -32,8 +32,8 @@ printHelp() {
   echo "-d - bypass docker image download"
   echo "-b - bypass download of platform-specific binaries"
   echo
-  echo "e.g. bootstrap.sh 1.1.1"
-  echo "would download docker images and binaries for version 1.1.1"
+  echo "e.g. bootstrap.sh 1.2.0 1.2.0 0.4.10"
+  echo "would download docker images and binaries for version 1.2.0 (fabric) 1.2.0 (fabric-ca) 0.4.10 (thirdparty)"
 }
 
 dockerFabricPull() {
