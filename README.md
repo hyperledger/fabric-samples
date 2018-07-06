@@ -1,6 +1,8 @@
 # Hyperledger Fabric Samples
 
-First of all start the three terminals.
+Please visit the installation instructions to ensure you have the correct prerequisites installed. Please use the version of the documentation that matches the version of the software you intend to use to ensure alignment.
+
+Below is the sacc chaincode install, update, query example.Please go through to each step and first of all start the three terminals.
 
 ## Terminal 1 Start the Fabric Network ##
 *To start the fabric network on your local machine, First navigate to the chaincode-docker-devmode directory and tag the all images as latest in the docker-compose-simple.yaml file.*
