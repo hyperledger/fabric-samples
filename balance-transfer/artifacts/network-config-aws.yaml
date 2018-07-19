@@ -167,9 +167,6 @@ peers:
     # this URL is used to send endorsement and query requests
     url: grpcs://ec2-13-59-99-140.us-east-2.compute.amazonaws.com:7051
 
-    # this URL is used to connect the EventHub and registering event listeners
-    eventUrl: grpcs://ec2-13-59-99-140.us-east-2.compute.amazonaws.com:7053
-
     grpcOptions:
       ssl-target-name-override: peer0.org1.example.com
     tlsCACerts:
@@ -185,7 +182,6 @@ peers:
 
   peer0.org2.example.com:
     url: grpcs://ec2-13-59-99-140.us-east-2.compute.amazonaws.com:8051
-    eventUrl: grpcs://ec2-13-59-99-140.us-east-2.compute.amazonaws.com:8053
     grpcOptions:
       ssl-target-name-override: peer0.org2.example.com
     tlsCACerts:
@@ -193,7 +189,6 @@ peers:
 
   peer1.org2.example.com:
     url: grpcs://ec2-13-59-99-140.us-east-2.compute.amazonaws.com:8056
-    eventUrl: grpcs://ec2-13-59-99-140.us-east-2.compute.amazonaws.com:8058
     grpcOptions:
       ssl-target-name-override: peer1.org2.example.com
     tlsCACerts:
