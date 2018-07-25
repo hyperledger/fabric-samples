@@ -13,7 +13,7 @@ MVN_METADATA=$(echo "https://nexus.hyperledger.org/content/repositories/releases
 curl -L "$MVN_METADATA" > maven-metadata.xml
 RELEASE_TAG=$(cat maven-metadata.xml | grep release)
 COMMIT=$(echo $RELEASE_TAG | awk -F - '{ print $4 }' | cut -d "<" -f1)
-VERSION=1.2.0
+VERSION=1.2.1
 echo "-----------> BASE_VERSION = $VERSION"
 cd $BASE_FOLDER/fabric-samples || exit
 curl https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric-stable/$MARCH-$ARCH.$VERSION-stable-$COMMIT/hyperledger-fabric-stable-$MARCH-$ARCH.$VERSION-stable-$COMMIT.tar.gz | tar xz
