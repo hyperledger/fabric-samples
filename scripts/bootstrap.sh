@@ -128,7 +128,7 @@ binariesInstall() {
   if [ -f ${BINARY_FILE} ];then
         binaryDownload ${BINARY_FILE} https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric/${ARCH}-${VERSION}/${BINARY_FILE}
   else
-     echo ${BINARY_FILE} " aready downloaded!"
+     echo ${BINARY_FILE} " aready downloaded! "
   fi
   if [ $? -eq 22 ]; then
      echo
