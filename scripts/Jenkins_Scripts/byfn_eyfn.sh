@@ -9,14 +9,14 @@ ARCH=$(dpkg --print-architecture)
 echo "-----------> ARCH" $ARCH
 MARCH=$(uname -s|tr '[:upper:]' '[:lower:]')
 echo "-----------> MARCH" $MARCH
-MVN_METADATA=$(echo "https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric-stable/maven-metadata.xml")
+VERSION=1.3.0
+MVN_METADATA=$(echo "https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric-$VERSION-stable/maven-metadata.xml")
 curl -L "$MVN_METADATA" > maven-metadata.xml
 RELEASE_TAG=$(cat maven-metadata.xml | grep release)
 COMMIT=$(echo $RELEASE_TAG | awk -F - '{ print $4 }' | cut -d "<" -f1)
-VERSION=1.3.0
 echo "-----------> BASE_VERSION = $VERSION"
 cd $BASE_FOLDER/fabric-samples || exit
-curl https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric-stable/$MARCH-$ARCH.$VERSION-stable-$COMMIT/hyperledger-fabric-stable-$MARCH-$ARCH.$VERSION-stable-$COMMIT.tar.gz | tar xz
+curl https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric-$VERSION-stable/$MARCH-$ARCH.$VERSION-stable-$COMMIT/hyperledger-fabric-$VERSION-stable-$MARCH-$ARCH.$VERSION-stable-$COMMIT.tar.gz | tar xz
 
 cd first-network || exit
 export PATH=gopath/src/github.com/hyperledger/fabric-samples/bin:$PATH
