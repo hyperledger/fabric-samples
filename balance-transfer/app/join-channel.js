@@ -14,8 +14,6 @@
  *  limitations under the License.
  */
 var util = require('util');
-var path = require('path');
-var fs = require('fs');
 
 var helper = require('./helper.js');
 var logger = helper.getLogger('Join-Channel');
@@ -71,7 +69,7 @@ var joinChannel = async function(channel_name, peers, username, org_name) {
 			if(peer_result.response && peer_result.response.status == 200) {
 				logger.info('Successfully joined peer to the channel %s',channel_name);
 			} else {
-				let message = util.format('Failed to joined peer to the channel %s',channel_name);
+				let message = util.format('Failed to join peer to the channel %s',channel_name);
 				error_message = message;
 				logger.error(message);
 			}

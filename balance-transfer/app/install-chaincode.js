@@ -14,13 +14,9 @@
  *  limitations under the License.
  */
 'use strict';
-var path = require('path');
-var fs = require('fs');
 var util = require('util');
-var config = require('../config.json');
 var helper = require('./helper.js');
 var logger = helper.getLogger('install-chaincode');
-var tx_id = null;
 
 var installChaincode = async function(peers, chaincodeName, chaincodePath,
 	chaincodeVersion, chaincodeType, username, org_name) {
@@ -76,7 +72,7 @@ var installChaincode = async function(peers, chaincodeName, chaincodePath,
 	}
 
 	if (!error_message) {
-		let message = util.format('Successfully install chaincode');
+		let message = util.format('Successfully installed chaincode');
 		logger.info(message);
 		// build a response to send back to the REST caller
 		let response = {

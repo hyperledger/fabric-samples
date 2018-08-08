@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 'use strict';
-var path = require('path');
-var fs = require('fs');
 var util = require('util');
-var hfc = require('fabric-client');
 var helper = require('./helper.js');
 var logger = helper.getLogger('instantiate-chaincode');
 
@@ -117,7 +114,7 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 						clearTimeout(event_timeout);
 
 						if (code !== 'VALID') {
-							let message = until.format('The chaincode instantiate transaction was invalid, code:%s',code);
+							let message = util.format('The chaincode instantiate transaction was invalid, code:%s',code);
 							logger.error(message);
 							reject(new Error(message));
 						} else {
@@ -187,7 +184,7 @@ var instantiateChaincode = async function(peers, channelName, chaincodeName, cha
 
 	if (!error_message) {
 		let message = util.format(
-			'Successfully instantiate chaingcode in organization %s to the channel \'%s\'',
+			'Successfully instantiate chaincode in organization %s to the channel \'%s\'',
 			org_name, channelName);
 		logger.info(message);
 		// build a response to send back to the REST caller
