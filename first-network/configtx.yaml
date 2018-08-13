@@ -26,6 +26,20 @@ Organizations:
 
         # MSPDir is the filesystem path which contains the MSP configuration
         MSPDir: crypto-config/ordererOrganizations/example.com/msp
+        
+        Policies:
+            Readers:
+                Type: ImplicitMeta
+                Rule: "ANY Readers"
+            Writers:
+                Type: ImplicitMeta
+                Rule: "ANY Writers"
+            Admins:
+                Type: ImplicitMeta
+                Rule: "ANY Admins" 
+            BlockValidation:
+                Type: ImplicitMeta
+                Rule: "ANY Writers"
 
     - &Org1
         # DefaultOrg defines the organization which is used in the sampleconfig
@@ -43,6 +57,19 @@ Organizations:
             # encoded in the genesis block in the Application section context
             - Host: peer0.org1.example.com
               Port: 7051
+        Policies:
+            Readers:
+                Type: ImplicitMeta
+                Rule: "ANY Readers"
+            Writers:
+                Type: ImplicitMeta
+                Rule: "ANY Writers"
+            Admins:
+                Type: ImplicitMeta
+                Rule: "ANY Admins" 
+            BlockValidation:
+                Type: ImplicitMeta
+                Rule: "ANY Writers"
 
     - &Org2
         # DefaultOrg defines the organization which is used in the sampleconfig
@@ -60,6 +87,20 @@ Organizations:
             # encoded in the genesis block in the Application section context
             - Host: peer0.org2.example.com
               Port: 7051
+        
+        Policies:
+            Readers:
+                Type: ImplicitMeta
+                Rule: "ANY Readers"
+            Writers:
+                Type: ImplicitMeta
+                Rule: "ANY Writers"
+            Admins:
+                Type: ImplicitMeta
+                Rule: "ANY Admins" 
+            BlockValidation:
+                Type: ImplicitMeta
+                Rule: "ANY Writers"
 
 ################################################################################
 #
@@ -109,7 +150,7 @@ Capabilities:
         # modification of which would cause incompatibilities.  Users should
         # leave this flag set to true.
         V1_2: true
-
+    
 ################################################################################
 #
 #   SECTION: Application
@@ -123,6 +164,25 @@ Application: &ApplicationDefaults
     # Organizations is the list of orgs which are defined as participants on
     # the application side of the network
     Organizations:
+    
+    # Policies defines the set of policies at this level of the config tree
+    # For Orderer policies, their canonical path is
+    # /Channel/Orderer/<PolicyName>    
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "ANY Admins"
+        # BlockValidation specifies what signatures must be included in the block
+        # from the orderer for the peer to validate it.
+        BlockValidation:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
 
 ################################################################################
 #
@@ -168,7 +228,27 @@ Orderer: &OrdererDefaults
     # Organizations is the list of orgs which are defined as participants on
     # the orderer side of the network
     Organizations:
+    
+    # Policies defines the set of policies at this level of the config tree
+    # For Orderer policies, their canonical path is
+    # /Channel/Orderer/<PolicyName>    
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "ANY Admins"
+        # BlockValidation specifies what signatures must be included in the block
+        # from the orderer for the peer to validate it.
+        BlockValidation:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
 
+            
 ################################################################################
 #
 #   Profile
@@ -193,6 +273,22 @@ Profiles:
                 Organizations:
                     - *Org1
                     - *Org2
+        Policies:
+            Readers:
+                Type: ImplicitMeta
+                Rule: "ANY Readers"
+            Writers:
+                Type: ImplicitMeta
+                Rule: "ANY Writers"
+            Admins:
+                Type: ImplicitMeta
+                Rule: "ANY Admins"
+            # BlockValidation specifies what signatures must be included in the block
+            # from the orderer for the peer to validate it.
+            BlockValidation:
+                Type: ImplicitMeta
+                Rule: "ANY Writers"
+
     TwoOrgsChannel:
         Consortium: SampleConsortium
         Application:
