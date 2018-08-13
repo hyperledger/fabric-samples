@@ -30,7 +30,6 @@ var installChaincode = async function(peers, chaincodeName, chaincodePath,
 		var client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
 
-		tx_id = client.newTransactionID(true); //get an admin transactionID
 		var request = {
 			targets: peers,
 			chaincodePath: chaincodePath,
