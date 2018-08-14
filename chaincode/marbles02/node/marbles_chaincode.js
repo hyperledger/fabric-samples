@@ -65,16 +65,16 @@ let Chaincode = class {
     }
     // ==== Input sanitation ====
     console.info('--- start init marble ---')
-    if (args[0].lenth <= 0) {
+    if (args[0].length <= 0) {
       throw new Error('1st argument must be a non-empty string');
     }
-    if (args[1].lenth <= 0) {
+    if (args[1].length <= 0) {
       throw new Error('2nd argument must be a non-empty string');
     }
-    if (args[2].lenth <= 0) {
+    if (args[2].length <= 0) {
       throw new Error('3rd argument must be a non-empty string');
     }
-    if (args[3].lenth <= 0) {
+    if (args[3].length <= 0) {
       throw new Error('4th argument must be a non-empty string');
     }
     let marbleName = args[0];
