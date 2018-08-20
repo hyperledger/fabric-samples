@@ -73,7 +73,7 @@ async function getClientForOrg (userorg, username) {
 
 var getRegisteredUser = async function(username, userOrg, isJson) {
 	try {
-		var client = await getClientForOrg(userOrg);
+		var client = await getClientForOrg(userOrg, username);
 		logger.debug('Successfully initialized the credential stores');
 			// client can now act as an agent for organization Org1
 			// first check to see if the user is already enrolled
