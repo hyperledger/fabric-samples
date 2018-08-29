@@ -52,8 +52,7 @@ func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
 // Current supported invocations are:
 //	- update, adds a delta to an aggregate variable in the ledger, all variables are assumed to start at 0
 //	- get, retrieves the aggregate value of a variable in the ledger
-//	- pruneFast, deletes all rows associated with the variable and replaces them with a single row containing the aggregate value
-//	- pruneSafe, same as pruneFast except it pre-computed the value and backs it up before performing any destructive operations
+//	- prune, deletes all rows associated with the variable and replaces them with a single row containing the aggregate value
 //	- delete, removes all rows associated with the variable
 func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response {
 	// Retrieve the requested Smart Contract function and arguments
@@ -64,10 +63,8 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 		return s.update(APIstub, args)
 	} else if function == "get" {
 		return s.get(APIstub, args)
-	} else if function == "prunefast" {
-		return s.pruneFast(APIstub, args)
-	} else if function == "prunesafe" {
-		return s.pruneSafe(APIstub, args)
+	} else if function == "prune" {
+		return s.prune(APIstub, args)
 	} else if function == "delete" {
 		return s.delete(APIstub, args)
 	} else if function == "putstandard" {
@@ -202,17 +199,15 @@ func (s *SmartContract) get(APIstub shim.ChaincodeStubInterface, args []string) 
 /**
  * Prunes a variable by deleting all of its delta rows while computing the final value. Once all rows
  * have been processed and deleted, a single new row is added which defines a delta containing the final
- * computed value of the variable. This function is NOT safe as any failures or errors during pruning
- * will result in an undefined final value for the variable and loss of data. Use pruneSafe if data
- * integrity is important. The args array contains the following argument:
+ * computed value of the variable. The args array contains the following argument:
  *	- args[0] -> The name of the variable to prune
  *
  * @param APIstub The chaincode shim
- * @param args The args array for the pruneFast invocation
+ * @param args The args array for the prune invocation
  *
  * @return A response structure indicating success or failure with a message
  */
-func (s *SmartContract) pruneFast(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) prune(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 	// Check we have a valid number of ars
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments, expecting 1")
@@ -276,88 +271,13 @@ func (s *SmartContract) pruneFast(APIstub shim.ChaincodeStubInterface, args []st
 		}
 	}
 
-	// Update the ledger with the final value and return
+	// Update the ledger with the final value
 	updateResp := s.update(APIstub, []string{name, strconv.FormatFloat(finalVal, 'f', -1, 64), "+"})
-	if updateResp.Status == OK {
-		return shim.Success([]byte(fmt.Sprintf("Successfully pruned variable %s, final value is %f, %d rows pruned", args[0], finalVal, i)))
-	}
-
-	return shim.Error(fmt.Sprintf("Failed to prune variable: all rows deleted but could not update value to %f, variable no longer exists in ledger", finalVal))
-}
-
-/**
- * This function performs the same function as pruneFast except it provides data backups in case the
- * prune fails. The final aggregate value is computed before any deletion occurs and is backed up
- * to a new row. This back-up row is deleted only after the new aggregate delta has been successfully
- * written to the ledger. The args array contains the following argument:
- *	args[0] -> The name of the variable to prune
- *
- * @param APIstub The chaincode shim
- * @param args The arguments array for the pruneSafe invocation
- *
- * @result A response structure indicating success or failure with a message
- */
-func (s *SmartContract) pruneSafe(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	// Verify there are a correct number of arguments
-	if len(args) != 1 {
-		return shim.Error("Incorrect number of arguments, expecting 1 (the name of the variable to prune)")
-	}
-
-	// Get the var name
-	name := args[0]
-
-	// Get the var's value and process it
-	getResp := s.get(APIstub, args)
-	if getResp.Status == ERROR {
-		return shim.Error(fmt.Sprintf("Could not retrieve the value of %s before pruning, pruning aborted: %s", name, getResp.Message))
-	}
-
-	valueStr := string(getResp.Payload)
-	val, convErr := strconv.ParseFloat(valueStr, 64)
-	if convErr != nil {
-		return shim.Error(fmt.Sprintf("Could not convert the value of %s to a number before pruning, pruning aborted: %s", name, convErr.Error()))
-	}
-
-	// Store the var's value temporarily
-	backupPutErr := APIstub.PutState(fmt.Sprintf("%s_PRUNE_BACKUP", name), []byte(valueStr))
-	if backupPutErr != nil {
-		return shim.Error(fmt.Sprintf("Could not backup the value of %s before pruning, pruning aborted: %s", name, backupPutErr.Error()))
-	}
-
-	// Get all deltas for the variable
-	deltaResultsIterator, deltaErr := APIstub.GetStateByPartialCompositeKey("varName~op~value~txID", []string{name})
-	if deltaErr != nil {
-		return shim.Error(fmt.Sprintf("Could not retrieve value for %s: %s", name, deltaErr.Error()))
-	}
-	defer deltaResultsIterator.Close()
-
-	// Delete each row
-	var i int
-	for i = 0; deltaResultsIterator.HasNext(); i++ {
-		responseRange, nextErr := deltaResultsIterator.Next()
-		if nextErr != nil {
-			return shim.Error(fmt.Sprintf("Could not retrieve next row for pruning: %s", nextErr.Error()))
-		}
-
-		deltaRowDelErr := APIstub.DelState(responseRange.Key)
-		if deltaRowDelErr != nil {
-			return shim.Error(fmt.Sprintf("Could not delete delta row: %s", deltaRowDelErr.Error()))
-		}
-	}
-
-	// Insert new row for the final value
-	updateResp := s.update(APIstub, []string{name, valueStr, "+"})
 	if updateResp.Status == ERROR {
-		return shim.Error(fmt.Sprintf("Could not insert the final value of the variable after pruning, variable backup is stored in %s_PRUNE_BACKUP: %s", name, updateResp.Message))
+		return shim.Error(fmt.Sprintf("Could not update the final value of the variable after pruning: %s", updateResp.Message))
 	}
 
-	// Delete the backup value
-	delErr := APIstub.DelState(fmt.Sprintf("%s_PRUNE_BACKUP", name))
-	if delErr != nil {
-		return shim.Error(fmt.Sprintf("Could not delete backup value %s_PRUNE_BACKUP, this does not affect the ledger but should be removed manually", name))
-	}
-
-	return shim.Success([]byte(fmt.Sprintf("Successfully pruned variable %s, final value is %f, %d rows pruned", name, val, i)))
+	return shim.Success([]byte(fmt.Sprintf("Successfully pruned variable %s, final value is %f, %d rows pruned", args[0], finalVal, i)))
 }
 
 /**
