@@ -7,7 +7,7 @@ echo "\___ \    | |     / _ \   | |_) |   | |  "
 echo " ___) |   | |    / ___ \  |  _ <    | |  "
 echo "|____/    |_|   /_/   \_\ |_| \_\   |_|  "
 echo
-echo "Upgrade your first network (BYFN) from v1.1.x to v1.2.x end-to-end test"
+echo "Upgrade your first network (BYFN) from v1.2.x to v1.3.x end-to-end test"
 echo
 CHANNEL_NAME="$1"
 DELAY="$2"
@@ -48,19 +48,35 @@ addCapabilityToChannel() {
   # Modify the correct section of the config based on capabilities group
   if [ $GROUP == "application" ]; then
     jq -s '.[0] * {"channel_group":{"groups":{"Application": {"values": {"Capabilities": .[1]}}}}}' config.json ./scripts/capabilities.json >modified_config.json
+  elif [ $GROUP == "channel" ]; then
+    jq -s '.[0] * {"channel_group":{"values": {"Capabilities": .[1]}}}' config.json ./scripts/capabilities.json > modified_config.json
   fi
 
   # Create a config updated for this channel based on the differences between config.json and modified_config.json
   # write the output to config_update_in_envelope.pb
   createConfigUpdate "$CH_NAME" config.json modified_config.json config_update_in_envelope.pb
 
-  # Sign, and set the correct identity for submission.
-  if [ $GROUP == "application" ]; then
-    # Modifying the application group requires a majority of application admins to sign.
-    # Sign with PeerOrg1.Admin
-    signConfigtxAsPeerOrg 1 config_update_in_envelope.pb
-    # Prepare to sign the update as the PeerOrg2.Admin
-    setGlobals 0 2
+  if [ $CH_NAME != "testchainid" ] ; then
+    # Sign, and set the correct identity for submission.
+    if [ $GROUP == "application" ]; then
+      # Modifying the application group requires a majority of application admins to sign.
+      # Sign with PeerOrg1.Admin
+      signConfigtxAsPeerOrg 1 config_update_in_envelope.pb
+      # Prepare to sign the update as the PeerOrg2.Admin
+      setGlobals 0 2
+    elif [ $GROUP == "channel" ]; then
+      # Modifying the channel group requires a majority of application admins and the orderer admin to sign.
+      # Sign with PeerOrg1.Admin
+      signConfigtxAsPeerOrg 1 config_update_in_envelope.pb
+      # Sign with PeerOrg2.Admin
+      signConfigtxAsPeerOrg 2 config_update_in_envelope.pb
+      # Prepare to sign the update as the OrdererOrg.Admin
+      setOrdererGlobals
+    fi
+  else
+    # For the orderer system channel, only the orderer admin needs sign
+    # which will be attached during the update
+    setOrdererGlobals
   fi
 
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
@@ -78,6 +94,23 @@ addCapabilityToChannel() {
   echo "===================== Config update for \"$GROUP\" on \"$CH_NAME\" is completed ===================== "
 }
 
+sleep $DELAY
+
+#Config update for /Channel for testchainid
+echo "Config update for /Channel on \"testchainid\""
+addCapabilityToChannel testchainid channel
+
+sleep $DELAY
+
+#Config update for /Channel
+echo "Config update for /Channel on \"$CHANNEL_NAME\""
+addCapabilityToChannel "$CHANNEL_NAME" channel
+
+sleep $DELAY
+
+#Query on chaincode on Peer0/Org1
+echo "Querying chaincode on org1/peer0..."
+chaincodeQuery 0 1 90
 
 sleep $DELAY
 
@@ -87,13 +120,9 @@ addCapabilityToChannel "$CHANNEL_NAME" application
 
 sleep $DELAY
 
-#Query on chaincode on Peer0/Org1
-echo "Querying chaincode on org1/peer0..."
-chaincodeQuery 0 1 90
-
 #Invoke on chaincode on Peer0/Org1
 echo "Sending invoke transaction on org1/peer0..."
-chaincodeInvoke 0 1
+chaincodeInvoke 0 1 0 2
 
 sleep $DELAY
 
@@ -103,7 +132,7 @@ chaincodeQuery 0 1 80
 
 ##Invoke on chaincode on Peer0/Org2
 echo "Sending invoke transaction on org2/peer0..."
-chaincodeInvoke 0 2
+chaincodeInvoke 0 2 0 1
 
 sleep $DELAY
 

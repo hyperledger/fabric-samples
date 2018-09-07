@@ -41,7 +41,7 @@ function printHelp() {
   echo "      - 'down' - clear the network with docker-compose down"
   echo "      - 'restart' - restart the network"
   echo "      - 'generate' - generate required certificates and genesis block"
-  echo "      - 'upgrade'  - upgrade the network from version 1.1.x to 1.2.x"
+  echo "      - 'upgrade'  - upgrade the network from version 1.2.x to 1.3.x"
   echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
   echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10)"
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
@@ -172,62 +172,66 @@ function networkUp() {
   fi
 }
 
-# Upgrade the network components which are at version 1.1.x to 1.2.x
+# Upgrade the network components which are at version 1.2.x to 1.3.x
 # Stop the orderer and peers, backup the ledger for orderer and peers, cleanup chaincode containers and images
 # and relaunch the orderer and peers with latest tag
 function upgradeNetwork() {
-  docker inspect -f '{{.Config.Volumes}}' orderer.example.com | grep -q '/var/hyperledger/production/orderer'
-  if [ $? -ne 0 ]; then
-    echo "ERROR !!!! This network does not appear to be using volumes for its ledgers, did you start from fabric-samples >= v1.1.x?"
-    exit 1
-  fi
+  if [[ "$IMAGETAG" == *"1.3"* ]] || [[ $IMAGETAG == "latest" ]]; then
+    docker inspect -f '{{.Config.Volumes}}' orderer.example.com | grep -q '/var/hyperledger/production/orderer'
+    if [ $? -ne 0 ]; then
+      echo "ERROR !!!! This network does not appear to be using volumes for its ledgers, did you start from fabric-samples >= v1.2.x?"
+      exit 1
+    fi
 
-  LEDGERS_BACKUP=./ledgers-backup
+    LEDGERS_BACKUP=./ledgers-backup
 
-  # create ledger-backup directory
-  mkdir -p $LEDGERS_BACKUP
+    # create ledger-backup directory
+    mkdir -p $LEDGERS_BACKUP
 
-  export IMAGE_TAG=$IMAGETAG
-  if [ "${IF_COUCHDB}" == "couchdb" ]; then
-    COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH"
+    export IMAGE_TAG=$IMAGETAG
+    if [ "${IF_COUCHDB}" == "couchdb" ]; then
+      COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH"
+    else
+      COMPOSE_FILES="-f $COMPOSE_FILE"
+    fi
+
+    # removing the cli container
+    docker-compose $COMPOSE_FILES stop cli
+    docker-compose $COMPOSE_FILES up -d --no-deps cli
+
+    echo "Upgrading orderer"
+    docker-compose $COMPOSE_FILES stop orderer.example.com
+    docker cp -a orderer.example.com:/var/hyperledger/production/orderer $LEDGERS_BACKUP/orderer.example.com
+    docker-compose $COMPOSE_FILES up -d --no-deps orderer.example.com
+
+    for PEER in peer0.org1.example.com peer1.org1.example.com peer0.org2.example.com peer1.org2.example.com; do
+      echo "Upgrading peer $PEER"
+
+      # Stop the peer and backup its ledger
+      docker-compose $COMPOSE_FILES stop $PEER
+      docker cp -a $PEER:/var/hyperledger/production $LEDGERS_BACKUP/$PEER/
+
+      # Remove any old containers and images for this peer
+      CC_CONTAINERS=$(docker ps | grep dev-$PEER | awk '{print $1}')
+      if [ -n "$CC_CONTAINERS" ]; then
+        docker rm -f $CC_CONTAINERS
+      fi
+      CC_IMAGES=$(docker images | grep dev-$PEER | awk '{print $1}')
+      if [ -n "$CC_IMAGES" ]; then
+        docker rmi -f $CC_IMAGES
+      fi
+
+      # Start the peer again
+      docker-compose $COMPOSE_FILES up -d --no-deps $PEER
+    done
+
+    docker exec cli scripts/upgrade_to_v13.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+    if [ $? -ne 0 ]; then
+      echo "ERROR !!!! Test failed"
+      exit 1
+    fi
   else
-    COMPOSE_FILES="-f $COMPOSE_FILE"
-  fi
-
-  # removing the cli container
-  docker-compose $COMPOSE_FILES stop cli
-  docker-compose $COMPOSE_FILES up -d --no-deps cli
-
-  echo "Upgrading orderer"
-  docker-compose $COMPOSE_FILES stop orderer.example.com
-  docker cp -a orderer.example.com:/var/hyperledger/production/orderer $LEDGERS_BACKUP/orderer.example.com
-  docker-compose $COMPOSE_FILES up -d --no-deps orderer.example.com
-
-  for PEER in peer0.org1.example.com peer1.org1.example.com peer0.org2.example.com peer1.org2.example.com; do
-    echo "Upgrading peer $PEER"
-
-    # Stop the peer and backup its ledger
-    docker-compose $COMPOSE_FILES stop $PEER
-    docker cp -a $PEER:/var/hyperledger/production $LEDGERS_BACKUP/$PEER/
-
-    # Remove any old containers and images for this peer
-    CC_CONTAINERS=$(docker ps | grep dev-$PEER | awk '{print $1}')
-    if [ -n "$CC_CONTAINERS" ]; then
-      docker rm -f $CC_CONTAINERS
-    fi
-    CC_IMAGES=$(docker images | grep dev-$PEER | awk '{print $1}')
-    if [ -n "$CC_IMAGES" ]; then
-      docker rmi -f $CC_IMAGES
-    fi
-
-    # Start the peer again
-    docker-compose $COMPOSE_FILES up -d --no-deps $PEER
-  done
-
-  docker exec cli scripts/upgrade_to_v12.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
-  if [ $? -ne 0 ]; then
-    echo "ERROR !!!! Test failed"
-    exit 1
+    echo "ERROR !!!! Pass the v1.3.x image tag"
   fi
 }
 
@@ -528,7 +532,7 @@ elif [ "${MODE}" == "generate" ]; then ## Generate Artifacts
 elif [ "${MODE}" == "restart" ]; then ## Restart the network
   networkDown
   networkUp
-elif [ "${MODE}" == "upgrade" ]; then ## Upgrade the network from version 1.1.x to 1.2.x
+elif [ "${MODE}" == "upgrade" ]; then ## Upgrade the network from version 1.2.x to 1.3.x
   upgradeNetwork
 else
   printHelp
