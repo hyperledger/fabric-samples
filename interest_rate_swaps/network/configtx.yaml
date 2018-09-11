@@ -1,0 +1,192 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+Organizations:
+    - &orderer
+        Name: orderer
+        ID: orderer
+        MSPDir: crypto-config/ordererOrganizations/example.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: OR('orderer.member')
+            Writers:
+                Type: Signature
+                Rule: OR('orderer.member')
+            Admins:
+                Type: Signature
+                Rule: OR('orderer.admin')
+
+
+    - &partya
+        Name: partya
+        ID: partya
+        MSPDir: crypto-config/peerOrganizations/partya.example.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: OR('partya.admin', 'partya.peer', 'partya.client')
+            Writers:
+                Type: Signature
+                Rule: OR('partya.admin', 'partya.client')
+            Admins:
+                Type: Signature
+                Rule: OR('partya.admin')
+        AnchorPeers:
+            - Host: irs-partya
+              Port: 7051
+
+    - &partyb
+        Name: partyb
+        ID: partyb
+        MSPDir: crypto-config/peerOrganizations/partyb.example.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: OR('partyb.admin', 'partyb.peer', 'partyb.client')
+            Writers:
+                Type: Signature
+                Rule: OR('partyb.admin', 'partyb.client')
+            Admins:
+                Type: Signature
+                Rule: OR('partyb.admin')
+        AnchorPeers:
+            - Host: irs-partyb
+              Port: 7051
+
+    - &partyc
+        Name: partyc
+        ID: partyc
+        MSPDir: crypto-config/peerOrganizations/partyc.example.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: OR('partyc.admin', 'partyc.peer', 'partyc.client')
+            Writers:
+                Type: Signature
+                Rule: OR('partyc.admin', 'partyc.client')
+            Admins:
+                Type: Signature
+                Rule: OR('partyc.admin')
+        AnchorPeers:
+            - Host: irs-partyc
+              Port: 7051
+
+    - &auditor
+        Name: auditor
+        ID: auditor
+        MSPDir: crypto-config/peerOrganizations/auditor.example.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: OR('auditor.admin', 'auditor.peer', 'auditor.client')
+            Writers:
+                Type: Signature
+                Rule: OR('auditor.admin', 'auditor.client')
+            Admins:
+                Type: Signature
+                Rule: OR('auditor.admin')
+        AnchorPeers:
+            - Host: irs-auditor
+              Port: 7051
+
+    - &rrprovider
+        Name: rrprovider
+        ID: rrprovider
+        MSPDir: crypto-config/peerOrganizations/rrprovider.example.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: OR('rrprovider.admin', 'rrprovider.peer', 'rrprovider.client')
+            Writers:
+                Type: Signature
+                Rule: OR('rrprovider.admin', 'rrprovider.client')
+            Admins:
+                Type: Signature
+                Rule: OR('rrprovider.admin')
+        AnchorPeers:
+            - Host: irs-rrprovider
+              Port: 7051
+
+Channel: &ChannelDefaults
+    Capabilities:
+        V1_3: true
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: ANY Readers
+        Writers:
+            Type: ImplicitMeta
+            Rule: ANY Writers
+        Admins:
+            Type: ImplicitMeta
+            Rule: MAJORITY Admins
+
+Orderer: &OrdererDefaults
+    OrdererType: solo
+    Capabilities:
+        V1_1: true
+    Addresses:
+        - irs-orderer:7050
+    BatchTimeout: 2s
+    BatchSize:
+        MaxMessageCount: 10
+        AbsoluteMaxBytes: 99 MB
+        PreferredMaxBytes: 512 KB
+    Policies:
+        Readers:
+          Type: ImplicitMeta
+          Rule: ANY Readers
+        Writers:
+          Type: ImplicitMeta
+          Rule: ANY Writers
+        Admins:
+          Type: ImplicitMeta
+          Rule: MAJORITY Admins
+        BlockValidation:
+            Type: ImplicitMeta
+            Rule: ANY Writers
+    Organizations:
+
+Application: &ApplicationDefaults
+    Capabilities:
+        V1_3: true
+    Policies:
+        Readers:
+          Type: ImplicitMeta
+          Rule: ANY Readers
+        Writers:
+          Type: ImplicitMeta
+          Rule: ANY Writers
+        Admins:
+          Type: ImplicitMeta
+          Rule: MAJORITY Admins
+    Organizations:
+
+Profiles:
+    IRSNetGenesis:
+        <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *orderer
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *partya
+                    - *partyb
+                    - *partyc
+                    - *rrprovider
+                    - *auditor
+    IRSChannel:
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *partya
+                - *partyb
+                - *partyc
+                - *rrprovider
+                - *auditor

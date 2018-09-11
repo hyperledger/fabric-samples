@@ -1,0 +1,163 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.example.com:
+  peer0.partya.example.com:
+  peer0.partyb.example.com:
+  peer0.partyc.example.com:
+  peer0.auditor.example.com:
+  peer0.rrprovider.example.com:
+
+services:
+  peer-base:
+    image: hyperledger/fabric-peer:$IMAGE_TAG
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_ADDRESSAUTODETECT=true
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: peer node start
+    volumes:
+    - /var/run/:/host/var/run/
+
+  orderer:
+    container_name: irs-orderer
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=orderer
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=false
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+    - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+    - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
+    - orderer.example.com:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+
+
+  partya:
+    container_name: irs-partya
+    extends:
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=partya.peer0
+      - CORE_PEER_ADDRESS=irs-partya:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=irs-partya:7051
+      - CORE_PEER_LOCALMSPID=partya
+      - CORE_CHAINCODE_LOGGING_SHIM=INFO
+    volumes:
+        - ./crypto-config/peerOrganizations/partya.example.com/peers/peer0.partya.example.com/msp:/etc/hyperledger/fabric/msp
+        - peer0.partya.example.com:/var/hyperledger/production
+    ports:
+      - 7051:7051
+      - 7053:7053
+
+  partyb:
+    container_name: irs-partyb
+    extends:
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=partyb.peer0
+      - CORE_PEER_ADDRESS=irs-partyb:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=irs-partyb:7051
+      - CORE_PEER_LOCALMSPID=partyb
+    volumes:
+        - ./crypto-config/peerOrganizations/partyb.example.com/peers/peer0.partyb.example.com/msp:/etc/hyperledger/fabric/msp
+        - peer0.partyb.example.com:/var/hyperledger/production
+    ports:
+      - 8051:7051
+      - 8053:7053
+
+  partyc:
+    container_name: irs-partyc
+    extends:
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=partyc.peer0
+      - CORE_PEER_ADDRESS=irs-partyc:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=irs-partyc:7051
+      - CORE_PEER_LOCALMSPID=partyc
+    volumes:
+        - ./crypto-config/peerOrganizations/partyc.example.com/peers/peer0.partyc.example.com/msp:/etc/hyperledger/fabric/msp
+        - peer0.partyc.example.com:/var/hyperledger/production
+    ports:
+      - 9051:7051
+      - 9053:7053
+
+  auditor:
+    container_name: irs-auditor
+    extends:
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=auditor.peer0
+      - CORE_PEER_ADDRESS=irs-auditor:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=irs-auditor:7051
+      - CORE_PEER_LOCALMSPID=auditor
+    volumes:
+        - ./crypto-config/peerOrganizations/auditor.example.com/peers/peer0.auditor.example.com/msp:/etc/hyperledger/fabric/msp
+        - peer0.auditor.example.com:/var/hyperledger/production
+    ports:
+      - 10051:7051
+      - 10053:7053
+
+  rrprovider:
+    container_name: irs-rrprovider
+    extends:
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=rrprovider.peer0
+      - CORE_PEER_ADDRESS=irs-rrprovider:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=irs-rrprovider:7051
+      - CORE_PEER_LOCALMSPID=rrprovider
+      - CORE_LOGGING_LEVEL=DEBUG
+    volumes:
+        - ./crypto-config/peerOrganizations/rrprovider.example.com/peers/peer0.rrprovider.example.com/msp:/etc/hyperledger/fabric/msp
+        - peer0.rrprovider.example.com:/var/hyperledger/production
+    ports:
+      - 11051:7051
+      - 11053:7053
+
+  cli:
+    container_name: cli
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=irs-partya:7051
+      - CORE_PEER_LOCALMSPID=partya
+      - CORE_PEER_TLS_ENABLED=false
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/partya.example.com/users/Admin@partya.example.com/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../chaincode/:/opt/gopath/src/irscc
+        - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer
+      - partya
+      - partyb
+      - partyc
+      - auditor
+      - rrprovider
