@@ -49,9 +49,9 @@ fi
 
  echo "############### BYFN,EYFN WITH NODE Chaincode. TEST ################"
  echo "####################################################################"
- echo y | ./byfn.sh -m up -l node -t 60
+ echo y | ./byfn.sh -m up -l node -t 60 -d 12
  err_Check $? default-channel-node
- echo y | ./eyfn.sh -m up -l node -t 60
+ echo y | ./eyfn.sh -m up -l node -t 60 -d 12
  err_Check $? default-channel-node
  echo y | ./eyfn.sh -m down
 
