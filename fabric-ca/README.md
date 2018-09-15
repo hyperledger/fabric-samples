@@ -18,23 +18,31 @@ The Hyperledger Fabric CA sample demonstrates the following:
 
 ## Running this sample
 
-1. The following images are required to run this sample:
-*hyperledger/fabric-ca-orderer*, *hyperledger/fabric-ca-peer*, and *hyperledger/fabric-ca-tools*
-
-    #### install the images
-    Run the *bootstrap.sh* script provided with this sample to download the
-    required images for fabric-ca sample. For the v1.2.0-rc1 release, you
-    will need to specify the version as follows:
-
-    ```
-    bootstrap.sh 1.2.0-rc1
-    ```
-
-2. To run this sample, simply run the *start.sh* script.  You may do this
+1. To run this sample, simply run the *start.sh* script.  You may do this
 multiple times in a row as needed since the *start.sh* script cleans up before
-starting each time.
+starting each time.  This sample can be run with the latest released version,
+an older released version, or from locally built docker images as follows:
 
-3. To stop the containers which are started by the *start.sh* script, you may run the *stop.sh* script.
+    a. By default, the sample is run with the latest released version of Fabric
+    and Fabric CA.
+
+    b. Older versions of Fabric and Fabric CA can be used by setting the
+    `FABRIC_TAG` environment variable. For example, `export FABRIC_TAG=1.2.0`
+    will run the sample with 1.2.0 version of Fabric and Fabric CA.
+
+    c. The sample can also be run with locally built Fabric and Fabric CA
+    docker images. Fabric and Fabric CA repositories must be cloned with following
+    commands:
+
+    `git clone https://github.com/hyperledger/fabric.git`
+    `git clone https://github.com/hyperledger/fabric-ca.git`
+
+    Then execute the `make docker-all` command from the fabric-ca repository. This will
+    build the necessary images based on the local source code. Before executing the
+    *start.sh* script, set the `FABRIC_TAG` environment variable to 'local' as follows:
+    `export FABRIC_TAG=local`.
+
+2. To stop the containers which are started by the *start.sh* script, you may run the *stop.sh* script.
 
 ## Understanding this sample
 

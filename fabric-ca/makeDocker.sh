@@ -9,11 +9,24 @@
 # This script builds the docker compose file needed to run this sample.
 #
 
+# IMPORTANT: The following default FABRIC_TAG value should be updated for each
+# release after the fabric-orderer and fabric-peer images have been published
+# for the release.
+export FABRIC_TAG=${FABRIC_TAG:-1.2.0}
+
+export FABRIC_CA_TAG=${FABRIC_CA_TAG:-${FABRIC_TAG}}
+export NS=${NS:-hyperledger}
+
+export ARCH="linux-amd64" # Docker images run on linux
+CA_BINARY_FILE=hyperledger-fabric-ca-${ARCH}-${FABRIC_CA_TAG}.tar.gz
+URL=https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric-ca/hyperledger-fabric-ca/${ARCH}-${FABRIC_CA_TAG}/${CA_BINARY_FILE}
+
 SDIR=$(dirname "$0")
 source $SDIR/scripts/env.sh
 
 function main {
    {
+   createDockerFiles
    writeHeader
    writeRootFabricCA
    if $USE_INTERMEDIATE_CA; then
@@ -24,6 +37,41 @@ function main {
    writeRunFabric
    } > $SDIR/docker-compose.yml
    log "Created docker-compose.yml"
+}
+
+# Create various dockerfiles used by this sample
+function createDockerFiles {
+   if [ "$FABRIC_TAG" = "local" ]; then
+      ORDERER_BUILD="image: hyperledger/fabric-ca-orderer"
+      PEER_BUILD="image: hyperledger/fabric-ca-peer"
+      TOOLS_BUILD="image: hyperledger/fabric-ca-tools"
+   else
+      createDockerFile orderer
+      ORDERER_BUILD="build:
+      context: .
+      dockerfile: fabric-ca-orderer.dockerfile"
+      createDockerFile peer
+      PEER_BUILD="build:
+      context: .
+      dockerfile: fabric-ca-peer.dockerfile"
+      createDockerFile tools
+      TOOLS_BUILD="build:
+      context: .
+      dockerfile: fabric-ca-tools.dockerfile"
+   fi
+}
+
+# createDockerFile
+function createDockerFile {
+   {
+      echo "FROM ${NS}/fabric-${1}:${FABRIC_TAG}"
+      echo 'RUN apt-get update && apt-get install -y netcat jq && apt-get install -y curl && rm -rf /var/cache/apt'
+      echo "RUN curl -o /tmp/fabric-ca-client.tar.gz $URL && tar -xzvf /tmp/fabric-ca-client.tar.gz -C /tmp && cp /tmp/bin/fabric-ca-client /usr/local/bin"
+      echo 'RUN chmod +x /usr/local/bin/fabric-ca-client'
+      echo 'ARG FABRIC_CA_DYNAMIC_LINK=false'
+      # libraries needed when image is built dynamically
+      echo 'RUN if [ "\$FABRIC_CA_DYNAMIC_LINK" = "true" ]; then apt-get install -y libltdl-dev; fi'
+   } > $SDIR/fabric-ca-${1}.dockerfile
 }
 
 # Write services for the root fabric CA servers
@@ -46,7 +94,7 @@ function writeIntermediateFabricCA {
 function writeSetupFabric {
    echo "  setup:
     container_name: setup
-    image: hyperledger/fabric-ca-tools
+    $TOOLS_BUILD
     command: /bin/bash -c '/scripts/setup-fabric.sh 2>&1 | tee /$SETUP_LOGFILE; sleep 99999'
     volumes:
       - ./scripts:/scripts
@@ -173,7 +221,7 @@ function writeOrderer {
    MYHOME=/etc/hyperledger/orderer
    echo "  $ORDERER_NAME:
     container_name: $ORDERER_NAME
-    image: hyperledger/fabric-ca-orderer
+    $ORDERER_BUILD
     environment:
       - FABRIC_CA_CLIENT_HOME=$MYHOME
       - FABRIC_CA_CLIENT_TLS_CERTFILES=$CA_CHAINFILE
@@ -210,7 +258,7 @@ function writePeer {
    MYHOME=/opt/gopath/src/github.com/hyperledger/fabric/peer
    echo "  $PEER_NAME:
     container_name: $PEER_NAME
-    image: hyperledger/fabric-ca-peer
+    $PEER_BUILD
     environment:
       - FABRIC_CA_CLIENT_HOME=$MYHOME
       - FABRIC_CA_CLIENT_TLS_CERTFILES=$CA_CHAINFILE

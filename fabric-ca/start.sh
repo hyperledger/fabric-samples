@@ -8,6 +8,13 @@
 #
 # This script does everything required to run the fabric CA sample.
 #
+# By default, this test is run with the latest released docker images.
+#
+# To run against a specific fabric/fabric-ca version:
+#    export FABRIC_TAG=1.2.0
+#
+# To run with locally built images:
+#    export FABRIC_TAG=local
 
 set -e
 
@@ -54,7 +61,7 @@ tail -f ${SDIR}/${RUN_SUMFILE}&
 TAIL_PID=$!
 
 # Wait for the run container to complete
-while true; do 
+while true; do
    if [ -f ${SDIR}/${RUN_SUCCESS_FILE} ]; then
       kill -9 $TAIL_PID
       exit 0
