@@ -40,9 +40,9 @@ fi
 
  echo "############### BYFN,EYFN CUSTOM CHANNEL WITH COUCHDB TEST ##############"
  echo "#########################################################################"
- echo y | ./byfn.sh -m up -c custom-channel-couchdb -s couchdb -t 60
+ echo y | ./byfn.sh -m up -c custom-channel-couchdb -s couchdb -t 75 -d 15
  err_Check $? custom-channel-couch couchdb
- echo y | ./eyfn.sh -m up -c custom-channel-couchdb -s couchdb -t 60
+ echo y | ./eyfn.sh -m up -c custom-channel-couchdb -s couchdb -t 75 -d 15
  err_Check $? custom-channel-couch
  echo y | ./eyfn.sh -m down
  echo
