@@ -16,10 +16,9 @@ export FABRIC_TAG=${FABRIC_TAG:-1.2.0}
 
 export FABRIC_CA_TAG=${FABRIC_CA_TAG:-${FABRIC_TAG}}
 export NS=${NS:-hyperledger}
-
-export ARCH="linux-amd64" # Docker images run on linux
-CA_BINARY_FILE=hyperledger-fabric-ca-${ARCH}-${FABRIC_CA_TAG}.tar.gz
-URL=https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric-ca/hyperledger-fabric-ca/${ARCH}-${FABRIC_CA_TAG}/${CA_BINARY_FILE}
+export MARCH=$(echo "$(uname -s|tr '[:upper:]' '[:lower:]'|sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
+CA_BINARY_FILE=hyperledger-fabric-ca-${MARCH}-${FABRIC_CA_TAG}.tar.gz
+URL=https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric-ca/hyperledger-fabric-ca/${MARCH}-${FABRIC_CA_TAG}/${CA_BINARY_FILE}
 
 SDIR=$(dirname "$0")
 source $SDIR/scripts/env.sh
