@@ -8,10 +8,10 @@
 # exit on first error
 
 export BASE_FOLDER=$WORKSPACE/gopath/src/github.com/hyperledger
-export PROJECT_VERSION=1.3.0-stable
+export PROJECT_VERSION=1.4.0-stable
 export NEXUS_URL=nexus3.hyperledger.org:10001
 export ORG_NAME="hyperledger/fabric"
-export NODE_VER=8.9.4 # Default nodejs version
+export NODE_VER=8.11.3 # Default nodejs version
 
 # Fetch baseimage version
 curl -L https://raw.githubusercontent.com/hyperledger/fabric/master/Makefile > Makefile

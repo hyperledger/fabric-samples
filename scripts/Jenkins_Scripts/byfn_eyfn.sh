@@ -9,7 +9,7 @@ ARCH=$(dpkg --print-architecture)
 echo "-----------> ARCH" $ARCH
 MARCH=$(uname -s|tr '[:upper:]' '[:lower:]')
 echo "-----------> MARCH" $MARCH
-VERSION=1.3.0
+VERSION=1.4.0
 MVN_METADATA=$(echo "https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric-$VERSION-stable/maven-metadata.xml")
 curl -L "$MVN_METADATA" > maven-metadata.xml
 RELEASE_TAG=$(cat maven-metadata.xml | grep release)
