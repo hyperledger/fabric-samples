@@ -27,8 +27,8 @@ an older released version, or from locally built docker images as follows:
     and Fabric CA.
 
     b. Older versions of Fabric and Fabric CA can be used by setting the
-    `FABRIC_TAG` environment variable. For example, `export FABRIC_TAG=1.2.0`
-    will run the sample with 1.2.0 version of Fabric and Fabric CA.
+    `FABRIC_TAG` environment variable. For example, `export FABRIC_TAG=1.3.0-rc1`
+    will run the sample with 1.3.0-rc1 version of Fabric and Fabric CA.
 
     c. The sample can also be run with locally built Fabric and Fabric CA
     docker images. Fabric and Fabric CA repositories must be cloned with following
