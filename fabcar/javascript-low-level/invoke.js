@@ -77,7 +77,6 @@ async function invoke() {
 			chaincodeId: 'fabcar',
 			fcn: 'createCar',
 			args: ['CAR12', 'Honda', 'Accord', 'Black', 'Tom'],
-			chainId: 'mychannel',
 			txId: tx_id
 		};
 
