@@ -21,7 +21,7 @@ VERBOSE="$5"
 : ${VERBOSE:="false"}
 LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
-MAX_RETRY=5
+MAX_RETRY=10
 
 CC_SRC_PATH="github.com/chaincode/chaincode_example02/go/"
 if [ "$LANGUAGE" = "node" ]; then
