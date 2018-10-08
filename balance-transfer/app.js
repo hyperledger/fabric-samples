@@ -34,6 +34,7 @@ var hfc = require('fabric-client');
 var helper = require('./app/helper.js');
 var createChannel = require('./app/create-channel.js');
 var join = require('./app/join-channel.js');
+var updateAnchorPeers = require('./app/update-anchor-peers.js');
 var install = require('./app/install-chaincode.js');
 var instantiate = require('./app/instantiate-chaincode.js');
 var invoke = require('./app/invoke-transaction.js');
@@ -177,6 +178,25 @@ app.post('/channels/:channelName/peers', async function(req, res) {
 	}
 
 	let message =  await join.joinChannel(channelName, peers, req.username, req.orgname);
+	res.send(message);
+});
+// Update anchor peers
+app.post('/channels/:channelName/anchorpeers', async function(req, res) {
+	logger.debug('==================== UPDATE ANCHOR PEERS ==================');
+	var channelName = req.params.channelName;
+	var configUpdatePath = req.body.configUpdatePath;
+	logger.debug('Channel name : ' + channelName);
+	logger.debug('configUpdatePath : ' + configUpdatePath);
+	if (!channelName) {
+		res.json(getErrorMessage('\'channelName\''));
+		return;
+	}
+	if (!configUpdatePath) {
+		res.json(getErrorMessage('\'configUpdatePath\''));
+		return;
+	}
+
+	let message = await updateAnchorPeers.updateAnchorPeers(channelName, configUpdatePath, req.username, req.orgname);
 	res.send(message);
 });
 // Install chaincode on target peers

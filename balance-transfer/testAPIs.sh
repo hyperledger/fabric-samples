@@ -112,6 +112,30 @@ curl -s -X POST \
 echo
 echo
 
+echo "POST request Update anchor peers on Org1"
+echo
+curl -s -X POST \
+  http://localhost:4000/channels/mychannel/anchorpeers \
+  -H "authorization: Bearer $ORG1_TOKEN" \
+  -H "content-type: application/json" \
+  -d '{
+	"configUpdatePath":"../artifacts/channel/Org1MSPanchors.tx"
+}'
+echo
+echo
+
+echo "POST request Update anchor peers on Org2"
+echo
+curl -s -X POST \
+  http://localhost:4000/channels/mychannel/anchorpeers \
+  -H "authorization: Bearer $ORG2_TOKEN" \
+  -H "content-type: application/json" \
+  -d '{
+	"configUpdatePath":"../artifacts/channel/Org2MSPanchors.tx"
+}'
+echo
+echo
+
 echo "POST Install chaincode on Org1"
 echo
 curl -s -X POST \
