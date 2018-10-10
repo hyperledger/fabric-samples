@@ -12,7 +12,7 @@
 # IMPORTANT: The following default FABRIC_TAG value should be updated for each
 # release after the fabric-orderer and fabric-peer images have been published
 # for the release.
-export FABRIC_TAG=${FABRIC_TAG:-1.3.0-rc1}
+export FABRIC_TAG=${FABRIC_TAG:-1.3.0}
 
 export FABRIC_CA_TAG=${FABRIC_CA_TAG:-${FABRIC_TAG}}
 export NS=${NS:-hyperledger}
