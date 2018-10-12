@@ -88,7 +88,9 @@ var Chaincode = class {
     if (typeof amount !== 'number') {
       throw new Error('Expecting integer value for amount to be transaferred');
     }
-
+    if (!(Aval > amount)) {
+      throw new Error(util.format('amount in account A must must be greater then amount (%d) but found %d', amount, Aval));        
+    }
     Aval = Aval - amount;
     Bval = Bval + amount;
     console.info(util.format('Aval = %d, Bval = %d\n', Aval, Bval));
