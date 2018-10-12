@@ -28,6 +28,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/hyperledger/fabric/protos/msp"
 	"github.com/pkg/errors"
 )
 
@@ -129,6 +131,54 @@ func (mgr *Mgr) GetAttributesFromCert(cert *x509.Certificate) (*Attributes, erro
 			return nil, errors.Wrap(err, "Failed to unmarshal attributes from certificate")
 		}
 	}
+	return attrs, nil
+}
+
+func (mgr *Mgr) GetAttributesFromIdemix(creator []byte) (*Attributes, error) {
+	if creator == nil {
+		return nil, errors.New("creator is nil")
+	}
+
+	sid := &msp.SerializedIdentity{}
+	err := proto.Unmarshal(creator, sid)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal transaction invoker's identity")
+	}
+	idemixID := &msp.SerializedIdemixIdentity{}
+	err = proto.Unmarshal(sid.IdBytes, idemixID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal transaction invoker's idemix identity")
+	}
+	// Unmarshal into attributes object
+	attrs := &Attributes{
+		Attrs: make(map[string]string),
+	}
+
+	ou := &msp.OrganizationUnit{}
+	err = proto.Unmarshal(idemixID.Ou, ou)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal transaction invoker's ou")
+	}
+	attrs.Attrs["ou"] = ou.OrganizationalUnitIdentifier
+
+	role := &msp.MSPRole{}
+	err = proto.Unmarshal(idemixID.Role, role)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal transaction invoker's role")
+	}
+	var roleStr string
+	switch role.Role {
+	case 0:
+		roleStr = "member"
+	case 1:
+		roleStr = "admin"
+	case 2:
+		roleStr = "client"
+	case 3:
+		roleStr = "peer"
+	}
+	attrs.Attrs["role"] = roleStr
+
 	return attrs, nil
 }
 

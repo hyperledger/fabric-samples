@@ -26,7 +26,7 @@ import (
 	"fmt"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/hyperledger/fabric/common/attrmgr"
+	"github.com/hyperledger/fabric/core/chaincode/shim/ext/attrmgr"
 	"github.com/hyperledger/fabric/protos/msp"
 	"github.com/pkg/errors"
 )
@@ -99,7 +99,7 @@ func New(stub ChaincodeStubInterface) (ClientIdentity, error) {
 
 // GetID returns a unique ID associated with the invoking identity.
 func (c *clientIdentityImpl) GetID() (string, error) {
-	// The leading "x509::" distinquishes this as an X509 certificate, and
+	// The leading "x509::" distinguishes this as an X509 certificate, and
 	// the subject and issuer DNs uniquely identify the X509 certificate.
 	// The resulting ID will remain the same if the certificate is renewed.
 	id := fmt.Sprintf("x509::%s::%s", getDN(&c.cert.Subject), getDN(&c.cert.Issuer))
@@ -151,11 +151,15 @@ func (c *clientIdentityImpl) init() error {
 	idbytes := signingID.GetIdBytes()
 	block, _ := pem.Decode(idbytes)
 	if block == nil {
-		return errors.New("Expecting a PEM-encoded X509 certificate; PEM block not found")
+		err := c.getAttributesFromIdemix()
+		if err != nil {
+			return errors.WithMessage(err, "identity bytes are neither X509 PEM format nor an idemix credential")
+		}
+		return nil
 	}
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse certificate")
+		return errors.WithMessage(err, "failed to parse certificate")
 	}
 	c.cert = cert
 	attrs, err := attrmgr.New().GetAttributesFromCert(cert)
@@ -181,7 +185,17 @@ func (c *clientIdentityImpl) getIdentity() (*msp.SerializedIdentity, error) {
 	return sid, nil
 }
 
-// Get the DN (distinquished name) associated with a pkix.Name.
+func (c *clientIdentityImpl) getAttributesFromIdemix() error {
+	creator, err := c.stub.GetCreator()
+	attrs, err := attrmgr.New().GetAttributesFromIdemix(creator)
+	if err != nil {
+		return errors.WithMessage(err, "failed to get attributes from the transaction invoker's idemix credential")
+	}
+	c.attrs = attrs
+	return nil
+}
+
+// Get the DN (distinguished name) associated with a pkix.Name.
 // NOTE: This code is almost a direct copy of the String() function in
 // https://go-review.googlesource.com/c/go/+/67270/1/src/crypto/x509/pkix/pkix.go#26
 // which returns a DN as defined by RFC 2253.
