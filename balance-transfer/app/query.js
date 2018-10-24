@@ -115,7 +115,7 @@ var getBlockByHash = async function(peer, channelName, hash, username, org_name)
 			throw new Error(message);
 		}
 
-		let response_payload = await channel.queryBlockByHash(Buffer.from(hash), peer);
+		let response_payload = await channel.queryBlockByHash(Buffer.from(hash,'hex'), peer);
 		if (response_payload) {
 			logger.debug(response_payload);
 			return response_payload;

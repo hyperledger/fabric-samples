@@ -209,11 +209,13 @@ echo
 
 echo "GET query Block by blockNumber"
 echo
-curl -s -X GET \
+BLOCK_INFO=$(curl -s -X GET \
   "http://localhost:4000/channels/mychannel/blocks/1?peer=peer0.org1.example.com" \
   -H "authorization: Bearer $ORG1_TOKEN" \
-  -H "content-type: application/json"
-echo
+  -H "content-type: application/json")
+echo $BLOCK_INFO
+# Assign previvious block hash to HASH
+HASH=$(echo $BLOCK_INFO | jq -r ".header.previous_hash")
 echo
 
 echo "GET query Transaction by TransactionID"
@@ -224,20 +226,17 @@ curl -s -X GET http://localhost:4000/channels/mychannel/transactions/$TRX_ID?pee
 echo
 echo
 
-############################################################################
-### TODO: What to pass to fetch the Block information
-############################################################################
-#echo "GET query Block by Hash"
-#echo
-#hash=????
-#curl -s -X GET \
-#  "http://localhost:4000/channels/mychannel/blocks?hash=$hash&peer=peer1" \
-#  -H "authorization: Bearer $ORG1_TOKEN" \
-#  -H "cache-control: no-cache" \
-#  -H "content-type: application/json" \
-#  -H "x-access-token: $ORG1_TOKEN"
-#echo
-#echo
+
+echo "GET query Block by Hash - Hash is $HASH"
+echo
+curl -s -X GET \
+  "http://localhost:4000/channels/mychannel/blocks?hash=$HASH&peer=peer0.org1.example.com" \
+  -H "authorization: Bearer $ORG1_TOKEN" \
+  -H "cache-control: no-cache" \
+  -H "content-type: application/json" \
+  -H "x-access-token: $ORG1_TOKEN"
+echo
+echo
 
 echo "GET query ChainInfo"
 echo
