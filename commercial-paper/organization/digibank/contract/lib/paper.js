@@ -4,6 +4,9 @@ SPDX-License-Identifier: Apache-2.0
 
 'use strict';
 
+// Utility class for ledger state
+const State = require('./../ledger-api/state.js');
+
 // Enumerate commercial paper state values
 const cpState = {
     ISSUED: 1,
@@ -12,44 +15,14 @@ const cpState = {
 };
 
 /**
- * State class. States have a type, unique key, and a lifecycle current state
- */
-class State {
-    constructor(type, [keyParts]) {
-        this.type = JSON.stringify(type);
-        this.key = makeKey([keyParts]);
-        this.currentState = null;
-    }
-
-    getType() {
-        return this.type;
-    }
-
-    static makeKey([keyParts]) {
-        return keyParts.map(part => JSON.stringify(part)).join('');
-    }
-
-    getKey() {
-        return this.key;
-    }
-
-}
-
-/**
  * CommercialPaper class extends State class
  * Class will be used by application and smart contract to define a paper
  */
 class CommercialPaper extends State {
 
-    constructor(issuer, paperNumber, issueDateTime, maturityDateTime, faceValue) {
-        super(`org.papernet.commercialpaper`, [issuer, paperNumber]);
-
-        this.issuer = issuer;
-        this.paperNumber = paperNumber;
-        this.owner = issuer;
-        this.issueDateTime = issueDateTime;
-        this.maturityDateTime = maturityDateTime;
-        this.faceValue = faceValue;
+    constructor(obj) {
+        super(CommercialPaper.getClass(), [obj.issuer, obj.paperNumber]);
+        Object.assign(this, obj);
     }
 
     /**
@@ -98,20 +71,32 @@ class CommercialPaper extends State {
         return this.currentState === cpState.REDEEMED;
     }
 
-    /**
-     * Serialize/deserialize commercial paper
-     **/
+    static fromBuffer(buffer) {
+        return CommercialPaper.deserialize(Buffer.from(JSON.parse(buffer)));
+    }
 
-    serialize() {
+    toBuffer() {
         return Buffer.from(JSON.stringify(this));
     }
 
+    /**
+     * Deserialize a state data to commercial paper
+     * @param {Buffer} data to form back into the object
+     */
     static deserialize(data) {
-        return Object.create(new CommercialPaper, JSON.parse(data));
+        return State.deserializeClass(data, CommercialPaper);
     }
 
+    /**
+     * Factory method to create a commercial paper object
+     */
+    static createInstance(issuer, paperNumber, issueDateTime, maturityDateTime, faceValue) {
+        return new CommercialPaper({ issuer, paperNumber, issueDateTime, maturityDateTime, faceValue });
+    }
+
+    static getClass() {
+        return 'org.papernet.commercialpaper';
+    }
 }
 
-module.exports = {
-    CommercialPaper,
-};
+module.exports = CommercialPaper;
