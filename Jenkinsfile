@@ -6,8 +6,18 @@
 // Pipeline script for fabric-samples
 
 node ('hyp-x') { // trigger build on x86_64 node
+  timestamps {
+   try {
     def ROOTDIR = pwd() // workspace dir (/w/workspace/<job_name>
     env.PROJECT_DIR = "gopath/src/github.com/hyperledger"
+    env.ARCH = "amd64"
+    env.NODE_VER = "8.9.4"  // NodeJs version
+    env.VERSION = sh(returnStdout: true, script: 'curl -O https://raw.githubusercontent.com/hyperledger/fabric/release-1.2/Makefile && cat Makefile | grep "PREV_VERSION =" | cut -d "=" -f2').trim()
+    env.VERSION = "$VERSION"
+    env.BASE_IMAGE_VER = sh(returnStdout: true, script: 'cat Makefile | grep BASEIMAGE_RELEASE= | cut -d "=" -f2').trim()
+    env.BASE_IMAGE_TAG = "${ARCH}-${BASE_IMAGE_VER}"
+    env.GOPATH = "$WORKSPACE/gopath"
+    env.PATH = "$GOPATH/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:~/npm/bin:/home/jenkins/.nvm/versions/node/v${NODE_VER}/bin:$PATH"
     def failure_stage = "none"
     // delete working directory
     deleteDir()
@@ -24,10 +34,11 @@ node ('hyp-x') { // trigger build on x86_64 node
           }
           catch (err) {
                  failure_stage = "Fetch patchset"
+                 currentBuild.result = 'FAILURE'
                  throw err
            }
-      }
-// clean environment and get env data
+        }
+      // clean environment and get env data
       stage("Clean Environment - Get Env Info") {
            try {
                  dir("${ROOTDIR}/$PROJECT_DIR/fabric-samples/scripts/Jenkins_Scripts") {
@@ -36,13 +47,15 @@ node ('hyp-x') { // trigger build on x86_64 node
                }
            catch (err) {
                  failure_stage = "Clean Environment - Get Env Info"
+                 currentBuild.result = 'FAILURE'
                  throw err
            }
-      }
-
+        }
 
     // Pull Fabric Images
-      stage("Pull third_party images") {
+      stage("Pull ThirdParty Images") {
+         // making the output color coded
+         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
            try {
                  dir("${ROOTDIR}/$PROJECT_DIR/fabric-samples/scripts/Jenkins_Scripts") {
                  sh './CI_Script.sh --pull_Thirdparty_Images'
@@ -50,37 +63,33 @@ node ('hyp-x') { // trigger build on x86_64 node
                }
            catch (err) {
                  failure_stage = "Pull third_party docker images"
+                 currentBuild.result = 'FAILURE'
                  throw err
            }
+         }
       }
 
-// Pull Fabric Images
-      stage("Pull fabric images") {
+      // Pull Fabric, fabric-ca Images
+      stage("Pull Docker Images") {
+         // making the output color coded
+         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
            try {
                  dir("${ROOTDIR}/$PROJECT_DIR/fabric-samples/scripts/Jenkins_Scripts") {
-                 sh './CI_Script.sh --pull_Fabric_Images'
+                 sh './CI_Script.sh --pull_Docker_Images'
                  }
                }
            catch (err) {
-                 failure_stage = "Pull fabric docker images"
+                 failure_stage = "Pull fabric, fabric-ca docker images"
+                 currentBuild.result = 'FAILURE'
                  throw err
            }
+         }
       }
 
- // Pull Fabric-ca
-      stage("Pull fabric-ca images") {
-           try {
-                 dir("${ROOTDIR}/$PROJECT_DIR/fabric-samples/scripts/Jenkins_Scripts") {
-                 sh './CI_Script.sh --pull_Fabric_CA_Image'
-                 }
-               }
-           catch (err) {
-                 failure_stage = "Pull fabric-ca docker image"
-                 throw err
-           }
-      }
-// Run byfn, eyfn tests (default, custom channel, couchdb, nodejs chaincode, fabric-ca samples)
+      // Run byfn, eyfn tests (default, custom channel, couchdb, nodejs chaincode)
       stage("Run byfn_eyfn Tests") {
+         // making the output color coded
+         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
            try {
                  dir("${ROOTDIR}/$PROJECT_DIR/fabric-samples/scripts/Jenkins_Scripts") {
                  sh './CI_Script.sh --byfn_eyfn_Tests'
@@ -88,7 +97,22 @@ node ('hyp-x') { // trigger build on x86_64 node
                }
            catch (err) {
                  failure_stage = "byfn_eyfn_Tests"
+                 currentBuild.result = 'FAILURE'
                  throw err
            }
+        }
       }
+      } finally {
+           // Archive the artifacts
+           archiveArtifacts allowEmptyArchive: true, artifacts: '**/*.log'
+            // Sends notification to Rocket.Chat jenkins-robot channel
+           if (env.GERRIT_EVENT_TYPE == 'change-merged') {
+             if (currentBuild.result == 'FAILURE') { // Other values: SUCCESS, UNSTABLE
+                rocketSend channel: 'jenkins-robot', message: "Build Notification - STATUS: ${currentBuild.result} - BRANCH: ${env.GERRIT_BRANCH} - PROJECT: ${env.PROJECT} - (<${env.BUILD_URL}|Open>)"
+             }
+           }
+        }
+// End Timestamps block
+  }
+// End Node block
 }
