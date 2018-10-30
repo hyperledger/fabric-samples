@@ -43,7 +43,7 @@ cd fabric-samples/balance-transfer/typescript
 ```
 
 This performs the following steps:
-* lauches the required network on your local machine
+* launches the required network on your local machine
 * installs the fabric-client and fabric-ca-client node modules
 * starts the node app on PORT 4000
 

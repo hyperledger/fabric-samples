@@ -68,7 +68,7 @@ cd fabric-samples/balance-transfer
 
 ```
 
-* This lauches the required network on your local machine
+* This launches the required network on your local machine
 * Installs the fabric-client and fabric-ca-client node modules
 * And, starts the node app on PORT 4000
 
