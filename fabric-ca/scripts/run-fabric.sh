@@ -75,7 +75,7 @@ function main {
    logr "Sending invoke transaction to $PEER_HOST ..."
    peer chaincode invoke -C $CHANNEL_NAME -n mycc -c '{"Args":["invoke","a","b","10"]}' $ORDERER_CONN_ARGS
 
-   ## Install chaincode on 2nd peer of 2nd org
+   # Install chaincode on 2nd peer of 2nd org
    initPeerVars ${PORGS[1]} 2
    installChaincode
 
@@ -115,7 +115,7 @@ function createChannel {
    initPeerVars ${PORGS[0]} 1
    switchToAdminIdentity
    logr "Creating channel '$CHANNEL_NAME' on $ORDERER_HOST ..."
-   peer channel create --logging-level=DEBUG -c $CHANNEL_NAME -f $CHANNEL_TX_FILE $ORDERER_CONN_ARGS
+   FABRIC_LOGGING_SPEC=debug peer channel create -c $CHANNEL_NAME -f $CHANNEL_TX_FILE $ORDERER_CONN_ARGS
 }
 
 # Enroll as a fabric admin and join the channel
