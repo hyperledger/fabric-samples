@@ -11,7 +11,7 @@ The Hyperledger Fabric CA sample demonstrates the following:
   container in which they are generated.
 
 * How to use Attribute-Based Access Control (ABAC). See
-  fabric-samples/chaincode/abac/abac.go and note the use of the *github.com/hyperledger/fabric/core/chaincode/lib/cid* package to extract
+  fabric-samples/chaincode/abac/abac.go and note the use of the *github.com/hyperledger/fabric/core/chaincode/shim/ext/cid* package to extract
   attributes from the invoker's identity.  Only identities with the *abac.init*
   attribute value of *true* can successfully call the *Init* function to
   instantiate the chaincode.
@@ -89,7 +89,7 @@ with a value of "true".  Note further that the chaincode used by this sample
 requires this attribute be included in the certificate of the identity that
 invokes its Init function.  See the chaincode at *fabric-samples/chaincode/abac/abac.go*).
 For more information on Attribute-Based Access Control (ABAC), see
-https://github.com/hyperledger/fabric/blob/master/core/chaincode/lib/cid/README.md.
+https://github.com/hyperledger/fabric/blob/master/core/chaincode/shim/ext/cid/README.md.
 
 4. The orderer and peer containers are started.  The naming of these containers
 is straight-forward as is their log files in the *data/logs* directory.
