@@ -4,7 +4,7 @@
 # blockchain network that are necessary for the applications to interact with it. These are all
 # knowledge that must be acquired from out-of-band sources. This file provides such a source.
 #
-name: "global-trade-network"
+name: "finance-networks"
 
 #
 # Any properties with an "x-" prefix will be treated as application-specific, exactly like how naming
@@ -19,7 +19,7 @@ x-type: "hlfv1"
 #
 # Describe what the target network is/does.
 #
-description: "The network to be in if you want to stay in the global trade business"
+description: "A gateway connection file for the PaperNet networks"
 
 #
 # Schema version of the content. Used by the SDK to apply the corresponding parsing rules.
@@ -59,13 +59,13 @@ version: "1.0"
 #
 channels:
   # name of the channel
-  PaperNet:
+  papernet:
     # Required. list of orderers designated by the application to use for transactions on this
     # channel. This list can be a result of access control ("org1" can only access "ordererA"), or
     # operational decisions to share loads from applications among the orderers.  The values must
     # be "names" of orgs defined under "organizations/peers"
     orderers:
-      - orderer.example.com
+      - orderer.magnetocorp.com
 
     # Required. list of peers from participating orgs
     peers:
@@ -119,7 +119,7 @@ organizations:
     # dynamic certificate management (enroll, revoke, re-enroll). The following section is only for
     # Fabric-CA servers.
     certificateAuthorities:
-      - ca-org1
+      - ca-magnetocorp
 
     # [Optional]. If the application is going to make requests that are reserved to organization
     # administrators, including creating/updating channels, installing/instantiating chaincodes, it
@@ -129,9 +129,9 @@ organizations:
     # this way. The SDK should allow applications to set the org admin identity via APIs, and only use
     # this route as an alternative when it exists.
     adminPrivateKey:
-      path: test/fixtures/channel/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/keystore/9022d671ceedbb24af3ea69b5a8136cc64203df6b9920e26f48123fcfcb1d2e9_sk
+      path: commercial-paper/organization/magnetocorp/users/Admin@magnetocorp/keystore/9022d671ceedbb24af3ea69b5a8136cc64203df6b9920e26f48123fcfcb1d2e9_sk
     signedCert:
-      path: test/fixtures/channel/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/signcerts/Admin@org1.example.com-cert.pem
+      path: comercial-paper/organization/magnetocorp/users/Admin@magnetocorp.com/signcerts/Admin@magnetocorp.com-cert.pem
 
   # the profile will contain public information about organizations other than the one it belongs to.
   # These are necessary information to make transaction lifecycles work, including MSP IDs and
@@ -143,11 +143,11 @@ organizations:
     peers:
       - peer1.digibank.com
     certificateAuthorities:
-      - ca-org2
+      - ca-digibank
     adminPrivateKey:
-      path: test/fixtures/channel/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/keystore/5a983ddcbefe52a7f9b8ee5b85a590c3e3a43c4ccd70c7795bec504e7f74848d_sk
+      path: commercial-paper/organization/digibank/users/Admin@digibank.com/keystore/5a983ddcbefe52a7f9b8ee5b85a590c3e3a43c4ccd70c7795bec504e7f74848d_sk
     signedCert:
-      path: test/fixtures/channel/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/signcerts/Admin@org2.example.com-cert.pem
+      path: commercial-paper/organization/digibank/users/Admin@digibank.com/signcerts/Admin@digibank.com-cert.pem
 
 #
 # List of orderers to send transaction and channel create/update requests to. For the time
@@ -155,7 +155,7 @@ organizations:
 # SDK is implementation specific. Consult each SDK's documentation for its handling of orderers.
 #
 orderers:
-  orderer.example.com:
+  orderer.magnetocorp.com:
     url: grpcs://localhost:7050
 
     # these are standard properties defined by the gRPC library
@@ -164,7 +164,7 @@ orderers:
       ssl-target-name-override: orderer.example.com
 
     tlsCACerts:
-      path: test/fixtures/channel/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tlscacerts/example.com-cert.pem
+      path: comercial-paper/organization/magnetocorp/orderer/orderer.magnetocorp.com/tlscacerts/example.com-cert.pem
 
 #
 # List of peers to send various requests to, including endorsement, query
@@ -202,7 +202,7 @@ certificateAuthorities:
     httpOptions:
       verify: false
     tlsCACerts:
-      path: test/fixtures/channel/crypto-config/peerOrganizations/org1.example.com/ca/org1.example.com-cert.pem
+      path: commercial-paper/organization/magnetocorp/ca/magnetocorp.com-cert.pem
 
     # Fabric-CA supports dynamic user enrollment via REST APIs. A "root" user, a.k.a registrar, is
     # needed to enroll and invoke new users.
@@ -210,16 +210,16 @@ certificateAuthorities:
       - enrollId: admin
         enrollSecret: adminpw
     # [Optional] The optional name of the CA.
-    caName: ca-org1
+    caName: ca-magnetocorp
 
   ca-org2:
     url: https://localhost:8054
     httpOptions:
       verify: false
     tlsCACerts:
-      path: test/fixtures/channel/crypto-config/peerOrganizations/org2.example.com/ca/org2.example.com-cert.pem
+      path: commercial-paper/organization/digibank/ca/digibank.com-cert.pem
     registrar:
       - enrollId: admin
         enrollSecret: adminpw
     # [Optional] The optional name of the CA.
-    caName: ca-org2
+    caName: ca-digibank

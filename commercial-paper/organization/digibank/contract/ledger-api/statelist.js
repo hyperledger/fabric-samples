@@ -3,32 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 */
 
 'use strict';
-
-/**
- * Utility class for data, object mapulation, e.g. serialization
- */
-class Utils {
-
-    /**
-     * Convert object to buffer containing JSON data serialization
-     * Typically used before putState()ledger API
-     * @param {Object} JSON object to serialize
-     * @return {buffer} buffer with the data to store
-     */
-    static serialize(object) {
-        return Buffer.from(JSON.stringify(object));
-    }
-
-    /**
-     * Deserialize object, i.e. Covert serialized data to JSON object
-     * Typically used after getState() ledger API
-     * @param {data} data to deserialize into JSON object
-     * @return {json} json with the data to store
-     */
-    static deserialize(data) {
-        return JSON.parse(data);
-    }
-}
+const State = require('./state.js');
 
 /**
  * StateList provides a named virtual container for a set of ledger states.
@@ -44,6 +19,8 @@ class StateList {
     constructor(ctx, listName) {
         this.ctx = ctx;
         this.name = listName;
+        this.supportedClasses = {};
+
     }
 
     /**
@@ -52,8 +29,8 @@ class StateList {
      * State object is serialized before writing.
      */
     async addState(state) {
-        let key = this.ctx.stub.createCompositeKey(this.name, [state.getKey()]);
-        let data = Utils.serialize(state);
+        let key = this.ctx.stub.createCompositeKey(this.name, state.getSplitKey());
+        let data = State.serialize(state);
         await this.ctx.stub.putState(key, data);
     }
 
@@ -62,10 +39,10 @@ class StateList {
      * keys to retrieve state from world state. State data is deserialized
      * into JSON object before being returned.
      */
-    async getState([keys]) {
-        let key = this.ctx.stub.createCompositeKey(this.name, [keys]);
-        let data = await this.ctx.stub.getState(key);
-        let state = Utils.deserialize(data);
+    async getState(key) {
+        let ledgerKey = this.ctx.stub.createCompositeKey(this.name, State.splitKey(key));
+        let data = await this.ctx.stub.getState(ledgerKey);
+        let state = State.deserialize(data, this.supportedClasses);
         return state;
     }
 
@@ -76,13 +53,16 @@ class StateList {
      * addState() but kept separate becuase it is semantically distinct.
      */
     async updateState(state) {
-        let key = this.ctx.stub.createCompositeKey(this.name, [state.getKey()]);
-        let data = Utils.serialize(state);
+        let key = this.ctx.stub.createCompositeKey(this.name, state.getSplitKey());
+        let data = State.serialize(state);
         await this.ctx.stub.putState(key, data);
+    }
+
+    /** Stores the class for future deserialization */
+    use(stateClass) {
+        this.supportedClasses[stateClass.getClass()] = stateClass;
     }
 
 }
 
-module.exports = {
-    StateList
-};
+module.exports = StateList;
