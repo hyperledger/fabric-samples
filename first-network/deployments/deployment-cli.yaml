@@ -1,0 +1,286 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hyperledger-cli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hyperledger-cli
+  template:
+    metadata:
+      labels:
+        app: hyperledger-cli
+    spec:
+      containers:
+        - name: cli
+          image: hyperledger/fabric-tools:1.3.0
+          imagePullPolicy: IfNotPresent
+          workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+          command: [/bin/bash]
+          env:
+            - { name: GOPATH, value: "/opt/gopath" }
+            - { name: CORE_VM_ENDPOINT, value: "unix:///host/var/run/docker.sock" }
+            - { name: CORE_LOGGING_LEVEL, value: "INFO" }
+            - { name: CORE_PEER_ID, value: "cli" }
+            - { name: CORE_PEER_ADDRESS, value: "peer0.org1.example.com:7051" }
+            - { name: CORE_PEER_LOCALMSPID, value: "Org1MSP" }
+            - { name: CORE_PEER_TLS_ENABLED, value: "true" }
+            - { name: CORE_PEER_TLS_CERT_FILE, value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/server.crt" }
+            - { name: CORE_PEER_TLS_KEY_FILE, value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/server.key" }
+            - { name: CORE_PEER_TLS_ROOTCERT_FILE, value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" }
+            - { name: CORE_PEER_MSPCONFIGPATH, value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" }
+          volumeMounts:
+            - { name: host-var-run, mountPath: /host/var/run/ }
+            - { name: chaincode, mountPath: /opt/gopath/src/github.com/chaincode }
+            - { name: crypto-config, mountPath: /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ }
+            - { name: scripts, mountPath: /opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/ }
+            - { name: channel-artifacts, mountPath: /opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts }          
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+
+        - name: orderer.example.com
+          image: hyperledger/fabric-orderer:1.3.0
+          imagePullPolicy: IfNotPresent
+          workingDir: /opt/gopath/src/github.com/hyperledger/fabric
+          command:
+            - orderer
+          ports:
+            - containerPort: 7050
+          env:
+            - { name: ORDERER_GENERAL_LOGLEVEL, value: "INFO" }
+            - { name: ORDERER_GENERAL_LISTENADDRESS, value: "0.0.0.0" }
+            - { name: ORDERER_GENERAL_GENESISMETHOD, value: "file" }
+            - { name: ORDERER_GENERAL_GENESISFILE, value: "/var/hyperledger/orderer/orderer.genesis.block" }
+            - { name: ORDERER_GENERAL_LOCALMSPID, value: "OrdererMSP" }
+            - { name: ORDERER_GENERAL_LOCALMSPDIR, value: "/var/hyperledger/orderer/msp" }
+            - { name: ORDERER_GENERAL_TLS_ENABLED, value: "true" }
+            - { name: ORDERER_GENERAL_TLS_PRIVATEKEY, value: "/var/hyperledger/orderer/tls/server.key" }
+            - { name: ORDERER_GENERAL_TLS_CERTIFICATE, value: "/var/hyperledger/orderer/tls/server.crt" }
+            - { name: ORDERER_GENERAL_TLS_ROOTCAS, value: "[/var/hyperledger/orderer/tls/ca.crt]" }
+          volumeMounts:
+            - { name: channel-artifacts-genesis-block, mountPath: /var/hyperledger/orderer/orderer.genesis.block }
+            - { name: orderer-msp, mountPath: /etc/hyperledger/fabric/msp }
+            - { name: orderer-tls, mountPath: /etc/hyperledger/fabric/tls }
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+
+        - name: peer0.org1.example.com
+          image: hyperledger/fabric-peer:1.3.0
+          imagePullPolicy: IfNotPresent
+          workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+          command: ["peer", "node", "start"]
+          ports:
+            - containerPort: 7051
+            - containerPort: 7053
+          env:
+            - { name: CORE_VM_ENDPOINT, value: "unix:///host/var/run/docker.sock" }
+            - { name: CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE, value: "net_byfn" }
+            - { name: CORE_LOGGING_LEVEL, value: "INFO" }
+            - { name: CORE_PEER_TLS_ENABLED, value: "true" }
+            - { name: CORE_PEER_GOSSIP_USELEADERELECTION, value: "true" }
+            - { name: CORE_PEER_GOSSIP_ORGLEADER, value: "false" }
+            - { name: CORE_PEER_PROFILE_ENABLED, value: "true" }
+            - { name: CORE_PEER_TLS_CERT_FILE, value: "/etc/hyperledger/fabric/tls/server.crt" }
+            - { name: CORE_PEER_TLS_KEY_FILE, value: "/etc/hyperledger/fabric/tls/server.key" }
+            - { name: CORE_PEER_TLS_ROOTCERT_FILE, value: "/etc/hyperledger/fabric/tls/ca.crt" }
+            - { name: CORE_PEER_ID, value: "peer0.org1.example.com" }
+            - { name: CORE_PEER_ADDRESS, value: "peer0.org1.example.com:7051" }
+            - { name: CORE_PEER_GOSSIP_BOOTSTRAP, value: "peer1.org1.example.com:7051" }
+            - { name: CORE_PEER_GOSSIP_EXTERNALENDPOINT, value: "peer0.org1.example.com:7051" }
+            - { name: CORE_PEER_LOCALMSPID, value: "Org1MSP" }
+          volumeMounts:
+            - { name: host-var-run, mountPath: /host/var/run/ }
+            - { name: peer0-org1-msp, mountPath: /etc/hyperledger/fabric/msp }
+            - { name: peer0-org1-tls, mountPath: /etc/hyperledger/fabric/tls }
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+
+        - name: peer1.org1.example.com
+          image: hyperledger/fabric-peer:1.3.0
+          imagePullPolicy: IfNotPresent
+          workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+          command: ["peer", "node", "start"]
+          ports:
+            - containerPort: 7051
+            - containerPort: 7053
+          env:
+            - { name: CORE_VM_ENDPOINT, value: "unix:///host/var/run/docker.sock" }
+            - { name: CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE, value: "net_byfn" }
+            - { name: CORE_LOGGING_LEVEL, value: "INFO" }
+            - { name: CORE_PEER_TLS_ENABLED, value: "true" }
+            - { name: CORE_PEER_GOSSIP_USELEADERELECTION, value: "true" }
+            - { name: CORE_PEER_GOSSIP_ORGLEADER, value: "false" }
+            - { name: CORE_PEER_PROFILE_ENABLED, value: "true" }
+            - { name: CORE_PEER_TLS_CERT_FILE, value: "/etc/hyperledger/fabric/tls/server.crt" }
+            - { name: CORE_PEER_TLS_KEY_FILE, value: "/etc/hyperledger/fabric/tls/server.key" }
+            - { name: CORE_PEER_TLS_ROOTCERT_FILE, value: "/etc/hyperledger/fabric/tls/ca.crt" }
+            - { name: CORE_PEER_ID, value: "peer1.org1.example.com" }
+            - { name: CORE_PEER_ADDRESS, value: "peer1.org1.example.com:7051" }
+            - { name: CORE_PEER_GOSSIP_BOOTSTRAP, value: "peer1.org1.example.com:7051" }
+            - { name: CORE_PEER_GOSSIP_EXTERNALENDPOINT, value: "peer1.org1.example.com:7051" }
+            - { name: CORE_PEER_LOCALMSPID, value: "Org1MSP" }
+          volumeMounts:
+            - { name: host-var-run, mountPath: /host/var/run/ }
+            - { name: peer1-org1-msp, mountPath: /etc/hyperledger/fabric/msp }
+            - { name: peer1-org1-tls, mountPath: /etc/hyperledger/fabric/tls }
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+
+        - name: peer0.org2.example.com
+          image: hyperledger/fabric-peer:1.3.0
+          imagePullPolicy: IfNotPresent
+          workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+          command: ["peer", "node", "start"]
+          ports:
+            - containerPort: 7051
+            - containerPort: 7053
+          env:
+            - { name: CORE_VM_ENDPOINT, value: "unix:///host/var/run/docker.sock" }
+            - { name: CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE, value: "net_byfn" }
+            - { name: CORE_LOGGING_LEVEL, value: "INFO" }
+            - { name: CORE_PEER_TLS_ENABLED, value: "true" }
+            - { name: CORE_PEER_GOSSIP_USELEADERELECTION, value: "true" }
+            - { name: CORE_PEER_GOSSIP_ORGLEADER, value: "false" }
+            - { name: CORE_PEER_PROFILE_ENABLED, value: "true" }
+            - { name: CORE_PEER_TLS_CERT_FILE, value: "/etc/hyperledger/fabric/tls/server.crt" }
+            - { name: CORE_PEER_TLS_KEY_FILE, value: "/etc/hyperledger/fabric/tls/server.key" }
+            - { name: CORE_PEER_TLS_ROOTCERT_FILE, value: "/etc/hyperledger/fabric/tls/ca.crt" }
+            - { name: CORE_PEER_ID, value: "peer0.org2.example.com" }
+            - { name: CORE_PEER_ADDRESS, value: "peer0.org2.example.com:7051" }
+            - { name: CORE_PEER_GOSSIP_BOOTSTRAP, value: "peer1.org2.example.com:7051" }
+            - { name: CORE_PEER_GOSSIP_EXTERNALENDPOINT, value: "peer0.org2.example.com:7051" }
+            - { name: CORE_PEER_LOCALMSPID, value: "Org2MSP" }
+          volumeMounts:
+            - { name: host-var-run, mountPath: /host/var/run/ }
+            - { name: peer0-org2-msp, mountPath: /etc/hyperledger/fabric/msp }
+            - { name: peer0-org2-tls, mountPath: /etc/hyperledger/fabric/tls }
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+
+        - name: peer1.org2.example.com
+          image: hyperledger/fabric-peer:1.3.0
+          imagePullPolicy: IfNotPresent
+          workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+          command: ["peer", "node", "start"]
+          ports:
+            - containerPort: 7051
+            - containerPort: 7053
+          env:
+            - { name: CORE_VM_ENDPOINT, value: "unix:///host/var/run/docker.sock" }
+            - { name: CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE, value: "net_byfn" }
+            - { name: CORE_LOGGING_LEVEL, value: "INFO" }
+            - { name: CORE_PEER_TLS_ENABLED, value: "true" }
+            - { name: CORE_PEER_GOSSIP_USELEADERELECTION, value: "true" }
+            - { name: CORE_PEER_GOSSIP_ORGLEADER, value: "false" }
+            - { name: CORE_PEER_PROFILE_ENABLED, value: "true" }
+            - { name: CORE_PEER_TLS_CERT_FILE, value: "/etc/hyperledger/fabric/tls/server.crt" }
+            - { name: CORE_PEER_TLS_KEY_FILE, value: "/etc/hyperledger/fabric/tls/server.key" }
+            - { name: CORE_PEER_TLS_ROOTCERT_FILE, value: "/etc/hyperledger/fabric/tls/ca.crt" }
+            - { name: CORE_PEER_ID, value: "peer1.org2.example.com" }
+            - { name: CORE_PEER_ADDRESS, value: "peer1.org2.example.com:7051" }
+            - { name: CORE_PEER_GOSSIP_BOOTSTRAP, value: "peer1.org2.example.com:7051" }
+            - { name: CORE_PEER_GOSSIP_EXTERNALENDPOINT, value: "peer1.org2.example.com:7051" }
+            - { name: CORE_PEER_LOCALMSPID, value: "Org2MSP" }
+          volumeMounts:
+            - { name: host-var-run, mountPath: /host/var/run/ }
+            - { name: peer1-org2-msp, mountPath: /etc/hyperledger/fabric/msp }
+            - { name: peer1-org2-tls, mountPath: /etc/hyperledger/fabric/tls }
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+
+      volumes:
+        - name: host-var-run
+          hostPath:
+            path: /var/run/
+            type: Directory
+        - name: channel-artifacts-genesis-block
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/channel-artifacts/genesis.block
+            type: File
+        - name: orderer-msp
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp
+            type: Directory
+        - name: orderer-tls
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls
+            type: Directory
+        - name: peer0-org1-msp
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp
+            type: Directory
+        - name: peer0-org1-tls
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls
+            type: Directory
+        - name: peer1-org1-msp
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/msp
+            type: Directory
+        - name: peer1-org1-tls
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/crypto-config/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/tls
+            type: Directory
+        - name: peer0-org2-msp
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp
+            type: Directory
+        - name: peer0-org2-tls
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls
+            type: Directory
+        - name: peer1-org2-msp
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/msp
+            type: Directory
+        - name: peer1-org2-tls
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/crypto-config/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/tls
+            type: Directory
+        - name: chaincode
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/chaincode
+            type: Directory
+        - name: crypto-config
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/crypto-config
+            type: Directory
+        - name: scripts
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/scripts
+            type: Directory
+        - name: channel-artifacts
+          hostPath:
+            path: /hosthome/clement/Projects/owkin/fabric-samples/first-network/channel-artifacts
+            type: Directory
