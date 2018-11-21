@@ -12,6 +12,7 @@ COUCHDB_CONTAINER_LIST=(couchdb0 couchdb1 couchdb2 couchdb3 couchdb4 couchdb5)
 MARCH=$(uname -s|tr '[:upper:]' '[:lower:]')
 echo "-----------> MARCH" $MARCH
 echo "-----------> PROJECT_VERSION:" $PROJECT_VERSION
+# Download latest binaries from nexus2
 MVN_METADATA=$(echo "https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric-$PROJECT_VERSION/maven-metadata.xml")
 curl -L "$MVN_METADATA" > maven-metadata.xml
 RELEASE_TAG=$(cat maven-metadata.xml | grep release)

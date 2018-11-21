@@ -9,7 +9,7 @@ node ('hyp-x') { // trigger build on x86_64 node
   timestamps {
    try {
     def ROOTDIR = pwd() // workspace dir (/w/workspace/<job_name>
-    env.NODE_VER = "8.11.3" // NodeJs version
+    def nodeHome = tool 'nodejs-8.11.3'
     env.ARCH = "amd64"
     env.VERSION = sh(returnStdout: true, script: 'curl -O https://raw.githubusercontent.com/hyperledger/fabric/master/Makefile && cat Makefile | grep "BASE_VERSION =" | cut -d "=" -f2').trim()
     env.VERSION = "$VERSION" // BASE_VERSION from fabric Makefile
@@ -19,7 +19,7 @@ node ('hyp-x') { // trigger build on x86_64 node
     env.BASE_IMAGE_TAG = "${ARCH}-${BASE_IMAGE_VER}" //fabric baseimage version
     env.PROJECT_DIR = "gopath/src/github.com/hyperledger"
     env.GOPATH = "$WORKSPACE/gopath"
-    env.PATH = "$GOPATH/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:~/npm/bin:/home/jenkins/.nvm/versions/node/v${NODE_VER}/bin:$PATH"
+    env.PATH = "$GOPATH/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:${nodeHome}/bin:$PATH"
 
     def failure_stage = "none"
     // delete working directory
@@ -105,13 +105,30 @@ node ('hyp-x') { // trigger build on x86_64 node
            }
          }
       }
+
+      // Run fabcar tests
+      stage("Run FabCar Tests") {
+         // making the output color coded
+         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+           try {
+                 dir("${ROOTDIR}/$PROJECT_DIR/fabric-samples/scripts/Jenkins_Scripts") {
+                 sh './CI_Script.sh --fabcar_Tests'
+                 }
+               }
+           catch (err) {
+                 failure_stage = "fabcar_Tests"
+                 currentBuild.result = 'FAILURE'
+                 throw err
+           }
+         }
+      }
       } finally {
            // Archive the artifacts
            archiveArtifacts allowEmptyArchive: true, artifacts: '**/*.log'
            // Sends notification to Rocket.Chat jenkins-robot channel
-           if (env.GERRIT_EVENT_TYPE == 'change-merged') {
+           if (env.JOB_NAME == "fabric-samples-merge-byfn") {
               if (currentBuild.result == 'FAILURE') { // Other values: SUCCESS, UNSTABLE
-               rocketSend channel: 'jenkins-robot', message: "Build Notification - STATUS: ${currentBuild.result} - BRANCH: ${env.GERRIT_BRANCH} - PROJECT: ${env.PROJECT} - (<${env.BUILD_URL}|Open>)"
+               rocketSend message: "Build Notification - STATUS: *${currentBuild.result}* - BRANCH: *${env.GERRIT_BRANCH}* - PROJECT: *${env.PROJECT}* - (<${env.BUILD_URL}|Open>)"
               }
            }
         }

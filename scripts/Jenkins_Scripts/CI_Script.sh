@@ -17,9 +17,6 @@ Parse_Arguments() {
                       --env_Info)
                             env_Info
                             ;;
-                      --SetGopath)
-                            setGopath
-                            ;;
                       --pull_Docker_Images)
                             pull_Docker_Images
                             ;;
@@ -29,8 +26,11 @@ Parse_Arguments() {
                       --clean_Environment)
                             clean_Environment
                             ;;
-		      --byfn_eyfn_Tests)
+                      --byfn_eyfn_Tests)
                             byfn_eyfn_Tests
+                            ;;
+                      --fabcar_Tests)
+                            fabcar_Tests
                             ;;
                       --pull_Thirdparty_Images)
                             pull_Thirdparty_Images
@@ -54,22 +54,18 @@ function clearContainers () {
 }
 
 function removeUnwantedImages() {
-        DOCKER_IMAGES_SNAPSHOTS=$(docker images | grep snapshot | grep -v grep | awk '{print $1":" $2}')
 
-        if [ -z "$DOCKER_IMAGES_SNAPSHOTS" ] || [ "$DOCKER_IMAGES_SNAPSHOTS" = " " ]; then
-                echo "---- No snapshot images available for deletion ----"
-        else
-	        docker rmi -f $DOCKER_IMAGES_SNAPSHOTS || true
-	fi
-        DOCKER_IMAGE_IDS=$(docker images | grep -v 'base*\|couchdb\|kafka\|zookeeper\|cello' | awk '{print $3}')
+        for i in $(docker images | grep none | awk '{print $3}'); do
+                docker rmi ${i};
+        done
 
-        if [ -z "$DOCKER_IMAGE_IDS" ] || [ "$DOCKER_IMAGE_IDS" = " " ]; then
-                echo "---- No images available for deletion ----"
-        else
-                docker rmi -f $DOCKER_IMAGE_IDS || true
-                docker images
-        fi
+        for i in $(docker images | grep -vE ".*baseimage.*(0.4.13|0.4.14)" | grep -vE ".*baseos.*(0.4.13|0.4.14)" | grep -vE ".*couchdb.*(0.4.13|0.4.14)" | grep -vE ".*zoo.*(0.4.13|0.4.14)" | grep -vE ".*kafka.*(0.4.13|0.4.14)" | grep -v "REPOSITORY" | awk '{print $1":" $2}'); do
+                docker rmi ${i};
+        done
 }
+
+# Remove /tmp/fabric-shim
+docker run -v /tmp:/tmp library/alpine rm -rf /tmp/fabric-shim || true
 
 # remove tmp/hfc and hfc-key-store data
 rm -rf /home/jenkins/.nvm /home/jenkins/npm /tmp/fabric-shim /tmp/hfc* /tmp/npm* /home/jenkins/kvsTemp /home/jenkins/.hfc-key-store
@@ -128,7 +124,7 @@ pull_Docker_Images() {
                        exit 1
                  fi
                  docker tag $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG $ORG_NAME-$IMAGES
-                 docker tag $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG $ORG_NAME-$IMAGES:$IMAGE_TAG
+                 docker tag $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG $ORG_NAME-$IMAGES:$ARCH-$VERSION
                  docker rmi -f $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG
             done
                  echo
@@ -146,16 +142,25 @@ pull_Fabric_CA_Image() {
                        exit 1
                  fi
                  docker tag $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG $ORG_NAME-$IMAGES
-	         docker tag $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG $ORG_NAME-$IMAGES:$IMAGE_TAG
+	         docker tag $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG $ORG_NAME-$IMAGES:$ARCH-$VERSION
                  docker rmi -f $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG
             done
                  echo
                  docker images | grep hyperledger/fabric-ca
 }
+
 # run byfn,eyfn tests
 byfn_eyfn_Tests() {
-	echo
-	echo "-----------> Execute Byfn and Eyfn Tests"
-	./byfn_eyfn.sh
+                 echo
+                 echo "-----------> Execute Byfn and Eyfn Tests"
+                 ./byfn_eyfn.sh
+}
+# run fabcar tests
+fabcar_Tests() {
+                 echo
+                 echo "npm version ------> $(npm -v)"
+                 echo "node version ------> $(node -v)"
+                 echo "-----------> Execute FabCar Tests"
+                 ./fabcar.sh
 }
 Parse_Arguments $@
