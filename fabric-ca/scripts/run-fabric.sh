@@ -35,7 +35,7 @@ function main {
   if [ "$LANGUAGE" = "golang" ]; then
     CC_SRC_PATH="github.com/hyperledger/fabric-samples/chaincode/abac/go"
   elif [ "$LANGUAGE" = "node" ]; then
-    CC_SRC_PATH="github.com/hyperledger/fabric-samples/chaincode/abac/node"
+    CC_SRC_PATH="/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/abac/node"
   fi
   
   logr "CC_SRC_PATH=${CC_SRC_PATH}"
