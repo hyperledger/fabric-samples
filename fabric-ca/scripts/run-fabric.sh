@@ -8,9 +8,39 @@
 set -e
 
 source $(dirname "$0")/env.sh
+LANGUAGE=golang
+while getopts ":l:" opt; do
+  case "$opt" in
+  l)
+    LANGUAGE=$OPTARG
+    ;;
+  : )
+    echo "Invalid option: $OPTARG requires an argument" 1>&2
+    exit 1;
+    ;;
+  esac
+done
+if [ "$LANGUAGE" = "go" ]; then
+  LANGUAGE = "golang"
+fi
+if [[ "$LANGUAGE" != "node" && "$LANGUAGE" != "golang" ]]; then
+    echo "LANGUAGE = ${LANGUAGE} is not supported"
+    exit 1;
+fi
 
 function main {
+  
+  logr "LANGUAGE=${LANGUAGE}"
 
+  if [ "$LANGUAGE" = "golang" ]; then
+    CC_SRC_PATH="github.com/hyperledger/fabric-samples/chaincode/abac/go"
+  elif [ "$LANGUAGE" = "node" ]; then
+    CC_SRC_PATH="github.com/hyperledger/fabric-samples/chaincode/abac/node"
+  fi
+  
+  logr "CC_SRC_PATH=${CC_SRC_PATH}"
+
+  
    done=false
 
    # Wait for setup to complete and then wait another 10 seconds for the orderer and peers to start
@@ -62,7 +92,7 @@ function main {
    initPeerVars ${PORGS[1]} 1
    switchToAdminIdentity
    logr "Instantiating chaincode on $PEER_HOST ..."
-   peer chaincode instantiate -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a","100","b","200"]}' -P "$POLICY" $ORDERER_CONN_ARGS
+   peer chaincode instantiate -C $CHANNEL_NAME -n mycc -v 1.0 -l ${LANGUAGE} -c '{"Args":["init","a","100","b","200"]}' -P "$POLICY" $ORDERER_CONN_ARGS
 
    # Query chaincode from the 1st peer of the 1st org
    initPeerVars ${PORGS[0]} 1
@@ -215,7 +245,8 @@ function makePolicy  {
 function installChaincode {
    switchToAdminIdentity
    logr "Installing chaincode on $PEER_HOST ..."
-   peer chaincode install -n mycc -v 1.0 -p github.com/hyperledger/fabric-samples/chaincode/abac/go
+   logr "peer chaincode install -n mycc -v 1.0 -l ${LANGUAGE} -p ${CC_SRC_PATH}"
+   peer chaincode install -n mycc -v 1.0 -l ${LANGUAGE} -p ${CC_SRC_PATH}
 }
 
 function fetchConfigBlock {

@@ -93,7 +93,7 @@ function writeRunFabric {
     image: hyperledger/fabric-ca-tools
     environment:
       - GOPATH=/opt/gopath
-    command: /bin/bash -c 'sleep 3;/scripts/run-fabric.sh 2>&1 | tee /$RUN_LOGFILE; sleep 99999'
+    command: /bin/bash -c 'sleep 3;/scripts/run-fabric.sh -l ${LANGUAGE} 2>&1 | tee /$RUN_LOGFILE; sleep 99999'
     volumes:
       - ./scripts:/scripts
       - ./$DATA:/$DATA
