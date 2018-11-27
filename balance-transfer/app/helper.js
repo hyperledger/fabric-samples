@@ -20,19 +20,9 @@ logger.setLevel('DEBUG');
 
 var path = require('path');
 var util = require('util');
-var copService = require('fabric-ca-client');
 
 var hfc = require('fabric-client');
 hfc.setLogger(logger);
-var ORGS = hfc.getConfigSetting('network-config');
-
-var clients = {};
-var channels = {};
-var caClients = {};
-
-var sleep = async function (sleep_time_ms) {
-	return new Promise(resolve => setTimeout(resolve, sleep_time_ms));
-}
 
 async function getClientForOrg (userorg, username) {
 	logger.debug('getClientForOrg - ****** START %s %s', userorg, username)

@@ -18,10 +18,14 @@
 // peer chaincode query -C myc1 -n marbles -c '{"Args":["readMarble","marble1"]}'
 // peer chaincode query -C myc1 -n marbles -c '{"Args":["getMarblesByRange","marble1","marble3"]}'
 // peer chaincode query -C myc1 -n marbles -c '{"Args":["getHistoryForMarble","marble1"]}'
+// peer chaincode query -C myc1 -n marbles -c '{"Args":["getMarblesByRangeWithPagination","marble1","marble3","3",""]}'
 
 // Rich Query (Only supported if CouchDB is used as state database):
-//   peer chaincode query -C myc1 -n marbles -c '{"Args":["queryMarblesByOwner","tom"]}'
-//   peer chaincode query -C myc1 -n marbles -c '{"Args":["queryMarbles","{\"selector\":{\"owner\":\"tom\"}}"]}'
+// peer chaincode query -C myc1 -n marbles -c '{"Args":["queryMarblesByOwner","tom"]}'
+// peer chaincode query -C myc1 -n marbles -c '{"Args":["queryMarbles","{\"selector\":{\"owner\":\"tom\"}}"]}'
+
+// Rich Query with Pagination (Only supported if CouchDB is used as state database):
+// peer chaincode query -C myc1 -n marbles -c '{"Args":["queryMarblesWithPagination","{\"selector\":{\"owner\":\"tom\"}}","3",""]}'
 
 'use strict';
 const shim = require('fabric-shim');
@@ -401,6 +405,74 @@ let Chaincode = class {
     let resultsIterator = await stub.getHistoryForKey(marbleName);
     let method = thisClass['getAllResults'];
     let results = await method(resultsIterator, true);
+
+    return Buffer.from(JSON.stringify(results));
+  }
+
+  // ====== Pagination =========================================================================
+  // Pagination provides a method to retrieve records with a defined pagesize and
+  // start point (bookmark).  An empty string bookmark defines the first "page" of a query
+  // result. Paginated queries return a bookmark that can be used in
+  // the next query to retrieve the next page of results. Paginated queries extend
+  // rich queries and range queries to include a pagesize and bookmark.
+  //
+  // Two examples are provided in this example. The first is getMarblesByRangeWithPagination
+  // which executes a paginated range query.
+  // The second example is a paginated query for rich ad-hoc queries.
+  // =========================================================================================
+
+  // ====== Example: Pagination with Range Query ===============================================
+  // getMarblesByRangeWithPagination performs a range query based on the start & end key,
+  // page size and a bookmark.
+  //
+  // The number of fetched records will be equal to or lesser than the page size.
+  // Paginated range queries are only valid for read only transactions.
+  // ===========================================================================================
+  async getMarblesByRangeWithPagination(stub, args, thisClass) {
+    if (args.length < 2) {
+      throw new Error('Incorrect number of arguments. Expecting 2');
+    }
+    const startKey = args[0];
+    const endKey = args[1];
+
+    const pageSize = parseInt(args[2], 10);
+    const bookmark = args[3];
+
+    const { iterator, metadata } = await stub.getStateByRangeWithPagination(startKey, endKey, pageSize, bookmark);
+    const getAllResults = thisClass['getAllResults'];
+    const results = await getAllResults(iterator, false);
+    // use RecordsCount and Bookmark to keep consistency with the go sample
+    results.ResponseMetadata = {
+      RecordsCount: metadata.fetched_records_count,
+      Bookmark: metadata.bookmark,
+    };
+    return Buffer.from(JSON.stringify(results));
+  }
+
+  // =========================================================================================
+  // getQueryResultForQueryStringWithPagination executes the passed in query string with
+  // pagination info. Result set is built and returned as a byte array containing the JSON results.
+  // =========================================================================================
+  async queryMarblesWithPagination(stub, args, thisClass) {
+
+    //   0
+    // "queryString"
+    if (args.length < 3) {
+      return shim.Error("Incorrect number of arguments. Expecting 3")
+    }
+
+    const queryString = args[0];
+    const pageSize = parseInt(args[2], 10);
+    const bookmark = args[3];
+
+    const { iterator, metadata } = await stub.GetQueryResultWithPagination(queryString, pageSize, bookmark);
+    const getAllResults = thisClass['getAllResults'];
+    const results = await getAllResults(iterator, false);
+    // use RecordsCount and Bookmark to keep consistency with the go sample
+    results.ResponseMetadata = {
+      RecordsCount: metadata.fetched_records_count,
+      Bookmark: metadata.bookmark,
+    };
 
     return Buffer.from(JSON.stringify(results));
   }

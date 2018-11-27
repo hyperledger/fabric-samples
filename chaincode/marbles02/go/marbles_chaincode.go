@@ -1,20 +1,5 @@
 /*
-Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
-to you under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance
-with the License.  You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing,
-software distributed under the License is distributed on an
-"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, either express or implied.  See the License for the
-specific language governing permissions and limitations
-under the License.
+ SPDX-License-Identifier: Apache-2.0
 */
 
 // ====CHAINCODE EXECUTION SAMPLES (CLI) ==================
@@ -33,8 +18,11 @@ under the License.
 // peer chaincode query -C myc1 -n marbles -c '{"Args":["getHistoryForMarble","marble1"]}'
 
 // Rich Query (Only supported if CouchDB is used as state database):
-//   peer chaincode query -C myc1 -n marbles -c '{"Args":["queryMarblesByOwner","tom"]}'
-//   peer chaincode query -C myc1 -n marbles -c '{"Args":["queryMarbles","{\"selector\":{\"owner\":\"tom\"}}"]}'
+// peer chaincode query -C myc1 -n marbles -c '{"Args":["queryMarblesByOwner","tom"]}'
+// peer chaincode query -C myc1 -n marbles -c '{"Args":["queryMarbles","{\"selector\":{\"owner\":\"tom\"}}"]}'
+
+// Rich Query with Pagination (Only supported if CouchDB is used as state database):
+// peer chaincode query -C myc1 -n marbles -c '{"Args":["queryMarblesWithPagination","{\"selector\":{\"owner\":\"tom\"}}","3",""]}'
 
 // INDEXES TO SUPPORT COUCHDB RICH QUERIES
 //
@@ -73,23 +61,15 @@ under the License.
 // http://127.0.0.1:5984/
 
 // Index for docType, owner.
-// Note that docType and owner fields must be prefixed with the "data" wrapper
-//
-// Index definition for use with Fauxton interface
-// {"index":{"fields":["data.docType","data.owner"]},"ddoc":"indexOwnerDoc", "name":"indexOwner","type":"json"}
 //
 // Example curl command line to define index in the CouchDB channel_chaincode database
-// curl -i -X POST -H "Content-Type: application/json" -d "{\"index\":{\"fields\":[\"data.docType\",\"data.owner\"]},\"name\":\"indexOwner\",\"ddoc\":\"indexOwnerDoc\",\"type\":\"json\"}" http://hostname:port/myc1_marbles/_index
+// curl -i -X POST -H "Content-Type: application/json" -d "{\"index\":{\"fields\":[\"docType\",\"owner\"]},\"name\":\"indexOwner\",\"ddoc\":\"indexOwnerDoc\",\"type\":\"json\"}" http://hostname:port/myc1_marbles/_index
 //
 
 // Index for docType, owner, size (descending order).
-// Note that docType, owner and size fields must be prefixed with the "data" wrapper
-//
-// Index definition for use with Fauxton interface
-// {"index":{"fields":[{"data.size":"desc"},{"data.docType":"desc"},{"data.owner":"desc"}]},"ddoc":"indexSizeSortDoc", "name":"indexSizeSortDesc","type":"json"}
 //
 // Example curl command line to define index in the CouchDB channel_chaincode database
-// curl -i -X POST -H "Content-Type: application/json" -d "{\"index\":{\"fields\":[{\"data.size\":\"desc\"},{\"data.docType\":\"desc\"},{\"data.owner\":\"desc\"}]},\"ddoc\":\"indexSizeSortDoc\", \"name\":\"indexSizeSortDesc\",\"type\":\"json\"}" http://hostname:port/myc1_marbles/_index
+// curl -i -X POST -H "Content-Type: application/json" -d "{\"index\":{\"fields\":[{\"size\":\"desc\"},{\"docType\":\"desc\"},{\"owner\":\"desc\"}]},\"ddoc\":\"indexSizeSortDoc\", \"name\":\"indexSizeSortDesc\",\"type\":\"json\"}" http://hostname:port/myc1_marbles/_index
 
 // Rich Query with index design doc and index name specified (Only supported if CouchDB is used as state database):
 //   peer chaincode query -C myc1 -n marbles -c '{"Args":["queryMarbles","{\"selector\":{\"docType\":\"marble\",\"owner\":\"tom\"}, \"use_index\":[\"_design/indexOwnerDoc\", \"indexOwner\"]}"]}'
@@ -164,6 +144,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		return t.getHistoryForMarble(stub, args)
 	} else if function == "getMarblesByRange" { //get marbles based on range query
 		return t.getMarblesByRange(stub, args)
+	} else if function == "getMarblesByRangeWithPagination" {
+		return t.getMarblesByRangeWithPagination(stub, args)
+	} else if function == "queryMarblesWithPagination" {
+		return t.queryMarblesWithPagination(stub, args)
 	}
 
 	fmt.Println("invoke did not find func: " + function) //error
@@ -361,6 +345,59 @@ func (t *SimpleChaincode) transferMarble(stub shim.ChaincodeStubInterface, args 
 }
 
 // ===========================================================================================
+// constructQueryResponseFromIterator constructs a JSON array containing query results from
+// a given result iterator
+// ===========================================================================================
+func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorInterface) (*bytes.Buffer, error) {
+	// buffer is a JSON array containing QueryResults
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+
+	bArrayMemberAlreadyWritten := false
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+		// Add a comma before array members, suppress it for the first array member
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+		buffer.WriteString("{\"Key\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(queryResponse.Key)
+		buffer.WriteString("\"")
+
+		buffer.WriteString(", \"Record\":")
+		// Record is a JSON object, so we write as-is
+		buffer.WriteString(string(queryResponse.Value))
+		buffer.WriteString("}")
+		bArrayMemberAlreadyWritten = true
+	}
+	buffer.WriteString("]")
+
+	return &buffer, nil
+}
+
+// ===========================================================================================
+// addPaginationMetadataToQueryResults adds QueryResponseMetadata, which contains pagination
+// info, to the constructed query results
+// ===========================================================================================
+func addPaginationMetadataToQueryResults(buffer *bytes.Buffer, responseMetadata *pb.QueryResponseMetadata) *bytes.Buffer {
+
+	buffer.WriteString("[{\"ResponseMetadata\":{\"RecordsCount\":")
+	buffer.WriteString("\"")
+	buffer.WriteString(fmt.Sprintf("%v", responseMetadata.FetchedRecordsCount))
+	buffer.WriteString("\"")
+	buffer.WriteString(", \"Bookmark\":")
+	buffer.WriteString("\"")
+	buffer.WriteString(responseMetadata.Bookmark)
+	buffer.WriteString("\"}}]")
+
+	return buffer
+}
+
+// ===========================================================================================
 // getMarblesByRange performs a range query based on the start and end keys provided.
 
 // Read-only function results are not typically submitted to ordering. If the read-only
@@ -386,32 +423,10 @@ func (t *SimpleChaincode) getMarblesByRange(stub shim.ChaincodeStubInterface, ar
 	}
 	defer resultsIterator.Close()
 
-	// buffer is a JSON array containing QueryResults
-	var buffer bytes.Buffer
-	buffer.WriteString("[")
-
-	bArrayMemberAlreadyWritten := false
-	for resultsIterator.HasNext() {
-		queryResponse, err := resultsIterator.Next()
-		if err != nil {
-			return shim.Error(err.Error())
-		}
-		// Add a comma before array members, suppress it for the first array member
-		if bArrayMemberAlreadyWritten == true {
-			buffer.WriteString(",")
-		}
-		buffer.WriteString("{\"Key\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(queryResponse.Key)
-		buffer.WriteString("\"")
-
-		buffer.WriteString(", \"Record\":")
-		// Record is a JSON object, so we write as-is
-		buffer.WriteString(string(queryResponse.Value))
-		buffer.WriteString("}")
-		bArrayMemberAlreadyWritten = true
+	buffer, err := constructQueryResponseFromIterator(resultsIterator)
+	if err != nil {
+		return shim.Error(err.Error())
 	}
-	buffer.WriteString("]")
 
 	fmt.Printf("- getMarblesByRange queryResult:\n%s\n", buffer.String())
 
@@ -554,34 +569,122 @@ func getQueryResultForQueryString(stub shim.ChaincodeStubInterface, queryString 
 	}
 	defer resultsIterator.Close()
 
-	// buffer is a JSON array containing QueryRecords
-	var buffer bytes.Buffer
-	buffer.WriteString("[")
-
-	bArrayMemberAlreadyWritten := false
-	for resultsIterator.HasNext() {
-		queryResponse, err := resultsIterator.Next()
-		if err != nil {
-			return nil, err
-		}
-		// Add a comma before array members, suppress it for the first array member
-		if bArrayMemberAlreadyWritten == true {
-			buffer.WriteString(",")
-		}
-		buffer.WriteString("{\"Key\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(queryResponse.Key)
-		buffer.WriteString("\"")
-
-		buffer.WriteString(", \"Record\":")
-		// Record is a JSON object, so we write as-is
-		buffer.WriteString(string(queryResponse.Value))
-		buffer.WriteString("}")
-		bArrayMemberAlreadyWritten = true
+	buffer, err := constructQueryResponseFromIterator(resultsIterator)
+	if err != nil {
+		return nil, err
 	}
-	buffer.WriteString("]")
 
 	fmt.Printf("- getQueryResultForQueryString queryResult:\n%s\n", buffer.String())
+
+	return buffer.Bytes(), nil
+}
+
+// ====== Pagination =========================================================================
+// Pagination provides a method to retrieve records with a defined pagesize and
+// start point (bookmark).  An empty string bookmark defines the first "page" of a query
+// result.  Paginated queries return a bookmark that can be used in
+// the next query to retrieve the next page of results.  Paginated queries extend
+// rich queries and range queries to include a pagesize and bookmark.
+//
+// Two examples are provided in this example.  The first is getMarblesByRangeWithPagination
+// which executes a paginated range query.
+// The second example is a paginated query for rich ad-hoc queries.
+// =========================================================================================
+
+// ====== Example: Pagination with Range Query ===============================================
+// getMarblesByRangeWithPagination performs a range query based on the start & end key,
+// page size and a bookmark.
+
+// The number of fetched records will be equal to or lesser than the page size.
+// Paginated range queries are only valid for read only transactions.
+// ===========================================================================================
+func (t *SimpleChaincode) getMarblesByRangeWithPagination(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	if len(args) < 4 {
+		return shim.Error("Incorrect number of arguments. Expecting 4")
+	}
+
+	startKey := args[0]
+	endKey := args[1]
+	//return type of ParseInt is int64
+	pageSize, err := strconv.ParseInt(args[2], 10, 32)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	bookmark := args[3]
+
+	resultsIterator, responseMetadata, err := stub.GetStateByRangeWithPagination(startKey, endKey, int32(pageSize), bookmark)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	defer resultsIterator.Close()
+
+	buffer, err := constructQueryResponseFromIterator(resultsIterator)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	bufferWithPaginationInfo := addPaginationMetadataToQueryResults(buffer, responseMetadata)
+
+	fmt.Printf("- getMarblesByRange queryResult:\n%s\n", bufferWithPaginationInfo.String())
+
+	return shim.Success(buffer.Bytes())
+}
+
+// ===== Example: Pagination with Ad hoc Rich Query ========================================================
+// queryMarblesWithPagination uses a query string, page size and a bookmark to perform a query
+// for marbles. Query string matching state database syntax is passed in and executed as is.
+// The number of fetched records would be equal to or lesser than the specified page size.
+// Supports ad hoc queries that can be defined at runtime by the client.
+// If this is not desired, follow the queryMarblesForOwner example for parameterized queries.
+// Only available on state databases that support rich query (e.g. CouchDB)
+// Paginated queries are only valid for read only transactions.
+// =========================================================================================
+func (t *SimpleChaincode) queryMarblesWithPagination(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	//   0
+	// "queryString"
+	if len(args) < 3 {
+		return shim.Error("Incorrect number of arguments. Expecting 3")
+	}
+
+	queryString := args[0]
+	//return type of ParseInt is int64
+	pageSize, err := strconv.ParseInt(args[1], 10, 32)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	bookmark := args[2]
+
+	queryResults, err := getQueryResultForQueryStringWithPagination(stub, queryString, int32(pageSize), bookmark)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(queryResults)
+}
+
+// =========================================================================================
+// getQueryResultForQueryStringWithPagination executes the passed in query string with
+// pagination info. Result set is built and returned as a byte array containing the JSON results.
+// =========================================================================================
+func getQueryResultForQueryStringWithPagination(stub shim.ChaincodeStubInterface, queryString string, pageSize int32, bookmark string) ([]byte, error) {
+
+	fmt.Printf("- getQueryResultForQueryString queryString:\n%s\n", queryString)
+
+	resultsIterator, responseMetadata, err := stub.GetQueryResultWithPagination(queryString, pageSize, bookmark)
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	buffer, err := constructQueryResponseFromIterator(resultsIterator)
+	if err != nil {
+		return nil, err
+	}
+
+	bufferWithPaginationInfo := addPaginationMetadataToQueryResults(buffer, responseMetadata)
+
+	fmt.Printf("- getQueryResultForQueryString queryResult:\n%s\n", bufferWithPaginationInfo.String())
 
 	return buffer.Bytes(), nil
 }

@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 'use strict';
-var path = require('path');
-var fs = require('fs');
 var util = require('util');
-var hfc = require('fabric-client');
 var helper = require('./helper.js');
 var logger = helper.getLogger('invoke-chaincode');
 

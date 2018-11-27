@@ -11,16 +11,23 @@ The Hyperledger Fabric CA sample demonstrates the following:
   container in which they are generated.
 
 * How to use Attribute-Based Access Control (ABAC). See
+<<<<<<< HEAD
   fabric-samples/chaincode/abac/abac.go and note the use of the *github.com/hyperledger/fabric/core/chaincode/lib/cid* package to extract
+=======
+  fabric-samples/chaincode/abac/abac.go and note the use of the *github.com/hyperledger/fabric/core/chaincode/shim/ext/cid* package to extract
+>>>>>>> 4bde7d4e82cdd84c3a8a07da58c68143332050e5
   attributes from the invoker's identity.  Only identities with the *abac.init*
   attribute value of *true* can successfully call the *Init* function to
   instantiate the chaincode.
 
 ## Running this sample
 
-1. The following images are required to run this sample:
-*hyperledger/fabric-ca-orderer*, *hyperledger/fabric-ca-peer*, and *hyperledger/fabric-ca-tools*
+1. To run this sample, simply run the *start.sh* script.  You may do this
+multiple times in a row as needed since the *start.sh* script cleans up before
+starting each time.  This sample can be run with the latest released version,
+an older released version, or from locally built docker images as follows:
 
+<<<<<<< HEAD
     #### install the images
     Run the *bootstrap.sh* script provided with this sample to download the
     required images for fabric-ca sample. For the v1.2.0-rc1 release, you
@@ -33,8 +40,28 @@ The Hyperledger Fabric CA sample demonstrates the following:
 2. To run this sample, simply run the *start.sh* script.  You may do this
 multiple times in a row as needed since the *start.sh* script cleans up before
 starting each time.
+=======
+    a. By default, the sample is run with the latest released version of Fabric
+    and Fabric CA.
 
-3. To stop the containers which are started by the *start.sh* script, you may run the *stop.sh* script.
+    b. Older versions of Fabric and Fabric CA can be used by setting the
+    `FABRIC_TAG` environment variable. For example, `export FABRIC_TAG=1.3.0`
+    will run the sample with 1.3.0 version of Fabric and Fabric CA.
+
+    c. The sample can also be run with locally built Fabric and Fabric CA
+    docker images. Fabric and Fabric CA repositories must be cloned with following
+    commands:
+>>>>>>> 4bde7d4e82cdd84c3a8a07da58c68143332050e5
+
+    `git clone https://github.com/hyperledger/fabric.git`
+    `git clone https://github.com/hyperledger/fabric-ca.git`
+
+    Then execute the `make docker-all` command from the fabric-ca repository. This will
+    build the necessary images based on the local source code. Before executing the
+    *start.sh* script, set the `FABRIC_TAG` environment variable to 'local' as follows:
+    `export FABRIC_TAG=local`.
+
+2. To stop the containers which are started by the *start.sh* script, you may run the *stop.sh* script.
 
 ## Understanding this sample
 
@@ -81,7 +108,7 @@ with a value of "true".  Note further that the chaincode used by this sample
 requires this attribute be included in the certificate of the identity that
 invokes its Init function.  See the chaincode at *fabric-samples/chaincode/abac/abac.go*).
 For more information on Attribute-Based Access Control (ABAC), see
-https://github.com/hyperledger/fabric/blob/master/core/chaincode/lib/cid/README.md.
+https://github.com/hyperledger/fabric/blob/master/core/chaincode/shim/ext/cid/README.md.
 
 4. The orderer and peer containers are started.  The naming of these containers
 is straight-forward as is their log files in the *data/logs* directory.

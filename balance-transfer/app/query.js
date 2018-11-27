@@ -13,10 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-var path = require('path');
-var fs = require('fs');
 var util = require('util');
-var hfc = require('fabric-client');
 var helper = require('./helper.js');
 var logger = helper.getLogger('Query');
 
@@ -118,7 +115,7 @@ var getBlockByHash = async function(peer, channelName, hash, username, org_name)
 			throw new Error(message);
 		}
 
-		let response_payload = await channel.queryBlockByHash(Buffer.from(hash), peer);
+		let response_payload = await channel.queryBlockByHash(Buffer.from(hash,'hex'), peer);
 		if (response_payload) {
 			logger.debug(response_payload);
 			return response_payload;
