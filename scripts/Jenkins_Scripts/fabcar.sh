@@ -40,7 +40,12 @@ for LANGUAGE in ${LANGUAGES}; do
     # If an application exists for this language, test it
     if [ -d ${LANGUAGE} ]; then
         pushd ${LANGUAGE}
-        if [ ${LANGUAGE} = "typescript" ]; then
+        if [ ${LANGUAGE} = "javascript" ]; then
+            COMMAND=node
+            PREFIX=
+            SUFFIX=.js
+            npm install
+        elif [ ${LANGUAGE} = "typescript" ]; then
             COMMAND=node
             PREFIX=dist/
             SUFFIX=.js
