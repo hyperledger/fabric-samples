@@ -191,6 +191,8 @@ Application: &ApplicationDefaults
             Type: ImplicitMeta
             Rule: "MAJORITY Admins"
 
+    Capabilities:
+        <<: *ApplicationCapabilities
 ################################################################################
 #
 #   SECTION: Orderer
