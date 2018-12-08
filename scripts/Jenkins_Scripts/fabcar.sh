@@ -34,9 +34,30 @@ export PATH=gopath/src/github.com/hyperledger/fabric-samples/bin:$PATH
 LANGUAGES="go javascript typescript"
 for LANGUAGE in ${LANGUAGES}; do
     echo -e "\033[32m starting fabcar test (${LANGUAGE})" "\033[0m"
+    # Start Fabric, and deploy the smart contract
     ./startFabric.sh ${LANGUAGE}
     copy_logs $? fabcar-${LANGUAGE}
-    docker ps -aq | xargs docker rm -f 
+    # If an application exists for this language, test it
+    if [ -d ${LANGUAGE} ]; then
+        pushd ${LANGUAGE}
+        if [ ${LANGUAGE} = "typescript" ]; then
+            COMMAND=node
+            PREFIX=dist/
+            SUFFIX=.js
+            npm install
+            npm run build
+        fi
+        ${COMMAND} ${PREFIX}enrollAdmin${SUFFIX}
+        copy_logs $? fabcar-${LANGUAGE}-enrollAdmin
+        ${COMMAND} ${PREFIX}registerUser${SUFFIX}
+        copy_logs $? fabcar-${LANGUAGE}-registerUser
+        ${COMMAND} ${PREFIX}query${SUFFIX}
+        copy_logs $? fabcar-${LANGUAGE}-query
+        ${COMMAND} ${PREFIX}invoke${SUFFIX}
+        copy_logs $? fabcar-${LANGUAGE}-invoke
+        popd
+    fi
+    docker ps -aq | xargs docker rm -f
     docker rmi -f $(docker images -aq dev-*)
     echo -e "\033[32m finished fabcar test (${LANGUAGE})" "\033[0m"
 done
