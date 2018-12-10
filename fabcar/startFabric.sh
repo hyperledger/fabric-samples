@@ -50,8 +50,59 @@ docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/g
 sleep 10
 docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode invoke -o orderer.example.com:7050 -C mychannel -n fabcar -c '{"function":"initLedger","Args":[]}'
 
-printf "\nTotal setup execution time : $(($(date +%s) - starttime)) secs ...\n\n\n"
-printf "Start by installing required packages run 'npm install'\n"
-printf "Then run 'node enrollAdmin.js', then 'node registerUser'\n\n"
-printf "The 'node invoke.js' will fail until it has been updated with valid arguments\n"
-printf "The 'node query.js' may be run at anytime once the user has been registered\n\n"
+cat <<EOF
+
+Total setup execution time : $(($(date +%s) - starttime)) secs ...
+
+Next, use the FabCar applications to interact with the deployed FabCar contract.
+The FabCar applications are available in multiple programming languages.
+Follow the instructions for the programming language of your choice:
+
+JavaScript:
+
+  Start by changing into the "javascript" directory:
+    cd javascript
+
+  Next, install all required packages:
+    npm install
+
+  Then run the following applications to enroll the admin user, and register a new user
+  called user1 which will be used by the other applications to interact with the deployed
+  FabCar contract:
+    node enrollAdmin
+    node registerUser
+
+  You can run the invoke application as follows. By default, the invoke application will
+  create a new car, but you can update the application to submit other transactions:
+    node invoke
+
+  You can run the query application as follows. By default, the query application will
+  return all cars, but you can update the application to evaluate other transactions:
+    node query
+
+TypeScript:
+
+  Start by changing into the "typescript" directory:
+    cd typescript
+
+  Next, install all required packages:
+    npm install
+
+  Next, compile the TypeScript code into JavaScript:
+    npm run build
+
+  Then run the following applications to enroll the admin user, and register a new user
+  called user1 which will be used by the other applications to interact with the deployed
+  FabCar contract:
+    node dist/enrollAdmin
+    node dist/registerUser
+
+  You can run the invoke application as follows. By default, the invoke application will
+  create a new car, but you can update the application to submit other transactions:
+    node dist/invoke
+
+  You can run the query application as follows. By default, the query application will
+  return all cars, but you can update the application to evaluate other transactions:
+    node dist/query
+
+EOF
