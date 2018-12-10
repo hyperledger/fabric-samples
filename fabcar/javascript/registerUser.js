@@ -37,7 +37,7 @@ async function main() {
 
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: 'admin' });
+        await gateway.connect(ccp, { wallet, identity: 'admin', discovery: { enabled: false } });
 
         // Get the CA client object from the gateway for interacting with the CA.
         const ca = gateway.getClient().getCertificateAuthority();
