@@ -6,7 +6,7 @@
 #
 
 function dkcl(){
-        CONTAINER_IDS=$(docker ps -aq)
+        CONTAINER_IDS=$(docker ps -a | grep "ca_peerOrg\|.example.com" | awk '{print $1}')
 	echo
         if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" = " " ]; then
                 echo "========== No containers available for deletion =========="
