@@ -35,7 +35,7 @@ services:
         - /var/run/:/host/var/run/
         - ./msp:/etc/hyperledger/msp
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
-    command: peer node start --peer-chaincodedev=true -o orderer:7050
+    command: peer node start --peer-chaincodedev=true
     ports:
       - 7051:7051
       - 7053:7053
