@@ -18,8 +18,8 @@
     "author": "hyperledger",
     "license": "Apache-2.0",
     "dependencies": {
-        "fabric-contract-api": "^1.4.0-snapshot.17",
-        "fabric-shim": "^1.4.0-snapshot.27"
+        "fabric-contract-api": "1.4.0-rc1",
+        "fabric-shim": "1.4.0-rc1"
     },
     "devDependencies": {
         "chai": "^4.1.2",

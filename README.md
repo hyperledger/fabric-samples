@@ -13,7 +13,7 @@ The [`scripts/bootstrap.sh`](https://github.com/hyperledger/fabric-samples/blob/
 script will preload all of the requisite docker
 images for Hyperledger Fabric and tag them with the 'latest' tag. Optionally,
 specify a version for fabric, fabric-ca and thirdparty images. Default versions
-are 1.3.0, 1.3.0 and 0.4.13 respectively.
+are 1.4.0-rc1, 1.4.0-rc1 and 0.4.14 respectively.
 
 ```bash
 ./scripts/bootstrap.sh [version] [ca version] [thirdparty_version]
