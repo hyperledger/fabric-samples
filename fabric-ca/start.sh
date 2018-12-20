@@ -11,7 +11,7 @@
 # By default, this test is run with the latest released docker images.
 #
 # To run against a specific fabric/fabric-ca version:
-#    export FABRIC_TAG=1.4.0-rc1
+#    export FABRIC_TAG=1.4.0-rc2
 #
 # To run with locally built images:
 #    export FABRIC_TAG=local
