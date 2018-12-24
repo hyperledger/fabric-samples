@@ -20,18 +20,35 @@ node ('hyp-x') { // trigger build on x86_64 node
     env.PROJECT_DIR = "gopath/src/github.com/hyperledger"
     env.GOPATH = "$WORKSPACE/gopath"
     env.PATH = "$GOPATH/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:${nodeHome}/bin:$PATH"
-
+    def jobname = sh(returnStdout: true, script: 'echo ${JOB_NAME} | grep -q "verify" && echo patchset || echo merge').trim()
     def failure_stage = "none"
     // delete working directory
     deleteDir()
       stage("Fetch Patchset") { // fetch gerrit refspec on latest commit
           try {
-              dir("${ROOTDIR}"){
+             if (jobname == "patchset")  {
+                   println "$GERRIT_REFSPEC"
+                   println "$GERRIT_BRANCH"
+                   checkout([
+                       $class: 'GitSCM',
+                       branches: [[name: '$GERRIT_REFSPEC']],
+                       extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'gopath/src/github.com/hyperledger/$PROJECT'], [$class: 'CheckoutOption', timeout: 10]],
+                       userRemoteConfigs: [[credentialsId: 'hyperledger-jobbuilder', name: 'origin', refspec: '$GERRIT_REFSPEC:$GERRIT_REFSPEC', url: '$GIT_BASE']]])
+              } else {
+                   // Clone fabric-samples on merge
+                   println "Clone $PROJECT repository"
+                   checkout([
+                       $class: 'GitSCM',
+                       branches: [[name: 'refs/heads/$GERRIT_BRANCH']],
+                       extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'gopath/src/github.com/hyperledger/$PROJECT']],
+                       userRemoteConfigs: [[credentialsId: 'hyperledger-jobbuilder', name: 'origin', refspec: '+refs/heads/$GERRIT_BRANCH:refs/remotes/origin/$GERRIT_BRANCH', url: '$GIT_BASE']]])
+              }
+              dir("${ROOTDIR}/$PROJECT_DIR/$PROJECT") {
               sh '''
-                 [ -e gopath/src/github.com/hyperledger/fabric-samples ] || mkdir -p $PROJECT_DIR
-                 cd $PROJECT_DIR
-                 git clone git://cloud.hyperledger.org/mirror/fabric-samples && cd fabric-samples
-                 git fetch origin "$GERRIT_REFSPEC" && git checkout FETCH_HEAD
+                 # Print last two commit details
+                 echo
+                 git log -n2 --pretty=oneline --abbrev-commit
+                 echo
               '''
               }
           }
@@ -40,7 +57,7 @@ node ('hyp-x') { // trigger build on x86_64 node
                  currentBuild.result = 'FAILURE'
                  throw err
            }
-         }
+}
       // clean environment and get env data
       stage("Clean Environment - Get Env Info") {
            try {
@@ -56,7 +73,7 @@ node ('hyp-x') { // trigger build on x86_64 node
          }
 
     // Pull Third_party Images
-      stage("Pull third_party images") {
+      stage("Pull third_party Images") {
          // making the output color coded
          wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
            try {
@@ -73,7 +90,7 @@ node ('hyp-x') { // trigger build on x86_64 node
       }
 
       // Pull Fabric, fabric-ca Images
-      stage("Pull Docker images") {
+      stage("Pull Docker Images") {
          // making the output color coded
          wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
            try {
@@ -126,13 +143,13 @@ node ('hyp-x') { // trigger build on x86_64 node
            // Archive the artifacts
            archiveArtifacts allowEmptyArchive: true, artifacts: '**/*.log'
            // Sends notification to Rocket.Chat jenkins-robot channel
-           if (env.JOB_NAME == "fabric-samples-merge-byfn") {
+           if (env.JOB_NAME == "fabric-samples-merge-job") {
               if (currentBuild.result == 'FAILURE') { // Other values: SUCCESS, UNSTABLE
                rocketSend message: "Build Notification - STATUS: *${currentBuild.result}* - BRANCH: *${env.GERRIT_BRANCH}* - PROJECT: *${env.PROJECT}* - (<${env.BUILD_URL}|Open>)"
               }
            }
         }
-// End Try block
+// End Timestamps block
   }
 // End Node block
 }
