@@ -1,5 +1,5 @@
 OrdererOrgs:
   - Name: Orderer01
-    Domain: example.com
+    Domain: ming-chain.com
     Specs:
       - Hostname: orderer01
