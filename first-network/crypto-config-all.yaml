@@ -1,0 +1,24 @@
+OrdererOrgs:
+  - Name: Orderer01
+    Domain: ming-chain.com
+    Specs:
+      - Hostname: orderer01
+  - Name: Orderer02
+    Domain: ming-chain.com
+    Specs:
+      - Hostname: orderer02      
+PeerOrgs:
+  - Name: Org1
+    Domain: org1.ming-chain.com
+    EnableNodeOUs: true
+    Template:
+      Count: 3
+    Users:
+      Count: 2
+  - Name: Org2
+    Domain: org2.ming-chain.com
+    EnableNodeOUs: true
+    Template:
+      Count: 4
+    Users:
+      Count: 3
