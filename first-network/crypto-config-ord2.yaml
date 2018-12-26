@@ -1,5 +1,5 @@
 OrdererOrgs:
-  - Name: Orderer
+  - Name: Orderer02
     Domain: ming-chain.com
     Specs:
-      - Hostname: orderer
+      - Hostname: orderer02
