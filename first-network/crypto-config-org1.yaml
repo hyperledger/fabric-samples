@@ -1,8 +1,8 @@
 PeerOrgs:
   - Name: Org1
-    Domain: org1.example.com
+    Domain: org1.ming-chain.com
     EnableNodeOUs: true
     Template:
-      Count: 2
+      Count: 3
     Users:
-      Count: 1
+      Count: 2
