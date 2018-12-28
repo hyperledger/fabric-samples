@@ -14,30 +14,32 @@
  *  limitations under the License.
  */
 'use strict';
-var util = require('util');
-var helper = require('./helper.js');
-var logger = helper.getLogger('invoke-chaincode');
+const util = require('util');
+const helper = require('./helper.js');
+const logger = helper.getLogger('invoke-chaincode');
 
-var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn, args, username, org_name) {
+const invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn, args, username, org_name) {
 	logger.debug(util.format('\n============ invoke transaction on channel %s ============\n', channelName));
-	var error_message = null;
-	var tx_id_string = null;
+	let error_message = null;
+	let tx_id_string = null;
+	let client = null;
+	let channel = null;
 	try {
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(org_name, username);
+		client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
-		var channel = client.getChannel(channelName);
+		channel = client.getChannel(channelName);
 		if(!channel) {
 			let message = util.format('Channel %s was not defined in the connection profile', channelName);
 			logger.error(message);
 			throw new Error(message);
 		}
-		var tx_id = client.newTransactionID();
+		const tx_id = client.newTransactionID();
 		// will need the transaction ID string for the event registration later
 		tx_id_string = tx_id.getTransactionID();
 
 		// send proposal to endorser
-		var request = {
+		const request = {
 			targets: peerNames,
 			chaincodeId: chaincodeName,
 			fcn: fcn,
@@ -51,23 +53,24 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 		// the returned object has both the endorsement results
 		// and the actual proposal, the proposal will be needed
 		// later when we send a transaction to the orderer
-		var proposalResponses = results[0];
-		var proposal = results[1];
+		const proposalResponses = results[0];
+		const proposal = results[1];
 
-		// lets have a look at the responses to see if they are
-		// all good, if good they will also include signatures
-		// required to be committed
-		var all_good = true;
-		for (var i in proposalResponses) {
-			let one_good = false;
-			if (proposalResponses && proposalResponses[i].response &&
-				proposalResponses[i].response.status === 200) {
-				one_good = true;
+		// look at the responses to see if they are all are good
+		// response will also include signatures required to be committed
+		let all_good = true;
+		for (const i in proposalResponses) {
+			if (proposalResponses[i] instanceof Error) {
+				all_good = false;
+				error_message = util.format('invoke chaincode proposal resulted in an error :: %s', proposalResponses[i].toString());
+				logger.error(error_message);
+			} else if (proposalResponses[i].response && proposalResponses[i].response.status === 200) {
 				logger.info('invoke chaincode proposal was good');
 			} else {
-				logger.error('invoke chaincode proposal was bad');
+				all_good = false;
+				error_message = util.format('invoke chaincode proposal failed for an unknown reason %j', proposalResponses[i]);
+				logger.error(error_message);
 			}
-			all_good = all_good & one_good;
 		}
 
 		if (all_good) {
@@ -78,7 +81,7 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 
 			// wait for the channel-based event hub to tell us
 			// that the commit was good or bad on each peer in our organization
-			var promises = [];
+			const promises = [];
 			let event_hubs = channel.getChannelEventHubsForOrg();
 			event_hubs.forEach((eh) => {
 				logger.debug('invokeEventPromise - setting up event');
@@ -118,12 +121,12 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 				promises.push(invokeEventPromise);
 			});
 
-			var orderer_request = {
+			const orderer_request = {
 				txId: tx_id,
 				proposalResponses: proposalResponses,
 				proposal: proposal
 			};
-			var sendPromise = channel.sendTransaction(orderer_request);
+			const sendPromise = channel.sendTransaction(orderer_request);
 			// put the send to the orderer last so that the events get registered and
 			// are ready for the orderering and committing
 			promises.push(sendPromise);
@@ -149,27 +152,34 @@ var invokeChaincode = async function(peerNames, channelName, chaincodeName, fcn,
 					logger.debug(event_hub_result.toString());
 				}
 			}
-		} else {
-			error_message = util.format('Failed to send Proposal and receive all good ProposalResponse');
-			logger.debug(error_message);
 		}
 	} catch (error) {
 		logger.error('Failed to invoke due to error: ' + error.stack ? error.stack : error);
 		error_message = error.toString();
+	} finally {
+		if (channel) {
+			channel.close();
+		}
 	}
 
-	if (!error_message) {
-		let message = util.format(
-			'Successfully invoked the chaincode %s to the channel \'%s\' for transaction ID: %s',
-			org_name, channelName, tx_id_string);
-		logger.info(message);
-
-		return tx_id_string;
-	} else {
-		let message = util.format('Failed to invoke chaincode. cause:%s',error_message);
+	let success = true;
+	let message = util.format(
+		'Successfully invoked the chaincode %s to the channel \'%s\' for transaction ID: %s',
+		org_name, channelName, tx_id_string);
+	if (error_message) {
+		message = util.format('Failed to invoke chaincode. cause:%s',error_message);
+		success = false;
 		logger.error(message);
-		throw new Error(message);
+	} else {
+		logger.info(message);
 	}
+
+	// build a response to send back to the REST caller
+	const response = {
+		success: success,
+		message: message
+	};
+	return response;
 };
 
 exports.invokeChaincode = invokeChaincode;

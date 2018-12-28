@@ -185,16 +185,15 @@ echo
 
 echo "POST invoke chaincode on peers of Org1 and Org2"
 echo
-TRX_ID=$(curl -s -X POST \
+curl -s -X POST \
   http://localhost:4000/channels/mychannel/chaincodes/mycc \
   -H "authorization: Bearer $ORG1_TOKEN" \
   -H "content-type: application/json" \
-  -d '{
-	"peers": ["peer0.org1.example.com","peer0.org2.example.com"],
-	"fcn":"move",
-	"args":["a","b","10"]
-}')
-echo "Transaction ID is $TRX_ID"
+  -d "{
+	\"peers\": [\"peer0.org1.example.com\",\"peer0.org2.example.com\"],
+	\"fcn\":\"move\",
+	\"args\":[\"a\",\"b\",\"10\"]
+}"
 echo
 echo
 
