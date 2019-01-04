@@ -8,26 +8,36 @@
 # docker container list
 CONTAINER_LIST=(peer0.org1 peer1.org1 peer0.org2 peer1.org2 peer0.org3 peer1.org3 orderer)
 COUCHDB_CONTAINER_LIST=(couchdb0 couchdb1 couchdb2 couchdb3 couchdb4 couchdb5)
+MARCH=$(echo "$(uname -s|tr '[:upper:]' '[:lower:]'|sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
+echo "MARCH: $MARCH"
+echo "======== PULL fabric BINARIES ========"
+echo
+# Set Nexus Snapshot URL
+NEXUS_URL=https://nexus.hyperledger.org/content/repositories/snapshots/org/hyperledger/fabric/hyperledger-fabric-latest/$MARCH.latest-SNAPSHOT
 
-MARCH=$(uname -s|tr '[:upper:]' '[:lower:]')
-echo "-----------> MARCH" $MARCH
-echo "-----------> PROJECT_VERSION:" $PROJECT_VERSION
-# Download latest binaries from nexus2
-MVN_METADATA=$(echo "https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric-$PROJECT_VERSION/maven-metadata.xml")
-curl -L "$MVN_METADATA" > maven-metadata.xml
-RELEASE_TAG=$(cat maven-metadata.xml | grep release)
-COMMIT=$(echo $RELEASE_TAG | awk -F - '{ print $4 }' | cut -d "<" -f1)
-echo "-----------> COMMIT = $COMMIT"
-cd $BASE_FOLDER/fabric-samples || exit
-curl https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric-$PROJECT_VERSION/$MARCH-$ARCH.$PROJECT_VERSION-$COMMIT/hyperledger-fabric-$PROJECT_VERSION-$MARCH-$ARCH.$PROJECT_VERSION-$COMMIT.tar.gz | tar xz
-
-if [ $? -ne 0 ]; then
-   echo -e "\033[31m FAILED to download binaries" "\033[0m"
-   exit 1
+# Download the maven-metadata.xml file
+curl $NEXUS_URL/maven-metadata.xml > maven-metadata.xml
+if grep -q "not found in local storage of repository" "maven-metadata.xml"; then
+   echo  "FAILED: Unable to download from $NEXUS_URL"
+else
+        # Set latest tar file to the VERSION
+        VERSION=$(grep value maven-metadata.xml | sort -u | cut -d "<" -f2|cut -d ">" -f2)
+        # Download tar.gz file and extract it
+        cd $BASE_FOLDER/fabric-samples || exit
+        mkdir -p $BASE_FOLDER/fabric-samples/bin
+        curl $NEXUS_URL/hyperledger-fabric-latest-$VERSION.tar.gz | tar xz
+         if [ $? -ne 0 ]; then
+            echo -e "\033[31m FAILED to download binaries" "\033[0m"
+            exit 1
+         fi
+        rm hyperledger-fabric-*.tar.gz
+        rm -f maven-metadata.xml
+        echo "Finished pulling fabric binaries..."
+        echo
 fi
 
-cd first-network || exit
-export PATH=gopath/src/github.com/hyperledger/fabric-samples/bin:$PATH
+cd $BASE_FOLDER/fabric-samples/first-network || exit
+export PATH=$BASE_FOLDER/fabric-samples/bin:$PATH
 
 logs() {
 
