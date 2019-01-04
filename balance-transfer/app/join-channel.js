@@ -66,12 +66,14 @@ var joinChannel = async function(channel_name, peers, username, org_name) {
 		// then each peer results
 		for(let i in peers_results) {
 			let peer_result = peers_results[i];
-			if(peer_result.response && peer_result.response.status == 200) {
+			if (peer_result instanceof Error) {
+				error_message = util.format('Failed to join peer to the channel with error :: %s', peer_result.toString());
+				logger.error(error_message);
+			} else if(peer_result.response && peer_result.response.status == 200) {
 				logger.info('Successfully joined peer to the channel %s',channel_name);
 			} else {
-				let message = util.format('Failed to join peer to the channel %s',channel_name);
-				error_message = message;
-				logger.error(message);
+				error_message = util.format('Failed to join peer to the channel %s',channel_name);
+				logger.error(error_message);
 			}
 		}
 	} catch(error) {
@@ -90,7 +92,7 @@ var joinChannel = async function(channel_name, peers, username, org_name) {
 			org_name, channel_name);
 		logger.info(message);
 		// build a response to send back to the REST caller
-		let response = {
+		const response = {
 			success: true,
 			message: message
 		};
@@ -98,7 +100,12 @@ var joinChannel = async function(channel_name, peers, username, org_name) {
 	} else {
 		let message = util.format('Failed to join all peers to channel. cause:%s',error_message);
 		logger.error(message);
-		throw new Error(message);
+		// build a response to send back to the REST caller
+		const response = {
+			success: false,
+			message: message
+		};
+		return response;
 	}
 };
 exports.joinChannel = joinChannel;

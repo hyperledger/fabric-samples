@@ -18,11 +18,13 @@ var helper = require('./helper.js');
 var logger = helper.getLogger('Query');
 
 var queryChaincode = async function(peer, channelName, chaincodeName, args, fcn, username, org_name) {
+	let client = null;
+	let channel = null;
 	try {
 		// first setup the client for this org
-		var client = await helper.getClientForOrg(org_name, username);
+		client = await helper.getClientForOrg(org_name, username);
 		logger.debug('Successfully got the fabric client for the organization "%s"', org_name);
-		var channel = client.getChannel(channelName);
+		channel = client.getChannel(channelName);
 		if(!channel) {
 			let message = util.format('Channel %s was not defined in the connection profile', channelName);
 			logger.error(message);
@@ -51,6 +53,10 @@ var queryChaincode = async function(peer, channelName, chaincodeName, args, fcn,
 	} catch(error) {
 		logger.error('Failed to query due to error: ' + error.stack ? error.stack : error);
 		return error.toString();
+	} finally {
+		if (channel) {
+			channel.close();
+		}
 	}
 };
 var getBlockByNumber = async function(peer, channelName, blockNumber, username, org_name) {

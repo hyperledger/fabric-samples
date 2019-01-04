@@ -50,7 +50,7 @@ var updateAnchorPeers = async function(channelName, configUpdatePath, username, 
 		event_hubs.forEach((eh) => {
 			let anchorUpdateEventPromise = new Promise((resolve, reject) => {
 				logger.debug('anchorUpdateEventPromise - setting up event');
-				let event_timeout = setTimeout(() => {
+				const event_timeout = setTimeout(() => {
 					let message = 'REQUEST_TIMEOUT:' + eh.getPeerAddr();
 					logger.error(message);
 					eh.disconnect();
@@ -83,8 +83,13 @@ var updateAnchorPeers = async function(channelName, configUpdatePath, username, 
 		logger.debug(util.format('------->>> R E S P O N S E : %j', results));
 		let response = results.pop(); //  orderer results are last in the results
 
-		if (response && response.status === 'SUCCESS') {
-			logger.info('Successfully update anchor peers to the channel %s', channelName);
+		if (response) {
+			if (response.status === 'SUCCESS') {
+				logger.info('Successfully update anchor peers to the channel %s', channelName);
+			} else {
+				error_message = util.format('Failed to update anchor peers to the channel %s with status: %s reason: %s', channelName, response.status, response.info);
+				logger.error(error_message);
+			}
 		} else {
 			error_message = util.format('Failed to update anchor peers to the channel %s', channelName);
 			logger.error(error_message);
@@ -99,7 +104,7 @@ var updateAnchorPeers = async function(channelName, configUpdatePath, username, 
 			'Successfully update anchor peers in organization %s to the channel \'%s\'',
 			org_name, channelName);
 		logger.info(message);
-		let response = {
+		const response = {
 			success: true,
 			message: message
 		};
@@ -107,7 +112,11 @@ var updateAnchorPeers = async function(channelName, configUpdatePath, username, 
 	} else {
 		let message = util.format('Failed to update anchor peers. cause:%s',error_message);
 		logger.error(message);
-		throw new Error(message);
+		const response = {
+			success: false,
+			message: message
+		};
+		return response;
 	}
 };
 
