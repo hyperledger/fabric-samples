@@ -113,10 +113,9 @@ pull_Thirdparty_Images() {
                  echo
                  docker images | grep hyperledger/fabric
 }
-# pull fabric images from nexus
+# pull Docker images from nexus
 pull_Docker_Images() {
-            pull_Fabric_CA_Image
-            for IMAGES in peer orderer tools ccenv nodeenv; do
+            for IMAGES in ca peer orderer tools ccenv nodeenv; do
                  echo "-----------> pull $IMAGES image"
                  echo
                  docker pull $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG > /dev/null 2>&1
@@ -132,25 +131,6 @@ pull_Docker_Images() {
                  echo
                  docker images | grep hyperledger/fabric
 }
-# pull fabric-ca images from nexus
-pull_Fabric_CA_Image() {
-            echo "------> IMAGE_TAG:" $IMAGE_TAG
-            for IMAGES in ca ca-peer ca-orderer ca-tools; do
-                 echo "-----------> pull $IMAGES image"
-                 echo
-                 docker pull $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG > /dev/null 2>&1
-                 if [ $? -ne 0 ]; then
-                       echo -e "\033[31m FAILED to pull docker images" "\033[0m"
-                       exit 1
-                 fi
-                 docker tag $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG $ORG_NAME-$IMAGES
-	         docker tag $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG $ORG_NAME-$IMAGES:$ARCH-$VERSION
-                 docker rmi -f $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG
-            done
-                 echo
-                 docker images | grep hyperledger/fabric-ca
-}
-
 # run byfn,eyfn tests
 byfn_eyfn_Tests() {
                  echo

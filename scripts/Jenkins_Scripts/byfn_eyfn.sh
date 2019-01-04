@@ -95,10 +95,3 @@ fi
  echo y | ./eyfn.sh -m up -l node -t 60
  copy_logs $? default-channel-node
  echo y | ./eyfn.sh -m down
-
- echo "############### FABRIC-CA SAMPLES TEST ########################"
- echo "###############################################################"
- cd $WORKSPACE/gopath/src/github.com/hyperledger/fabric-samples/fabric-ca
- ./start.sh
- copy_logs $? fabric-ca
- ./stop.sh
