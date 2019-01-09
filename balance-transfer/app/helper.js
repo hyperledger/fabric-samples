@@ -33,7 +33,7 @@ async function getClientForOrg (userorg, username) {
 	// lets only load the network settings and save the client for later
 	let client = hfc.loadFromConfig(hfc.getConfigSetting('network'+config));
 
-	// This will load a connection profile over the top of the current one one
+	// This will load a connection profile over the top of the current one
 	// since the first one did not have a client section and the following one does
 	// nothing will actually be replaced.
 	// This will also set an admin identity because the organization defined in the
