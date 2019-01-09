@@ -9,13 +9,11 @@ node ('hyp-x') { // trigger build on x86_64 node
   timestamps {
    try {
     def ROOTDIR = pwd() // workspace dir (/w/workspace/<job_name>
-    def nodeHome = tool 'nodejs-8.11.3'
+    def nodeHome = tool 'nodejs-8.11.3' // NodeJs version
     env.ARCH = "amd64"
-    env.VERSION = sh(returnStdout: true, script: 'curl -O https://raw.githubusercontent.com/hyperledger/fabric/master/Makefile && cat Makefile | grep "BASE_VERSION =" | cut -d "=" -f2').trim()
-    env.VERSION = "$VERSION" // BASE_VERSION from fabric Makefile
-    env.BASE_IMAGE_VER = sh(returnStdout: true, script: 'cat Makefile | grep "BASEIMAGE_RELEASE =" | cut -d "=" -f2').trim() // BASEIMAGE Version from fabric Makefile
-    env.IMAGE_TAG = "${ARCH}-${VERSION}-stable" // fabric latest stable version from nexus
-    env.PROJECT_VERSION = "${VERSION}-stable"
+    env.VERSION = sh(returnStdout: true, script: 'curl -O https://raw.githubusercontent.com/hyperledger/fabric/release-1.4/Makefile && cat Makefile | grep "PREV_VERSION =" | cut -d "=" -f2').trim()
+    env.VERSION = "$VERSION" // PREV_VERSION from fabric Makefile
+    env.BASE_IMAGE_VER = sh(returnStdout: true, script: 'cat Makefile | grep "BASEIMAGE_RELEASE=" | cut -d "=" -f2').trim() // BASEIMAGE Version from fabric Makefile
     env.BASE_IMAGE_TAG = "${ARCH}-${BASE_IMAGE_VER}" //fabric baseimage version
     env.PROJECT_DIR = "gopath/src/github.com/hyperledger"
     env.GOPATH = "$WORKSPACE/gopath"

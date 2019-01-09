@@ -12,28 +12,12 @@ MARCH=$(echo "$(uname -s|tr '[:upper:]' '[:lower:]'|sed 's/mingw64_nt.*/windows/
 echo "MARCH: $MARCH"
 echo "======== PULL fabric BINARIES ========"
 echo
-# Set Nexus Snapshot URL
-NEXUS_URL=https://nexus.hyperledger.org/content/repositories/snapshots/org/hyperledger/fabric/hyperledger-fabric-latest/$MARCH.latest-SNAPSHOT
-
-# Download the maven-metadata.xml file
-curl $NEXUS_URL/maven-metadata.xml > maven-metadata.xml
-if grep -q "not found in local storage of repository" "maven-metadata.xml"; then
-   echo  "FAILED: Unable to download from $NEXUS_URL"
-else
-        # Set latest tar file to the VERSION
-        VERSION=$(grep value maven-metadata.xml | sort -u | cut -d "<" -f2|cut -d ">" -f2)
-        # Download tar.gz file and extract it
-        cd $BASE_FOLDER/fabric-samples || exit
-        mkdir -p $BASE_FOLDER/fabric-samples/bin
-        curl $NEXUS_URL/hyperledger-fabric-latest-$VERSION.tar.gz | tar xz
-         if [ $? -ne 0 ]; then
-            echo -e "\033[31m FAILED to download binaries" "\033[0m"
-            exit 1
-         fi
-        rm hyperledger-fabric-*.tar.gz
-        rm -f maven-metadata.xml
-        echo "Finished pulling fabric binaries..."
-        echo
+cd $BASE_FOLDER/fabric-samples || exit
+# Download fabric binaries from nexus
+curl https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric/$MARCH-$VERSION/hyperledger-fabric-$MARCH-$VERSION.tar.gz | tar xz
+if [ $? -ne 0 ]; then
+   echo -e "\033[31m FAILED to download binaries" "\033[0m"
+   exit 1
 fi
 
 cd $BASE_FOLDER/fabric-samples/first-network || exit
@@ -41,9 +25,10 @@ export PATH=$BASE_FOLDER/fabric-samples/bin:$PATH
 
 logs() {
 
-# Create Logs directory
+# Create Docker_Container_Logs directory
 mkdir -p $WORKSPACE/Docker_Container_Logs
 
+# Save logs in Logs directory
 for CONTAINER in ${CONTAINER_LIST[*]}; do
     docker logs $CONTAINER.example.com >& $WORKSPACE/Docker_Container_Logs/$CONTAINER-$1.log
     echo

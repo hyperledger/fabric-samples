@@ -4,11 +4,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-
 # exit on first error
 
 export BASE_FOLDER=$WORKSPACE/gopath/src/github.com/hyperledger
-export NEXUS_URL=nexus3.hyperledger.org:10001
 export ORG_NAME="hyperledger/fabric"
 
 Parse_Arguments() {
@@ -54,14 +52,13 @@ function clearContainers () {
 }
 
 function removeUnwantedImages() {
+  for i in $(docker images | grep none | awk '{print $3}'); do
+    docker rmi ${i} || true
+  done
 
-        for i in $(docker images | grep none | awk '{print $3}'); do
-                docker rmi ${i} || true
-        done
-
-        for i in $(docker images | grep -vE ".*baseimage.*(0.4.13|0.4.14)" | grep -vE ".*baseos.*(0.4.13|0.4.14)" | grep -vE ".*couchdb.*(0.4.13|0.4.14)" | grep -vE ".*zoo.*(0.4.13|0.4.14)" | grep -vE ".*kafka.*(0.4.13|0.4.14)" | grep -v "REPOSITORY" | awk '{print $1":" $2}'); do
-                docker rmi ${i} || true
-        done
+  for i in $(docker images | grep -vE ".*baseimage.*(0.4.13|0.4.14)" | grep -vE ".*baseos.*(0.4.13|0.4.14)" | grep -vE ".*couchdb.*(0.4.13|0.4.14)" | grep -vE ".*zoo.*(0.4.13|0.4.14)" | grep -vE ".*kafka.*(0.4.13|0.4.14)" | grep -v "REPOSITORY" | awk '{print $1":" $2}'); do
+    docker rmi ${i} || true
+  done
 }
 
 # Remove /tmp/fabric-shim
@@ -115,22 +112,20 @@ pull_Thirdparty_Images() {
 }
 # pull Docker images from nexus
 pull_Docker_Images() {
-            for IMAGES in ca peer orderer tools ccenv nodeenv; do
+            for IMAGES in ca peer orderer tools ccenv; do
                  echo "-----------> pull $IMAGES image"
                  echo
-                 docker pull $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG > /dev/null 2>&1
+                 docker pull $ORG_NAME-$IMAGES:$VERSION > /dev/null 2>&1
                  if [ $? -ne 0 ]; then
                        echo -e "\033[31m FAILED to pull docker images" "\033[0m"
                        exit 1
                  fi
-                 docker tag $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG $ORG_NAME-$IMAGES
-                 docker tag $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG $ORG_NAME-$IMAGES:$ARCH-$VERSION
-                 docker tag $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG $ORG_NAME-$IMAGES:$VERSION
-                 docker rmi -f $NEXUS_URL/$ORG_NAME-$IMAGES:$IMAGE_TAG
+                 docker tag $ORG_NAME-$IMAGES:$VERSION $ORG_NAME-$IMAGES
             done
                  echo
                  docker images | grep hyperledger/fabric
 }
+
 # run byfn,eyfn tests
 byfn_eyfn_Tests() {
                  echo
