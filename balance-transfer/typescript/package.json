@@ -30,8 +30,8 @@
     "express": "^4.16.1",
     "express-jwt": "^5.3.0",
     "express-session": "^1.15.6",
-    "fabric-ca-client": "1.4.0-rc2",
-    "fabric-client": "1.4.0-rc2",
+    "fabric-ca-client": "~1.4.0",
+    "fabric-client": "~1.4.0",
     "log4js": "^0.6.38"
   }
 }
