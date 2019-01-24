@@ -111,7 +111,7 @@ class CommercialPaperContract extends Contract {
         if (paper.isTrading()) {
             paper.setOwner(newOwner);
         } else {
-            throw new Error('Paper ' + issuer + paperNumber + ' is not trading. Current state = ' + cp.getCurrentState());
+            throw new Error('Paper ' + issuer + paperNumber + ' is not trading. Current state = ' + paper.getCurrentState());
         }
 
         // Update the paper
