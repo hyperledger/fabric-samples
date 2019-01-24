@@ -100,7 +100,7 @@ channels:
     # this list with the query results of getInstalledChaincodes() and getInstantiatedChaincodes()
     chaincodes:
       # the format follows the "cannonical name" of chaincodes by fabric code
-      - example02:v1
+      - abstore:v1
       - marbles:1.0
 
 #

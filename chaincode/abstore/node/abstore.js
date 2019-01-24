@@ -7,11 +7,11 @@
 const shim = require('fabric-shim');
 const util = require('util');
 
-var Chaincode = class {
+var ABstore = class {
 
   // Initialize the chaincode
   async Init(stub) {
-    console.info('========= example02 Init =========');
+    console.info('========= ABstore Init =========');
     let ret = stub.getFunctionAndParameters();
     console.info(ret);
     let args = ret.params;
@@ -135,4 +135,4 @@ var Chaincode = class {
   }
 };
 
-shim.start(new Chaincode());
+shim.start(new ABstore());

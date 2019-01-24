@@ -28,9 +28,12 @@ LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=5
 
-CC_SRC_PATH="github.com/hyperledger/fabric-samples/chaincode/chaincode_example02/go/"
 if [ "$LANGUAGE" = "node" ]; then
-	CC_SRC_PATH="/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/chaincode_example02/node/"
+    CC_SRC_PATH="/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/abstore/node/"
+elif [ "$LANGUAGE" = "java" ]; then
+    CC_SRC_PATH="/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/abstore/java/"
+else
+    CC_SRC_PATH="github.com/hyperledger/fabric-samples/chaincode/abstore/go/"
 fi
 
 # import utils

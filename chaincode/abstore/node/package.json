@@ -1,12 +1,14 @@
 {
-	"name": "chaincode_example02",
+	"name": "abstore",
 	"version": "1.0.0",
-	"description": "chaincode_example02 chaincode implemented in node.js",
+	"description": "ABstore chaincode implemented in node.js",
 	"engines": {
 		"node": ">=8.4.0",
 		"npm": ">=5.3.0"
 	},
-	"scripts": { "start" : "node chaincode_example02.js" },
+	"scripts": {
+		"start": "node abstore.js"
+	},
 	"engine-strict": true,
 	"license": "Apache-2.0",
 	"dependencies": {

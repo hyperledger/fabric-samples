@@ -3,7 +3,7 @@ Copyright IBM Corp., DTCC All Rights Reserved.
 
 SPDX-License-Identifier: Apache-2.0
 */
-package org.hyperledger.fabric.example;
+package org.hyperledger.fabric_samples;
 
 import java.util.List;
 
@@ -16,9 +16,9 @@ import org.hyperledger.fabric.shim.ChaincodeStub;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class SimpleChaincode extends ChaincodeBase {
+public class ABstore extends ChaincodeBase {
 
-    private static Log _logger = LogFactory.getLog(SimpleChaincode.class);
+    private static Log _logger = LogFactory.getLog(ABstore.class);
 
     @Override
     public Response init(ChaincodeStub stub) {
@@ -136,7 +136,7 @@ public class SimpleChaincode extends ChaincodeBase {
 
     public static void main(String[] args) {
         System.out.println("OpenSSL avaliable: " + OpenSsl.isAvailable());
-        new SimpleChaincode().start(args);
+        new ABstore().start(args);
     }
 
 }
