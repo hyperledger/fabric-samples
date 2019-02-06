@@ -31,7 +31,7 @@ class CommercialPaperContext extends Context {
 class CommercialPaperContract extends Contract {
 
     constructor() {
-        // Unique namespace when multiple contracts per chaincode file
+        // Unique name when multiple contracts per chaincode file
         super('org.papernet.commercialpaper');
     }
 
