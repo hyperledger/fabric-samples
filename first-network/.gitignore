@@ -4,3 +4,5 @@
 /docker-compose-e2e.yaml
 /ledgers
 /ledgers-backup
+/channel-artifacts/*.json
+/org3-artifacts/crypto-config/*
