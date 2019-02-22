@@ -104,19 +104,19 @@ and run some invocations are provided below.
   * In the `volumes` section of the `cli` container, edit the second line which refers to the chaincode folder to point to the chaincode folder
     within the `high-throughput` folder, e.g.
 
-    `./../chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go` --> 
-    `./../high-throughput/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go`
+    `./../chaincode/:/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode` -->
+    `./../high-throughput/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode`
   * Again in the `volumes` section, edit the fourth line which refers to the scripts folder so it points to the scripts folder within the
     `high-throughput` folder, e.g.
 
-    `./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/` --> 
+    `./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/` -->
     `./../high-throughput/scripts/:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/`
 
   * Finally, comment out the `docker exec cli scripts/script.sh` command from the `byfn.sh` script by placing a `#` before it so that the standard BYFN end to end script doesn't run, e.g.
 
     `#  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE`
 
-3. We can now bring our network up by typing in `./byfn.sh -m up -c mychannel`
+3. We can now bring our network up by typing in `./byfn.sh up -c mychannel`
 4. Open a new terminal window and enter the CLI container using `docker exec -it cli bash`, all operations on the network will happen within
    this container from now on.
 
@@ -153,13 +153,11 @@ Example: `./delete-invoke.sh myvar`
 
 #### Prune
 Pruning takes all the deltas generated for a variable and combines them all into a single row, deleting all previous rows. This helps cleanup
-the ledger when many updates have been performed. There are two types of pruning: `prunefast` and `prunesafe`. Prune fast performs the deletion
-and aggregation simultaneously, so if an error happens along the way data integrity is not guaranteed. Prune safe performs the aggregation first,
-backs up the results, then performs the deletion. This way, if an error occurs along the way, data integrity is maintained.
+the ledger when many updates have been performed.
 
-The format for pruning is: `./[prunesafe|prunefast]-invoke.sh name` where `name` is the name of the variable to prune.
+The format for pruning is: `./prune-invoke.sh name` where `name` is the name of the variable to prune.
 
-Example: `./prunefast-invoke.sh myvar` or `./prunesafe-invoke.sh myvar`
+Example: `./prune-invoke.sh myvar`
 
 ### Test the Network
 Two scripts are provided to show the advantage of using this system when running many parallel transactions at once: `many-updates.sh` and
@@ -175,5 +173,6 @@ errors in the peer and orderer logs.
 There is one other script, `get-traditional.sh`, which simply gets the value of a row in the traditional way, with no deltas.
 
 Examples:
-`./many-updates.sh testvar 100 +` --> final value from `./get-invoke.sh` should be 100000
+`./many-updates.sh testvar 100 +` --> final value from `./get-invoke.sh testvar` should be 100000
+
 `./many-updates-traditional.sh testvar` --> final value from `./get-traditional.sh testvar` is undefined
