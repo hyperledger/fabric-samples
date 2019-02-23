@@ -42,7 +42,10 @@ services:
     environment:
       - CORE_PEER_ID=peer0.org1.example.com
       - CORE_PEER_ADDRESS=peer0.org1.example.com:7051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.org1.example.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.org1.example.com:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.org1.example.com:8051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.example.com:7051
       - CORE_PEER_LOCALMSPID=Org1MSP
     volumes:
@@ -52,7 +55,6 @@ services:
         - peer0.org1.example.com:/var/hyperledger/production
     ports:
       - 7051:7051
-      - 7053:7053
 
   peer1.org1.example.com:
     container_name: peer1.org1.example.com
@@ -61,8 +63,11 @@ services:
       service: peer-base
     environment:
       - CORE_PEER_ID=peer1.org1.example.com
-      - CORE_PEER_ADDRESS=peer1.org1.example.com:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org1.example.com:7051
+      - CORE_PEER_ADDRESS=peer1.org1.example.com:8051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.org1.example.com:8052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org1.example.com:8051
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org1.example.com:7051
       - CORE_PEER_LOCALMSPID=Org1MSP
     volumes:
@@ -72,8 +77,7 @@ services:
         - peer1.org1.example.com:/var/hyperledger/production
 
     ports:
-      - 8051:7051
-      - 8053:7053
+      - 8051:8051
 
   peer0.org2.example.com:
     container_name: peer0.org2.example.com
@@ -82,9 +86,12 @@ services:
       service: peer-base
     environment:
       - CORE_PEER_ID=peer0.org2.example.com
-      - CORE_PEER_ADDRESS=peer0.org2.example.com:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org2.example.com:7051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.org2.example.com:7051
+      - CORE_PEER_ADDRESS=peer0.org2.example.com:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.org2.example.com:9052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org2.example.com:9051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.org2.example.com:10051
       - CORE_PEER_LOCALMSPID=Org2MSP
     volumes:
         - /var/run/:/host/var/run/
@@ -92,8 +99,7 @@ services:
         - ../crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls:/etc/hyperledger/fabric/tls
         - peer0.org2.example.com:/var/hyperledger/production
     ports:
-      - 9051:7051
-      - 9053:7053
+      - 9051:9051
 
   peer1.org2.example.com:
     container_name: peer1.org2.example.com
@@ -102,9 +108,12 @@ services:
       service: peer-base
     environment:
       - CORE_PEER_ID=peer1.org2.example.com
-      - CORE_PEER_ADDRESS=peer1.org2.example.com:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org2.example.com:7051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org2.example.com:7051
+      - CORE_PEER_ADDRESS=peer1.org2.example.com:10051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:10051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.org2.example.com:10052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.org2.example.com:10051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org2.example.com:9051
       - CORE_PEER_LOCALMSPID=Org2MSP
     volumes:
         - /var/run/:/host/var/run/
@@ -112,5 +121,4 @@ services:
         - ../crypto-config/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/tls:/etc/hyperledger/fabric/tls
         - peer1.org2.example.com:/var/hyperledger/production
     ports:
-      - 10051:7051
-      - 10053:7053
+      - 10051:10051
