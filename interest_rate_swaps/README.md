@@ -70,7 +70,7 @@ The interest-rate swap chaincode provides the following API:
    given identifier and swap parameters among the two parties specified. This
    function creates the entry for the swap and the corresponding payment. It
    also sets the key-level endorsement policies for both keys to the participants
-   to the swap. In case the swap's prinicpal amount exceeds a certain threshold,
+   to the swap. In case the swap's principal amount exceeds a certain threshold,
    it adds an auditor to the endorsement policy for the keys.
  * `calculatePayment(swapID)` - calculate the net payment from party A to party
    B and set the payment entry accordingly. If the payment information is negative,
@@ -107,7 +107,7 @@ for creating a swap.
 The `network` subdirectory contains scripts that will launch a sample network
 and run a swap transaction flow from creation to settlement.
 
-### Prerequesites
+### Prerequisites
 
 The following prerequisites are needed to run this sample:
 * Fabric docker images. By default the `network/network.sh` script will look for
