@@ -1,0 +1,28 @@
+---
+name: first-network-org3
+version: 1.0.0
+client:
+  organization: Org3
+  connection:
+    timeout:
+      peer:
+        endorser: '300'
+organizations:
+  Org3:
+    mspid: Org3MSP
+    peers:
+    - peer0.org3.example.com
+    - peer1.org3.example.com
+peers:
+  peer0.org3.example.com:
+    url: grpcs://localhost:11051
+    tlsCACerts:
+      path: org3-artifacts/crypto-config/peerOrganizations/org3.example.com/tlsca/tlsca.org3.example.com-cert.pem
+    grpcOptions:
+      ssl-target-name-override: peer0.org3.example.com
+  peer1.org3.example.com:
+    url: grpcs://localhost:12051
+    tlsCACerts:
+      path: org3-artifacts/crypto-config/peerOrganizations/org3.example.com/tlsca/tlsca.org3.example.com-cert.pem
+    grpcOptions:
+      ssl-target-name-override: peer1.org3.example.com
