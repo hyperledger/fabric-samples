@@ -9,7 +9,7 @@ the **__fabric-client__** and **__fabric-ca-client__** Node.js SDK APIs for type
 * [Docker Compose](https://docs.docker.com/compose/overview/) - v1.8 or higher
 * [Git client](https://git-scm.com/downloads) - needed for clone commands
 * **Node.js** v6.9.0 - 6.10.0 ( __Node v7+ is not supported__ )
-* [Download Docker images](http://hyperledger-fabric.readthedocs.io/en/latest/samples.html#binaries)
+* [Download Docker images](https://hyperledger-fabric.readthedocs.io/en/latest/install.html)
 
 ```
 cd fabric-samples/balance-transfer/
