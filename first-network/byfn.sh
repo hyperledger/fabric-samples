@@ -35,7 +35,7 @@ export VERBOSE=false
 # Print the usage message
 function printHelp() {
   echo "Usage: "
-  echo "  byfn.sh <mode> [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>] [-l <language>] [-o <consensus-type>] [-i <imagetag>] [-a] [-v]"
+  echo "  byfn.sh <mode> [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>] [-l <language>] [-o <consensus-type>] [-i <imagetag>] [-a] [-n] [-v]"
   echo "    <mode> - one of 'up', 'down', 'restart', 'generate' or 'upgrade'"
   echo "      - 'up' - bring up the network with docker-compose up"
   echo "      - 'down' - clear the network with docker-compose down"
@@ -51,6 +51,7 @@ function printHelp() {
   echo "    -o <consensus-type> - the consensus-type of the ordering service: solo (default), kafka, or etcdraft"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
   echo "    -a - launch certificate authorities (no certificate authorities are launched by default)"
+  echo "    -n - do not deploy chaincode (abstore chaincode is deployed by default)"
   echo "    -v - verbose mode"
   echo "  byfn.sh -h (print this message)"
   echo
@@ -530,7 +531,7 @@ else
   exit 1
 fi
 
-while getopts "h?c:t:d:f:s:l:i:o:av" opt; do
+while getopts "h?c:t:d:f:s:l:i:o:anv" opt; do
   case "$opt" in
   h | \?)
     printHelp
@@ -562,6 +563,9 @@ while getopts "h?c:t:d:f:s:l:i:o:av" opt; do
     ;;
   a)
     CERTIFICATE_AUTHORITIES=true
+    ;;
+  n)
+    NO_CHAINCODE=true
     ;;
   v)
     VERBOSE=true
