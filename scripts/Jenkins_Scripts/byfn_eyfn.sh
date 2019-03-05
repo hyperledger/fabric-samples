@@ -69,29 +69,37 @@ if [ $1 != 0 ]; then
 fi
 }
 
- echo "############## BYFN,EYFN DEFAULT CHANNEL TEST ###################"
- echo "#################################################################"
- echo y | ./byfn.sh -m down
- echo y | ./byfn.sh -m up -t 60
- copy_logs $? default-channel
- echo y | ./eyfn.sh -m up -t 60
- copy_logs $? default-channel
- echo y | ./eyfn.sh -m down
- echo
+echo "############## BYFN,EYFN DEFAULT CHANNEL TEST ###################"
+echo "#################################################################"
+echo y | ./byfn.sh -m down
+echo y | ./byfn.sh -m up -t 60
+copy_logs $? default-channel
+echo y | ./eyfn.sh -m up -t 60
+copy_logs $? default-channel
+echo y | ./eyfn.sh -m down
+echo
 
- echo "############### BYFN,EYFN CUSTOM CHANNEL WITH COUCHDB TEST ##############"
- echo "#########################################################################"
- echo y | ./byfn.sh -m up -c custom-channel-couchdb -s couchdb -t 75 -d 15
- copy_logs $? custom-channel-couch couchdb
- echo y | ./eyfn.sh -m up -c custom-channel-couchdb -s couchdb -t 75 -d 15
- copy_logs $? custom-channel-couch
- echo y | ./eyfn.sh -m down
- echo
+echo "############### BYFN,EYFN CUSTOM CHANNEL WITH COUCHDB TEST ##############"
+echo "#########################################################################"
+echo y | ./byfn.sh -m up -c custom-channel-couchdb -s couchdb -t 75 -d 15
+copy_logs $? custom-channel-couch couchdb
+echo y | ./eyfn.sh -m up -c custom-channel-couchdb -s couchdb -t 75 -d 15
+copy_logs $? custom-channel-couch
+echo y | ./eyfn.sh -m down
+echo
 
- echo "############### BYFN,EYFN WITH NODE Chaincode. TEST ################"
- echo "####################################################################"
- echo y | ./byfn.sh -m up -l node -t 60
- copy_logs $? default-channel-node
- echo y | ./eyfn.sh -m up -l node -t 60
- copy_logs $? default-channel-node
- echo y | ./eyfn.sh -m down
+echo "############### BYFN,EYFN WITH NODE Chaincode. TEST ################"
+echo "####################################################################"
+echo y | ./byfn.sh -m up -l node -t 60
+copy_logs $? default-channel-node
+echo y | ./eyfn.sh -m up -l node -t 60
+copy_logs $? default-channel-node
+echo y | ./eyfn.sh -m down
+echo
+
+echo "############### BYFN WITH CA TEST ################"
+echo "##################################################"
+echo y | ./byfn.sh -m up -a 
+copy_logs $? default-channel-ca 
+echo y | ./byfn.sh -m down -a
+echo 

@@ -35,7 +35,7 @@ export VERBOSE=false
 # Print the usage message
 function printHelp() {
   echo "Usage: "
-  echo "  byfn.sh <mode> [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>] [-l <language>] [-o <consensus-type>] [-i <imagetag>] [-v]"
+  echo "  byfn.sh <mode> [-c <channel name>] [-t <timeout>] [-d <delay>] [-f <docker-compose-file>] [-s <dbtype>] [-l <language>] [-o <consensus-type>] [-i <imagetag>] [-a] [-v]"
   echo "    <mode> - one of 'up', 'down', 'restart', 'generate' or 'upgrade'"
   echo "      - 'up' - bring up the network with docker-compose up"
   echo "      - 'down' - clear the network with docker-compose down"
@@ -50,6 +50,7 @@ function printHelp() {
   echo "    -l <language> - the chaincode language: golang (default) or node"
   echo "    -o <consensus-type> - the consensus-type of the ordering service: solo (default), kafka, or etcdraft"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
+  echo "    -a - launch certificate authorities (no certificate authorities are launched by default)"
   echo "    -v - verbose mode"
   echo "  byfn.sh -h (print this message)"
   echo
@@ -156,29 +157,22 @@ function networkUp() {
     replacePrivateKey
     generateChannelArtifacts
   fi
-  if [ "${IF_COUCHDB}" == "couchdb" ]; then
-    if [ "$CONSENSUS_TYPE" == "kafka" ]; then
-      IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_KAFKA -f $COMPOSE_FILE_COUCH up -d 2>&1
-      docker ps -a
-    elif  [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
-      IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_RAFT2 -f $COMPOSE_FILE_COUCH up -d 2>&1
-      docker ps -a
-    else
-      IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH up -d 2>&1
-      docker ps -a
-    fi
-  else
-    if [ "$CONSENSUS_TYPE" == "kafka" ]; then
-      IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_KAFKA up -d 2>&1
-      docker ps -a
-    elif  [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
-      IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_RAFT2 up -d 2>&1
-      docker ps -a
-    else
-      IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE up -d 2>&1
-      docker ps -a
-    fi
+  COMPOSE_FILES="-f ${COMPOSE_FILE}"
+  if [ "${CERTIFICATE_AUTHORITIES}" == "true" ]; then
+    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_CA}"
+    export BYFN_CA1_PRIVATE_KEY=$(cd crypto-config/peerOrganizations/org1.example.com/ca && ls *_sk)
+    export BYFN_CA2_PRIVATE_KEY=$(cd crypto-config/peerOrganizations/org2.example.com/ca && ls *_sk)
   fi
+  if [ "${CONSENSUS_TYPE}" == "kafka" ]; then
+    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_KAFKA}"
+  elif [ "${CONSENSUS_TYPE}" == "etcdraft" ]; then
+    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_RAFT2}"
+  fi
+  if [ "${IF_COUCHDB}" == "couchdb" ]; then
+    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_COUCH}"
+  fi
+  IMAGE_TAG=$IMAGETAG docker-compose ${COMPOSE_FILES} up -d 2>&1
+  docker ps -a
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to start network"
     exit 1
@@ -197,7 +191,7 @@ function networkUp() {
   fi
 
   # now run the end to end script
-  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE $NO_CHAINCODE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Test failed"
     exit 1
@@ -221,22 +215,19 @@ function upgradeNetwork() {
     mkdir -p $LEDGERS_BACKUP
 
     export IMAGE_TAG=$IMAGETAG
+    COMPOSE_FILES="-f ${COMPOSE_FILE}"
+    if [ "${CERTIFICATE_AUTHORITIES}" == "true" ]; then
+      COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_CA}"
+      export BYFN_CA1_PRIVATE_KEY=$(cd crypto-config/peerOrganizations/org1.example.com/ca && ls *_sk)
+      export BYFN_CA2_PRIVATE_KEY=$(cd crypto-config/peerOrganizations/org2.example.com/ca && ls *_sk)
+    fi
+    if [ "${CONSENSUS_TYPE}" == "kafka" ]; then
+      COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_KAFKA}"
+    elif [ "${CONSENSUS_TYPE}" == "etcdraft" ]; then
+      COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_RAFT2}"
+    fi
     if [ "${IF_COUCHDB}" == "couchdb" ]; then
-      if [ "$CONSENSUS_TYPE" == "kafka" ]; then
-        COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_KAFKA -f $COMPOSE_FILE_COUCH"
-      elif [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
-        COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_RAFT2 -f $COMPOSE_FILE_COUCH"
-      else
-        COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH"
-      fi
-    else
-      if [ "$CONSENSUS_TYPE" == "kafka" ]; then
-        COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_KAFKA"
-      elif [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
-        COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_RAFT2"
-      else
-        COMPOSE_FILES="-f $COMPOSE_FILE"
-      fi
+      COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_COUCH}"
     fi
 
     # removing the cli container
@@ -283,7 +274,7 @@ function upgradeNetwork() {
 function networkDown() {
   # stop org3 containers also in addition to org1 and org2, in case we were running sample to add org3
   # stop kafka and zookeeper containers in case we're running with kafka consensus-type
-  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_KAFKA -f $COMPOSE_FILE_RAFT2 -f $COMPOSE_FILE_ORG3 down --volumes --remove-orphans
+  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_KAFKA -f $COMPOSE_FILE_RAFT2 -f $COMPOSE_FILE_CA -f $COMPOSE_FILE_ORG3 down --volumes --remove-orphans
 
   # Don't remove the generated artifacts -- note, the ledgers are always removed
   if [ "$MODE" != "restart" ]; then
@@ -508,6 +499,8 @@ COMPOSE_FILE_ORG3=docker-compose-org3.yaml
 COMPOSE_FILE_KAFKA=docker-compose-kafka.yaml
 # two additional etcd/raft orderers
 COMPOSE_FILE_RAFT2=docker-compose-etcdraft2.yaml
+# certificate authorities compose file
+COMPOSE_FILE_CA=docker-compose-ca.yaml
 #
 # use golang as the default language for chaincode
 LANGUAGE=golang
@@ -537,7 +530,7 @@ else
   exit 1
 fi
 
-while getopts "h?c:t:d:f:s:l:i:o:v" opt; do
+while getopts "h?c:t:d:f:s:l:i:o:av" opt; do
   case "$opt" in
   h | \?)
     printHelp
@@ -566,6 +559,9 @@ while getopts "h?c:t:d:f:s:l:i:o:v" opt; do
     ;;
   o)
     CONSENSUS_TYPE=$OPTARG
+    ;;
+  a)
+    CERTIFICATE_AUTHORITIES=true
     ;;
   v)
     VERBOSE=true
