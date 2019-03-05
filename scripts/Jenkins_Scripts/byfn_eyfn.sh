@@ -103,3 +103,10 @@ echo y | ./byfn.sh -m up -a
 copy_logs $? default-channel-ca 
 echo y | ./byfn.sh -m down -a
 echo 
+
+echo "############### BYFN WITH NO CHAINCODE TEST ################"
+echo "############################################################"
+echo y | ./byfn.sh -m up -n
+copy_logs $? default-channel-ca
+echo y | ./byfn.sh -m down -n
+echo 
