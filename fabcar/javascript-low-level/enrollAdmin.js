@@ -11,15 +11,17 @@
 var Fabric_Client = require('fabric-client');
 var Fabric_CA_Client = require('fabric-ca-client');
 
+var fs = require('fs');
 var path = require('path');
-var util = require('util');
-var os = require('os');
+
+var firstnetwork_path = path.resolve('..', '..', 'first-network');
+var org1tlscacert_path = path.resolve(firstnetwork_path, 'crypto-config', 'peerOrganizations', 'org1.example.com', 'tlsca', 'tlsca.org1.example.com-cert.pem');
+var org1tlscacert = fs.readFileSync(org1tlscacert_path, 'utf8');
 
 //
 var fabric_client = new Fabric_Client();
 var fabric_ca_client = null;
 var admin_user = null;
-var member_user = null;
 var store_path = path.join(__dirname, 'hfc-key-store');
 console.log(' Store path:'+store_path);
 
@@ -35,11 +37,11 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
     crypto_suite.setCryptoKeyStore(crypto_store);
     fabric_client.setCryptoSuite(crypto_suite);
     var	tlsOptions = {
-    	trustedRoots: [],
+    	trustedRoots: [org1tlscacert],
     	verify: false
     };
     // be sure to change the http to https when the CA is running TLS enabled
-    fabric_ca_client = new Fabric_CA_Client('http://localhost:7054', tlsOptions , 'ca.example.com', crypto_suite);
+    fabric_ca_client = new Fabric_CA_Client('https://localhost:7054', tlsOptions , 'ca-org1', crypto_suite);
 
     // first check to see if the admin is already enrolled
     return fabric_client.getUserContext('admin', true);

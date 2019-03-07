@@ -9,23 +9,27 @@
  */
 
 var Fabric_Client = require('fabric-client');
+var fs = require('fs');
 var path = require('path');
-var util = require('util');
-var os = require('os');
+
+var firstnetwork_path = path.resolve('..', '..', 'first-network');
+var org1tlscacert_path = path.resolve(firstnetwork_path, 'crypto-config', 'peerOrganizations', 'org1.example.com', 'tlsca', 'tlsca.org1.example.com-cert.pem');
+var org1tlscacert = fs.readFileSync(org1tlscacert_path, 'utf8');
 
 //
 var fabric_client = new Fabric_Client();
 
 // setup the fabric network
 var channel = fabric_client.newChannel('mychannel');
-var peer = fabric_client.newPeer('grpc://localhost:7051');
+var peer = fabric_client.newPeer('grpcs://localhost:7051', {
+	'ssl-target-name-override': 'peer0.org1.example.com',
+	pem: org1tlscacert
+});
 channel.addPeer(peer);
 
 //
-var member_user = null;
 var store_path = path.join(__dirname, 'hfc-key-store');
 console.log('Store path:'+store_path);
-var tx_id = null;
 
 // create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
 Fabric_Client.newDefaultKeyValueStore({ path: store_path
@@ -44,7 +48,6 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 }).then((user_from_store) => {
 	if (user_from_store && user_from_store.isEnrolled()) {
 		console.log('Successfully loaded user1 from persistence');
-		member_user = user_from_store;
 	} else {
 		throw new Error('Failed to get user1.... run registerUser.js');
 	}

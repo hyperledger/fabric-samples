@@ -9,9 +9,13 @@
  */
 
 const Fabric_Client = require('fabric-client');
+const fs = require('fs');
 const path = require('path');
 const util = require('util');
-const os = require('os');
+
+var firstnetwork_path = path.resolve('..', '..', 'first-network');
+var org1tlscacert_path = path.resolve(firstnetwork_path, 'crypto-config', 'peerOrganizations', 'org1.example.com', 'tlsca', 'tlsca.org1.example.com-cert.pem');
+var org1tlscacert = fs.readFileSync(org1tlscacert_path, 'utf8');
 
 invoke();
 
@@ -28,16 +32,15 @@ async function invoke() {
 		const channel = fabric_client.newChannel('mychannel');
 		console.log('Created client side object to represent the channel');
 		// -- peer instance to represent a peer on the channel
-		const peer = fabric_client.newPeer('grpc://localhost:7051');
+		const peer = fabric_client.newPeer('grpcs://localhost:7051', {
+			'ssl-target-name-override': 'peer0.org1.example.com',
+			pem: org1tlscacert
+		});
 		console.log('Created client side object to represent the peer');
-		// -- orderer instance to reprsent the channel's orderer
-		const orderer = fabric_client.newOrderer('grpc://localhost:7050')
-		console.log('Created client side object to represent the orderer');
 
 		// This sample application uses a file based key value stores to hold
 		// the user information and credentials. These are the same stores as used
 		// by the 'registerUser.js' sample code
-		const member_user = null;
 		const store_path = path.join(__dirname, 'hfc-key-store');
 		console.log('Setting up the user store at path:'+store_path);
 		// create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
@@ -62,6 +65,10 @@ async function invoke() {
 
 		console.log('Successfully setup client side');
 		console.log('\n\nStart invoke processing');
+
+		// Use service discovery to initialize the channel
+		await channel.initialize({ discover: true, asLocalhost: true, target: peer });
+		console.log('Used service discovery to initialize the channel');
 
 		// get a transaction id object based on the current user assigned to fabric client
 		// Transaction ID objects contain more then just a transaction ID, also includes
@@ -116,7 +123,6 @@ async function invoke() {
 		// committed.
 
 		const commit_request = {
-			orderer: orderer,
 			proposalResponses: proposalResponses,
 			proposal: proposal
 		};
