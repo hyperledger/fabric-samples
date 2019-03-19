@@ -113,13 +113,29 @@ joinChannelWithRetry() {
   verifyResult $res "After $MAX_RETRY attempts, peer${PEER}.org${ORG} has failed to join channel '$CHANNEL_NAME' "
 }
 
+# packageChaincode VERSION PEER ORG
+packageChaincode() {
+  VERSION=$1
+  PEER=$2
+  ORG=$3
+  setGlobals $PEER $ORG
+  set -x
+  peer lifecycle chaincode package mycc.tar.gz --path ${CC_SRC_PATH} --lang ${LANGUAGE} --label mycc_${VERSION} >&log.txt
+  res=$?
+  set +x
+  cat log.txt
+  verifyResult $res "Chaincode packaging on peer${PEER}.org${ORG} has failed"
+  echo "===================== Chaincode is packaged on peer${PEER}.org${ORG} ===================== "
+  echo
+}
+
+# installChaincode PEER ORG
 installChaincode() {
   PEER=$1
   ORG=$2
   setGlobals $PEER $ORG
-  VERSION=${3:-1.0}
   set -x
-  peer chaincode install -n mycc -v ${VERSION} -l ${LANGUAGE} -p ${CC_SRC_PATH} >&log.txt
+  peer lifecycle chaincode install mycc.tar.gz >&log.txt
   res=$?
   set +x
   cat log.txt
@@ -128,45 +144,108 @@ installChaincode() {
   echo
 }
 
-instantiateChaincode() {
+# queryInstalled PEER ORG
+queryInstalled() {
   PEER=$1
   ORG=$2
   setGlobals $PEER $ORG
-  VERSION=${3:-1.0}
+  set -x
+  peer lifecycle chaincode queryinstalled >&log.txt
+  res=$?
+  set +x
+  cat log.txt
+  PACKAGE_ID=`sed -n '/Package/{s/^Package ID: //; s/, Label:.*$//; p;}' log.txt`
+  verifyResult $res "Query installed on peer${PEER}.org${ORG} has failed"
+  echo PackageID is ${PACKAGE_ID}
+  echo "===================== Query installed successful on peer${PEER}.org${ORG} on channel ===================== "
+  echo
+}
 
-  # while 'peer chaincode' command can get the orderer endpoint from the peer
-  # (if join was successful), let's supply it directly as we know it using
-  # the "-o" option
+# approveForMyOrg VERSION PEER ORG
+approveForMyOrg() {
+  VERSION=$1
+  PEER=$2
+  ORG=$3
+  setGlobals $PEER $ORG
+
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
     set -x
-    peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v ${VERSION} -c '{"Args":["init","a","100","b","200"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer')" >&log.txt
+    peer lifecycle chaincode approveformyorg --channelID $CHANNEL_NAME --name mycc --version ${VERSION} --init-required --package-id ${PACKAGE_ID} --sequence 1 --waitForEvent >&log.txt
+    set +x
+  else
+    set -x
+    peer lifecycle chaincode approveformyorg --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name mycc --version ${VERSION} --init-required --package-id ${PACKAGE_ID} --sequence 1 --waitForEvent >&log.txt
+    set +x
+  fi
+  cat log.txt
+  verifyResult $res "Chaincode definition approved on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' failed"
+  echo "===================== Chaincode definition approved on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' ===================== "
+  echo
+}
+
+# commitChaincodeDefinition VERSION PEER ORG (PEER ORG)...
+commitChaincodeDefinition() {
+  VERSION=$1
+  shift
+  parsePeerConnectionParameters $@
+  res=$?
+  verifyResult $res "Invoke transaction failed on channel '$CHANNEL_NAME' due to uneven number of peer and org parameters "
+
+  # while 'peer chaincode' command can get the orderer endpoint from the
+  # peer (if join was successful), let's supply it directly as we know
+  # it using the "-o" option
+  if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
+    set -x
+    peer lifecycle chaincode commit -o orderer.example.com:7050 --channelID $CHANNEL_NAME --name mycc $PEER_CONN_PARMS --version ${VERSION} --sequence 1 --init-required >&log.txt
     res=$?
     set +x
   else
     set -x
-    peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v 1.0 -c '{"Args":["init","a","100","b","200"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer')" >&log.txt
+    peer lifecycle chaincode commit -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name mycc $PEER_CONN_PARMS --version ${VERSION} --sequence 1 --init-required >&log.txt
     res=$?
     set +x
   fi
   cat log.txt
-  verifyResult $res "Chaincode instantiation on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' failed"
-  echo "===================== Chaincode is instantiated on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' ===================== "
+  verifyResult $res "Chaincode definition commit failed on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' failed"
+  echo "===================== Chaincode definition committed on channel '$CHANNEL_NAME' ===================== "
   echo
 }
 
-upgradeChaincode() {
-  PEER=$1
-  ORG=$2
+# queryCommitted VERSION PEER ORG
+queryCommitted() {
+  VERSION=$1
+  PEER=$2
+  ORG=$3
   setGlobals $PEER $ORG
+  EXPECTED_RESULT="Version: ${VERSION}, Sequence: ${VERSION}, Endorsement Plugin: escc, Validation Plugin: vscc"
+  echo "===================== Querying chaincode definition on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
+  local rc=1
+  local starttime=$(date +%s)
 
-  set -x
-  peer chaincode upgrade -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -v 2.0 -c '{"Args":["init","a","90","b","210"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer')"
-  res=$?
-  set +x
-  cat log.txt
-  verifyResult $res "Chaincode upgrade on peer${PEER}.org${ORG} has failed"
-  echo "===================== Chaincode is upgraded on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' ===================== "
+  # continue to poll
+  # we either get a successful response, or reach TIMEOUT
+  while
+    test "$(($(date +%s) - starttime))" -lt "$TIMEOUT" -a $rc -ne 0
+  do
+    sleep $DELAY
+    echo "Attempting to Query peer${PEER}.org${ORG} ...$(($(date +%s) - starttime)) secs"
+    set -x
+    peer lifecycle chaincode querycommitted --channelID $CHANNEL_NAME --name mycc >&log.txt
+    res=$?
+    set +x
+    test $res -eq 0 && VALUE=$(cat log.txt | grep -o '^Version: [0-9], Sequence: [0-9], Endorsement Plugin: escc, Validation Plugin: vscc')
+    test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
+  done
   echo
+  cat log.txt
+  if test $rc -eq 0; then
+    echo "===================== Query chaincode definition successful on peer${PEER}.org${ORG} on channel '$CHANNEL_NAME' ===================== "
+  else
+    echo "!!!!!!!!!!!!!!! Query chaincode definition result on peer${PEER}.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
+    echo "================== ERROR !!! FAILED to execute End-2-End Scenario =================="
+    echo
+    exit 1
+  fi
 }
 
 chaincodeQuery() {
@@ -293,24 +372,34 @@ parsePeerConnectionParameters() {
   PEERS="$(echo -e "$PEERS" | sed -e 's/^[[:space:]]*//')"
 }
 
-# chaincodeInvoke <peer> <org> ...
+# chaincodeInvoke IS_INIT PEER ORG (PEER ORG) ...
 # Accepts as many peer/org pairs as desired and requests endorsement from each
 chaincodeInvoke() {
+  IS_INIT=$1
+  shift
   parsePeerConnectionParameters $@
   res=$?
   verifyResult $res "Invoke transaction failed on channel '$CHANNEL_NAME' due to uneven number of peer and org parameters "
+
+  if [ "${IS_INIT}" -eq "1" ]; then
+    CCARGS='{"Args":["Init","a","100","b","100"]}'
+    INIT_ARG="--isInit"
+  else
+    CCARGS='{"Args":["invoke","a","b","10"]}'
+    INIT_ARG=""
+  fi
 
   # while 'peer chaincode' command can get the orderer endpoint from the
   # peer (if join was successful), let's supply it directly as we know
   # it using the "-o" option
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
     set -x
-    peer chaincode invoke -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc $PEER_CONN_PARMS -c '{"Args":["invoke","a","b","10"]}' >&log.txt
+    peer chaincode invoke -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc $PEER_CONN_PARMS ${INIT_ARG} -c ${CCARGS} >&log.txt
     res=$?
     set +x
   else
     set -x
-    peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc $PEER_CONN_PARMS -c '{"Args":["invoke","a","b","10"]}' >&log.txt
+    peer chaincode invoke -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc $PEER_CONN_PARMS ${INIT_ARG} -c ${CCARGS} >&log.txt
     res=$?
     set +x
   fi

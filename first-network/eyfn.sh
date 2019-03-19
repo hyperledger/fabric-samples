@@ -117,15 +117,6 @@ function networkUp () {
     echo "ERROR !!!! Unable to have Org3 peers join network"
     exit 1
   fi
-  echo
-  echo "###############################################################"
-  echo "##### Upgrade chaincode to have Org3 peers on the network #####"
-  echo "###############################################################"
-  docker exec cli ./scripts/step3org3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
-  if [ $? -ne 0 ]; then
-    echo "ERROR !!!! Unable to add Org3 peers on network"
-    exit 1
-  fi
   # finish by running the test
   docker exec Org3cli ./scripts/testorg3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then

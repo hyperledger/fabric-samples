@@ -22,6 +22,7 @@ VERBOSE="$5"
 LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=10
+PACKAGE_ID=""
 
 if [ "$LANGUAGE" = "node" ]; then
     CC_SRC_PATH="/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/abstore/node/"
@@ -81,15 +82,31 @@ updateAnchorPeers 0 1
 echo "Updating anchor peers for org2..."
 updateAnchorPeers 0 2
 
+## at first we package the chaincode
+packageChaincode 1 0 1
+
 ## Install chaincode on peer0.org1 and peer0.org2
 echo "Installing chaincode on peer0.org1..."
 installChaincode 0 1
 echo "Install chaincode on peer0.org2..."
 installChaincode 0 2
 
-# Instantiate chaincode on peer0.org2
-echo "Instantiating chaincode on peer0.org2..."
-instantiateChaincode 0 2
+## query whether the chaincode is installed
+queryInstalled 0 1
+
+## approve the definition for both orgs
+approveForMyOrg 1 0 1
+approveForMyOrg 1 0 2
+
+## commit the definition
+commitChaincodeDefinition 1 0 1 0 2
+
+## query on both orgs to see that the definition committed ok
+queryCommitted 1 0 1
+queryCommitted 1 0 2
+
+# invoke init
+chaincodeInvoke 1 0 1 0 2
 
 # Query chaincode on peer0.org1
 echo "Querying chaincode on peer0.org1..."
@@ -97,7 +114,11 @@ chaincodeQuery 0 1 100
 
 # Invoke chaincode on peer0.org1 and peer0.org2
 echo "Sending invoke transaction on peer0.org1 peer0.org2..."
-chaincodeInvoke 0 1 0 2
+chaincodeInvoke 0 0 1 0 2
+
+# Query chaincode on peer0.org1
+echo "Querying chaincode on peer0.org1..."
+chaincodeQuery 0 1 90
 
 ## Install chaincode on peer1.org2
 echo "Installing chaincode on peer1.org2..."
