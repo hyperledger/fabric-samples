@@ -27,6 +27,7 @@ VERBOSE="$5"
 LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=5
+PACKAGE_ID=""
 
 if [ "$LANGUAGE" = "node" ]; then
     CC_SRC_PATH="/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/abstore/node/"
@@ -51,11 +52,28 @@ joinChannelWithRetry 0 3
 echo "===================== peer0.org3 joined channel '$CHANNEL_NAME' ===================== "
 joinChannelWithRetry 1 3
 echo "===================== peer1.org3 joined channel '$CHANNEL_NAME' ===================== "
-echo "Installing chaincode 2.0 on peer0.org3..."
-installChaincode 0 3 2.0
+
+## at first we package the chaincode
+packageChaincode 1 0 3
+
+echo "Installing chaincode on peer0.org3..."
+installChaincode 0 3
+
+## query whether the chaincode is installed
+queryInstalled 0 3
+
+## sanity check: expect the chaincode to be already committed
+queryCommitted 1 0 3
+
+## approve it for our org, so that our peers know what package to invoke
+approveForMyOrg 1 0 3
+
+# Query on chaincode on peer0.org3, check if the result is 90
+echo "Querying chaincode on peer0.org3..."
+chaincodeQuery 0 3 90
 
 echo
-echo "========= Org3 is now halfway onto your first network ========= "
+echo "========= Finished adding Org3 to your first network! ========= "
 echo
 
 exit 0
