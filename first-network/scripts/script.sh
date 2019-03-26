@@ -94,11 +94,21 @@ installChaincode 0 2
 ## query whether the chaincode is installed
 queryInstalled 0 1
 
-## approve the definition for both orgs
+## approve the definition for org1
 approveForMyOrg 1 0 1
+
+## query the approval status on both orgs, expect org1 to have approved and org2 not to
+queryStatus 1 0 1 "\"Org1MSP\": true" "\"Org2MSP\": false"
+queryStatus 1 0 2 "\"Org1MSP\": true" "\"Org2MSP\": false"
+
+## now approve also for org2
 approveForMyOrg 1 0 2
 
-## commit the definition
+## query the approval status on both orgs, expect them both to have approved
+queryStatus 1 0 1 "\"Org1MSP\": true" "\"Org2MSP\": true"
+queryStatus 1 0 2 "\"Org1MSP\": true" "\"Org2MSP\": true"
+
+## now that we know for sure both orgs have approved, commit the definition
 commitChaincodeDefinition 1 0 1 0 2
 
 ## query on both orgs to see that the definition committed ok
