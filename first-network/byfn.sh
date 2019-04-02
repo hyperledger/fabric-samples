@@ -159,18 +159,24 @@ function networkUp() {
   if [ "${IF_COUCHDB}" == "couchdb" ]; then
     if [ "$CONSENSUS_TYPE" == "kafka" ]; then
       IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_KAFKA -f $COMPOSE_FILE_COUCH up -d 2>&1
+      docker ps -a
     elif  [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
       IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_RAFT2 -f $COMPOSE_FILE_COUCH up -d 2>&1
+      docker ps -a
     else
       IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH up -d 2>&1
+      docker ps -a
     fi
   else
     if [ "$CONSENSUS_TYPE" == "kafka" ]; then
       IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_KAFKA up -d 2>&1
+      docker ps -a
     elif  [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
       IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_RAFT2 up -d 2>&1
+      docker ps -a
     else
       IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE up -d 2>&1
+      docker ps -a
     fi
   fi
   if [ $? -ne 0 ]; then

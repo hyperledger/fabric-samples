@@ -1,155 +1,157 @@
+#!groovy
 // Copyright IBM Corp All Rights Reserved
 //
 // SPDX-License-Identifier: Apache-2.0
 //
 
-// Pipeline script for fabric-samples
+// Jenkinfile will get triggered on verify and merge jobs and run byfn, eyfn and fabcar
+// tests.
 
-node ('hyp-x') { // trigger build on x86_64 node
-  timestamps {
-   try {
-    def ROOTDIR = pwd() // workspace dir (/w/workspace/<job_name>
-    def nodeHome = tool 'nodejs-8.11.3'
-    env.ARCH = "amd64"
-    env.VERSION = sh(returnStdout: true, script: 'curl -O https://raw.githubusercontent.com/hyperledger/fabric/master/Makefile && cat Makefile | grep "BASE_VERSION =" | cut -d "=" -f2').trim()
-    env.VERSION = "$VERSION" // BASE_VERSION from fabric Makefile
-    env.BASE_IMAGE_VER = sh(returnStdout: true, script: 'cat Makefile | grep "BASEIMAGE_RELEASE =" | cut -d "=" -f2').trim() // BASEIMAGE Version from fabric Makefile
-    env.IMAGE_TAG = "${ARCH}-${VERSION}-stable" // fabric latest stable version from nexus
-    env.PROJECT_VERSION = "${VERSION}-stable"
-    env.BASE_IMAGE_TAG = "${ARCH}-${BASE_IMAGE_VER}" //fabric baseimage version
-    env.PROJECT_DIR = "gopath/src/github.com/hyperledger"
-    env.GOPATH = "$WORKSPACE/gopath"
-    env.PATH = "$GOPATH/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:${nodeHome}/bin:$PATH"
-    def jobname = sh(returnStdout: true, script: 'echo ${JOB_NAME} | grep -q "verify" && echo patchset || echo merge').trim()
-    def failure_stage = "none"
-    // delete working directory
-    deleteDir()
-      stage("Fetch Patchset") { // fetch gerrit refspec on latest commit
-          try {
-             if (jobname == "patchset")  {
-                   println "$GERRIT_REFSPEC"
-                   println "$GERRIT_BRANCH"
-                   checkout([
-                       $class: 'GitSCM',
-                       branches: [[name: '$GERRIT_REFSPEC']],
-                       extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'gopath/src/github.com/hyperledger/$PROJECT'], [$class: 'CheckoutOption', timeout: 10]],
-                       userRemoteConfigs: [[credentialsId: 'hyperledger-jobbuilder', name: 'origin', refspec: '$GERRIT_REFSPEC:$GERRIT_REFSPEC', url: '$GIT_BASE']]])
-              } else {
-                   // Clone fabric-samples on merge
-                   println "Clone $PROJECT repository"
-                   checkout([
-                       $class: 'GitSCM',
-                       branches: [[name: 'refs/heads/$GERRIT_BRANCH']],
-                       extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'gopath/src/github.com/hyperledger/$PROJECT']],
-                       userRemoteConfigs: [[credentialsId: 'hyperledger-jobbuilder', name: 'origin', refspec: '+refs/heads/$GERRIT_BRANCH:refs/remotes/origin/$GERRIT_BRANCH', url: '$GIT_BASE']]])
-              }
-              dir("${ROOTDIR}/$PROJECT_DIR/$PROJECT") {
-              sh '''
-                 # Print last two commit details
-                 echo
-                 git log -n2 --pretty=oneline --abbrev-commit
-                 echo
-              '''
-              }
+// global shared library from ci-management repository
+// https://github.com/hyperledger/ci-management/tree/master/vars (Global Shared scripts)
+@Library("fabric-ci-lib") _
+  pipeline {
+    agent {
+      // Execute tests on x86_64 build nodes
+      // Set this value from Jenkins Job Configuration
+      label env.NODE_ARCH
+    }
+      options {
+        // Using the Timestamper plugin we can add timestamps to the console log
+        timestamps()
+        // Set build timeout for 60 mins
+        timeout(time: 60, unit: 'MINUTES')
+      }
+      environment {
+        ROOTDIR = pwd()
+        // Applicable only on x86_64 nodes
+        // LF team has to install the newer version in Jenkins global config
+        // Send an email to helpdesk@hyperledger.org to add newer version
+        nodeHome = tool 'nodejs-8.11.3'
+        MARCH = sh(returnStdout: true, script: "uname -m | sed 's/x86_64/amd64/g'").trim()
+        OS_NAME = sh(returnStdout: true, script: "uname -s|tr '[:upper:]' '[:lower:]'").trim()
+        props = "null"
+      }
+      stages {
+        stage('Clean Environment') {
+          steps {
+            script {
+              // delete working directory
+              deleteDir()
+              // Clean build env before start the build
+              fabBuildLibrary.cleanupEnv()
+              // Display jenkins environment details
+              fabBuildLibrary.envOutput()
+            }
           }
-          catch (err) {
-                 failure_stage = "Fetch patchset"
-                 currentBuild.result = 'FAILURE'
-                 throw err
-           }
-}
-      // clean environment and get env data
-      stage("Clean Environment - Get Env Info") {
-           try {
-                 dir("${ROOTDIR}/$PROJECT_DIR/fabric-samples/scripts/Jenkins_Scripts") {
-                 sh './CI_Script.sh --clean_Environment --env_Info'
-                 }
-               }
-           catch (err) {
-                 failure_stage = "Clean Environment - Get Env Info"
-                 currentBuild.result = 'FAILURE'
-                 throw err
-           }
-         }
-
-    // Pull Third_party Images
-      stage("Pull third_party Images") {
-         // making the output color coded
-         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-           try {
-                 dir("${ROOTDIR}/$PROJECT_DIR/fabric-samples/scripts/Jenkins_Scripts") {
-                 sh './CI_Script.sh --pull_Thirdparty_Images'
-                 }
-               }
-           catch (err) {
-                 failure_stage = "Pull third_party docker images"
-                 currentBuild.result = 'FAILURE'
-                 throw err
-           }
-         }
-      }
-
-      // Pull Fabric, fabric-ca Images
-      stage("Pull Docker Images") {
-         // making the output color coded
-         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-           try {
-                 dir("${ROOTDIR}/$PROJECT_DIR/fabric-samples/scripts/Jenkins_Scripts") {
-                 sh './CI_Script.sh --pull_Docker_Images'
-                 }
-               }
-           catch (err) {
-                 failure_stage = "Pull fabric, fabric-ca docker images"
-                 currentBuild.result = 'FAILURE'
-                 throw err
-           }
-         }
-      }
-
-      // Run byfn, eyfn tests (default, custom channel, couchdb, nodejs chaincode)
-      stage("Run byfn_eyfn Tests") {
-         // making the output color coded
-         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-           try {
-                 dir("${ROOTDIR}/$PROJECT_DIR/fabric-samples/scripts/Jenkins_Scripts") {
-                 sh './CI_Script.sh --byfn_eyfn_Tests'
-                 }
-               }
-           catch (err) {
-                 failure_stage = "byfn_eyfn_Tests"
-                 currentBuild.result = 'FAILURE'
-                 throw err
-           }
-         }
-      }
-
-      // Run fabcar tests
-      stage("Run FabCar Tests") {
-         // making the output color coded
-         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-           try {
-                 dir("${ROOTDIR}/$PROJECT_DIR/fabric-samples/scripts/Jenkins_Scripts") {
-                 sh './CI_Script.sh --fabcar_Tests'
-                 }
-               }
-           catch (err) {
-                 failure_stage = "fabcar_Tests"
-                 currentBuild.result = 'FAILURE'
-                 throw err
-           }
-         }
-      }
-      } finally {
-           // Archive the artifacts
-           archiveArtifacts allowEmptyArchive: true, artifacts: '**/*.log'
-           // Sends notification to Rocket.Chat jenkins-robot channel
-           if (env.JOB_NAME == "fabric-samples-merge-job") {
-              if (currentBuild.result == 'FAILURE') { // Other values: SUCCESS, UNSTABLE
-               rocketSend message: "Build Notification - STATUS: *${currentBuild.result}* - BRANCH: *${env.GERRIT_BRANCH}* - PROJECT: *${env.PROJECT}* - (<${env.BUILD_URL}|Open>)"
-              }
-           }
         }
-// End Timestamps block
-  }
-// End Node block
-}
+        stage('Checkout SCM') {
+          steps {
+            script {
+              // Get changes from gerrit
+              fabBuildLibrary.cloneRefSpec('fabric-samples')
+              // Load properties from ci.properties file
+              props = fabBuildLibrary.loadProperties()
+            }
+          }
+        }
+        // Pull build artifacts
+        stage('Pull Build Artifacts') {
+          steps {
+            script {
+                if(props["IMAGE_SOURCE"] == "build") {
+                  println "BUILD ARTIFACTS"
+                  // Set PATH
+                  env.GOPATH = "$WORKSPACE/gopath"
+                  env.GOROOT = "/opt/go/go" + props["GO_VER"] + ".linux." + "$MARCH"
+                  env.PATH = "$GOPATH/bin:$GOROOT/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:${nodeHome}/bin:$PATH"
+                  // Clone fabric repo
+                  fabBuildLibrary.cloneScm('fabric', '$GERRIT_BRANCH')
+                  // Build fabric docker images and binaries
+                  fabBuildLibrary.fabBuildImages('fabric', 'docker dist')
+                  // Clone fabric-ca repo
+                  fabBuildLibrary.cloneScm('fabric-ca', '$GERRIT_BRANCH')
+                  // Build fabric docker images and binaries
+                  fabBuildLibrary.fabBuildImages('fabric-ca', 'docker dist')
+                  // Copy binaries to fabric-samples dir
+                  sh 'cp -r $ROOTDIR/gopath/src/github.com/hyperledger/fabric/release/$OS_NAME-$MARCH/bin $ROOTDIR/$BASE_DIR/'
+                  // Pull Thirdparty Docker Images from hyperledger DockerHub
+                  fabBuildLibrary.pullThirdPartyImages(props["FAB_BASEIMAGE_VERSION"], props["FAB_THIRDPARTY_IMAGES_LIST"])
+                } else {
+                  dir("$ROOTDIR/$BASE_DIR") {
+                    // Set PATH
+                    env.GOPATH = "$WORKSPACE/gopath"
+                    env.GOROOT = "/opt/go/go" + props["GO_VER"] + ".linux." + "$MARCH"
+                    env.PATH = "$GOPATH/bin:$GOROOT/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:${nodeHome}/bin:$PATH"
+                    // Pull Binaries with latest version from nexus2
+                    fabBuildLibrary.pullBinaries(props["FAB_BINARY_VER"], props["FAB_BINARY_REPO"])
+                    // Pull Docker Images from nexus3
+                    fabBuildLibrary.pullDockerImages(props["FAB_BASE_VERSION"], props["FAB_IMAGES_LIST"])
+                    // Pull Thirdparty Docker Images from hyperledger DockerHub
+                    fabBuildLibrary.pullThirdPartyImages(props["FAB_BASEIMAGE_VERSION"], props["FAB_THIRDPARTY_IMAGES_LIST"])
+                  }
+                  }
+            }
+          }
+        }
+        // Run byfn, eyfn tests (default, custom channel, couchdb, nodejs, java chaincode)
+        stage('Run byfn_eyfn Tests') {
+          steps {
+            script {
+              // making the output color coded
+              wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                try {
+                  dir("$ROOTDIR/$BASE_DIR/scripts/ci_scripts") {
+                    // Run BYFN, EYFN tests
+                    sh './ciScript.sh --byfn_eyfn_Tests'
+                  }
+                }
+                catch (err) {
+                  failure_stage = "byfn_eyfn_Tests"
+                  currentBuild.result = 'FAILURE'
+                  throw err
+                }
+              }
+            }
+          }
+        }
+        // Run fabcar tests
+        stage('Run Fab Car Tests') {
+          steps {
+            script {
+              // making the output color coded
+              wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                try {
+                  dir("$ROOTDIR/$BASE_DIR/scripts/ci_scripts") {
+                    // Run fabcar tests
+                    sh './ciScript.sh --fabcar_Tests'
+                  }
+                }
+                catch (err) {
+                  failure_stage = "fabcar_Tests"
+                  currentBuild.result = 'FAILURE'
+                  throw err
+                }
+              }
+            }
+          }
+        }
+      } // stages
+      post {
+        always {
+          // Archiving the .log files and ignore if empty
+          archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
+        }
+        failure {
+          script {
+            if (env.JOB_TYPE == 'merge') {
+              // Send rocketChat notification to channel
+              // Send merge build failure email notifications to the submitter
+              sendNotifications(currentBuild.result, props["CHANNEL_NAME"])
+              // Delete workspace when build is done
+              cleanWs notFailBuild: true
+            }
+          }
+        }
+      } // post
+  } // pipeline
