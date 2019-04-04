@@ -170,7 +170,7 @@ row in the ledger 1000 times, with a value incrementing by one each time (i.e. t
 expectation would be that the final value of the row is 999. However, the final value changes each time this script is run and you'll find
 errors in the peer and orderer logs.
 
-There is one other script, `get-traditional.sh`, which simply gets the value of a row in the traditional way, with no deltas.
+There are two other scripts, `get-traditional.sh`, which simply gets the value of a row in the traditional way, with no deltas, and `del-traditional.sh` will delete an asset in the traditional way.
 
 Examples:
 `./many-updates.sh testvar 100 +` --> final value from `./get-invoke.sh testvar` should be 100000
