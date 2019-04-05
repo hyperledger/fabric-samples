@@ -136,6 +136,27 @@
             }
           }
         }
+        // Run fabtoken tests
+        stage('Run FabToken Tests') {
+          steps {
+            script {
+              // making the output color coded
+              wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                try {
+                  dir("$ROOTDIR/$BASE_DIR/scripts/ci_scripts") {
+                    // Run fabtoken tests
+                    sh './ciScript.sh --fabtoken_Tests'
+                  }
+                }
+                catch (err) {
+                  failure_stage = "fabtoken_Tests"
+                  currentBuild.result = 'FAILURE'
+                  throw err
+                }
+              }
+            }
+          }
+        }
       } // stages
       post {
         always {

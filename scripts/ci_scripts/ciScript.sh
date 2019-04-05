@@ -16,6 +16,9 @@ Parse_Arguments() {
       --fabcar_Tests)
         fabcar_Tests
         ;;
+      --fabtoken_Tests)
+        fabtoken_Tests
+        ;;
     esac
     shift
   done
@@ -49,6 +52,24 @@ fabcar_Tests() {
   echo " |_|     /_/   \_\ |____/   \____| /_/   \_\ |_| \_\ "
 
   ./fabcar.sh
+}
+
+# run fabtoken tests
+fabtoken_Tests() {
+
+  echo " #############################"
+  echo "npm version ------> $(npm -v)"
+  echo "node version ------> $(node -v)"
+  echo " #############################"
+
+  echo
+  echo "  _____     _      ____   _______     __    ___  __  _____  __    __  "
+  echo " |  ___|   / \    | __ ) |__   __|  / _  \  | | / / | ____| | |\  | | "
+  echo " | |_     / _ \   |  _ \    | |    | |  | | | |/ /  | |___  | | \ | | "
+  echo " |  _|   / ___ \  | |_) |   | |    | |_ | | | |\ \  |  ___| | | \ | | "
+  echo " |_|    /_/   \_\ |____/    |_|     \ __ /  |_| \_\ |_|____ |_|  \|_| "
+
+  ./fabtoken.sh
 }
 
 Parse_Arguments $@
