@@ -24,10 +24,6 @@ public class ABstore extends ChaincodeBase {
     public Response init(ChaincodeStub stub) {
         try {
             _logger.info("Init java simple chaincode");
-            String func = stub.getFunction();
-            if (!func.equals("init")) {
-                return newErrorResponse("function other than init is not supported");
-            }
             List<String> args = stub.getParameters();
             if (args.size() != 4) {
                 newErrorResponse("Incorrect number of arguments. Expecting 4");
