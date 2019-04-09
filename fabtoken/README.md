@@ -19,17 +19,16 @@ For more information about the Node SDK TokenClient API, refer to the following:
 * [FabToken tutorial](https://fabric-sdk-node.github.io/master/tutorial-fabtoken.html)
 
 ## Run the sample
-You can find the `fabtoken.js` sample application in the `javascript` directory. We will
+You can find the `fabtoken.js` sample application in the `javascript` directory. You will
 use this application to create and transfer tokens on a network created using the
-`basic-network` sample. First, we need to some initial setup.
+`basic-network` sample. First, you need to have an initial setup.
 
 ### Setup
-We will need to download the application dependencies. You will need to have version 8.9.x
-of Node.js installed.
+You will need to install version 8.9.x of Node.js and download the application dependencies.
 * Change to `javascript` directory: `cd javascript`
 * Run the following command to install the required packages: `npm install`
 
-Now we can start the network:
+Now you can start the network:
 * Navigate back to the main `FabToken` directory: `cd ..`
 * Start fabric network: `./startFabric.sh`
 
@@ -44,12 +43,12 @@ with hardcoded parameters.
 * Navigate to the `javascript` directory
 * Run the command `node fabtoken` without any arguments to run the demo.
 
-You should see the output of the demo in your terminal. The demo used user1 and user2 of
+You should see the output of the demo in your terminal. The demo uses user1 and user2 of
 the basic network to do the following token operations:
-* Issue a token worth 100 USD as user1
+* Issue a token worth 100 USD to user1
 * Transfer 30 USD from user1 to user2
 * Redeem 10 USD as user1 and 30 USD as user2
-* Check that user1 has a token worth 60 USD and user2 has no token
+* Check that user1 has a token worth 60 USD and user2 has no tokens
 
 ### Use the sample app to create your own tokens
 
@@ -60,20 +59,20 @@ token flow.
 
 Tokens need to be issued before they can be spent. You can use the command
 `node fabtoken issue  <username> <token_type> <quantity>` to issue tokens of any
-type and quantity as user1 or user2.
+type and quantity to user1 or user2.
 
-* As an example, the first command issues a token worth 100 US dollars as user1. The
-second command issues a token worth 100 Euro's as user2:
+* As an example, the first command issues a token worth 100 US dollars to user1. The
+second command issues a token worth 200 Euros to user2:
 
 ```
 node fabtoken issue user1 USD 100
-node fabtoken issue user1 EURO 200
+node fabtoken issue user2 EURO 200
 ```
 
 #### List tokens
 
 After you issue tokens, you can use the list method to query the tokens that you own. Run
-the command `node fabtoken list <username>` You need to use this command to recover the
+the command `node fabtoken list <username>`. You need to use this command to recover the
 tokenIDs that you will need to transfer or redeem your tokens.
 
 * As an example, you can use the command below to list the tokens owned by user1:
@@ -86,11 +85,6 @@ index. You will need to use these values for future commands.
 
 ```
 [ { id:
-    { tx_id: 'ab5670d3b20b6247b17a342dd2c5c4416f79db95c168beccb7d32b3dd382e5a5',
-      index: 0 },
-    type: 'EURO',
-    quantity: '200' },
-  { id:
     { tx_id: 'c9b1211d9ad809e6ee1b542de6886d8d1d9e1c938d88eff23a3ddb4e8c080e4d',
       index: 0 },
     type: 'USD',
@@ -98,23 +92,34 @@ index. You will need to use these values for future commands.
 ]
 ```
 
+*  To list the tokens owned by user2, use the `node fabtoken list user2` command.
+
+```
+[ { id:
+    { tx_id: 'ab5670d3b20b6247b17a342dd2c5c4416f79db95c168beccb7d32b3dd382e5a5',
+      index: 0 },
+    type: 'EURO',
+    quantity: '200' }
+]
+```
+
 #### Transfer tokens
 
 Tokens can be transferred between users on a channel using the
-`node fabtoken transfer <from_user> <to_user> <quantity> <tx\_id> <index>` command.
-* `<tx\_id>` and `<index>` are the "tx\_id" and "index" that you found using the list
+`node fabtoken transfer <from_user> <to_user> <quantity> <tx_id> <index>` command.
+* `<tx_id>` and `<index>` are the "tx_id" and "index" that you found using the list
 command
 * `<quantity>` is the quantity to be transferred
 
-Any remaing quantity will be transferred back to the owner by creating a new token with
+Any remaining quantity will be transferred back to the owner by creating a new token with
 a new tokenID.
-* As an example, the following commands transfers 30 dollars from  user1 transfer to user2:
+* As an example, the following command transfers 30 dollars from user1 to user2:
 
 ```
  node fabtoken transfer user1 user2 30 c9b1211d9ad809e6ee1b542de6886d8d1d9e1c938d88eff23a3ddb4e8c080e4d 0
  ```
 
-You can run the command `node fabtoken list user2` to verify that user2 now owns a token
+You can run the command `node fabtoken list user2` to verify that user2 now owns a new token
 worth 30 dollars. You can also run the command `node fabtoken list user1` to verify that
 a new token worth 70 dollars now belongs to user1.
 
@@ -123,13 +128,13 @@ a new token worth 70 dollars now belongs to user1.
 
 Tokens can be taken out of circulation by being redeemed. Redeemed tokens can no longer
 be transfered to any member of the channel. Run the command
-`node fabtoken redeem <username> <quantity> <tx\_id> <index>` to redeem any tokens
+`node fabtoken redeem <username> <quantity> <tx_id> <index>` to redeem any tokens
 belonging to user1 or user2.
-* `<tx\_id>` and `<index>` are the "tx\_id" and "index" returned from the list command
+* `<tx_id>` and `<index>` are the "tx_id" and "index" returned from the list command
 * `<quantity>` is the quantity to be redeemed
 
-Any remaing quantity will be transferred back to the owner with a new tokenID.
-* As an example, the following command redeems 10 Euro's belonging to user1:
+Any remaining quantity will be transferred back to the owner with a new tokenID.
+* As an example, the following command redeems 10 Euro's belonging to user2:
 
 ```
  node fabtoken redeem user2 10 ab5670d3b20b6247b17a342dd2c5c4416f79db95c168beccb7d32b3dd382e5a5 0
@@ -147,7 +152,7 @@ accompanying artifacts.
 ## Understanding the `fabtoken.js` application
 
 You can examine the `fabtoken.js` file to get a better understanding of how the
-sample application uses the FabToken API's.
+sample application uses the FabToken APIs.
 
 
 1. The `createFabricClient` method creates an instance of the fabric-client, and is
@@ -170,8 +175,8 @@ object. Make sure the client has set the user context. Below is the code snippet
 4. The `issue` method creates an issue request and submits the request to issue tokens to
 your network.
 
-5. The `list` method submits the request to list tokens from a
-given owner, and is used to recover the tokenID if a token is being transfered or redeemed.
+5. The `list` method submits the request to list tokens of a
+given owner. You will need the token IDs returned from this method to transfer or redeem tokens.
 
 6. The `transfer` method creates a transfer request and submits the request to transfer tokens
 between users.

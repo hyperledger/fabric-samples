@@ -32,7 +32,7 @@ Next, use the FabToken application to interact with the Fabric network.
     node fabtoken
       - when no argument is passed, it will run a demo with predefined token operations
     node fabtoken issue <username> <token_type> <quantity>
-      - example 1: node fabtoken issue user1 USD 100
+      - example: node fabtoken issue user1 USD 100
     node fabtoken list <username>
       - example: node fabtoken list user1
       - select a token to transfer or redeem and pass "tx_id" and "index" as input parameters
