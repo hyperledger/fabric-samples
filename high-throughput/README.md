@@ -120,15 +120,15 @@ and run some invocations are provided below.
 4. Open a new terminal window and enter the CLI container using `docker exec -it cli bash`, all operations on the network will happen within
    this container from now on.
 
-### Install and instantiate the chaincode
+### Install and define the chaincode
 1. Once you're in the CLI container run `cd scripts` to enter the `scripts` folder
 2. Set-up the environment variables by running `source setclienv.sh`
 3. Set-up your channels and anchor peers by running `./channel-setup.sh`
-4. Install your chaincode by running `./install-chaincode.sh 1.0`. The only argument is a number representing the chaincode version, every time
-   you want to install and upgrade to a new chaincode version simply increment this value by 1 when running the command, e.g. `./install-chaincode.sh 2.0`
-5. Instantiate your chaincode by running `./instantiate-chaincode.sh 1.0`. The version argument serves the same purpose as in `./install-chaincode.sh 1.0`
-   and should match the version of the chaincode you just installed. In the future, when upgrading the chaincode to a newer version,
-   `./upgrade-chaincode.sh 2.0` should be used instead of `./instantiate-chaincode.sh 1.0`.
+4. Package and install your chaincode by running `./install-chaincode.sh 1`. The only argument is a number representing the    chaincode version, every time
+   you want to install and upgrade to a new chaincode version simply increment this value by 1 when running the command, e.g. `./install-chaincode.sh 2`
+5. Define your chaincode on the channel by running `./approve-commit-chaincode.sh 1`. The version argument serves the same purpose as in `./install-chaincode.sh 1`
+   and should match the version of the chaincode you just installed. This script also invokes the chaincode `Init` function to start the chaincode container.
+   You can also upgrade the chaincode to a newer version by running `./approve-commit-chaincode.sh 2`.
 6. Your chaincode is now installed and ready to receive invocations
 
 ### Invoke the chaincode
