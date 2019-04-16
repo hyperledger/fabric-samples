@@ -168,7 +168,7 @@ function generateChannelArtifacts() {
 
   echo "#########  Generating Orderer Genesis block ##############"
   mkdir channel-artifacts
-  configtxgen -profile IRSNetGenesis -outputBlock ./channel-artifacts/genesis.block
+  configtxgen -profile IRSNetGenesis -outputBlock ./channel-artifacts/genesis.block -channelID system-channel
   res=$?
   if [ $res -ne 0 ]; then
     echo "Failed to generate orderer genesis block..."
