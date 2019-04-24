@@ -31,7 +31,7 @@ class CommercialPaperContext extends Context {
 class CommercialPaperContract extends Contract {
 
     constructor() {
-        // Unique namespace when multiple contracts per chaincode file
+        // Unique name when multiple contracts per chaincode file
         super('org.papernet.commercialpaper');
     }
 
@@ -111,7 +111,7 @@ class CommercialPaperContract extends Contract {
         if (paper.isTrading()) {
             paper.setOwner(newOwner);
         } else {
-            throw new Error('Paper ' + issuer + paperNumber + ' is not trading. Current state = ' + cp.getCurrentState());
+            throw new Error('Paper ' + issuer + paperNumber + ' is not trading. Current state = ' +paper.getCurrentState());
         }
 
         // Update the paper

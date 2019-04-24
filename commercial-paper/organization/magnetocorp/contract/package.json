@@ -1,6 +1,6 @@
 {
-    "name": "papernet-js",
-    "version": "0.0.1",
+    "name": "papercontract",
+    "version": "0.0.3",
     "description": "Papernet Contract",
     "main": "index.js",
     "engines": {
