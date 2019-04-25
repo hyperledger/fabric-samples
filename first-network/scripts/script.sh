@@ -14,11 +14,13 @@ DELAY="$2"
 LANGUAGE="$3"
 TIMEOUT="$4"
 VERBOSE="$5"
+NO_CHAINCODE="$6"
 : ${CHANNEL_NAME:="mychannel"}
 : ${DELAY:="3"}
 : ${LANGUAGE:="golang"}
 : ${TIMEOUT:="10"}
 : ${VERBOSE:="false"}
+: ${NO_CHAINCODE:="false"}
 LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=10
@@ -82,61 +84,65 @@ updateAnchorPeers 0 1
 echo "Updating anchor peers for org2..."
 updateAnchorPeers 0 2
 
-## at first we package the chaincode
-packageChaincode 1 0 1
+if [ "${NO_CHAINCODE}" != "true" ]; then
 
-## Install chaincode on peer0.org1 and peer0.org2
-echo "Installing chaincode on peer0.org1..."
-installChaincode 0 1
-echo "Install chaincode on peer0.org2..."
-installChaincode 0 2
+	## at first we package the chaincode
+	packageChaincode 1 0 1
 
-## query whether the chaincode is installed
-queryInstalled 0 1
+	## Install chaincode on peer0.org1 and peer0.org2
+	echo "Installing chaincode on peer0.org1..."
+	installChaincode 0 1
+	echo "Install chaincode on peer0.org2..."
+	installChaincode 0 2
 
-## approve the definition for org1
-approveForMyOrg 1 0 1
+	## query whether the chaincode is installed
+	queryInstalled 0 1
 
-## query the approval status on both orgs, expect org1 to have approved and org2 not to
-queryStatus 1 0 1 "\"Org1MSP\": true" "\"Org2MSP\": false"
-queryStatus 1 0 2 "\"Org1MSP\": true" "\"Org2MSP\": false"
+	## approve the definition for org1
+	approveForMyOrg 1 0 1
 
-## now approve also for org2
-approveForMyOrg 1 0 2
+	## query the approval status on both orgs, expect org1 to have approved and org2 not to
+	queryStatus 1 0 1 "\"Org1MSP\": true" "\"Org2MSP\": false"
+	queryStatus 1 0 2 "\"Org1MSP\": true" "\"Org2MSP\": false"
 
-## query the approval status on both orgs, expect them both to have approved
-queryStatus 1 0 1 "\"Org1MSP\": true" "\"Org2MSP\": true"
-queryStatus 1 0 2 "\"Org1MSP\": true" "\"Org2MSP\": true"
+	## now approve also for org2
+	approveForMyOrg 1 0 2
 
-## now that we know for sure both orgs have approved, commit the definition
-commitChaincodeDefinition 1 0 1 0 2
+	## query the approval status on both orgs, expect them both to have approved
+	queryStatus 1 0 1 "\"Org1MSP\": true" "\"Org2MSP\": true"
+	queryStatus 1 0 2 "\"Org1MSP\": true" "\"Org2MSP\": true"
 
-## query on both orgs to see that the definition committed ok
-queryCommitted 1 0 1
-queryCommitted 1 0 2
+	## now that we know for sure both orgs have approved, commit the definition
+	commitChaincodeDefinition 1 0 1 0 2
 
-# invoke init
-chaincodeInvoke 1 0 1 0 2
+	## query on both orgs to see that the definition committed ok
+	queryCommitted 1 0 1
+	queryCommitted 1 0 2
 
-# Query chaincode on peer0.org1
-echo "Querying chaincode on peer0.org1..."
-chaincodeQuery 0 1 100
+	# invoke init
+	chaincodeInvoke 1 0 1 0 2
 
-# Invoke chaincode on peer0.org1 and peer0.org2
-echo "Sending invoke transaction on peer0.org1 peer0.org2..."
-chaincodeInvoke 0 0 1 0 2
+	# Query chaincode on peer0.org1
+	echo "Querying chaincode on peer0.org1..."
+	chaincodeQuery 0 1 100
 
-# Query chaincode on peer0.org1
-echo "Querying chaincode on peer0.org1..."
-chaincodeQuery 0 1 90
+	# Invoke chaincode on peer0.org1 and peer0.org2
+	echo "Sending invoke transaction on peer0.org1 peer0.org2..."
+	chaincodeInvoke 0 0 1 0 2
 
-## Install chaincode on peer1.org2
-echo "Installing chaincode on peer1.org2..."
-installChaincode 1 2
+	# Query chaincode on peer0.org1
+	echo "Querying chaincode on peer0.org1..."
+	chaincodeQuery 0 1 90
 
-# Query on chaincode on peer1.org2, check if the result is 90
-echo "Querying chaincode on peer1.org2..."
-chaincodeQuery 1 2 90
+	## Install chaincode on peer1.org2
+	echo "Installing chaincode on peer1.org2..."
+	installChaincode 1 2
+
+	# Query on chaincode on peer1.org2, check if the result is 90
+	echo "Querying chaincode on peer1.org2..."
+	chaincodeQuery 1 2 90
+	
+fi
 
 echo
 echo "========= All GOOD, BYFN execution completed =========== "
