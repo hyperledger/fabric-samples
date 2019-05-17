@@ -19,13 +19,14 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as util from 'util';
 import config from '../config';
-import hfc = require('fabric-client');
+import Client = require('fabric-client');
+import { User, UserOpts, Channel } from 'fabric-client';
 // tslint:disable-next-line:no-var-requires
 const copService = require('fabric-ca-client');
 
 const logger = log4js.getLogger('Helper');
 logger.setLevel('DEBUG');
-hfc.setLogger(logger);
+Client.setLogger(logger);
 
 let ORGS: any;
 const clients = {};
@@ -44,7 +45,7 @@ function readAllFiles(dir: string) {
 }
 
 function getKeyStoreForOrg(org: string) {
-    return hfc.getConfigSetting('keyValueStore') + '_' + org;
+    return Client.getConfigSetting('keyValueStore') + '_' + org;
 }
 
 function setupPeers(channel: any, org: string, client: Client) {
@@ -87,7 +88,7 @@ function getMspID(org: string) {
 
 function newRemotes(names: string[], forPeers: boolean, userOrg: string) {
     const client = getClientForOrg(userOrg);
-
+    const channel = getChannelForOrg(userOrg);
     const targets: any[] = [];
     // find the peer that match the names
     names.forEach((n) => {
@@ -100,11 +101,11 @@ function newRemotes(names: string[], forPeers: boolean, userOrg: string) {
                 'ssl-target-name-override': ORGS[userOrg].peers[n]['server-hostname']
             };
 
+            const peer = client.newPeer(ORGS[userOrg].peers[n].requests, grpcOpts);
             if (forPeers) {
-                targets.push(client.newPeer(ORGS[userOrg].peers[n].requests, grpcOpts));
+                targets.push(peer);
             } else {
-                const eh = client.newEventHub();
-                eh.setPeerAddr(ORGS[userOrg].peers[n].events, grpcOpts);
+                const eh = channel.newChannelEventHub(peer);
                 targets.push(eh);
             }
         }
@@ -118,13 +119,13 @@ function newRemotes(names: string[], forPeers: boolean, userOrg: string) {
 }
 
 async function getAdminUser(userOrg: string): Promise<User> {
-    const users = hfc.getConfigSetting('admins');
+    const users = Client.getConfigSetting('admins');
     const username = users[0].username;
     const password = users[0].secret;
 
     const client = getClientForOrg(userOrg);
 
-    const store = await hfc.newDefaultKeyValueStore({
+    const store = await Client.newDefaultKeyValueStore({
         path: getKeyStoreForOrg(getOrgName(userOrg))
     });
 
@@ -145,13 +146,14 @@ async function getAdminUser(userOrg: string): Promise<User> {
     });
 
     logger.info('Successfully enrolled user \'' + username + '\'');
-    const userOptions: UserOptions = {
+    const userOptions: UserOpts = {
         username,
         mspid: getMspID(userOrg),
         cryptoContent: {
             privateKeyPEM: enrollment.key.toBytes(),
             signedCertPEM: enrollment.certificate
-        }
+        },
+        skipPersistence: false
     };
 
     const member = await client.createUser(userOptions);
@@ -167,7 +169,7 @@ export function newEventHubs(names: string[], org: string) {
 }
 
 export function setupChaincodeDeploy() {
-    process.env.GOPATH = path.join(__dirname, hfc.getConfigSetting('CC_SRC_PATH'));
+    process.env.GOPATH = path.join(__dirname, Client.getConfigSetting('CC_SRC_PATH'));
 }
 
 export function getOrgs() {
@@ -184,26 +186,26 @@ export function getChannelForOrg(org: string): Channel {
 
 export function init() {
 
-    hfc.addConfigFile(path.join(__dirname, config.networkConfigFile));
-    hfc.addConfigFile(path.join(__dirname, '../app_config.json'));
+    Client.addConfigFile(path.join(__dirname, config.networkConfigFile));
+    Client.addConfigFile(path.join(__dirname, '../app_config.json'));
 
-    ORGS = hfc.getConfigSetting('network-config');
+    ORGS = Client.getConfigSetting('network-config');
 
     // set up the client and channel objects for each org
     for (const key in ORGS) {
         if (key.indexOf('org') === 0) {
-            const client = new hfc();
+            const client = new Client();
 
-            const cryptoSuite = hfc.newCryptoSuite();
+            const cryptoSuite = Client.newCryptoSuite();
             // TODO: Fix it up as setCryptoKeyStore is only available for s/w impl
             (cryptoSuite as any).setCryptoKeyStore(
-                hfc.newCryptoKeyStore({
+                Client.newCryptoKeyStore({
                     path: getKeyStoreForOrg(ORGS[key].name)
                 }));
 
             client.setCryptoSuite(cryptoSuite);
 
-            const channel = client.newChannel(hfc.getConfigSetting('channelName'));
+            const channel = client.newChannel(Client.getConfigSetting('channelName'));
             channel.addOrderer(newOrderer(client));
 
             clients[key] = client;
@@ -223,7 +225,7 @@ export async function getRegisteredUsers(
 
     const client = getClientForOrg(userOrg);
 
-    const store = await hfc.newDefaultKeyValueStore({
+    const store = await Client.newDefaultKeyValueStore({
         path: getKeyStoreForOrg(getOrgName(userOrg))
     });
 
@@ -259,13 +261,14 @@ export async function getRegisteredUsers(
     }
     logger.debug(username + ' enrolled successfully');
 
-    const userOptions: UserOptions = {
+    const userOptions: UserOpts = {
         username,
         mspid: getMspID(userOrg),
         cryptoContent: {
             privateKeyPEM: message.key.toBytes(),
             signedCertPEM: message.certificate
-        }
+        },
+        skipPersistence: false
     };
 
     const member = await client.createUser(userOptions);
@@ -286,15 +289,15 @@ export async function getOrgAdmin(userOrg: string): Promise<User> {
     const certPEM = readAllFiles(certPath)[0].toString();
 
     const client = getClientForOrg(userOrg);
-    const cryptoSuite = hfc.newCryptoSuite();
+    const cryptoSuite = Client.newCryptoSuite();
 
     if (userOrg) {
         (cryptoSuite as any).setCryptoKeyStore(
-            hfc.newCryptoKeyStore({ path: getKeyStoreForOrg(getOrgName(userOrg)) }));
+            Client.newCryptoKeyStore({ path: getKeyStoreForOrg(getOrgName(userOrg)) }));
         client.setCryptoSuite(cryptoSuite);
     }
 
-    const store = await hfc.newDefaultKeyValueStore({
+    const store = await Client.newDefaultKeyValueStore({
         path: getKeyStoreForOrg(getOrgName(userOrg))
     });
 
@@ -306,6 +309,7 @@ export async function getOrgAdmin(userOrg: string): Promise<User> {
         cryptoContent: {
             privateKeyPEM: keyPEM,
             signedCertPEM: certPEM
-        }
+        },
+        skipPersistence: false
     });
 }

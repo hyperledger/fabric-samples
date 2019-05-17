@@ -51,21 +51,13 @@ function installNodeModules() {
 		echo "============== Installing node modules ============="
 		npm install
 	fi
-	copyIndex fabric-client/index.d.ts
-	copyIndex fabric-ca-client/index.d.ts
 	echo
 }
 
-function copyIndex() {
-	if [ ! -f node_modules/$1 ]; then
-		cp types/$1 node_modules/$1
-	fi
-}
-	
 restartNetwork
 
 installNodeModules
 
 
 
-PORT=4000 ts-node app.ts
+PORT=4000 `npm bin`/ts-node app.ts
