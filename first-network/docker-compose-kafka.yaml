@@ -30,7 +30,7 @@ services:
     - zookeeper.example.com
     environment:
       - KAFKA_BROKER_ID=1
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper.example.com:2181
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper.example.com:32181
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka.example.com:9092
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
       - KAFKA_MESSAGE_MAX_BYTES=1048576 # 1 * 1024 * 1024 B
