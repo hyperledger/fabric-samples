@@ -9,7 +9,7 @@ const { FileSystemWallet, X509WalletMixin } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
 
-const ccpPath = path.resolve(__dirname, '..', '..', 'basic-network', 'connection.json');
+const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', 'connection-org1.json');
 const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
 const ccp = JSON.parse(ccpJSON);
 
@@ -17,8 +17,10 @@ async function main() {
     try {
 
         // Create a new CA client for interacting with the CA.
-        const caURL = ccp.certificateAuthorities['ca.example.com'].url;
-        const ca = new FabricCAServices(caURL);
+        const caInfo = ccp.certificateAuthorities['ca.org1.example.com'];
+        const caTLSCACertsPath = path.resolve(__dirname, '..', '..', 'first-network', caInfo.tlsCACerts.path);
+        const caTLSCACerts = fs.readFileSync(caTLSCACertsPath);
+        const ca = new FabricCAServices(caInfo.url, { trustedRoots: caTLSCACerts, verify: false }, caInfo.caName);
 
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), 'wallet');
