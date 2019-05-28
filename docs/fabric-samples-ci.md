@@ -12,12 +12,12 @@ Please see the pipeline job configuration template here https://ci-docs.readthed
   of the patchset and runs the below tests from the `Jenkinsfile`. Note: when you are ready
   to merge the patchset, it's always a best practice to rebase the patchset on the latest commit.
 
-All the below tests runs on the Hyperledger infarstructure x86_64 build nodes. All these nodes
+All the below tests runs on the Hyperledger infrastructure x86_64 build nodes. All these nodes
 uses the packer with pre-configured software packages. This helps us to run the tests in much
 faster than installing required packages everytime.
 
 Below steps shows what each stage does in the Jenkins pipeline verify and merge flow.
-Before execute the below tests, it clean the environment (Deletes the left over build artifiacts)
+Before execute the below tests, it clean the environment (Deletes the left over build artifacts)
 and clone the repository with the Gerrit Refspec.
 
 ![](pipeline_flow.png)
@@ -36,7 +36,7 @@ Once the artifacts stage is ready, Jenkins executes the below tests
 - byfn & eyfn tests
    - on default channel
    - Custom channel with couchdb
-   - on node chanincode
+   - on node chaincode
 
 - fabcar tests
    - go
@@ -57,7 +57,7 @@ comment phrases to re-trigger the failed merge job.
 
 #### Where should I see the output of the stages?
 
-Piepline supports two views (stages and blueocean). **Staged views** shows on the Jenkins job
+Pipeline supports two views (stages and blueocean). **Staged views** shows on the Jenkins job
 main page and it shows each stage in order and the status. For better view, we suggest you
 to access BlueOcean plugin. Click on the build number and click on the **Open Blue Ocean**
 link that shows the build stages in pipeline view.
@@ -66,19 +66,19 @@ link that shows the build stages in pipeline view.
 
 We use scripted pipeline syntax with groovy and shell scripts. Also, we use global shared
 library scripts which are placed in https://github.com/hyperledger/ci-management/tree/master/vars.
-Try to leverage these common functions in your code. All you have to do is, undestand the pipeline
+Try to leverage these common functions in your code. All you have to do is, understand the pipeline
 flow of the tests and conditions, add more stages as mentioned in the existing Jenkinsfile.
 
 #### How will I get build failure notifications?
 
-On every merge failure, we send build failure email notications to the submitter of the
+On every merge failure, we send build failure email notifications to the submitter of the
 patchset and sends the build details to the Rocket Chat **jenkins-robot** channel. Check the
 result here https://chat.hyperledger.org/channel/jenkins-robot
 
 #### What steps I have to modify when I create a new branch from master?
 
-As the Jenkinsfile is completely parametrzed, you no need to modify anything in the
-Jenkinsfile but you may endup modifying **ci.properties** file with the appropirate
+As the Jenkinsfile is completely parameterized, you no need to modify anything in the
+Jenkinsfile but you may endup modifying **ci.properties** file with the appropriate
 Base Versions, Baseimage versions etc... in the new branch. We suggest you to modify this
 file immediately after you create a new branch to avoid running tests on older versions.
 
@@ -96,7 +96,7 @@ Global Shared Library - https://github.com/hyperledger/ci-management/tree/master
 Jenkinsfile           - https://github.com/hyperledger/fabric-samples/tree/master/Jenkinsfile
 
 ci.properties         - https://github.com/hyperledger/fabric-samples/tree/master/ci.properties
-(ci.properties is the only file you have to modify with the values requried for the specific branch.)
+(ci.properties is the only file you have to modify with the values required for the specific branch.)
 
 Packer Scripts        - https://github.com/hyperledger/ci-management/blob/master/packer/provision/docker.sh
 (Packer is a tool for automatically creating VM and container images, configuring them and
