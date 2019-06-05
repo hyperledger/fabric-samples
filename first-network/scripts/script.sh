@@ -23,7 +23,7 @@ NO_CHAINCODE="$6"
 : ${NO_CHAINCODE:="false"}
 LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
-MAX_RETRY=15
+MAX_RETRY=20
 PACKAGE_ID=""
 
 if [ "$LANGUAGE" = "node" ]; then
