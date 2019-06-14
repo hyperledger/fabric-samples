@@ -74,24 +74,24 @@ Terminal 2 - Build & start the chaincode
 
 .. code:: bash
 
-  docker exec -it chaincode bash
+  docker exec -it chaincode sh
 
 You should see the following:
 
-.. code:: bash
+.. code:: sh
 
-  root@d2629980e76b:/opt/gopath/src/chaincode#
+  /opt/gopath/src/chaincode $
 
 Now, compile your chaincode:
 
-.. code:: bash
+.. code:: sh
 
   cd chaincode_example02/go
   go build -o chaincode_example02
 
 Now run the chaincode:
 
-.. code:: bash
+.. code:: sh
 
   CORE_PEER_ADDRESS=peer:7052 CORE_CHAINCODE_ID_NAME=mycc:0 ./chaincode_example02
 
