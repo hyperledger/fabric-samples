@@ -69,6 +69,8 @@ one for the chaincode environment and a CLI to interact with the chaincode.  The
 commands for create and join channel are embedded in the CLI container, so we
 can jump immediately to the chaincode calls.
 
+.. note:: TLS is not enabled as it is not supported when running chaincode in dev mode.
+
 Terminal 2 - Build & start the chaincode
 ----------------------------------------
 
@@ -93,7 +95,7 @@ Now run the chaincode:
 
 .. code:: bash
 
-  CORE_PEER_ADDRESS=peer:7052 CORE_CHAINCODE_ID_NAME=mycc:0 ./abstore
+  CORE_CHAINCODE_ID_NAME=mycc:0 CORE_PEER_TLS_ENABLED=false ./abstore -peer.address peer:7052
 
 The chaincode is started with peer and chaincode logs indicating successful registration with the peer.
 Note that at this stage the chaincode is not associated with any channel. This is done in subsequent steps
