@@ -73,13 +73,13 @@ approveChaincode() {
 	done
 }
 
-queryApproved() {
+simulateCommitChaincode() {
 	for org in partya partyb partyc auditor rrprovider
 	do
 		export CORE_PEER_LOCALMSPID=$org
 		export CORE_PEER_ADDRESS=irs-$org:7051
 		export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/$org.example.com/users/Admin@$org.example.com/msp
-		queryStatus "\"partya\": true" "\"partyb\": true" "\"partyc\": true" "\"auditor\": true" "\"rrprovider\": true"
+		simulateCommit "\"partya\": true" "\"partyb\": true" "\"partyc\": true" "\"auditor\": true" "\"rrprovider\": true"
 	done
 }
 
@@ -162,11 +162,11 @@ queryPackage
 echo "Approving chaincode..."
 approveChaincode
 
-. scripts/query-status.sh
+. scripts/simulate-commit.sh
 
-# Query approval status
-echo "querying approval status..."
-queryApproved
+# Simulate committing the chaincode definition
+echo "Simulate committing the chaincode definition..."
+simulateCommitChaincode
 
 # Commit chaincode definition
 echo "Committing chaincode definition..."

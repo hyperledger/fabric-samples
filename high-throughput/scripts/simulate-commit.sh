@@ -35,13 +35,13 @@ setGlobals() {
   fi
 }
 
-queryStatus() {
+simulateCommitChaincodeDefinition() {
   VERSION=$1
   PEER=$2
   ORG=$3
   shift 3
   setGlobals $PEER $ORG
-  echo "===================== Querying approval status on peer${PEER}.org${ORG} ===================== "
+  echo "===================== Simulating the commit of the chaincode definition on peer${PEER}.org${ORG} ===================== "
   local rc=1
   local starttime=$(date +%s)
 
@@ -51,9 +51,9 @@ queryStatus() {
     test "$(($(date +%s) - starttime))" -lt "$TIMEOUT" -a $rc -ne 0
   do
     sleep $DELAY
-    echo "Attempting to Query approval status on peer${PEER}.org${ORG} ...$(($(date +%s) - starttime)) secs"
+    echo "Attempting to simulate committing the chaincode definition on peer${PEER}.org${ORG} ...$(($(date +%s) - starttime)) secs"
     set -x
-    peer lifecycle chaincode queryapprovalstatus --channelID $CHANNEL_NAME --name $CC_NAME --signature-policy "OR('Org1MSP.peer', 'Org2MSP.peer')" --version ${VERSION} --init-required --sequence ${VERSION} >&log.txt
+    peer lifecycle chaincode simulatecommit --channelID $CHANNEL_NAME --name $CC_NAME --signature-policy "OR('Org1MSP.peer', 'Org2MSP.peer')" --version ${VERSION} --init-required --sequence ${VERSION} >&log.txt
     res=$?
     set +x
     test $res -eq 0 || continue
@@ -66,9 +66,9 @@ queryStatus() {
   echo
   cat log.txt
   if test $rc -eq 0; then
-    echo "===================== Query approval status successful on peer${PEER}.org${ORG} ===================== "
+    echo "===================== Simulating the commit of the chaincode definition successful on peer${PEER}.org${ORG} ===================== "
   else
-    echo "!!!!!!!!!!!!!!! Query approval status result on peer${PEER}.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
+    echo "!!!!!!!!!!!!!!! Simulate commit chaincode definition result on peer${PEER}.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
     echo "================== ERROR !!! FAILED to execute End-2-End Scenario =================="
     echo
     exit 1
