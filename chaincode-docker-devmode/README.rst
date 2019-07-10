@@ -76,24 +76,24 @@ Terminal 2 - Build & start the chaincode
 
 .. code:: bash
 
-  docker exec -it chaincode bash
+  docker exec -it chaincode sh
 
 You should see the following:
 
-.. code:: bash
+.. code:: sh
 
-  root@d2629980e76b:/opt/gopath/src/chaincode#
+  /opt/gopath/src/chaincode $
 
 Now, compile your chaincode:
 
-.. code:: bash
+.. code:: sh
 
   cd abstore/go
   go build -o abstore
 
 Now run the chaincode:
 
-.. code:: bash
+.. code:: sh
 
   CORE_CHAINCODE_ID_NAME=mycc:0 CORE_PEER_TLS_ENABLED=false ./abstore -peer.address peer:7052
 
