@@ -11,8 +11,9 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/hyperledger/fabric/protos/msp"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric/core/chaincode/shim/shimtest"
+	"github.com/hyperledger/fabric/protos/msp"
 )
 
 // Cert with attribute. "abac.init":"true"
@@ -36,7 +37,7 @@ w8Ou1Sh9IjeXj/SDAA==
 -----END CERTIFICATE-----
 `
 
-func checkInit(t *testing.T, stub *shim.MockStub, args [][]byte) {
+func checkInit(t *testing.T, stub *shimtest.MockStub, args [][]byte) {
 	res := stub.MockInit("1", args)
 	if res.Status != shim.OK {
 		fmt.Println("Init failed", string(res.Message))
@@ -44,7 +45,7 @@ func checkInit(t *testing.T, stub *shim.MockStub, args [][]byte) {
 	}
 }
 
-func checkState(t *testing.T, stub *shim.MockStub, name string, value string) {
+func checkState(t *testing.T, stub *shimtest.MockStub, name string, value string) {
 	bytes := stub.State[name]
 	if bytes == nil {
 		fmt.Println("State", name, "failed to get value")
@@ -56,7 +57,7 @@ func checkState(t *testing.T, stub *shim.MockStub, name string, value string) {
 	}
 }
 
-func checkQuery(t *testing.T, stub *shim.MockStub, name string, value string) {
+func checkQuery(t *testing.T, stub *shimtest.MockStub, name string, value string) {
 	res := stub.MockInvoke("1", [][]byte{[]byte("query"), []byte(name)})
 	if res.Status != shim.OK {
 		fmt.Println("Query", name, "failed", string(res.Message))
@@ -72,7 +73,7 @@ func checkQuery(t *testing.T, stub *shim.MockStub, name string, value string) {
 	}
 }
 
-func checkInvoke(t *testing.T, stub *shim.MockStub, args [][]byte) {
+func checkInvoke(t *testing.T, stub *shimtest.MockStub, args [][]byte) {
 	res := stub.MockInvoke("1", args)
 	if res.Status != shim.OK {
 		fmt.Println("Invoke", args, "failed", string(res.Message))
@@ -80,7 +81,7 @@ func checkInvoke(t *testing.T, stub *shim.MockStub, args [][]byte) {
 	}
 }
 
-func setCreator(t *testing.T, stub *shim.MockStub, mspID string, idbytes []byte) {
+func setCreator(t *testing.T, stub *shimtest.MockStub, mspID string, idbytes []byte) {
 	sid := &msp.SerializedIdentity{Mspid: mspID, IdBytes: idbytes}
 	b, err := proto.Marshal(sid)
 	if err != nil {
@@ -91,7 +92,7 @@ func setCreator(t *testing.T, stub *shim.MockStub, mspID string, idbytes []byte)
 
 func TestAbac_Init(t *testing.T) {
 	scc := new(SimpleChaincode)
-	stub := shim.NewMockStub("abac", scc)
+	stub := shimtest.NewMockStub("abac", scc)
 
 	setCreator(t, stub, "org1MSP", []byte(certWithAttrs))
 
@@ -104,7 +105,7 @@ func TestAbac_Init(t *testing.T) {
 
 func TestAbac_Query(t *testing.T) {
 	scc := new(SimpleChaincode)
-	stub := shim.NewMockStub("abac", scc)
+	stub := shimtest.NewMockStub("abac", scc)
 
 	setCreator(t, stub, "org1MSP", []byte(certWithAttrs))
 
@@ -120,7 +121,7 @@ func TestAbac_Query(t *testing.T) {
 
 func TestAbac_Invoke(t *testing.T) {
 	scc := new(SimpleChaincode)
-	stub := shim.NewMockStub("abac", scc)
+	stub := shimtest.NewMockStub("abac", scc)
 
 	setCreator(t, stub, "org1MSP", []byte(certWithAttrs))
 
