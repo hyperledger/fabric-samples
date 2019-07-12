@@ -78,7 +78,7 @@ services:
       - CORE_PEER_LOCALMSPID=DEFAULT
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp
     working_dir: /opt/gopath/src/chaincode
-    command: /bin/bash -c 'sleep 6000000'
+    command: /bin/sh -c 'sleep 6000000'
     volumes:
         - /var/run/:/host/var/run/
         - ./msp:/etc/hyperledger/msp
