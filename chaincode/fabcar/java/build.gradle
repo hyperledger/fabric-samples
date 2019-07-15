@@ -1,0 +1,81 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+plugins {
+    id 'checkstyle'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id 'java-library'
+    id 'jacoco'
+}
+
+group 'org.hyperledger.fabric.samples'
+version '1.0-SNAPSHOT'
+
+dependencies {
+    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.0.0-SNAPSHOT'
+    implementation 'com.owlike:genson:1.5'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
+    testImplementation 'org.assertj:assertj-core:3.11.1'
+    testImplementation 'org.mockito:mockito-core:2.+'
+}
+
+repositories {
+    maven {
+        url "https://nexus.hyperledger.org/content/repositories/snapshots/"
+    }
+    jcenter()
+    maven { 
+        url 'https://jitpack.io' 
+    }
+}
+
+checkstyle {
+    toolVersion '8.21'
+    configFile file("config/checkstyle/checkstyle.xml")
+}
+
+checkstyleMain {
+    source ='src/main/java'
+}
+
+checkstyleTest {
+    source ='src/test/java'
+}
+
+shadowJar {
+    baseName = 'chaincode'
+    version = null
+    classifier = null
+    manifest {
+        attributes 'Main-Class': 'org.hyperledger.fabric.contract.ContractRouter'
+    }
+}
+
+jacocoTestCoverageVerification {
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it, exclude:  [
+                    'org/hyperledger/fabric/samples/fabcar/Start.*'
+            ])
+        })
+    }
+    violationRules {
+        rule {
+            limit {
+                minimum = 1.0
+            }
+        }
+    }
+    
+    finalizedBy jacocoTestReport
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification
