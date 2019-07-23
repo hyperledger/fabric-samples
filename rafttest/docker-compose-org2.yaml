@@ -1,0 +1,49 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer0.org2.example.com:
+  peer0.org2.example.com:
+  peer1.org2.example.com:
+
+networks:
+  byfn:
+
+services:
+
+  orderer0.org2.example.com:
+    environment:
+      - ORDERER_GENERAL_LOCALMSPID=Org2MSP
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer0.org2.example.com
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/last_config.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/peerOrganizations/org2.example.com/peers/orderer0.org2.example.com/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/peerOrganizations/org2.example.com/peers/orderer0.org2.example.com/tls/:/var/hyperledger/orderer/tls
+        - orderer0.org2.example.com:/var/hyperledger/production/orderer
+    ports:
+    - 9050:7050
+  
+  peer0.org2.example.com:
+    container_name: peer0.org2.example.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.org2.example.com
+    networks:
+      - byfn
+
+  peer1.org2.example.com:
+    container_name: peer1.org2.example.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.org2.example.com
+    networks:
+      - byfn
