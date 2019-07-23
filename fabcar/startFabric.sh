@@ -171,4 +171,19 @@ TypeScript:
   return all cars, but you can update the application to evaluate other transactions:
     node dist/query
 
+Java:
+
+  Start by changing into the "java" directory:
+    cd java
+
+  Then, install dependencies and run the test using:
+    mvn test
+
+The test will invoke the sample client app which perform the following:
+  - Enroll admin and user1 and import them into the wallet (if they don't already exist there)
+  - Submit a transaction to create a new car
+  - Evaluate a transaction (query) to return details of this car
+  - Submit a transaction to change the owner of this car
+  - Evaluate a transaction (query) to return the updated details of this car
+
 EOF

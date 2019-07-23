@@ -367,6 +367,8 @@ function generateCerts() {
     exit 1
   fi
   echo
+  echo "Generate CCP files for Org1 and Org2"
+  ./ccp-generate.sh
 }
 
 # The `configtxgen tool is used to create four artifacts: orderer **bootstrap
