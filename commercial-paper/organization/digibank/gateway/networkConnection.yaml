@@ -26,6 +26,9 @@ description: "The basic network"
 #
 version: "1.0"
 
+client:
+  organization: Org1
+
 #
 # [Optional]. But most apps would have this section so that channel objects can be constructed
 # based on the content below. If an app is creating channels, then it likely will not need this

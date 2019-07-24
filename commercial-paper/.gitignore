@@ -6,3 +6,5 @@ organization/digibank/contract/node_modules/
 organization/digibank/identity/user/
 package-lock.json
 .vscode
+/target/
+bin/
