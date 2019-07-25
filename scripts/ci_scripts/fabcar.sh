@@ -3,18 +3,13 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-# docker container list - Check these from basic-network/docker-compose.yaml
-CONTAINER_LIST=(peer0.org1 orderer ca)
-
 logs() {
-
-for CONTAINER in ${CONTAINER_LIST[*]}; do
-    docker logs $CONTAINER.example.com >& $WORKSPACE/$CONTAINER-$1.log
-    echo
-done
-# Write couchdb container logs into couchdb.log file
-docker logs couchdb >& couchdb.log
-
+    LOG_DIRECTORY=$WORKSPACE/fabcar/$1
+    mkdir -p ${LOG_DIRECTORY}
+    CONTAINER_LIST=$(docker ps -a --format '{{.Names}}')
+    for CONTAINER in ${CONTAINER_LIST}; do
+        docker logs ${CONTAINER} > ${LOG_DIRECTORY}/${CONTAINER}.log 2>&1
+    done
 }
 
 copy_logs() {
@@ -65,5 +60,7 @@ for LANGUAGE in ${LANGUAGES}; do
     fi
     docker ps -aq | xargs docker rm -f
     docker rmi -f $(docker images -aq dev-*)
+    docker volume prune -f
+    docker network prune -f
     echo -e "\033[32m finished fabcar test (${LANGUAGE})" "\033[0m"
 done

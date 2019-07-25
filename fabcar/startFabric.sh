@@ -174,7 +174,7 @@ ${PEER0_ORG1} lifecycle chaincode commit \
   --tlsRootCertFiles ${ORG2_TLS_ROOTCERT_FILE}
 
 echo "Submitting initLedger transaction to smart contract on mychannel"
-echo "The transaction is sent to all of the peers so that chaincode is built before receiving the following requests"
+# echo "The transaction is sent to all of the peers so that chaincode is built before receiving the following requests"
 ${PEER0_ORG1} chaincode invoke \
   -C mychannel \
   -n fabcar \
@@ -182,12 +182,23 @@ ${PEER0_ORG1} chaincode invoke \
   --waitForEvent \
   --waitForEventTimeout 300s \
   --peerAddresses peer0.org1.example.com:7051 \
-  --peerAddresses peer1.org1.example.com:8051 \
   --peerAddresses peer0.org2.example.com:9051 \
+  --tlsRootCertFiles ${ORG1_TLS_ROOTCERT_FILE} \
+  --tlsRootCertFiles ${ORG2_TLS_ROOTCERT_FILE}
+
+# Temporary workaround (see FAB-15897) - cannot invoke across all four peers at the same time, so use a query to build
+# the chaincode across the remaining peers.
+${PEER1_ORG1} chaincode query \
+  -C mychannel \
+  -n fabcar \
+  -c '{"function":"queryAllCars","Args":[]}' \
+  --peerAddresses peer1.org1.example.com:8051 \
+  --tlsRootCertFiles ${ORG1_TLS_ROOTCERT_FILE}
+${PEER1_ORG2} chaincode query \
+  -C mychannel \
+  -n fabcar \
+  -c '{"function":"queryAllCars","Args":[]}' \
   --peerAddresses peer1.org2.example.com:10051 \
-  --tlsRootCertFiles ${ORG1_TLS_ROOTCERT_FILE} \
-  --tlsRootCertFiles ${ORG1_TLS_ROOTCERT_FILE} \
-  --tlsRootCertFiles ${ORG2_TLS_ROOTCERT_FILE} \
   --tlsRootCertFiles ${ORG2_TLS_ROOTCERT_FILE}
 
 cat <<EOF
