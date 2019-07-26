@@ -73,13 +73,13 @@ approveChaincode() {
 	done
 }
 
-simulateCommitChaincode() {
+checkCommitReadiness() {
 	for org in partya partyb partyc auditor rrprovider
 	do
 		export CORE_PEER_LOCALMSPID=$org
 		export CORE_PEER_ADDRESS=irs-$org:7051
 		export CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/$org.example.com/users/Admin@$org.example.com/msp
-		simulateCommit "\"partya\": true" "\"partyb\": true" "\"partyc\": true" "\"auditor\": true" "\"rrprovider\": true"
+		checkCommitReadiness "\"partya\": true" "\"partyb\": true" "\"partyc\": true" "\"auditor\": true" "\"rrprovider\": true"
 	done
 }
 
@@ -164,9 +164,9 @@ approveChaincode
 
 . scripts/simulate-commit.sh
 
-# Simulate committing the chaincode definition
-echo "Simulate committing the chaincode definition..."
-simulateCommitChaincode
+# Check the commit readiness of the chaincode definition
+echo "Checking the commit readiness of the chaincode definition..."
+checkCommitReadiness
 
 # Commit chaincode definition
 echo "Committing chaincode definition..."

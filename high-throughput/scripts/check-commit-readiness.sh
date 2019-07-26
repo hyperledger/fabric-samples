@@ -35,7 +35,7 @@ setGlobals() {
   fi
 }
 
-simulateCommitChaincodeDefinition() {
+checkCommitReadiness() {
   VERSION=$1
   PEER=$2
   ORG=$3
@@ -51,9 +51,9 @@ simulateCommitChaincodeDefinition() {
     test "$(($(date +%s) - starttime))" -lt "$TIMEOUT" -a $rc -ne 0
   do
     sleep $DELAY
-    echo "Attempting to simulate committing the chaincode definition on peer${PEER}.org${ORG} ...$(($(date +%s) - starttime)) secs"
+    echo "Attempting to check the commit readiness of the chaincode definition on peer${PEER}.org${ORG} ...$(($(date +%s) - starttime)) secs"
     set -x
-    peer lifecycle chaincode simulatecommit --channelID $CHANNEL_NAME --name $CC_NAME --signature-policy "OR('Org1MSP.peer', 'Org2MSP.peer')" --version ${VERSION} --init-required --sequence ${VERSION} >&log.txt
+    peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name $CC_NAME --signature-policy "OR('Org1MSP.peer', 'Org2MSP.peer')" --version ${VERSION} --init-required --sequence ${VERSION} >&log.txt
     res=$?
     set +x
     test $res -eq 0 || continue
@@ -66,9 +66,9 @@ simulateCommitChaincodeDefinition() {
   echo
   cat log.txt
   if test $rc -eq 0; then
-    echo "===================== Simulating the commit of the chaincode definition successful on peer${PEER}.org${ORG} ===================== "
+    echo "===================== Checking the commit readiness of the chaincode definition successful on peer${PEER}.org${ORG} ===================== "
   else
-    echo "!!!!!!!!!!!!!!! Simulate commit chaincode definition result on peer${PEER}.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
+    echo "!!!!!!!!!!!!!!! Check commit readiness result on peer${PEER}.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
     echo "================== ERROR !!! FAILED to execute End-2-End Scenario =================="
     echo
     exit 1
