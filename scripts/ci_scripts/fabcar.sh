@@ -26,7 +26,7 @@ fi
 cd $WORKSPACE/$BASE_DIR/fabcar || exit
 export PATH=gopath/src/github.com/hyperledger/fabric-samples/bin:$PATH
 
-LANGUAGES="go javascript typescript"
+LANGUAGES="go java javascript typescript"
 for LANGUAGE in ${LANGUAGES}; do
     echo -e "\033[1m ${LANGUAGE} Test\033[0m"
     echo -e "\033[32m starting fabcar test (${LANGUAGE})" "\033[0m"
@@ -36,26 +36,34 @@ for LANGUAGE in ${LANGUAGES}; do
     # If an application exists for this language, test it
     if [ -d ${LANGUAGE} ]; then
         pushd ${LANGUAGE}
-        if [ ${LANGUAGE} = "javascript" ]; then
-            COMMAND=node
-            PREFIX=
-            SUFFIX=.js
-            npm install
-        elif [ ${LANGUAGE} = "typescript" ]; then
-            COMMAND=node
-            PREFIX=dist/
-            SUFFIX=.js
-            npm install
-            npm run build
+        if [ ${LANGUAGE} = "javascript" -o ${LANGUAGE} = "typescript" ]; then
+            if [ ${LANGUAGE} = "javascript" ]; then
+                COMMAND=node
+                PREFIX=
+                SUFFIX=.js
+                npm install
+            elif [ ${LANGUAGE} = "typescript" ]; then
+                COMMAND=node
+                PREFIX=dist/
+                SUFFIX=.js
+                npm install
+                npm run build
+            fi
+            ${COMMAND} ${PREFIX}enrollAdmin${SUFFIX}
+            copy_logs $? fabcar-${LANGUAGE}-enrollAdmin
+            ${COMMAND} ${PREFIX}registerUser${SUFFIX}
+            copy_logs $? fabcar-${LANGUAGE}-registerUser
+            ${COMMAND} ${PREFIX}query${SUFFIX}
+            copy_logs $? fabcar-${LANGUAGE}-query
+            ${COMMAND} ${PREFIX}invoke${SUFFIX}
+            copy_logs $? fabcar-${LANGUAGE}-invoke
+        elif [ ${LANGUAGE} = "java" ]; then
+            mvn test
+            copy_logs $? fabcar-${LANGUAGE}
+        else
+            echo -e "\033[31m do not know how to handle ${LANGUAGE}" "\033[0m"
+            exit 1
         fi
-        ${COMMAND} ${PREFIX}enrollAdmin${SUFFIX}
-        copy_logs $? fabcar-${LANGUAGE}-enrollAdmin
-        ${COMMAND} ${PREFIX}registerUser${SUFFIX}
-        copy_logs $? fabcar-${LANGUAGE}-registerUser
-        ${COMMAND} ${PREFIX}query${SUFFIX}
-        copy_logs $? fabcar-${LANGUAGE}-query
-        ${COMMAND} ${PREFIX}invoke${SUFFIX}
-        copy_logs $? fabcar-${LANGUAGE}-invoke
         popd
     fi
     docker ps -aq | xargs docker rm -f
