@@ -26,7 +26,7 @@
    </repositories>
    <dependencies>
       <dependency>
-         <groupId>org.hyperledger.fabric</groupId>
+         <groupId>org.hyperledger.fabric-gateway-java</groupId>
          <artifactId>fabric-gateway-java</artifactId>
          <version>1.4.0-SNAPSHOT</version>
       </dependency>
