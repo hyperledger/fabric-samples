@@ -74,7 +74,7 @@ public class CommercialPaperContract implements ContractInterface {
 
         // create an instance of the paper
         CommercialPaper paper = CommercialPaper.createInstance(issuer, paperNumber, issueDateTime, maturityDateTime,
-                faceValue,"");
+                faceValue,issuer,"");
 
         // Smart contract, rather than paper, moves paper into ISSUED state
         paper.setIssued();

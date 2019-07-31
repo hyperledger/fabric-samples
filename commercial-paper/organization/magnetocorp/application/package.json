@@ -4,6 +4,7 @@
   "description": "",
   "main": "issue.js",
   "scripts": {
+    "lint": "eslint .",
     "test": "rm -rf _idwallet && node addToWallet.js && node issue.js"
   },
   "keywords": [],
