@@ -88,25 +88,25 @@ copy_logs $? custom-channel-couch
 echo y | ./eyfn.sh -m down
 echo
 
-echo "############### BYFN,EYFN WITH NODE Chaincode. TEST ################"
+echo "############### BYFN,EYFN WITH JAVASCRIPT Chaincode. TEST ################"
 echo "####################################################################"
-echo y | ./byfn.sh -m up -l node -t 60
-copy_logs $? default-channel-node
-echo y | ./eyfn.sh -m up -l node -t 60
-copy_logs $? default-channel-node
+echo y | ./byfn.sh -m up -l javascript -t 60
+copy_logs $? default-channel-javascript
+echo y | ./eyfn.sh -m up -l javascript -t 60
+copy_logs $? default-channel-javascript
 echo y | ./eyfn.sh -m down
 echo
 
 echo "############### BYFN WITH CA TEST ################"
 echo "##################################################"
-echo y | ./byfn.sh -m up -a 
-copy_logs $? default-channel-ca 
+echo y | ./byfn.sh -m up -a
+copy_logs $? default-channel-ca
 echo y | ./byfn.sh -m down -a
-echo 
+echo
 
 echo "############### BYFN WITH NO CHAINCODE TEST ################"
 echo "############################################################"
 echo y | ./byfn.sh -m up -n
 copy_logs $? default-channel-ca
 echo y | ./byfn.sh -m down -n
-echo 
+echo

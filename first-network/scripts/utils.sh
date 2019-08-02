@@ -120,7 +120,7 @@ packageChaincode() {
   ORG=$3
   setGlobals $PEER $ORG
   set -x
-  peer lifecycle chaincode package mycc.tar.gz --path ${CC_SRC_PATH} --lang ${LANGUAGE} --label mycc_${VERSION} >&log.txt
+  peer lifecycle chaincode package mycc.tar.gz --path ${CC_SRC_PATH} --lang ${CC_RUNTIME_LANGUAGE} --label mycc_${VERSION} >&log.txt
   res=$?
   set +x
   cat log.txt

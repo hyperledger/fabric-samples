@@ -22,23 +22,30 @@ echo "Extend your first network (EYFN) test"
 echo
 CHANNEL_NAME="$1"
 DELAY="$2"
-LANGUAGE="$3"
+CC_SRC_LANGUAGE="$3"
 TIMEOUT="$4"
 VERBOSE="$5"
 : ${CHANNEL_NAME:="mychannel"}
 : ${TIMEOUT:="10"}
-: ${LANGUAGE:="golang"}
+: ${CC_SRC_LANGUAGE:="go"}
 : ${VERBOSE:="false"}
-LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
+CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=5
 
-if [ "$LANGUAGE" = "node" ]; then
-    CC_SRC_PATH="/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/abstore/node/"
-elif [ "$LANGUAGE" = "java" ]; then
-    CC_SRC_PATH="/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/abstore/java/"
+if [ "$CC_SRC_LANGUAGE" = "go" -o "$CC_SRC_LANGUAGE" = "golang" ]; then
+	CC_RUNTIME_LANGUAGE=golang
+	CC_SRC_PATH="github.com/hyperledger/fabric-samples/chaincode/abstore/go/"
+elif [ "$CC_SRC_LANGUAGE" = "javascript" ]; then
+	CC_RUNTIME_LANGUAGE=node # chaincode runtime language is node.js
+	CC_SRC_PATH="/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/abstore/javascript/"
+elif [ "$CC_SRC_LANGUAGE" = "java" ]; then
+	CC_RUNTIME_LANGUAGE=java
+	CC_SRC_PATH="/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/abstore/java/"
 else
-    CC_SRC_PATH="github.com/hyperledger/fabric-samples/chaincode/abstore/go/"
+	echo The chaincode language ${CC_SRC_LANGUAGE} is not supported by this script
+	echo Supported chaincode languages are: go, javascript, java
+	exit 1
 fi
 
 echo "Channel name : "$CHANNEL_NAME

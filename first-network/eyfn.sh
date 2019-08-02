@@ -31,7 +31,7 @@ function printHelp () {
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
   echo "    -f <docker-compose-file> - specify which docker-compose file use (defaults to docker-compose-cli.yaml)"
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
-  echo "    -l <language> - the chaincode language: golang (default) or node"
+  echo "    -l <language> - the programming language of the chaincode to deploy: go (default), javascript, or java"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
   echo "    -v - verbose mode"
   echo
@@ -40,7 +40,7 @@ function printHelp () {
   echo
   echo "	eyfn.sh generate -c mychannel"
   echo "	eyfn.sh up -c mychannel -s couchdb"
-  echo "	eyfn.sh up -l node"
+  echo "	eyfn.sh up -l javascript"
   echo "	eyfn.sh down -c mychannel"
   echo
   echo "Taking all defaults:"
@@ -112,13 +112,13 @@ function networkUp () {
   echo "###############################################################"
   echo "############### Have Org3 peers join network ##################"
   echo "###############################################################"
-  docker exec Org3cli ./scripts/step2org3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+  docker exec Org3cli ./scripts/step2org3.sh $CHANNEL_NAME $CLI_DELAY $CC_SRC_LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to have Org3 peers join network"
     exit 1
   fi
   # finish by running the test
-  docker exec Org3cli ./scripts/testorg3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+  docker exec Org3cli ./scripts/testorg3.sh $CHANNEL_NAME $CLI_DELAY $CC_SRC_LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to run test"
     exit 1
@@ -148,7 +148,7 @@ function createConfigTx () {
   echo "###############################################################"
   echo "####### Generate and submit config tx to add Org3 #############"
   echo "###############################################################"
-  docker exec cli scripts/step1org3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+  docker exec cli scripts/step1org3.sh $CHANNEL_NAME $CLI_DELAY $CC_SRC_LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to create config tx"
     exit 1
@@ -237,8 +237,8 @@ COMPOSE_FILE_COUCH_ORG3=docker-compose-couch-org3.yaml
 COMPOSE_FILE_KAFKA=docker-compose-kafka.yaml
 # two additional etcd/raft orderers
 COMPOSE_FILE_RAFT2=docker-compose-etcdraft2.yaml
-# use golang as the default language for chaincode
-LANGUAGE=golang
+# use go as the default language for chaincode
+CC_SRC_LANGUAGE=go
 # default image tag
 IMAGETAG="latest"
 
@@ -276,7 +276,7 @@ while getopts "h?c:t:d:f:s:l:i:v" opt; do
     ;;
     s)  IF_COUCHDB=$OPTARG
     ;;
-    l)  LANGUAGE=$OPTARG
+    l)  CC_SRC_LANGUAGE=$OPTARG
     ;;
     i)  IMAGETAG=$OPTARG
     ;;
