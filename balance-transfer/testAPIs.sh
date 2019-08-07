@@ -197,7 +197,7 @@ VALUES=$(curl -s -X POST \
 echo $VALUES
 # Assign previous invoke transaction id  to TRX_ID
 MESSAGE=$(echo $VALUES | jq -r ".message")
-TRX_ID=${MESSAGE#*ID:}
+TRX_ID=${MESSAGE#*ID: }
 echo
 
 echo "GET query chaincode on peer1 of Org1"
