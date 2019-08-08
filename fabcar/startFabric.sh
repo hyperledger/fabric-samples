@@ -15,6 +15,11 @@ CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
 if [ "$CC_SRC_LANGUAGE" = "go" -o "$CC_SRC_LANGUAGE" = "golang"  ]; then
 	CC_RUNTIME_LANGUAGE=golang
 	CC_SRC_PATH=github.com/hyperledger/fabric-samples/chaincode/fabcar/go
+	echo Vendoring Go dependencies ...
+	pushd ../chaincode/fabcar/go
+	GO111MODULE=on go mod vendor
+	popd
+	echo Finished vendoring Go dependencies
 elif [ "$CC_SRC_LANGUAGE" = "java" ]; then
 	CC_RUNTIME_LANGUAGE=java
 	CC_SRC_PATH=/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/fabcar/java
