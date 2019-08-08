@@ -1,0 +1,51 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.3'
+    id 'java'
+}
+
+version '0.0.1'
+
+sourceCompatibility = 1.8
+
+repositories {
+
+    mavenLocal()
+    mavenCentral()
+    maven { 
+        url 'https://jitpack.io' 
+    }
+    maven {
+        url "https://nexus.hyperledger.org/content/repositories/snapshots/"
+    }
+
+}
+
+dependencies {
+    compile group: 'org.hyperledger.fabric-chaincode-java', name: 'fabric-chaincode-shim', version: '1.4.2'
+    compile group: 'org.json', name: 'json', version: '20180813'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
+    testImplementation 'org.assertj:assertj-core:3.11.1'
+    testImplementation 'org.mockito:mockito-core:2.+'
+}
+
+shadowJar {
+    baseName = 'chaincode'
+    version = null
+    classifier = null
+
+    manifest {
+        attributes 'Main-Class': 'org.hyperledger.fabric.contract.ContractRouter'
+    }
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+
+tasks.withType(JavaCompile) {
+  options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-parameters"
+}
