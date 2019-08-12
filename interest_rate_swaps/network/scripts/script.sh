@@ -162,7 +162,7 @@ queryPackage
 echo "Approving chaincode..."
 approveChaincode
 
-. scripts/simulate-commit.sh
+. scripts/check-commit-readiness.sh
 
 # Check the commit readiness of the chaincode definition
 echo "Checking the commit readiness of the chaincode definition..."
