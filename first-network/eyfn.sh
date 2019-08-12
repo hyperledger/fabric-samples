@@ -29,7 +29,6 @@ function printHelp () {
   echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
   echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10)"
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
-  echo "    -f <docker-compose-file> - specify which docker-compose file use (defaults to docker-compose-cli.yaml)"
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -l <language> - the programming language of the chaincode to deploy: go (default), javascript, or java"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
@@ -136,8 +135,6 @@ function networkDown () {
     removeUnwantedImages
     # remove orderer block and other channel configuration transactions and certs
     rm -rf channel-artifacts/*.block channel-artifacts/*.tx crypto-config ./org3-artifacts/crypto-config/ channel-artifacts/org3.json
-    # remove the docker-compose yaml file that was customized to the example
-    rm -f docker-compose-e2e.yaml
   fi
 }
 
@@ -258,7 +255,7 @@ else
   printHelp
   exit 1
 fi
-while getopts "h?c:t:d:f:s:l:i:v" opt; do
+while getopts "h?c:t:d:s:l:i:v" opt; do
   case "$opt" in
     h|\?)
       printHelp
@@ -269,8 +266,6 @@ while getopts "h?c:t:d:f:s:l:i:v" opt; do
     t)  CLI_TIMEOUT=$OPTARG
     ;;
     d)  CLI_DELAY=$OPTARG
-    ;;
-    f)  COMPOSE_FILE=$OPTARG
     ;;
     s)  IF_COUCHDB=$OPTARG
     ;;
