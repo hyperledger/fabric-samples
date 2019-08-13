@@ -70,7 +70,7 @@ The interest-rate swap chaincode provides the following API:
    given identifier and swap parameters among the two parties specified. This
    function creates the entry for the swap and the corresponding payment. It
    also sets the key-level endorsement policies for both keys to the participants
-   to the swap. In case the swap's prinicpal amount exceeds a certain threshold,
+   to the swap. In case the swap's principal amount exceeds a certain threshold,
    it adds an auditor to the endorsement policy for the keys.
  * `calculatePayment(swapID)` - calculate the net payment from party A to party
    B and set the payment entry accordingly. If the payment information is negative,
@@ -107,22 +107,26 @@ for creating a swap.
 The `network` subdirectory contains scripts that will launch a sample network
 and run a swap transaction flow from creation to settlement.
 
-### Prerequesites
+### Prerequisites
 
 The following prerequisites are needed to run this sample:
+* You need to run this sample from your GOPATH. If you have downloaded the
+  `fabric-samples` directory outside your GOPATH, then you need to copy or
+  move the interest rate sample into your GOPATH.
 * Fabric docker images. By default the `network/network.sh` script will look for
   fabric images with the `latest` tag, this can be adapted with the `-i` command
   line parameter of the script.
 * A local installation of `configtxgen` and `cryptogen` in the `PATH` environment,
   or included in `fabric-samples/bin` directory.
-* Vendoring the chaincode. In the chaincode directory, run `govendor init` and
+* Vendoring the chaincode. In the `chaincode` directory, run `govendor init` and
   `govendor add +external` to vendor the shim from your local copy of fabric.
 
 ### Bringing up the network
 
-Simply run `network.sh up` to bring up the network. This will spawn docker
-containers running a network of 3 "regular" organizations, one auditor
-organization and one reference rate provider as well as a solo orderer.
+Navigate to the `network` folder. Run the command `./network.sh up` to bring up
+the network. This will spawn docker containers running a network of 3 "regular"
+organizations, one auditor organization and one reference rate provider as well
+as a solo orderer.
 
 An additional CLI container will run `network/scripts/script.sh` to join the
 peers to the `irs` channel and deploy the chaincode. In the init parameters it
@@ -136,7 +140,7 @@ commands in the following section.
 
 The chaincode is instantiated as follows:
 ```
-peer chaincode instantiate -o irs-orderer:7050 -C irs -n irscc -l golang -v 0 -c '{"Args":["init","auditor","100000","rrprovider","myrr"]}' -P "AND(OR('partya.peer','partyb.peer','partyc.peer'), 'auditor.peer')"
+peer chaincode instantiate -o irs-orderer:7050 -C irs -n irscc -l golang -v 0 -c '{"Args":["init","auditor","1000000","rrprovider","myrr"]}' -P "AND(OR('partya.peer','partyb.peer','partyc.peer'), 'auditor.peer')"
 ```
 This sets an auditing threshold of 1M, above which the `auditor` organization
 needs to be involved. It also specifies the `myrr` reference rate provided by
@@ -144,16 +148,16 @@ the `rrprovider` organization.
 
 To set a reference rate:
 ```
-peer chaincode invoke -o irs-orderer:7050 -C irs --waitForEvent -n irscc --peerAddresses irs-rrprovider:7051 -c '{"Args":["setReferenceRate","myrr","3"]}'
+peer chaincode invoke -o irs-orderer:7050 -C irs --waitForEvent -n irscc --peerAddresses irs-rrprovider:7051 -c '{"Args":["setReferenceRate","myrr","300"]}'
 ```
 Note that the transaction is endorsed by a peer of the organization we have
 specified as providing this reference rate in the init parameters.
 
 To create a swap named "myswap":
 ```
-peer chaincode invoke -o irs-orderer:7050 -C irs --waitForEvent -n irscc --peerAddresses irs-partya:7051 --peerAddresses irs-partyb:7051 --peerAddresses irs-auditor:7051 -c '{"Args":["createSwap","myswap","{\"StartDate\":\"2018-09-27T15:04:05Z\",\"EndDate\":\"2018-09-30T15:04:05Z\",\"PaymentInterval\":365,\"PrincipalAmount\":10000000,\"FixedRate\":4,\"FloatingRate\":5,\"ReferenceRate\":\"myrr\"}", "partya", "partyb"]}'
+peer chaincode invoke -o irs-orderer:7050 -C irs --waitForEvent -n irscc --peerAddresses irs-partya:7051 --peerAddresses irs-partyb:7051 --peerAddresses irs-auditor:7051 -c '{"Args":["createSwap","myswap","{\"StartDate\":\"2018-09-27T15:04:05Z\",\"EndDate\":\"2018-09-30T15:04:05Z\",\"PaymentInterval\":395,\"PrincipalAmount\":100000,\"FixedRate\":400,\"FloatingRate\":500,\"ReferenceRate\":\"myrr\"}", "partya", "partyb"]}'
 ```
-Note that the transaction is endorsed  by both parties that are part of this
+Note that the transaction is endorsed by both parties that are part of this
 swap as well as the auditor. Since the principal amount in this case is lower
 than the audit threshold we set as init parameters, no auditor will be required
 to endorse changes to the payment info or swap details.
@@ -173,4 +177,13 @@ peer chaincode invoke -o irs-orderer:7050 -C irs --waitForEvent -n irscc `--peer
 As an exercise, try to create a new swap above the auditing threshold and see
 how validation fails if the auditor is not involved in every operation on the
 swap. Also try to calculate payment info before settling a prior payment to a
-swap.
+swap. You can run the commands yourself using the CLI container by issuing the
+command ``docker exec -it cli bash``. You will need to set the corresponding
+environment variables for the organization issuing the command. You refer to the
+`network/scripts/script.sh` file for more information.
+
+## Clean up
+
+When you are finished using the network, you can bring down the docker images
+and remove any artifacts by running the command `./network.sh down` from the
+`network` folder.

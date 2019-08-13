@@ -168,7 +168,7 @@ function generateChannelArtifacts() {
 
   echo "#########  Generating Orderer Genesis block ##############"
   mkdir channel-artifacts
-  configtxgen -profile IRSNetGenesis -outputBlock ./channel-artifacts/genesis.block
+  configtxgen -profile IRSNetGenesis -outputBlock ./channel-artifacts/genesis.block -channelID system-channel
   res=$?
   if [ $res -ne 0 ]; then
     echo "Failed to generate orderer genesis block..."
@@ -184,9 +184,6 @@ function generateChannelArtifacts() {
   fi
 }
 
-# Obtain the OS and Architecture string that will be used to select the correct
-# native binaries for your platform, e.g., darwin-amd64 or linux-amd64
-OS_ARCH=$(echo "$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
 CHANNEL_NAME="irs"
 COMPOSE_FILE=docker-compose.yaml
 COMPOSE_PROJECT_NAME=fabric-irs
