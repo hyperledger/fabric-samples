@@ -182,6 +182,14 @@ function networkUp() {
     sleep 14
   fi
 
+  if [ "${NO_CHAINCODE}" != "true" ]; then
+    echo Vendoring Go dependencies ...
+    pushd ../chaincode/abstore/go
+    GO111MODULE=on go mod vendor
+    popd
+    echo Finished vendoring Go dependencies
+  fi
+
   # now run the end to end script
   docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $CC_SRC_LANGUAGE $CLI_TIMEOUT $VERBOSE $NO_CHAINCODE
   if [ $? -ne 0 ]; then

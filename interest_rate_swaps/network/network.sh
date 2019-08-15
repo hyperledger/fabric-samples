@@ -113,6 +113,11 @@ function networkUp() {
     echo "ERROR !!!! Unable to start network"
     exit 1
   fi
+  echo Vendoring Go dependencies ...
+  pushd ../chaincode
+  GO111MODULE=on go mod vendor
+  popd
+  echo Finished vendoring Go dependencies
   # now run the end to end script
   docker exec cli scripts/script.sh
   if [ $? -ne 0 ]; then

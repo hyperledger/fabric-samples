@@ -120,6 +120,11 @@ and run some invocations are provided below.
 4. Open a new terminal window and enter the CLI container using `docker exec -it cli bash`, all operations on the network will happen within
    this container from now on.
 
+### Vendor the chaincode dependencies
+1. Outside of the CLI container, change into the chaincode directory, e.g. `cd ~/fabric-samples/high-throughput/chaincode`
+2. Vendor the Go dependencies by running the following command: `GO111MODULE=on go mod vendor`
+3. The chaincode directory will now contain a `vendor` directory.
+
 ### Install and define the chaincode
 1. Once you're in the CLI container run `cd scripts` to enter the `scripts` folder
 2. Set-up the environment variables by running `source setclienv.sh`
