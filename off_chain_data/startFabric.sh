@@ -11,10 +11,14 @@ set -e pipefail
 # don't rewrite paths for Windows Git Bash users
 export MSYS_NO_PATHCONV=1
 starttime=$(date +%s)
-CC_SRC_LANGUAGE=${1:-"golang"}
-CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
+CC_SRC_LANGUAGE=golang
 CC_RUNTIME_LANGUAGE=golang
 CC_SRC_PATH=github.com/hyperledger/fabric-samples/chaincode/marbles02/go
+echo Vendoring Go dependencies ...
+pushd ../chaincode/marbles02/go
+GO111MODULE=on go mod vendor
+popd
+echo Finished vendoring Go dependencies
 
 # clean the keystore
 rm -rf ./hfc-key-store
