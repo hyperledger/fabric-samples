@@ -347,27 +347,27 @@ Profiles:
                   ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
                   ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
                 - Host: orderer2.example.com
-                  Port: 7050
+                  Port: 8050
                   ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
                   ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
                 - Host: orderer3.example.com
-                  Port: 7050
+                  Port: 9050
                   ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
                   ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
                 - Host: orderer4.example.com
-                  Port: 7050
+                  Port: 10050
                   ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
                   ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
                 - Host: orderer5.example.com
-                  Port: 7050
+                  Port: 11050
                   ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
                   ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
             Addresses:
                 - orderer.example.com:7050
-                - orderer2.example.com:7050
-                - orderer3.example.com:7050
-                - orderer4.example.com:7050
-                - orderer5.example.com:7050
+                - orderer2.example.com:8050
+                - orderer3.example.com:9050
+                - orderer4.example.com:10050
+                - orderer5.example.com:11050
 
             Organizations:
             - *OrdererOrg
