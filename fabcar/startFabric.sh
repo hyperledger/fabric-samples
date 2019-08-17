@@ -8,7 +8,6 @@
 set -e
 
 # don't rewrite paths for Windows Git Bash users
-export MSYS_NO_PATHCONV=1
 starttime=$(date +%s)
 CC_SRC_LANGUAGE=${1:-"go"}
 CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
@@ -44,6 +43,8 @@ rm -rf ./hfc-key-store
 cd ../first-network
 echo y | ./byfn.sh down
 echo y | ./byfn.sh up -a -n -s couchdb
+
+export MSYS_NO_PATHCONV=1
 
 CONFIG_ROOT=/opt/gopath/src/github.com/hyperledger/fabric/peer
 ORG1_MSPCONFIGPATH=${CONFIG_ROOT}/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
