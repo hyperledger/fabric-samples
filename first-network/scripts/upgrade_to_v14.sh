@@ -49,11 +49,11 @@ addCapabilityToChannel() {
 
         # Modify the correct section of the config based on capabilities group
         if [ $GROUP == "orderer" ]; then
-                jq -s '.[0] * {"channel_group":{"groups":{"Orderer": {"values": {"Capabilities": .[1]}}}}}' config.json ./scripts/capabilities.json > modified_config.json
+                jq -s '.[0] * {"channel_group":{"groups":{"Orderer": {"values": {"Capabilities": .[1].orderer}}}}}' config.json ./scripts/capabilities.json > modified_config.json
         elif [ $GROUP == "channel" ]; then
-                jq -s '.[0] * {"channel_group":{"values": {"Capabilities": .[1]}}}' config.json ./scripts/capabilities.json > modified_config.json
+                jq -s '.[0] * {"channel_group":{"values": {"Capabilities": .[1].channel}}}' config.json ./scripts/capabilities.json > modified_config.json
         elif [ $GROUP == "application" ]; then
-                jq -s '.[0] * {"channel_group":{"groups":{"Application": {"values": {"Capabilities": .[1]}}}}}' config.json ./scripts/capabilities.json > modified_config.json
+                jq -s '.[0] * {"channel_group":{"groups":{"Application": {"values": {"Capabilities": .[1].application}}}}}' config.json ./scripts/capabilities.json > modified_config.json
         fi
 
         # Create a config updated for this channel based on the differences between config.json and modified_config.json
