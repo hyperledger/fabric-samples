@@ -99,7 +99,7 @@
           steps {
             script {
               // making the output color coded
-              wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+              // wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                 try {
                   dir("$ROOTDIR/$BASE_DIR/scripts/ci_scripts") {
                     // Run BYFN, EYFN tests
@@ -111,7 +111,7 @@
                   currentBuild.result = 'FAILURE'
                   throw err
                 }
-              }
+              // }
             }
           }
         }
@@ -120,7 +120,7 @@
           steps {
             script {
               // making the output color coded
-              wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+              // wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                 try {
                   dir("$ROOTDIR/$BASE_DIR/scripts/ci_scripts") {
                     // Run fabcar tests
@@ -132,7 +132,7 @@
                   currentBuild.result = 'FAILURE'
                   throw err
                 }
-              }
+              // }
             }
           }
         }
@@ -141,7 +141,7 @@
           steps {
             script {
               // making the output color coded
-              wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+              // wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                 try {
                   dir("$ROOTDIR/$BASE_DIR/scripts/ci_scripts") {
                     // Run fabcar tests
@@ -153,7 +153,7 @@
                   currentBuild.result = 'FAILURE'
                   throw err
                 }
-              }
+              // }
             }
           }
         }        
