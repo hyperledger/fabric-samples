@@ -29,8 +29,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
-	sc "github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+	pb "github.com/hyperledger/fabric-protos-go/peer"
 )
 
 //SmartContract is the data structure which represents this contract and on which  various contract lifecycle functions are attached
@@ -44,7 +44,7 @@ const (
 )
 
 // Init is called when the smart contract is instantiated
-func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
+func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) pb.Response {
 	return shim.Success(nil)
 }
 
@@ -54,7 +54,7 @@ func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
 //	- get, retrieves the aggregate value of a variable in the ledger
 //	- prune, deletes all rows associated with the variable and replaces them with a single row containing the aggregate value
 //	- delete, removes all rows associated with the variable
-func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response {
+func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) pb.Response {
 	// Retrieve the requested Smart Contract function and arguments
 	function, args := APIstub.GetFunctionAndParameters()
 
@@ -91,7 +91,7 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
  *
  * @return A response structure indicating success or failure with a message
  */
-func (s *SmartContract) update(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) update(APIstub shim.ChaincodeStubInterface, args []string) pb.Response {
 	// Check we have a valid number of args
 	if len(args) != 3 {
 		return shim.Error("Incorrect number of arguments, expecting 3")
@@ -140,7 +140,7 @@ func (s *SmartContract) update(APIstub shim.ChaincodeStubInterface, args []strin
  *
  * @return A response structure indicating success or failure with a message
  */
-func (s *SmartContract) get(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) get(APIstub shim.ChaincodeStubInterface, args []string) pb.Response {
 	// Check we have a valid number of args
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments, expecting 1")
@@ -209,7 +209,7 @@ func (s *SmartContract) get(APIstub shim.ChaincodeStubInterface, args []string) 
  *
  * @return A response structure indicating success or failure with a message
  */
-func (s *SmartContract) prune(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) prune(APIstub shim.ChaincodeStubInterface, args []string) pb.Response {
 	// Check we have a valid number of ars
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments, expecting 1")
@@ -292,7 +292,7 @@ func (s *SmartContract) prune(APIstub shim.ChaincodeStubInterface, args []string
  *
  * @return A response structure indicating success or failure with a message
  */
-func (s *SmartContract) delete(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) delete(APIstub shim.ChaincodeStubInterface, args []string) pb.Response {
 	// Check there are a correct number of arguments
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments, expecting 1")
@@ -356,7 +356,7 @@ func main() {
 /**
  * All functions below this are for testing traditional editing of a single row
  */
-func (s *SmartContract) putStandard(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) putStandard(APIstub shim.ChaincodeStubInterface, args []string) pb.Response {
 	name := args[0]
 	valStr := args[1]
 
@@ -373,7 +373,7 @@ func (s *SmartContract) putStandard(APIstub shim.ChaincodeStubInterface, args []
 	return shim.Success(nil)
 }
 
-func (s *SmartContract) getStandard(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) getStandard(APIstub shim.ChaincodeStubInterface, args []string) pb.Response {
 	name := args[0]
 
 	val, getErr := APIstub.GetState(name)
@@ -384,7 +384,7 @@ func (s *SmartContract) getStandard(APIstub shim.ChaincodeStubInterface, args []
 	return shim.Success(val)
 }
 
-func (s *SmartContract) delStandard(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) delStandard(APIstub shim.ChaincodeStubInterface, args []string) pb.Response {
 	name := args[0]
 
 	getErr := APIstub.DelState(name)
