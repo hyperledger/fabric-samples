@@ -1,9 +1,29 @@
 {
-    "mod_policy": "Admins",
-    "value": {
-      "capabilities": {
-        "V1_4_2": {}
-      }
-    },
-    "version": "0"
+  "channel": {
+      "mod_policy": "Admins",
+          "value": {
+              "capabilities": {
+                  "V1_4_3": {}
+              }
+          },
+      "version": "0"
+  },
+  "orderer": {
+      "mod_policy": "Admins",
+          "value": {
+              "capabilities": {
+                  "V1_4_2": {}
+              }
+          },
+      "version": "0"
+  },
+  "application": {
+      "mod_policy": "Admins",
+          "value": {
+              "capabilities": {
+                  "V1_4_2": {}
+              }
+          },
+      "version": "0"
+  }
 }
