@@ -2,7 +2,7 @@
  * Copyright IBM Corp. All Rights Reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
- * 
+ *
  */
 
 'use strict';
@@ -35,20 +35,35 @@ exports.processBlockEvent = async function (channelname, block, use_couchdb, nan
 
         const dataArray = block.data.data;
 
+        // transaction filter for each transaction in dataArray
+        const txSuccess = block.metadata.metadata[2];
+
         for (var dataItem in dataArray) {
 
             // reject if a timestamp is not set
             if (dataArray[dataItem].payload.header.channel_header.timestamp == undefined) {
-                reject(new Error('Block timestamp is not defined'));
+                reject(new Error('Transaction timestamp is not defined'));
+            }
+
+            // tx may be rejected at commit stage by peers
+            // only valid transactions (code=0) update the word state and off-chain db
+            // filter through valid tx, refer below for list of error codes
+            // https://github.com/hyperledger/fabric-sdk-node/blob/release-1.4/fabric-client/lib/protos/peer/transaction.proto
+            if (txSuccess[dataItem] !== 0) {
+              continue();
             }
 
             const timestamp = dataArray[dataItem].payload.header.channel_header.timestamp;
 
-            // reject if no actions are set
+            // continue to next tx if no actions are set
             if (dataArray[dataItem].payload.data.actions == undefined) {
-                break;
+                continue();
             }
 
+            // actions are stored as an array. In Fabric 1.4.3 only one
+            // action exists per tx so we may simply use actions[0]
+            // in case Fabric adds support for multiple actions
+            // a for loop is used for demonstration
             const actions = dataArray[dataItem].payload.data.actions;
 
             // iterate through all actions
@@ -79,7 +94,7 @@ exports.processBlockEvent = async function (channelname, block, use_couchdb, nan
                         writeObject.timestamp = timestamp;
                         writeObject.values = rwSet[record].rwset.writes;
 
-                        console.log(`Block Timestamp: ${writeObject.timestamp}`);
+                        console.log(`Transaction Timestamp: ${writeObject.timestamp}`);
                         console.log(`ChaincodeID: ${writeObject.chaincodeid}`);
                         console.log(writeObject.values);
 
