@@ -220,8 +220,7 @@ Application: &ApplicationDefaults
 Orderer: &OrdererDefaults
 
     # Orderer Type: The orderer implementation to start
-    # Available types are "solo" and "etcdraft"
-    OrdererType: solo
+    OrdererType: etcdraft
 
     Addresses:
         - orderer.example.com:7050
@@ -309,19 +308,6 @@ Channel: &ChannelDefaults
 ################################################################################
 Profiles:
 
-    TwoOrgsOrdererGenesis:
-        <<: *ChannelDefaults
-        Orderer:
-            <<: *OrdererDefaults
-            Organizations:
-                - *OrdererOrg
-            Capabilities:
-                <<: *OrdererCapabilities
-        Consortiums:
-            SampleConsortium:
-                Organizations:
-                    - *Org1
-                    - *Org2
     TwoOrgsChannel:
         Consortium: SampleConsortium
         <<: *ChannelDefaults

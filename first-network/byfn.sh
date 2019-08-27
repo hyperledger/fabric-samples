@@ -9,7 +9,7 @@
 # Fabric network.
 #
 # The end-to-end verification provisions a sample Fabric network consisting of
-# two organizations, each maintaining two peers, and a “solo” ordering service.
+# two organizations, each maintaining two peers, and a Raft ordering service.
 #
 # This verification makes use of two fundamental tools, which are necessary to
 # create a functioning transactional network with digital signature validation
@@ -47,7 +47,6 @@ function printHelp() {
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -l <language> - the programming language of the chaincode to deploy: go (default), javascript, or java"
-  echo "    -o <consensus-type> - the consensus-type of the ordering service: solo (default) or etcdraft"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
   echo "    -a - launch certificate authorities (no certificate authorities are launched by default)"
   echo "    -n - do not deploy chaincode (abstore chaincode is deployed by default)"
@@ -157,14 +156,11 @@ function networkUp() {
     replacePrivateKey
     generateChannelArtifacts
   fi
-  COMPOSE_FILES="-f ${COMPOSE_FILE}"
+  COMPOSE_FILES="-f ${COMPOSE_FILE} -f ${COMPOSE_FILE_RAFT2}"
   if [ "${CERTIFICATE_AUTHORITIES}" == "true" ]; then
     COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_CA}"
     export BYFN_CA1_PRIVATE_KEY=$(cd crypto-config/peerOrganizations/org1.example.com/ca && ls *_sk)
     export BYFN_CA2_PRIVATE_KEY=$(cd crypto-config/peerOrganizations/org2.example.com/ca && ls *_sk)
-  fi
-  if [ "${CONSENSUS_TYPE}" == "etcdraft" ]; then
-    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_RAFT2}"
   fi
   if [ "${IF_COUCHDB}" == "couchdb" ]; then
     COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_COUCH}"
@@ -176,11 +172,8 @@ function networkUp() {
     exit 1
   fi
 
-  if [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
-    sleep 1
-    echo "Sleeping 15s to allow $CONSENSUS_TYPE cluster to complete booting"
-    sleep 14
-  fi
+  echo "Sleeping 15s to allow Raft cluster to complete booting"
+  sleep 15
 
   if [ "${NO_CHAINCODE}" != "true" ]; then
     echo Vendoring Go dependencies ...
@@ -215,14 +208,11 @@ function upgradeNetwork() {
     mkdir -p $LEDGERS_BACKUP
 
     export IMAGE_TAG=$IMAGETAG
-    COMPOSE_FILES="-f ${COMPOSE_FILE}"
+    COMPOSE_FILES="-f ${COMPOSE_FILE} -f ${COMPOSE_FILE_RAFT2}"
     if [ "${CERTIFICATE_AUTHORITIES}" == "true" ]; then
       COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_CA}"
       export BYFN_CA1_PRIVATE_KEY=$(cd crypto-config/peerOrganizations/org1.example.com/ca && ls *_sk)
       export BYFN_CA2_PRIVATE_KEY=$(cd crypto-config/peerOrganizations/org2.example.com/ca && ls *_sk)
-    fi
-    if [ "${CONSENSUS_TYPE}" == "etcdraft" ]; then
-      COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_RAFT2}"
     fi
     if [ "${IF_COUCHDB}" == "couchdb" ]; then
       COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_COUCH}"
@@ -382,19 +372,8 @@ function generateChannelArtifacts() {
   echo "##########################################################"
   # Note: For some unknown reason (at least for now) the block file can't be
   # named orderer.genesis.block or the orderer will fail to launch!
-  echo "CONSENSUS_TYPE="$CONSENSUS_TYPE
-  set -x
-  if [ "$CONSENSUS_TYPE" == "solo" ]; then
-    configtxgen -profile TwoOrgsOrdererGenesis -channelID byfn-sys-channel -outputBlock ./channel-artifacts/genesis.block
-  elif [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
-    configtxgen -profile SampleMultiNodeEtcdRaft -channelID byfn-sys-channel -outputBlock ./channel-artifacts/genesis.block
-  else
-    set +x
-    echo "unrecognized CONSESUS_TYPE='$CONSENSUS_TYPE'. exiting"
-    exit 1
-  fi
+  configtxgen -profile SampleMultiNodeEtcdRaft -channelID byfn-sys-channel -outputBlock ./channel-artifacts/genesis.block
   res=$?
-  set +x
   if [ $res -ne 0 ]; then
     echo "Failed to generate orderer genesis block..."
     exit 1
@@ -463,8 +442,6 @@ COMPOSE_FILE_CA=docker-compose-ca.yaml
 CC_SRC_LANGUAGE=go
 # default image tag
 IMAGETAG="latest"
-# default consensus type
-CONSENSUS_TYPE="solo"
 # Parse commandline args
 if [ "$1" = "-m" ]; then # supports old usage, muscle memory is powerful!
   shift
@@ -487,7 +464,7 @@ else
   exit 1
 fi
 
-while getopts "h?c:t:d:s:l:i:o:anv" opt; do
+while getopts "h?c:t:d:s:l:i:anv" opt; do
   case "$opt" in
   h | \?)
     printHelp
@@ -510,9 +487,6 @@ while getopts "h?c:t:d:s:l:i:o:anv" opt; do
     ;;
   i)
     IMAGETAG=$(go env GOARCH)"-"$OPTARG
-    ;;
-  o)
-    CONSENSUS_TYPE=$OPTARG
     ;;
   a)
     CERTIFICATE_AUTHORITIES=true
