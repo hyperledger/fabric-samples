@@ -462,10 +462,10 @@ let Chaincode = class {
     }
 
     const queryString = args[0];
-    const pageSize = parseInt(args[2], 10);
-    const bookmark = args[3];
+    const pageSize = parseInt(args[1], 10);
+    const bookmark = args[2];
 
-    const { iterator, metadata } = await stub.GetQueryResultWithPagination(queryString, pageSize, bookmark);
+    const { iterator, metadata } = await stub.getQueryResultWithPagination(queryString, pageSize, bookmark);
     const getAllResults = thisClass['getAllResults'];
     const results = await getAllResults(iterator, false);
     // use RecordsCount and Bookmark to keep consistency with the go sample
