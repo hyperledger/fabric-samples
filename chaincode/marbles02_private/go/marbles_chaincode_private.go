@@ -199,18 +199,19 @@ func (t *SimpleChaincode) initMarble(stub shim.ChaincodeStubInterface, args []st
 		return shim.Error("Error getting transient: " + err.Error())
 	}
 
-	if _, ok := transMap["marble"]; !ok {
+	marbleJsonBytes, ok := transMap["marble"]
+	if !ok {
 		return shim.Error("marble must be a key in the transient map")
 	}
 
-	if len(transMap["marble"]) == 0 {
+	if len(marbleJsonBytes) == 0 {
 		return shim.Error("marble value in the transient map must be a non-empty JSON string")
 	}
 
 	var marbleInput marbleTransientInput
-	err = json.Unmarshal(transMap["marble"], &marbleInput)
+	err = json.Unmarshal(marbleJsonBytes, &marbleInput)
 	if err != nil {
-		return shim.Error("Failed to decode JSON of: " + string(transMap["marble"]))
+		return shim.Error("Failed to decode JSON of: " + string(marbleJsonBytes))
 	}
 
 	if len(marbleInput.Name) == 0 {
@@ -275,8 +276,8 @@ func (t *SimpleChaincode) initMarble(stub shim.ChaincodeStubInterface, args []st
 	//  ==== Index the marble to enable color-based range queries, e.g. return all blue marbles ====
 	//  An 'index' is a normal key/value entry in state.
 	//  The key is a composite key, with the elements that you want to range query on listed first.
-	//  In our case, the composite key is based on indexName~color~name.
-	//  This will enable very efficient state range queries based on composite keys matching indexName~color~*
+	//  In our case, the composite key is based on indexName=color~name.
+	//  This will enable very efficient state range queries based on composite keys matching indexName=color~*
 	indexName := "color~name"
 	colorNameIndexKey, err := stub.CreateCompositeKey(indexName, []string{marble.Color, marble.Name})
 	if err != nil {
@@ -306,7 +307,7 @@ func (t *SimpleChaincode) readMarble(stub shim.ChaincodeStubInterface, args []st
 	name = args[0]
 	valAsbytes, err := stub.GetPrivateData("collectionMarbles", name) //get the marble from chaincode state
 	if err != nil {
-		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
+		jsonResp = "{\"Error\":\"Failed to get state for " + name + ": " + err.Error() + "\"}"
 		return shim.Error(jsonResp)
 	} else if valAsbytes == nil {
 		jsonResp = "{\"Error\":\"Marble does not exist: " + name + "\"}"
@@ -359,18 +360,19 @@ func (t *SimpleChaincode) delete(stub shim.ChaincodeStubInterface, args []string
 		return shim.Error("Error getting transient: " + err.Error())
 	}
 
-	if _, ok := transMap["marble_delete"]; !ok {
+	marbleDeleteJsonBytes, ok := transMap["marble_delete"]
+	if !ok {
 		return shim.Error("marble_delete must be a key in the transient map")
 	}
 
-	if len(transMap["marble_delete"]) == 0 {
+	if len(marbleDeleteJsonBytes) == 0 {
 		return shim.Error("marble_delete value in the transient map must be a non-empty JSON string")
 	}
 
 	var marbleDeleteInput marbleDeleteTransientInput
-	err = json.Unmarshal(transMap["marble_delete"], &marbleDeleteInput)
+	err = json.Unmarshal(marbleDeleteJsonBytes, &marbleDeleteInput)
 	if err != nil {
-		return shim.Error("Failed to decode JSON of: " + string(transMap["marble_delete"]))
+		return shim.Error("Failed to decode JSON of: " + string(marbleDeleteJsonBytes))
 	}
 
 	if len(marbleDeleteInput.Name) == 0 {
@@ -438,18 +440,19 @@ func (t *SimpleChaincode) transferMarble(stub shim.ChaincodeStubInterface, args 
 		return shim.Error("Error getting transient: " + err.Error())
 	}
 
-	if _, ok := transMap["marble_owner"]; !ok {
+	marbleOwnerJsonBytes, ok := transMap["marble_owner"]
+	if !ok {
 		return shim.Error("marble_owner must be a key in the transient map")
 	}
 
-	if len(transMap["marble_owner"]) == 0 {
+	if len(marbleOwnerJsonBytes) == 0 {
 		return shim.Error("marble_owner value in the transient map must be a non-empty JSON string")
 	}
 
 	var marbleTransferInput marbleTransferTransientInput
-	err = json.Unmarshal(transMap["marble_owner"], &marbleTransferInput)
+	err = json.Unmarshal(marbleOwnerJsonBytes, &marbleTransferInput)
 	if err != nil {
-		return shim.Error("Failed to decode JSON of: " + string(transMap["marble_owner"]))
+		return shim.Error("Failed to decode JSON of: " + string(marbleOwnerJsonBytes))
 	}
 
 	if len(marbleTransferInput.Name) == 0 {
