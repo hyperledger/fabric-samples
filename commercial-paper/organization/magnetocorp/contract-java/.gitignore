@@ -1,3 +1,10 @@
-.gradle/
-build/
-bin/
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+/.classpath
+/.gradle/
+/.project
+/.settings/
+/bin/
+/build/

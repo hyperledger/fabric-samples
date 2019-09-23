@@ -51,9 +51,9 @@ This `README.md` file is in the the `commercial-paper` directory, the source cod
 
 ## Running the Infrastructure
 
-In one console window, run the `./roles/network-starter.sh` script; this will start the basic infrastructure and also start monitoring all the docker containers. 
+In one console window, run the `./roles/network-starter.sh` script; this will start the basic infrastructure and also start monitoring all the docker containers.
 
-You can cancel this if you wish to reuse the terminal, but it's best left open. 
+You can cancel this if you wish to reuse the terminal, but it's best left open.
 
 ### Install and Instantiate the contract
 
@@ -63,7 +63,7 @@ In your 'MagnetoCorp' window run the following command
 
 `./roles/magnetocorp.sh`
 
-This will start a docker container for Fabric CLI commands, and put you in the correct directory for the source code. 
+This will start a docker container for Fabric CLI commands, and put you in the correct directory for the source code.
 
 **For a JavaScript Contract:**
 
@@ -76,12 +76,18 @@ docker exec cliMagnetoCorp peer chaincode instantiate -n papercontract -v 0 -l n
 **For a Java Contract:**
 
 ```
-docker exec cliMagnetoCorp peer chaincode install -n papercontract -v 0 -p /opt/gopath/src/github.com/contract-java -l java
+pushd ./organization/magnetocorp/contract-java
+
+./gradlew installDist
+
+popd
+
+docker exec cliMagnetoCorp peer chaincode install -n papercontract -v 0 -p /opt/gopath/src/github.com/contract-java/build/install/papercontract -l java
 
 docker exec cliMagnetoCorp peer chaincode instantiate -n papercontract -v 0 -l java -c '{"Args":["org.papernet.commercialpaper:instantiate"]}' -C mychannel -P "AND ('Org1MSP.member')"
 ```
- 
-> If you want to try both a Java and JavaScript Contract, then you will need to restart the infrastructure and deploy the other contract. 
+
+> If you want to try both a Java and JavaScript Contract, then you will need to restart the infrastructure and deploy the other contract.
 
 ## Client Applications
 
@@ -100,16 +106,16 @@ npm install
 
 >  Note that there is NO dependency between the langauge of any one client application and any contract. Mix and match as you wish!
 
-### Issue the paper 
+### Issue the paper
 
-This is running as *MagnetoCorp* so you can stay in the same window. These commands are to be run in the 
+This is running as *MagnetoCorp* so you can stay in the same window. These commands are to be run in the
 `commercial-paper/organization/magnetocorp/application` directory or the `commercial-paper/organization/magnetocorp/application-java`
 
 *Add the Identity to be used*
 
 ```
 node addToWallet.js
-# or 
+# or
 java -cp target/commercial-paper-0.0.1-SNAPSHOT.jar org.magnetocorp.AddToWallet
 ```
 
@@ -117,25 +123,25 @@ java -cp target/commercial-paper-0.0.1-SNAPSHOT.jar org.magnetocorp.AddToWallet
 
 ```
 node issue.js
-# or 
+# or
 java -cp target/commercial-paper-0.0.1-SNAPSHOT.jar org.magnetocorp.Issue
 ```
 
 ### Buy and Redeem the paper
 
-This is running as *Digibank*; you've not acted as this organization before so in your 'Digibank' window run the following command in the 
+This is running as *Digibank*; you've not acted as this organization before so in your 'Digibank' window run the following command in the
 `fabric-samples/commercial-paper/` directory
 
-`./roles/digibank.sh` 
+`./roles/digibank.sh`
 
-You can now run the applications to buy and redeem the paper. Change to either the 
+You can now run the applications to buy and redeem the paper. Change to either the
 `commercial-paper/organization/digibank/application` directory or  `commercial-paper/organization/digibank/application-java`
 
 *Add the Identity to be used*
 
 ```
 node addToWallet.js
-# or 
+# or
 java -cp target/commercial-paper-0.0.1-SNAPSHOT.jar org.digibank.AddToWallet
 ```
 
@@ -151,6 +157,6 @@ java -cp target/commercial-paper-0.0.1-SNAPSHOT.jar org.digibank.Buy
 
 ```
 node redeem.js
-# or 
+# or
 java -cp target/commercial-paper-0.0.1-SNAPSHOT.jar org.digibank.Redeem
 ```
