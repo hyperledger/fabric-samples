@@ -4,8 +4,7 @@
 
 plugins {
     id 'checkstyle'
-    id 'com.github.johnrengelman.shadow' version '2.0.4'
-    id 'java-library'
+    id 'java-library-distribution'
     id 'jacoco'
 }
 
@@ -13,8 +12,9 @@ group 'org.hyperledger.fabric.samples'
 version '1.0-SNAPSHOT'
 
 dependencies {
-    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.0.0-SNAPSHOT'
+    compileOnly 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.0.0-SNAPSHOT'
     implementation 'com.owlike:genson:1.5'
+    testImplementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.0.0-SNAPSHOT'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
     testImplementation 'org.assertj:assertj-core:3.11.1'
     testImplementation 'org.mockito:mockito-core:2.+'
@@ -25,8 +25,8 @@ repositories {
         url "https://nexus.hyperledger.org/content/repositories/snapshots/"
     }
     jcenter()
-    maven { 
-        url 'https://jitpack.io' 
+    maven {
+        url 'https://jitpack.io'
     }
 }
 
@@ -41,15 +41,6 @@ checkstyleMain {
 
 checkstyleTest {
     source ='src/test/java'
-}
-
-shadowJar {
-    baseName = 'chaincode'
-    version = null
-    classifier = null
-    manifest {
-        attributes 'Main-Class': 'org.hyperledger.fabric.contract.ContractRouter'
-    }
 }
 
 jacocoTestCoverageVerification {
@@ -67,7 +58,7 @@ jacocoTestCoverageVerification {
             }
         }
     }
-    
+
     finalizedBy jacocoTestReport
 }
 
