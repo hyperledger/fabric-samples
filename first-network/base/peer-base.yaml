@@ -23,6 +23,8 @@ services:
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      # Allow more time for chaincode container to build on install.
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
 
