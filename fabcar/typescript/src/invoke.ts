@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { FileSystemWallet, Gateway } from 'fabric-network';
+import { Gateway, Wallets } from 'fabric-network';
 import * as path from 'path';
 
 const ccpPath = path.resolve(__dirname, '..', '..', '..', 'first-network', 'connection-org1.json');
@@ -12,12 +12,12 @@ async function main() {
 
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), 'wallet');
-        const wallet = new FileSystemWallet(walletPath);
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the user.
-        const userExists = await wallet.exists('user1');
-        if (!userExists) {
+        const identity = await wallet.get('user1');
+        if (!identity) {
             console.log('An identity for the user "user1" does not exist in the wallet');
             console.log('Run the registerUser.ts application before retrying');
             return;
