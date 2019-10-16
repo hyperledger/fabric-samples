@@ -14,6 +14,10 @@ import org.hyperledger.fabric.gateway.Wallet;
 
 public class ClientApp {
 
+	static {
+		System.setProperty("org.hyperledger.fabric.sdk.service_discovery.as_localhost", "true");
+	}
+
 	public static void main(String[] args) throws Exception {
 		// Load a file system based wallet for managing identities.
 		Path walletPath = Paths.get("wallet");
