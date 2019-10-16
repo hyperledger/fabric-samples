@@ -1,0 +1,34 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+steps:
+  - script: |
+      set -ex
+      mvn dependency:get -DremoteRepositories=https://nexus.hyperledger.org/content/repositories/snapshots -Dartifact=org.hyperledger.fabric:hyperledger-fabric-1.4.4-stable:linux-amd64.1.4.4-stable-SNAPSHOT:tar.gz
+      mvn dependency:copy -Dartifact=org.hyperledger.fabric:hyperledger-fabric-1.4.4-stable:linux-amd64.1.4.4-stable-SNAPSHOT:tar.gz -DoutputDirectory=/tmp
+      cd /usr/local
+      sudo tar xzvf /tmp/hyperledger-fabric-1.4.4-stable-linux-amd64.1.4.4-stable-SNAPSHOT.tar.gz
+    displayName: Download Fabric CLI
+  - script: |
+      set -ex
+      mvn dependency:get -DremoteRepositories=https://nexus.hyperledger.org/content/repositories/snapshots -Dartifact=org.hyperledger.fabric-ca:hyperledger-fabric-ca-1.4.4-stable:linux-amd64.1.4.4-stable-SNAPSHOT:tar.gz
+      mvn dependency:copy -Dartifact=org.hyperledger.fabric-ca:hyperledger-fabric-ca-1.4.4-stable:linux-amd64.1.4.4-stable-SNAPSHOT:tar.gz -DoutputDirectory=/tmp
+      cd /usr/local
+      sudo tar xzvf /tmp/hyperledger-fabric-ca-1.4.4-stable-linux-amd64.1.4.4-stable-SNAPSHOT.tar.gz
+    displayName: Download Fabric CA CLI
+  - script: |
+      set -ex
+      for i in ca ccenv javaenv peer orderer tools; do
+        docker pull nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-1.4.4-stable
+        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-1.4.4-stable hyperledger/fabric-$i:amd64-1.4.4-stable
+        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-1.4.4-stable hyperledger/fabric-$i:amd64-1.4.4
+        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-1.4.4-stable hyperledger/fabric-$i:1.4.4
+        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-1.4.4-stable hyperledger/fabric-$i:latest
+      done
+      for i in couchdb; do
+        docker pull nexus3.hyperledger.org:10001/hyperledger/fabric-$i:0.4.15
+        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:0.4.15 hyperledger/fabric-$i:0.4.15
+        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:0.4.15 hyperledger/fabric-$i:latest
+      done
+    displayName: Pull Fabric Docker images

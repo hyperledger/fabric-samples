@@ -1,0 +1,7 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+steps:
+  - script: sudo sh -c "curl https://raw.githubusercontent.com/kadwanev/retry/master/retry -o /usr/local/bin/retry && chmod +x /usr/local/bin/retry"
+    displayName: Install retry CLI
