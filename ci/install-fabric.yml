@@ -1,0 +1,29 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+steps:
+  - script: |
+      set -ex
+      mvn dependency:get -DremoteRepositories=https://nexus.hyperledger.org/content/repositories/snapshots -Dartifact=org.hyperledger.fabric:hyperledger-fabric-latest:linux-amd64.latest-SNAPSHOT:tar.gz
+      mvn dependency:copy -Dartifact=org.hyperledger.fabric:hyperledger-fabric-latest:linux-amd64.latest-SNAPSHOT:tar.gz -DoutputDirectory=/tmp
+      cd /usr/local
+      sudo tar xzvf /tmp/hyperledger-fabric-latest-linux-amd64.latest-SNAPSHOT.tar.gz
+    displayName: Download Fabric CLI
+  - script: |
+      set -ex
+      mvn dependency:get -DremoteRepositories=https://nexus.hyperledger.org/content/repositories/snapshots -Dartifact=org.hyperledger.fabric-ca:hyperledger-fabric-ca-latest:linux-amd64.latest-SNAPSHOT:tar.gz
+      mvn dependency:copy -Dartifact=org.hyperledger.fabric-ca:hyperledger-fabric-ca-latest:linux-amd64.latest-SNAPSHOT:tar.gz -DoutputDirectory=/tmp
+      cd /usr/local
+      sudo tar xzvf /tmp/hyperledger-fabric-ca-latest-linux-amd64.latest-SNAPSHOT.tar.gz
+    displayName: Download Fabric CA CLI
+  - script: |
+      set -ex
+      for i in baseos ca ccenv javaenv nodeenv peer orderer tools; do
+        docker pull nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-2.0.0-stable
+        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-2.0.0-stable hyperledger/fabric-$i:amd64-2.0.0-stable
+        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-2.0.0-stable hyperledger/fabric-$i:amd64-2.0.0
+        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-2.0.0-stable hyperledger/fabric-$i:2.0.0
+        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-2.0.0-stable hyperledger/fabric-$i:latest
+      done
+    displayName: Pull Fabric Docker images
