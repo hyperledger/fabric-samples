@@ -1,0 +1,19 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+steps:
+  - script: bash startFabric.sh javascript
+    workingDirectory: fabcar
+    displayName: Start Fabric
+  - script: retry -- npm install
+    workingDirectory: fabcar/javascript
+    displayName: Install FabCar application dependencies
+  - script: |
+      set -ex
+      node enrollAdmin
+      node registerUser
+      node invoke
+      node query
+    workingDirectory: fabcar/javascript
+    displayName: Run FabCar application

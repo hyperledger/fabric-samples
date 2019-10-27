@@ -17,6 +17,10 @@ import org.hyperledger.fabric_ca.sdk.HFCAClient;
 
 public class EnrollAdmin {
 
+	static {
+		System.setProperty("org.hyperledger.fabric.sdk.service_discovery.as_localhost", "true");
+	}
+
 	public static void main(String[] args) throws Exception {
 
 		// Create a CA client for interacting with the CA.

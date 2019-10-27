@@ -19,16 +19,16 @@
    </build>
    <repositories>
       <repository>
-         <id>hyperledger</id>
-         <name>Hyperledger Nexus</name>
-         <url>https://nexus.hyperledger.org/content/repositories/snapshots</url>
+         <id>oss-sonatype</id>
+         <name>OSS Sonatype</name>
+         <url>https://oss.sonatype.org/content/repositories/snapshots</url>
       </repository>
    </repositories>
    <dependencies>
       <dependency>
-         <groupId>org.hyperledger.fabric-gateway-java</groupId>
+         <groupId>org.hyperledger.fabric</groupId>
          <artifactId>fabric-gateway-java</artifactId>
-         <version>1.4.0-SNAPSHOT</version>
+         <version>1.4.1-SNAPSHOT</version>
       </dependency>
       <dependency>
          <groupId>org.junit.platform</groupId>

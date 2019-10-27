@@ -1,0 +1,14 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+steps:
+  - script: bash startFabric.sh java
+    workingDirectory: fabcar
+    displayName: Start Fabric
+  - script: retry -- mvn dependency:go-offline
+    workingDirectory: fabcar/java
+    displayName: Install FabCar application dependencies
+  - script: mvn test
+    workingDirectory: fabcar/java
+    displayName: Run FabCar application
