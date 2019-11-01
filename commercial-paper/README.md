@@ -57,7 +57,7 @@ You can cancel this if you wish to reuse the terminal, but it's best left open.
 
 ### Install and Instantiate the contract
 
-The contract code is available as either JavaScript or Java. You can use either one, and the choice of contract language does not affect the choice of client language.
+The contract code is available as JavaScript, Java or Go. You can use any one, and the choice of contract language does not affect the choice of client language.
 
 In your 'MagnetoCorp' window run the following command
 
@@ -87,7 +87,15 @@ docker exec cliMagnetoCorp peer chaincode install -n papercontract -v 0 -p /opt/
 docker exec cliMagnetoCorp peer chaincode instantiate -n papercontract -v 0 -l java -c '{"Args":["org.papernet.commercialpaper:instantiate"]}' -C mychannel -P "AND ('Org1MSP.member')"
 ```
 
-> If you want to try both a Java and JavaScript Contract, then you will need to restart the infrastructure and deploy the other contract.
+**For a Go Contract:**
+
+```
+docker exec cliMagnetoCorp bash -c "cd /opt/gopath/src/github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract-go; GO111MODULE=on go mod vendor"
+docker exec cliMagnetoCorp peer chaincode install -n papercontract -v 0 -p github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract-go -l golang
+docker exec cliMagnetoCorp peer chaincode instantiate -n papercontract -v 0 -l golang -c '{"Args":["org.papernet.commercialpaper:instantiate"]}' -C mychannel -P "AND ('Org1MSP.member')"
+```
+
+> If you want to try Go, Java and JavaScript contracts, then you will need to restart the infrastructure and deploy the other contracts.
 
 ## Client Applications
 
@@ -102,7 +110,6 @@ Note for JavaScript applications you will need to install the dependencies first
 ```
 npm install
 ```
-
 
 >  Note that there is NO dependency between the language of any one client application and any contract. Mix and match as you wish!
 

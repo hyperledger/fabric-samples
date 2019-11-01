@@ -26,8 +26,13 @@ echo "
  docker exec cliMagnetoCorp peer chaincode install -n papercontract -v 0 -p /opt/gopath/src/github.com/contract-java -l java
  docker exec cliMagnetoCorp peer chaincode instantiate -n papercontract -v 0 -l java -c '{\"Args\":[\"org.papernet.commercialpaper:instantiate\"]}' -C mychannel -P \"AND ('Org1MSP.member')\"
 
+ Go Contract:
+ 
+ docker exec cliMagnetoCorp bash -c \"cd /opt/gopath/src/github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract-go GO111MODULE=on GOCACHE=on go mod vendor\"
+ docker exec cliMagnetoCorp peer chaincode install -n papercontract -v 0 -p github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract-go -l golang
+ docker exec cliMagnetoCorp peer chaincode instantiate -n papercontract -v 0 -l golang -c '{\"Args\":[\"org.papernet.commercialpaper:instantiate\"]}' -C mychannel -P \"AND ('Org1MSP.member')\"
 
- Run Applications in either langauage (can be different from the Smart Contract)
+ Run Applications in any langauage (can be different from the Smart Contract)
 
  JavaScript Client Aplications:
 

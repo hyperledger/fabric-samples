@@ -47,5 +47,13 @@ jobs:
       - template: install-deps.yml
       - template: install-fabric.yml
       - template: fabcar-typescript.yml
+  - job: commercial_paper_go
+    displayName: Commercial Paper (Go)
+    pool:
+      vmImage: ubuntu-18.04
+    dependsOn: []
+    timeoutInMinutes: 60
+    steps:
+      - template: commercial-paper-go.yml
 
 
