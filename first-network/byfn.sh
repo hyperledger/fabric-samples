@@ -153,7 +153,6 @@ function networkUp() {
   # generate artifacts if they don't exist
   if [ ! -d "crypto-config" ]; then
     generateCerts
-    replacePrivateKey
     generateChannelArtifacts
   fi
   COMPOSE_FILES="-f ${COMPOSE_FILE} -f ${COMPOSE_FILE_RAFT2}"
