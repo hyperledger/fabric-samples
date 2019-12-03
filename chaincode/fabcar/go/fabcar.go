@@ -17,32 +17,22 @@
  * under the License.
  */
 
-/*
- * The sample smart contract for documentation topic:
- * Writing Your First Blockchain Application
- */
-
 package main
 
-/* Imports
- * 4 utility libraries for formatting, handling bytes, reading and writing JSON, and string manipulation
- * 2 specific Hyperledger Fabric specific libraries for Smart Contracts
- */
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"strconv"
 
-	"github.com/hyperledger/fabric-chaincode-go/shim"
-	pb "github.com/hyperledger/fabric-protos-go/peer"
+	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
-// Define the Smart Contract structure
+// SmartContract provides functions for managing a car
 type SmartContract struct {
+	contractapi.Contract
 }
 
-// Define the car structure, with 4 properties.  Structure tags are used by encoding/json library
+// Car describes basic details of what makes up a car
 type Car struct {
 	Make   string `json:"make"`
 	Model  string `json:"model"`
@@ -50,49 +40,14 @@ type Car struct {
 	Owner  string `json:"owner"`
 }
 
-/*
- * The Init method is called when the Smart Contract "fabcar" is instantiated by the blockchain network
- * Best practice is to have any Ledger initialization in separate function -- see initLedger()
- */
-func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) pb.Response {
-	return shim.Success(nil)
+// QueryResult structure used for handling result of query
+type QueryResult struct {
+	Key    string `json:"Key"`
+	Record *Car
 }
 
-/*
- * The Invoke method is called as a result of an application request to run the Smart Contract "fabcar"
- * The calling application program has also specified the particular smart contract function to be called, with arguments
- */
-func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) pb.Response {
-
-	// Retrieve the requested Smart Contract function and arguments
-	function, args := APIstub.GetFunctionAndParameters()
-	// Route to the appropriate handler function to interact with the ledger appropriately
-	if function == "queryCar" {
-		return s.queryCar(APIstub, args)
-	} else if function == "initLedger" {
-		return s.initLedger(APIstub)
-	} else if function == "createCar" {
-		return s.createCar(APIstub, args)
-	} else if function == "queryAllCars" {
-		return s.queryAllCars(APIstub)
-	} else if function == "changeCarOwner" {
-		return s.changeCarOwner(APIstub, args)
-	}
-
-	return shim.Error("Invalid Smart Contract function name.")
-}
-
-func (s *SmartContract) queryCar(APIstub shim.ChaincodeStubInterface, args []string) pb.Response {
-
-	if len(args) != 1 {
-		return shim.Error("Incorrect number of arguments. Expecting 1")
-	}
-
-	carAsBytes, _ := APIstub.GetState(args[0])
-	return shim.Success(carAsBytes)
-}
-
-func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) pb.Response {
+// InitLedger adds a base set of cars to the ledger
+func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	cars := []Car{
 		Car{Make: "Toyota", Model: "Prius", Colour: "blue", Owner: "Tomoko"},
 		Car{Make: "Ford", Model: "Mustang", Colour: "red", Owner: "Brad"},
@@ -107,94 +62,105 @@ func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) pb.Respo
 	}
 
 	for i, car := range cars {
-		fmt.Println("i is ", i)
 		carAsBytes, _ := json.Marshal(car)
-		APIstub.PutState("CAR"+strconv.Itoa(i), carAsBytes)
-		fmt.Println("Added", car)
+		err := ctx.GetStub().PutState("CAR"+strconv.Itoa(i), carAsBytes)
+
+		if err != nil {
+			return fmt.Errorf("Failed to put to world state. %s", err.Error())
+		}
 	}
 
-	return shim.Success(nil)
+	return nil
 }
 
-func (s *SmartContract) createCar(APIstub shim.ChaincodeStubInterface, args []string) pb.Response {
-
-	if len(args) != 5 {
-		return shim.Error("Incorrect number of arguments. Expecting 5")
+// CreateCar adds a new car to the world state with given details
+func (s *SmartContract) CreateCar(ctx contractapi.TransactionContextInterface, carNumber string, make string, model string, colour string, owner string) error {
+	car := Car{
+		Make:   make,
+		Model:  model,
+		Colour: colour,
+		Owner:  owner,
 	}
-
-	var car = Car{Make: args[1], Model: args[2], Colour: args[3], Owner: args[4]}
 
 	carAsBytes, _ := json.Marshal(car)
-	APIstub.PutState(args[0], carAsBytes)
 
-	return shim.Success(nil)
+	return ctx.GetStub().PutState(carNumber, carAsBytes)
 }
 
-func (s *SmartContract) queryAllCars(APIstub shim.ChaincodeStubInterface) pb.Response {
+// QueryCar returns the car stored in the world state with given id
+func (s *SmartContract) QueryCar(ctx contractapi.TransactionContextInterface, carNumber string) (*Car, error) {
+	carAsBytes, err := ctx.GetStub().GetState(carNumber)
 
-	startKey := "CAR0"
-	endKey := "CAR999"
-
-	resultsIterator, err := APIstub.GetStateByRange(startKey, endKey)
 	if err != nil {
-		return shim.Error(err.Error())
+		return nil, fmt.Errorf("Failed to read from world state. %s", err.Error())
+	}
+
+	if carAsBytes == nil {
+		return nil, fmt.Errorf("%s does not exist", carNumber)
+	}
+
+	car := new(Car)
+	_ = json.Unmarshal(carAsBytes, car)
+
+	return car, nil
+}
+
+// QueryAllCars returns all cars found in world state
+func (s *SmartContract) QueryAllCars(ctx contractapi.TransactionContextInterface) ([]QueryResult, error) {
+	startKey := "CAR0"
+	endKey := "CAR99"
+
+	resultsIterator, err := ctx.GetStub().GetStateByRange(startKey, endKey)
+
+	if err != nil {
+		return nil, err
 	}
 	defer resultsIterator.Close()
 
-	// buffer is a JSON array containing QueryResults
-	var buffer bytes.Buffer
-	buffer.WriteString("[")
+	results := []QueryResult{}
 
-	bArrayMemberAlreadyWritten := false
 	for resultsIterator.HasNext() {
 		queryResponse, err := resultsIterator.Next()
+
 		if err != nil {
-			return shim.Error(err.Error())
-		}
-		// Add a comma before array members, suppress it for the first array member
-		if bArrayMemberAlreadyWritten {
-			buffer.WriteString(",")
+			return nil, err
 		}
 
-		buffer.WriteString(
-			fmt.Sprintf(
-				`{"Key":"%s", "Record":%s}`,
-				queryResponse.Key, queryResponse.Value,
-			),
-		)
-		bArrayMemberAlreadyWritten = true
-	}
-	buffer.WriteString("]")
+		car := new(Car)
+		_ = json.Unmarshal(queryResponse.Value, car)
 
-	fmt.Printf("- queryAllCars:\n%s\n", buffer.String())
-
-	return shim.Success(buffer.Bytes())
-}
-
-func (s *SmartContract) changeCarOwner(APIstub shim.ChaincodeStubInterface, args []string) pb.Response {
-
-	if len(args) != 2 {
-		return shim.Error("Incorrect number of arguments. Expecting 2")
+		queryResult := QueryResult{Key: queryResponse.Key, Record: car}
+		results = append(results, queryResult)
 	}
 
-	carAsBytes, _ := APIstub.GetState(args[0])
-	car := Car{}
-
-	json.Unmarshal(carAsBytes, &car)
-	car.Owner = args[1]
-
-	carAsBytes, _ = json.Marshal(car)
-	APIstub.PutState(args[0], carAsBytes)
-
-	return shim.Success(nil)
+	return results, nil
 }
 
-// The main function is only relevant in unit test mode. Only included here for completeness.
+// ChangeCarOwner updates the owner field of car with given id in world state
+func (s *SmartContract) ChangeCarOwner(ctx contractapi.TransactionContextInterface, carNumber string, newOwner string) error {
+	car, err := s.QueryCar(ctx, carNumber)
+
+	if err != nil {
+		return err
+	}
+
+	car.Owner = newOwner
+
+	carAsBytes, _ := json.Marshal(car)
+
+	return ctx.GetStub().PutState(carNumber, carAsBytes)
+}
+
 func main() {
 
-	// Create a new Smart Contract
-	err := shim.Start(new(SmartContract))
+	chaincode, err := contractapi.NewChaincode(new(SmartContract))
+
 	if err != nil {
-		fmt.Printf("Error creating new Smart Contract: %s", err)
+		fmt.Printf("Error create fabcar chaincode: %s", err.Error())
+		return
+	}
+
+	if err := chaincode.Start(); err != nil {
+		fmt.Printf("Error starting fabcar chaincode: %s", err.Error())
 	}
 }
