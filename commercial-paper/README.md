@@ -19,11 +19,11 @@ You are strongly advised to read the full tutorial to get information about the 
 
 1) Start the Hyperledger Fabric infrastructure
 
-   _although the scenario has two organizations, the 'basic' or 'developement' Fabric infrastructure will be used_
+   _although the scenario has two organizations, the 'basic' or 'development' Fabric infrastructure will be used_
 
 2) Install and Instantiate the Contracts
 
-3) Run client applications in the roles of MagnetoCorp and Digibank to trade the commecial paper
+3) Run client applications in the roles of MagnetoCorp and Digibank to trade the commercial paper
 
    - Issue the Paper as Magnetocorp
    - Buy the paper as DigiBank
@@ -31,10 +31,10 @@ You are strongly advised to read the full tutorial to get information about the 
 
 ## Setup
 
-You will need a a machine with the following
+You will need a machine with the following
 
 - Docker and docker-compose installed
-- Node.js v8 if you want to run Javascript client applications
+- Node.js v8 if you want to run JavaScript client applications
 - Java v8 if you want to run Java client applications
 - Maven to build the Java applications
 
@@ -47,7 +47,7 @@ git clone https://github.com/hyperledger/fabric-samples.git
 cd fabric-samples/commercial-paper
 ```
 
-This `README.md` file is in the the `commercial-paper` directory, the source code for client applications and the contracts ins in the `ogranization` directory, and some helper scripts are in the `roles` directory.
+This `README.md` file is in the `commercial-paper` directory, the source code for client applications and the contracts ins in the `organization` directory, and some helper scripts are in the `roles` directory.
 
 ## Running the Infrastructure
 
@@ -57,7 +57,7 @@ You can cancel this if you wish to reuse the terminal, but it's best left open.
 
 ### Install and Instantiate the contract
 
-The contract code is available as either JavaScript or Java. You can use either one, and the choice of contract language does not affect the choice of client langauge.
+The contract code is available as either JavaScript or Java. You can use either one, and the choice of contract language does not affect the choice of client language.
 
 In your 'MagnetoCorp' window run the following command
 
@@ -91,7 +91,7 @@ docker exec cliMagnetoCorp peer chaincode instantiate -n papercontract -v 0 -l j
 
 ## Client Applications
 
-Note for Java applications you will need to compile the Java Code using maven.  Use this command in each application-java directory
+Note for Java applications you will need to compile the Java Code using maven. Use this command in each application-java directory
 
 ```
 mvn clean package
@@ -104,7 +104,7 @@ npm install
 ```
 
 
->  Note that there is NO dependency between the langauge of any one client application and any contract. Mix and match as you wish!
+>  Note that there is NO dependency between the language of any one client application and any contract. Mix and match as you wish!
 
 ### Issue the paper
 
