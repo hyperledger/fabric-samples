@@ -35,7 +35,7 @@ function printHelp () {
   echo "Typically, one would first generate the required certificates and "
   echo "genesis block, then bring up the network. e.g.:"
   echo
-  echo "	eyfn.sh generate"
+  echo "	addOrg3.sh generate"
   echo "	addOrg3.sh up -c mychannel -s couchdb"
   echo "	addOrg3.sh up -l node"
   echo "	addOrg3.sh down -c mychannel"
@@ -175,22 +175,10 @@ IMAGETAG="latest"
 DATABASE="leveldb"
 
 # Parse commandline args
-if [ "$1" = "-m" ];then	# supports old usage, muscle memory is powerful!
-    shift
-fi
-MODE=$1;shift
-# Determine whether starting, stopping, restarting or generating for announce
-if [ "$MODE" == "up" ]; then
-  echo ="Add org3 to channel '${CHANNEL_NAME}' with '${CLI_TIMEOUT}' seconds and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE}'"
-  echo
-elif [ "$MODE" == "down" ]; then
-  EXPMODE="Stopping network"
-elif [ "$MODE" == "generate" ]; then
-  EXPMODE="Generating certs and organization definition for Org3"
-else
-  printHelp
-  exit 1
-fi
+
+MODE=$1;
+shift
+
 while getopts "h?c:t:d:f:s:l:i:v" opt; do
   case "$opt" in
     h|\?)
@@ -213,6 +201,19 @@ while getopts "h?c:t:d:f:s:l:i:v" opt; do
     ;;
   esac
 done
+
+# Determine whether starting, stopping, restarting or generating for announce
+if [ "$MODE" == "up" ]; then
+  echo "Add Org3 to channel '${CHANNEL_NAME}' with '${CLI_TIMEOUT}' seconds and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE}'"
+  echo
+elif [ "$MODE" == "down" ]; then
+  EXPMODE="Stopping network"
+elif [ "$MODE" == "generate" ]; then
+  EXPMODE="Generating certs and organization definition for Org3"
+else
+  printHelp
+  exit 1
+fi
 
 #Create the network using docker compose
 if [ "${MODE}" == "up" ]; then
