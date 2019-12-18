@@ -9,7 +9,6 @@ VERBOSE="$4"
 : ${DELAY:="3"}
 : ${MAX_RETRY:="5"}
 : ${VERBOSE:="false"}
-COUNTER=1
 
 # import utils
 . scripts/envVar.sh
@@ -54,8 +53,8 @@ createChannel() {
 
 	# Poll in case the raft leader is not set yet
 	local rc=1
-	if [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; then
-		COUNTER=$(expr $COUNTER + 1)
+	local COUNTER=1
+	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
 		sleep $DELAY
 		if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
         set -x
@@ -68,12 +67,12 @@ createChannel() {
 				res=$?
 				set +x
 		fi
-		test $res -eq 0 || let rc=1
-	else
-		COUNTER=1
-	fi
+		let rc=$res
+		COUNTER=$(expr $COUNTER + 1)
+	done
 	cat log.txt
 	verifyResult $res "Channel creation failed"
+	echo
 	echo "===================== Channel '$CHANNEL_NAME' created ===================== "
 	echo
 }
@@ -83,19 +82,17 @@ joinChannel() {
   ORG=$1
   setGlobals $ORG
 	local rc=1
+	local COUNTER=1
 	## Sometimes Join takes time, hence retry
-	if [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; then
-    COUNTER=$(expr $COUNTER + 1)
+	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
     sleep $DELAY
     set -x
     peer channel join -b ./channel-artifacts/$CHANNEL_NAME.block >&log.txt
     res=$?
     set +x
-		test $res -eq 0 || let rc=1
-	else
-		COUNTER=1
-		echo "peer0.org${ORG} failed to join the channel, Retry after $DELAY seconds"
-	fi
+		let rc=$res
+		COUNTER=$(expr $COUNTER + 1)
+	done
 	cat log.txt
 	echo
 	verifyResult $res "After $MAX_RETRY attempts, peer0.org${ORG} has failed to join channel '$CHANNEL_NAME' "
