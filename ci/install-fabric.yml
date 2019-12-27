@@ -4,31 +4,26 @@
 
 steps:
   - script: |
-      set -ex
-      mvn dependency:get -DremoteRepositories=https://nexus.hyperledger.org/content/repositories/snapshots -Dartifact=org.hyperledger.fabric:hyperledger-fabric-1.4.5-stable:linux-amd64.1.4.5-stable-SNAPSHOT:tar.gz
-      mvn dependency:copy -Dartifact=org.hyperledger.fabric:hyperledger-fabric-1.4.5-stable:linux-amd64.1.4.5-stable-SNAPSHOT:tar.gz -DoutputDirectory=/tmp
-      cd /usr/local
-      sudo tar xzvf /tmp/hyperledger-fabric-1.4.5-stable-linux-amd64.1.4.5-stable-SNAPSHOT.tar.gz
+      set -eo pipefail
+      wget -q -P /tmp https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-linux-amd64-1.4.5-stable.tar.gz
+      sudo tar xzvf /tmp/hyperledger-fabric-linux-amd64-1.4.5-stable.tar.gz -C /usr/local
     displayName: Download Fabric CLI
   - script: |
-      set -ex
-      mvn dependency:get -DremoteRepositories=https://nexus.hyperledger.org/content/repositories/snapshots -Dartifact=org.hyperledger.fabric-ca:hyperledger-fabric-ca-1.4.5-stable:linux-amd64.1.4.5-stable-SNAPSHOT:tar.gz
-      mvn dependency:copy -Dartifact=org.hyperledger.fabric-ca:hyperledger-fabric-ca-1.4.5-stable:linux-amd64.1.4.5-stable-SNAPSHOT:tar.gz -DoutputDirectory=/tmp
-      cd /usr/local
-      sudo tar xzvf /tmp/hyperledger-fabric-ca-1.4.5-stable-linux-amd64.1.4.5-stable-SNAPSHOT.tar.gz
+      set -eo pipefail
+      wget -q -P /tmp https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-ca-linux-amd64-1.4.5-stable.tar.gz
+      sudo tar xzvf /tmp/hyperledger-fabric-ca-linux-amd64-1.4.5-stable.tar.gz -C /usr/local
     displayName: Download Fabric CA CLI
   - script: |
       set -ex
+      version=1.4.5
       for i in ca ccenv javaenv peer orderer tools; do
-        docker pull nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-1.4.5-stable
-        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-1.4.5-stable hyperledger/fabric-$i:amd64-1.4.5-stable
-        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-1.4.5-stable hyperledger/fabric-$i:amd64-1.4.5
-        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-1.4.5-stable hyperledger/fabric-$i:1.4.5
-        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-1.4.5-stable hyperledger/fabric-$i:latest
+        docker pull hyperledger-fabric.jfrog.io/fabric-$i:amd64-$version-stable
+        docker tag hyperledger-fabric.jfrog.io/fabric-$i:amd64-$version-stable hyperledger/fabric-$i:amd64-$version-stable
+        docker tag hyperledger-fabric.jfrog.io/fabric-$i:amd64-$version-stable hyperledger/fabric-$i:amd64-$version
+        docker tag hyperledger-fabric.jfrog.io/fabric-$i:amd64-$version-stable hyperledger/fabric-$i:$version
+        docker tag hyperledger-fabric.jfrog.io/fabric-$i:amd64-$version-stable hyperledger/fabric-$i:latest
       done
-      for i in couchdb; do
-        docker pull nexus3.hyperledger.org:10001/hyperledger/fabric-$i:0.4.15
-        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:0.4.15 hyperledger/fabric-$i:0.4.15
-        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:0.4.15 hyperledger/fabric-$i:latest
-      done
+
+      docker pull hyperledger/fabric-couchdb:0.4.15
+      docker tag hyperledger/fabric-couchdb:0.4.15 hyperledger/fabric-couchdb:latest
     displayName: Pull Fabric Docker images
