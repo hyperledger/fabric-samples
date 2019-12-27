@@ -22,7 +22,7 @@ dependencies {
 
 repositories {
     maven {
-        url "https://nexus.hyperledger.org/content/repositories/snapshots/"
+        url "https://hyperledger.jfrog.io/hyperledger/fabric-maven"
     }
     jcenter()
     maven {
