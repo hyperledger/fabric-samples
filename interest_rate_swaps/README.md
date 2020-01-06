@@ -110,16 +110,11 @@ and run a swap transaction flow from creation to settlement.
 ### Prerequisites
 
 The following prerequisites are needed to run this sample:
-* You need to run this sample from your GOPATH. If you have downloaded the
-  `fabric-samples` directory outside your GOPATH, then you need to copy or
-  move the interest rate sample into your GOPATH.
 * Fabric docker images. By default the `network/network.sh` script will look for
   fabric images with the `latest` tag, this can be adapted with the `-i` command
   line parameter of the script.
 * A local installation of `configtxgen` and `cryptogen` in the `PATH` environment,
   or included in `fabric-samples/bin` directory.
-* Vendoring the chaincode. In the `chaincode` directory, run `govendor init` and
-  `govendor add +external` to vendor the shim from your local copy of fabric.
 
 ### Bringing up the network
 
