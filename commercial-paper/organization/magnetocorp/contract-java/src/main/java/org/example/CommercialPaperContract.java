@@ -3,7 +3,6 @@ SPDX-License-Identifier: Apache-2.0
 */
 package org.example;
 
-
 import java.util.logging.Logger;
 
 import org.example.ledgerapi.State;
@@ -25,7 +24,7 @@ import org.hyperledger.fabric.shim.ChaincodeStub;
  * Define commercial paper smart contract by extending Fabric Contract class
  *
  */
-@Contract(name = "org.papernet.commercialpaper", info = @Info(title = "MyAsset contract", description = "", version = "0.0.1", license = @License(name = "SPDX-License-Identifier: ", url = ""), contact = @Contact(email = "java-contract@example.com", name = "java-contract", url = "http://java-contract.me")))
+@Contract(name = "org.papernet.commercialpaper", info = @Info(title = "MyAsset contract", description = "", version = "0.0.1", license = @License(name = "SPDX-License-Identifier: Apache-2.0", url = ""), contact = @Contact(email = "java-contract@example.com", name = "java-contract", url = "http://java-contract.me")))
 @Default
 public class CommercialPaperContract implements ContractInterface {
 

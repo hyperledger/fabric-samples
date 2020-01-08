@@ -1,7 +1,3 @@
-/*
-SPDX-License-Identifier: Apache-2.0
-*/
-
 package org.example.ledgerapi.impl;
 
 import java.util.Arrays;
@@ -12,6 +8,10 @@ import org.example.ledgerapi.StateList;
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.shim.ChaincodeStub;
 import org.hyperledger.fabric.shim.ledger.CompositeKey;
+
+/*
+SPDX-License-Identifier: Apache-2.0
+*/
 
 /**
  * StateList provides a named virtual container for a set of ledger states. Each
@@ -74,8 +74,6 @@ public class StateListImpl implements StateList {
         CompositeKey ledgerKey = this.ctx.getStub().createCompositeKey(this.name, State.splitKey(key));
 
         byte[] data = this.ctx.getStub().getState(ledgerKey.toString());
-        System.out.println("Data is "+data);
-        System.out.println("LedgerKey "+ledgerKey.toString());
         if (data != null) {
             State state = this.deserializer.deserialize(data);
             return state;

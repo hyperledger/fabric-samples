@@ -40,7 +40,6 @@ public class State {
      */
     public static byte[] serialize(Object object) {
         String jsonStr = new JSONObject(object).toString();
-        System.out.println(jsonStr);
         return jsonStr.getBytes(UTF_8);
     }
 
@@ -54,7 +53,7 @@ public class State {
     }
 
     public static String[] splitKey(String key) {
-        System.out.println("Splitting key " + key + "   " + java.util.Arrays.asList(key.split(":")));
+        System.out.println("splitting key " + key + "   " + java.util.Arrays.asList(key.split(":")));
         return key.split(":");
     }
 

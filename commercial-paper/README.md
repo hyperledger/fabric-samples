@@ -1,7 +1,7 @@
 # Commercial Paper Tutorial
 
 This folder contains the code for an introductory tutorial to Smart Contract development. It is based around the scenario of Commercial Paper.
-The full tutorial, including full scenario details and line by line code walkthroughs is in the [Hyperledger Fabric documentation](https://hyperledger-fabric.readthedocs.io/en/release-1.4/tutorial/commercial_paper.html).
+The full tutorial, including full scenario details and line by line code walkthroughs is in the [Hyperledger Fabric documentation](https://hyperledger-fabric.readthedocs.io/en/latest/tutorial/commercial_paper.html).
 
 ## Scenario
 
@@ -9,7 +9,7 @@ In this tutorial two organizations, MagnetoCorp and DigiBank, trade commercial p
 
 Once you’ve set up a basic network, you’ll act as Isabella, an employee of MagnetoCorp, who will issue a commercial paper on its behalf. You’ll then switch hats to take the role of Balaji, an employee of DigiBank, who will buy this commercial paper, hold it for a period of time, and then redeem it with MagnetoCorp for a small profit.
 
-![](https://hyperledger-fabric.readthedocs.io/en/release-1.4/_images/commercial_paper.diagram.1.png)
+![](https://hyperledger-fabric.readthedocs.io/en/latest/_images/commercial_paper.diagram.1.png)
 
 ## Quick Start
 
@@ -34,7 +34,7 @@ You are strongly advised to read the full tutorial to get information about the 
 You will need a machine with the following
 
 - Docker and docker-compose installed
-- Node.js v8 if you want to run JavaScript client applications
+- Node.js v12 if you want to run JavaScript client applications
 - Java v8 if you want to run Java client applications
 - Maven to build the Java applications
 
@@ -68,9 +68,14 @@ This will start a docker container for Fabric CLI commands, and put you in the c
 **For a JavaScript Contract:**
 
 ```
-docker exec cliMagnetoCorp peer chaincode install -n papercontract -v 0 -p /opt/gopath/src/github.com/contract -l node
+docker exec cliMagnetoCorp peer lifecycle chaincode package cp.tar.gz --lang node --path /opt/gopath/src/github.com/contract --label cp_0
+docker exec cliMagnetoCorp peer lifecycle chaincode install cp.tar.gz
+export PACKAGE_ID=$(docker exec cliMagnetoCorp peer lifecycle chaincode queryinstalled 2>&1 | awk -F "[, ]+" '/Label: /{print $3}')
 
-docker exec cliMagnetoCorp peer chaincode instantiate -n papercontract -v 0 -l node -c '{"Args":["org.papernet.commercialpaper:instantiate"]}' -C mychannel -P "AND ('Org1MSP.member')"
+docker exec cliMagnetoCorp peer lifecycle chaincode approveformyorg --channelID mychannel --name papercontract -v 0 --package-id $PACKAGE_ID --sequence 1 --signature-policy "AND ('Org1MSP.member')" 
+docker exec cliMagnetoCorp peer lifecycle chaincode commit -o orderer.example.com:7050 --channelID mychannel --name papercontract -v 0 --sequence 1 --waitForEvent --signature-policy "AND ('Org1MSP.member')" 
+docker exec cliMagnetoCorp peer chaincode invoke -o orderer.example.com:7050 --channelID mychannel --name papercontract -c '{"Args":["org.papernet.commercialpaper:instantiate"]}' --waitForEvent
+
 ```
 
 **For a Java Contract:**

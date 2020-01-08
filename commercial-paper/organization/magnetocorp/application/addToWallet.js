@@ -6,29 +6,37 @@
 
 // Bring key classes into scope, most importantly Fabric SDK network class
 const fs = require('fs');
-const { FileSystemWallet, X509WalletMixin } = require('fabric-network');
+const { Wallets } = require('fabric-network');
 const path = require('path');
 
 const fixtures = path.resolve(__dirname, '../../../../basic-network');
-
-// A wallet stores a collection of identities
-const wallet = new FileSystemWallet('../identity/user/isabella/wallet');
 
 async function main() {
 
     // Main try/catch block
     try {
+        // A wallet stores a collection of identities
+        const wallet = await Wallets.newFileSystemWallet('../identity/user/isabella/wallet');
 
         // Identity to credentials to be stored in the wallet
         const credPath = path.join(fixtures, '/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com');
-        const cert = fs.readFileSync(path.join(credPath, '/msp/signcerts/User1@org1.example.com-cert.pem')).toString();
-        const key = fs.readFileSync(path.join(credPath, '/msp/keystore/c75bd6911aca808941c3557ee7c97e90f3952e379497dc55eb903f31b50abc83_sk')).toString();
+        const certificate = fs.readFileSync(path.join(credPath, '/msp/signcerts/User1@org1.example.com-cert.pem')).toString();
+        const privateKey = fs.readFileSync(path.join(credPath, '/msp/keystore/740efb1655d71c3984062726b31361c151463b13979271b86e41d5a3dc3594de_sk')).toString();
 
         // Load credentials into wallet
         const identityLabel = 'User1@org1.example.com';
-        const identity = X509WalletMixin.createIdentity('Org1MSP', cert, key);
 
-        await wallet.import(identityLabel, identity);
+        const identity = {
+            credentials: {
+                certificate,
+                privateKey
+            },
+            mspId: 'Org1MSP',
+            type: 'X.509'
+        }
+
+    
+        await wallet.put(identityLabel,identity);
 
     } catch (error) {
         console.log(`Error adding to wallet. ${error}`);

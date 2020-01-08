@@ -1,7 +1,3 @@
-/*
-SPDX-License-Identifier: Apache-2.0
-*/
-
 package org.example.ledgerapi;
 
 @FunctionalInterface
