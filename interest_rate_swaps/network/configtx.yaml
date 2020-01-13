@@ -76,6 +76,15 @@ Organizations:
             - Host: irs-partya
               Port: 7051
 
+        # PrivateDataImplicitCollection stores the configuration for this org's implicit
+        # collection.
+        PrivateDataImplicitCollection:
+            RequiredPeerCount: 0
+            MaxPeerCount: 1
+            BlockToLive: 0
+            MemberOnlyRead: true
+            MemberOnlyWrite: true
+
     - &partyb
         # DefaultOrg defines the organization which is used in the sampleconfig
         # of the fabric.git development environment
@@ -110,6 +119,15 @@ Organizations:
             # encoded in the genesis block in the Application section context
             - Host: irs-partyb
               Port: 7051
+
+        # PrivateDataImplicitCollection stores the configuration for this org's implicit
+        # collection.
+        PrivateDataImplicitCollection:
+            RequiredPeerCount: 0
+            MaxPeerCount: 1
+            BlockToLive: 0
+            MemberOnlyRead: true
+            MemberOnlyWrite: true
 
     - &partyc
         # DefaultOrg defines the organization which is used in the sampleconfig
@@ -146,6 +164,14 @@ Organizations:
             - Host: irs-partyc
               Port: 7051
 
+        # PrivateDataImplicitCollection stores the configuration for this org's implicit
+        # collection.
+        PrivateDataImplicitCollection:
+            RequiredPeerCount: 0
+            MaxPeerCount: 1
+            BlockToLive: 0
+            MemberOnlyRead: true
+            MemberOnlyWrite: true
 
     - &auditor
         # DefaultOrg defines the organization which is used in the sampleconfig
@@ -182,6 +208,15 @@ Organizations:
             - Host: irs-auditor
               Port: 7051
 
+        # PrivateDataImplicitCollection stores the configuration for this org's implicit
+        # collection.
+        PrivateDataImplicitCollection:
+            RequiredPeerCount: 0
+            MaxPeerCount: 1
+            BlockToLive: 0
+            MemberOnlyRead: true
+            MemberOnlyWrite: true
+
     - &rrprovider
         # DefaultOrg defines the organization which is used in the sampleconfig
         # of the fabric.git development environment
@@ -217,6 +252,14 @@ Organizations:
             - Host: irs-rrprovider
               Port: 7051
 
+        # PrivateDataImplicitCollection stores the configuration for this org's implicit
+        # collection.
+        PrivateDataImplicitCollection:
+            RequiredPeerCount: 0
+            MaxPeerCount: 1
+            BlockToLive: 0
+            MemberOnlyRead: true
+            MemberOnlyWrite: true
 
 ################################################################################
 #
