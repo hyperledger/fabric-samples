@@ -76,6 +76,12 @@ Organizations:
             - Host: peer0.org1.example.com
               Port: 7051
 
+        # PrivateDataImplicitCollection stores the configuration for this org's implicit
+        # collection.
+        PrivateDataImplicitCollection:
+            MaxPeerCount: 1
+            RequiredPeerCount: 0
+
 ################################################################################
 #
 #   SECTION: Capabilities

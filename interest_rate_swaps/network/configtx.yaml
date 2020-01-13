@@ -76,6 +76,12 @@ Organizations:
             - Host: irs-partya
               Port: 7051
 
+        # PrivateDataImplicitCollection stores the configuration for this org's implicit
+        # collection.
+        PrivateDataImplicitCollection:
+            MaxPeerCount: 1
+            RequiredPeerCount: 0
+
     - &partyb
         # DefaultOrg defines the organization which is used in the sampleconfig
         # of the fabric.git development environment
@@ -110,6 +116,12 @@ Organizations:
             # encoded in the genesis block in the Application section context
             - Host: irs-partyb
               Port: 7051
+
+        # PrivateDataImplicitCollection stores the configuration for this org's implicit
+        # collection.
+        PrivateDataImplicitCollection:
+            MaxPeerCount: 1
+            RequiredPeerCount: 0
 
     - &partyc
         # DefaultOrg defines the organization which is used in the sampleconfig
@@ -146,6 +158,11 @@ Organizations:
             - Host: irs-partyc
               Port: 7051
 
+        # PrivateDataImplicitCollection stores the configuration for this org's implicit
+        # collection.
+        PrivateDataImplicitCollection:
+            MaxPeerCount: 1
+            RequiredPeerCount: 0
 
     - &auditor
         # DefaultOrg defines the organization which is used in the sampleconfig
@@ -182,6 +199,12 @@ Organizations:
             - Host: irs-auditor
               Port: 7051
 
+        # PrivateDataImplicitCollection stores the configuration for this org's implicit
+        # collection.
+        PrivateDataImplicitCollection:
+            MaxPeerCount: 1
+            RequiredPeerCount: 0
+
     - &rrprovider
         # DefaultOrg defines the organization which is used in the sampleconfig
         # of the fabric.git development environment
@@ -217,6 +240,11 @@ Organizations:
             - Host: irs-rrprovider
               Port: 7051
 
+        # PrivateDataImplicitCollection stores the configuration for this org's implicit
+        # collection.
+        PrivateDataImplicitCollection:
+            MaxPeerCount: 1
+            RequiredPeerCount: 0
 
 ################################################################################
 #

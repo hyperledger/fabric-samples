@@ -40,3 +40,9 @@ Organizations:
             # encoded in the genesis block in the Application section context
             - Host: peer0.org3.example.com
               Port: 11051
+
+        # PrivateDataImplicitCollection stores the configuration for this org's implicit
+        # collection.
+        PrivateDataImplicitCollection:
+            MaxPeerCount: 1
+            RequiredPeerCount: 0
