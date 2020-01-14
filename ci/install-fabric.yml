@@ -17,13 +17,5 @@ steps:
       cd /usr/local
       sudo tar xzvf /tmp/hyperledger-fabric-ca-latest-linux-amd64.latest-SNAPSHOT.tar.gz
     displayName: Download Fabric CA CLI
-  - script: |
-      set -ex
-      for i in baseos ca ccenv javaenv nodeenv peer orderer tools; do
-        docker pull nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-2.0.0-stable
-        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-2.0.0-stable hyperledger/fabric-$i:amd64-2.0.0-stable
-        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-2.0.0-stable hyperledger/fabric-$i:amd64-2.0.0
-        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-2.0.0-stable hyperledger/fabric-$i:2.0.0
-        docker tag nexus3.hyperledger.org:10001/hyperledger/fabric-$i:amd64-2.0.0-stable hyperledger/fabric-$i:latest
-      done
+  - script: bash ci/getDockerImages.sh
     displayName: Pull Fabric Docker images

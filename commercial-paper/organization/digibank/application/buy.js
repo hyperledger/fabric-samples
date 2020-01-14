@@ -17,14 +17,16 @@ SPDX-License-Identifier: Apache-2.0
 // Bring key classes into scope, most importantly Fabric SDK network class
 const fs = require('fs');
 const yaml = require('js-yaml');
-const { FileSystemWallet, Gateway } = require('fabric-network');
+const { Wallets, Gateway } = require('fabric-network');
 const CommercialPaper = require('../../magnetocorp/contract/lib/paper.js');
 
-// A wallet stores a collection of identities for use
-const wallet = new FileSystemWallet('../identity/user/balaji/wallet');
 
 // Main program function
 async function main () {
+
+    // A wallet stores a collection of identities for use
+    const wallet = await Wallets.newFileSystemWallet('../identity/user/balaji/wallet');
+
 
     // A gateway defines the peers used to access Fabric networks
     const gateway = new Gateway();
