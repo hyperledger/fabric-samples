@@ -11,3 +11,6 @@
 .project
 # omit Go vendor directories
 vendor/
+
+.vscode
+.gradle
