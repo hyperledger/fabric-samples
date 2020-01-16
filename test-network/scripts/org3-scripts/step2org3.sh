@@ -12,7 +12,7 @@
 #
 
 echo
-echo "========= Getting Org3 on to your first network ========= "
+echo "========= Getting Org3 on to your test network ========= "
 echo
 CHANNEL_NAME="$1"
 DELAY="$2"
@@ -62,7 +62,7 @@ joinChannelWithRetry 3
 echo "===================== peer0.org3 joined channel '$CHANNEL_NAME' ===================== "
 
 echo
-echo "========= Finished adding Org3 to your first network! ========= "
+echo "========= Finished adding Org3 to your test network! ========= "
 echo
 
 exit 0

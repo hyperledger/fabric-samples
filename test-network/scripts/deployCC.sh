@@ -12,19 +12,33 @@ VERBOSE="$6"
 : ${MAX_RETRY:="5"}
 : ${VERBOSE:="false"}
 CC_RUNTIME_LANGUAGE=`echo "$CC_RUNTIME_LANGUAGE" | tr [:upper:] [:lower:]`
-COUNTER=1
 
 FABRIC_CFG_PATH=$PWD/../config/
 
-if [ "$CC_RUNTIME_LANGUAGE" = "go" -o "$CC_RUNTIME_LANGUAGE" = "golang" ]; then
+if [ "$CC_RUNTIME_LANGUAGE" = "go" -o "$CC_RUNTIME_LANGUAGE" = "golang" ] ; then
 	CC_RUNTIME_LANGUAGE=golang
 	CC_SRC_PATH="../chaincode/fabcar/go/"
+
+	echo Vendoring Go dependencies ...
+	pushd ../chaincode/fabcar/go
+	GO111MODULE=on go mod vendor
+	popd
+	echo Finished vendoring Go dependencies
+
 elif [ "$CC_RUNTIME_LANGUAGE" = "javascript" ]; then
 	CC_RUNTIME_LANGUAGE=node # chaincode runtime language is node.js
 	CC_SRC_PATH="../chaincode/fabcar/javascript/"
+
 elif [ "$CC_RUNTIME_LANGUAGE" = "java" ]; then
 	CC_RUNTIME_LANGUAGE=java
-	CC_SRC_PATH="../chaincode/fabcar/java/"
+	CC_SRC_PATH="../chaincode/fabcar/java/build/install/fabcar"
+
+	echo Compiling Java code ...
+	pushd ../chaincode/fabcar/java
+	./gradlew installDist
+	popd
+	echo Finished compiling Java code
+
 else
 	echo The chaincode language ${CC_RUNTIME_LANGUAGE} is not supported by this script
 	echo Supported chaincode languages are: go, javascript, java
@@ -83,7 +97,7 @@ approveForMyOrg() {
   ORG=$1
   setGlobals $ORG
 
-  if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
+  if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ] ; then
     set -x
     peer lifecycle chaincode approveformyorg -o localhost:7050 --channelID $CHANNEL_NAME --name fabcar --version ${VERSION} --init-required --package-id ${PACKAGE_ID} --sequence ${VERSION} --waitForEvent >&log.txt
     set +x
@@ -98,6 +112,42 @@ approveForMyOrg() {
   echo
 }
 
+# checkCommitReadiness VERSION PEER ORG
+checkCommitReadiness() {
+  ORG=$1
+  shift 1
+  setGlobals $ORG
+  echo "===================== Checking the commit readiness of the chaincode definition on peer0.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
+	local rc=1
+	local COUNTER=1
+	# continue to poll
+  # we either get a successful response, or reach MAX RETRY
+	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
+    sleep $DELAY
+    echo "Attempting to check the commit readiness of the chaincode definition on peer0.org${ORG} secs"
+    set -x
+    peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name fabcar $PEER_CONN_PARMS --version ${VERSION} --sequence ${VERSION} --output json --init-required >&log.txt
+    res=$?
+    set +x
+		#test $res -eq 0 || continue
+    let rc=0
+    for var in "$@"
+    do
+      grep "$var" log.txt &>/dev/null || let rc=1
+    done
+		COUNTER=$(expr $COUNTER + 1)
+	done
+  cat log.txt
+  if test $rc -eq 0; then
+    echo "===================== Checking the commit readiness of the chaincode definition successful on peer0.org${ORG} on channel '$CHANNEL_NAME' ===================== "
+  else
+    echo "!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Check commit readiness result on peer0.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
+    echo "================== ERROR !!! FAILED to execute End-2-End Scenario =================="
+    echo
+    exit 1
+  fi
+}
+
 # commitChaincodeDefinition VERSION PEER ORG (PEER ORG)...
 commitChaincodeDefinition() {
   parsePeerConnectionParameters $@
@@ -107,7 +157,7 @@ commitChaincodeDefinition() {
   # while 'peer chaincode' command can get the orderer endpoint from the
   # peer (if join was successful), let's supply it directly as we know
   # it using the "-o" option
-  if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
+  if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ] ; then
     set -x
     peer lifecycle chaincode commit -o localhost:7050 --channelID $CHANNEL_NAME --name fabcar $PEER_CONN_PARMS --version ${VERSION} --sequence ${VERSION} --init-required >&log.txt
     res=$?
@@ -124,43 +174,6 @@ commitChaincodeDefinition() {
   echo
 }
 
-# checkCommitReadiness VERSION PEER ORG
-checkCommitReadiness() {
-  ORG=$1
-  shift 1
-  setGlobals $ORG
-  echo "===================== Checking the commit readiness of the chaincode definition on peer0.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
-	local rc=1
-	# continue to poll
-  # we either get a successful response, or reach MAX RETRY
-	if [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; then
-    COUNTER=$(expr $COUNTER + 1)
-    sleep $DELAY
-    echo "Attempting to check the commit readiness of the chaincode definition on peer0.org${ORG} secs"
-    set -x
-    peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name fabcar $PEER_CONN_PARMS --version ${VERSION} --sequence ${VERSION} --output json --init-required >&log.txt
-    res=$?
-    set +x
-    test $res -eq 0 || let rc=1
-	else
-		COUNTER=1
-	fi
-    for var in "$@"
-    do
-        grep "$var" log.txt &>/dev/null || let rc=1
-    done
-  echo
-  cat log.txt
-  if test $rc -eq 1; then
-    echo "===================== Checking the commit readiness of the chaincode definition successful on peer0.org${ORG} on channel '$CHANNEL_NAME' ===================== "
-  else
-    echo "!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Check commit readiness result on peer0.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
-    echo "================== ERROR !!! FAILED to execute End-2-End Scenario =================="
-    echo
-    exit 1
-  fi
-}
-
 # queryCommitted ORG
 queryCommitted() {
   ORG=$1
@@ -168,27 +181,27 @@ queryCommitted() {
   EXPECTED_RESULT="Version: ${VERSION}, Sequence: ${VERSION}, Endorsement Plugin: escc, Validation Plugin: vscc"
   echo "===================== Querying chaincode definition on peer0.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
 	local rc=1
+	local COUNTER=1
 	# continue to poll
   # we either get a successful response, or reach MAX RETRY
-	if [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; then
-    COUNTER=$(expr $COUNTER + 1)
+	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
     sleep $DELAY
     echo "Attempting to Query committed status on peer0.org${ORG}, Retry after $DELAY seconds."
     set -x
     peer lifecycle chaincode querycommitted --channelID $CHANNEL_NAME --name fabcar >&log.txt
     res=$?
     set +x
-		test $res -eq 0 || let rc=1
-	else
-		COUNTER=1
-	fi
+		test $res -eq 0 && VALUE=$(cat log.txt | grep -o '^Version: [0-9], Sequence: [0-9], Endorsement Plugin: escc, Validation Plugin: vscc')
+    test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
+		COUNTER=$(expr $COUNTER + 1)
+	done
   echo
   cat log.txt
-  if test $rc -eq 1; then
+  if test $rc -eq 0; then
     echo "===================== Query chaincode definition successful on peer0.org${ORG} on channel '$CHANNEL_NAME' ===================== "
+		echo
   else
     echo "!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Query chaincode definition result on peer0.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
-    echo "================== ERROR !!! FAILED to execute End-2-End Scenario =================="
     echo
     exit 1
   fi
@@ -249,27 +262,26 @@ chaincodeQuery() {
   setGlobals $ORG
   echo "===================== Querying on peer0.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
 	local rc=1
+	local COUNTER=1
 	# continue to poll
   # we either get a successful response, or reach MAX RETRY
-	if [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; then
-    COUNTER=$(expr $COUNTER + 1)
+	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
     sleep $DELAY
     echo "Attempting to Query peer0.org${ORG} ...$(($(date +%s) - starttime)) secs"
     set -x
     peer chaincode query -C $CHANNEL_NAME -n fabcar -c '{"Args":["queryAllCars"]}' >&log.txt
     res=$?
     set +x
-    test $res -eq 0 || let rc=1
-	else
-		COUNTER=1
-	fi
+		let rc=$res
+		COUNTER=$(expr $COUNTER + 1)
+	done
   echo
   cat log.txt
-  if test $rc -eq 1; then
+  if test $rc -eq 0; then
     echo "===================== Query successful on peer0.org${ORG} on channel '$CHANNEL_NAME' ===================== "
+		echo
   else
     echo "!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Query result on peer0.org${ORG} is INVALID !!!!!!!!!!!!!!!!"
-    echo "================== ERROR !!! FAILED to execute End-2-End Scenario =================="
     echo
     exit 1
   fi

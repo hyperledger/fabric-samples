@@ -50,9 +50,9 @@ function printHelp() {
   echo "	network.sh up"
   echo
   echo " Examples:"
-  echo "  network.sh up createChannel -ca -c mychannel -s couchdb -i 1.4.0"
+  echo "  network.sh up createChannel -ca -c mychannel -s couchdb -i 2.0.0-beta"
   echo "  network.sh createChannel -c channelName"
-  echo "  network.sh deployCC -l node"
+  echo "  network.sh deployCC -l javascript"
 }
 
 # Obtain CONTAINER_IDS and remove them
@@ -350,8 +350,7 @@ function createChannel() {
 
 ## Bring up the network if it is not arleady up.
 
-  CONTAINER_IDS=$(docker ps -a | awk '($2 ~ /fabric-peer/) {print $1}')
-  if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" == " " ]; then
+  if [ ! -d "organizations/peerOrganizations" ]; then
     echo "Bringing up network"
     networkUp
   fi
@@ -370,14 +369,6 @@ function createChannel() {
 
 ## Call the script to isntall and instantiate a chaincode on the channel
 function deployCC() {
-
-  if [ "$CC_RUNTIME_LANGUAGE" = "go" -o "$CC_RUNTIME_LANGUAGE" = "golang" ]; then
-    echo Vendoring Go dependencies ...
-    pushd ../chaincode/fabcar/go
-    GO111MODULE=on go mod vendor
-    popd
-    echo Finished vendoring Go dependencies
-  fi
 
   scripts/deployCC.sh $CHANNEL_NAME $CC_RUNTIME_LANGUAGE $VERSION $CLI_DELAY $MAX_RETRY $VERBOSE
 
@@ -410,6 +401,9 @@ function networkDown() {
     rm -rf organizations/fabric-ca/org1/msp organizations/fabric-ca/org1/tls-cert.pem organizations/fabric-ca/org1/ca-cert.pem organizations/fabric-ca/org1/IssuerPublicKey organizations/fabric-ca/org1/IssuerRevocationPublicKey organizations/fabric-ca/org1/fabric-ca-server.db
     rm -rf organizations/fabric-ca/org2/msp organizations/fabric-ca/org2/tls-cert.pem organizations/fabric-ca/org2/ca-cert.pem organizations/fabric-ca/org2/IssuerPublicKey organizations/fabric-ca/org2/IssuerRevocationPublicKey organizations/fabric-ca/org2/fabric-ca-server.db
     rm -rf organizations/fabric-ca/ordererOrg/msp organizations/fabric-ca/ordererOrg/tls-cert.pem organizations/fabric-ca/ordererOrg/ca-cert.pem organizations/fabric-ca/ordererOrg/IssuerPublicKey organizations/fabric-ca/ordererOrg/IssuerRevocationPublicKey organizations/fabric-ca/ordererOrg/fabric-ca-server.db
+    rm -rf addOrg3/fabric-ca/org3/msp addOrg3/fabric-ca/org3/tls-cert.pem addOrg3/fabric-ca/org3/ca-cert.pem addOrg3/fabric-ca/org3/IssuerPublicKey addOrg3/fabric-ca/org3/IssuerRevocationPublicKey addOrg3/fabric-ca/org3/fabric-ca-server.db
+
+
     # remove channel and script artifacts
     rm -rf channel-artifacts log.txt fabcar.tar.gz fabcar
 
@@ -479,7 +473,6 @@ while [[ $# -ge 1 ]] ; do
     printHelp
     exit 0
     ;;
-
   -c )
     CHANNEL_NAME="$2"
     shift
