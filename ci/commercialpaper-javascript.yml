@@ -1,0 +1,42 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+steps:
+  - script: bash start.sh
+    workingDirectory: basic-network
+    displayName: Start Fabric
+  - script: |
+      docker-compose -f docker-compose.yml up -d cliMagnetoCorp
+
+      docker exec cliMagnetoCorp peer lifecycle chaincode package cp.tar.gz --lang node --path /opt/gopath/src/github.com/contract --label cp_0
+      docker exec cliMagnetoCorp peer lifecycle chaincode install cp.tar.gz
+      export PACKAGE_ID=$(docker exec cliMagnetoCorp peer lifecycle chaincode queryinstalled 2>&1 | awk -F "[, ]+" '/Label: /{print $3}')
+
+      docker exec cliMagnetoCorp peer lifecycle chaincode approveformyorg --channelID mychannel --name papercontract -v 0 --package-id $PACKAGE_ID --sequence 1 --signature-policy "AND ('Org1MSP.member')" 
+      docker exec cliMagnetoCorp peer lifecycle chaincode commit -o orderer.example.com:7050 --channelID mychannel --name papercontract -v 0 --sequence 1 --waitForEvent --signature-policy "AND ('Org1MSP.member')" 
+      docker exec cliMagnetoCorp peer chaincode invoke -o orderer.example.com:7050 --channelID mychannel --name papercontract -c '{"Args":["org.papernet.commercialpaper:instantiate"]}' --waitForEvent
+
+    workingDirectory: commercial-paper/organization/magnetocorp/configuration/cli
+    displayName: Setup Commercial Paper contract
+
+  - script: retry -- npm install
+    workingDirectory: commercial-paper/organization/magnetocorp/application
+    displayName: Install Magnetocorp application
+  - script: |
+      set -ex
+      node addToWallet.js
+      node issue.js
+    workingDirectory: commercial-paper/organization/magnetocorp/application
+    displayName: Magnetocorp issue paper
+
+  - script: retry -- npm install
+    workingDirectory: commercial-paper/organization/digibank/application
+    displayName: Install Digibank application
+  - script: |
+      set -ex
+      node addToWallet.js
+      node buy.js
+      node redeem.js
+    workingDirectory: commercial-paper/organization/digibank/application
+    displayName: Digibank issue paper    
