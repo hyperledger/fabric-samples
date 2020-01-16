@@ -28,7 +28,7 @@ services:
     command: /bin/bash
     volumes:
         - /var/run/:/host/var/run/
-        - ./../../../../organization/digibank:/opt/gopath/src/github.com/
+        - ./../../../../organization/digibank:/opt/gopath/src/github.com/hyperledger/fabric-samples/commercial-paper/organization/digibank
         - ./../../../../../basic-network/crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
     networks:
         - basic

@@ -3,13 +3,21 @@
 #
 
 steps:
+  - script: go test ./...
+    workingDirectory: commercial-paper/organization/magnetocorp/contract-go
+    displayName: Go unit test magnetocorp
+  - script: go test ./...
+    workingDirectory: commercial-paper/organization/digibank/contract-go
+    displayName: Go unit test digibank
   - script: bash start.sh
     workingDirectory: basic-network
     displayName: Start Fabric
   - script: |
       docker-compose -f docker-compose.yml up -d cliMagnetoCorp
 
-      docker exec cliMagnetoCorp peer lifecycle chaincode package cp.tar.gz --lang node --path /opt/gopath/src/github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract --label cp_0
+      docker exec cliMagnetoCorp bash -c 'cd /opt/gopath/src/github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract-go && go mod vendor'
+
+      docker exec cliMagnetoCorp peer lifecycle chaincode package cp.tar.gz --lang golang --path github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract-go --label cp_0
       docker exec cliMagnetoCorp peer lifecycle chaincode install cp.tar.gz
       export PACKAGE_ID=$(docker exec cliMagnetoCorp peer lifecycle chaincode queryinstalled 2>&1 | awk -F "[, ]+" '/Label: /{print $3}')
 

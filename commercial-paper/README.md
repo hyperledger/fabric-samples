@@ -68,7 +68,7 @@ This will start a docker container for Fabric CLI commands, and put you in the c
 **For a JavaScript Contract:**
 
 ```
-docker exec cliMagnetoCorp peer lifecycle chaincode package cp.tar.gz --lang node --path /opt/gopath/src/github.com/contract --label cp_0
+docker exec cliMagnetoCorp peer lifecycle chaincode package cp.tar.gz --lang node --path /opt/gopath/src/github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract --label cp_0
 docker exec cliMagnetoCorp peer lifecycle chaincode install cp.tar.gz
 export PACKAGE_ID=$(docker exec cliMagnetoCorp peer lifecycle chaincode queryinstalled 2>&1 | awk -F "[, ]+" '/Label: /{print $3}')
 
@@ -87,12 +87,25 @@ pushd ./organization/magnetocorp/contract-java
 
 popd
 
-docker exec cliMagnetoCorp peer chaincode install -n papercontract -v 0 -p /opt/gopath/src/github.com/contract-java/build/install/papercontract -l java
+docker exec cliMagnetoCorp peer chaincode install -n papercontract -v 0 -p /opt/gopath/src/github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract-java/build/install/papercontract -l java
 
 docker exec cliMagnetoCorp peer chaincode instantiate -n papercontract -v 0 -l java -c '{"Args":["org.papernet.commercialpaper:instantiate"]}' -C mychannel -P "AND ('Org1MSP.member')"
 ```
 
 > If you want to try both a Java and JavaScript Contract, then you will need to restart the infrastructure and deploy the other contract.
+
+**For a Go Contract:**
+```
+docker exec cliMagnetoCorp bash -c 'cd /opt/gopath/src/github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract-go && go mod vendor'
+
+docker exec cliMagnetoCorp peer lifecycle chaincode package cp.tar.gz --lang golang --path github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract-go --label cp_0
+docker exec cliMagnetoCorp peer lifecycle chaincode install cp.tar.gz
+export PACKAGE_ID=$(docker exec cliMagnetoCorp peer lifecycle chaincode queryinstalled 2>&1 | awk -F "[, ]+" '/Label: /{print $3}')
+
+docker exec cliMagnetoCorp peer lifecycle chaincode approveformyorg --channelID mychannel --name papercontract -v 0 --package-id $PACKAGE_ID --sequence 1 --signature-policy "AND ('Org1MSP.member')"
+docker exec cliMagnetoCorp peer lifecycle chaincode commit -o orderer.example.com:7050 --channelID mychannel --name papercontract -v 0 --sequence 1 --waitForEvent --signature-policy "AND ('Org1MSP.member')"
+docker exec cliMagnetoCorp peer chaincode invoke -o orderer.example.com:7050 --channelID mychannel --name papercontract -c '{"Args":["org.papernet.commercialpaper:instantiate"]}' --waitForEvent
+```
 
 ## Client Applications
 
