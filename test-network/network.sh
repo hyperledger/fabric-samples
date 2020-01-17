@@ -34,7 +34,7 @@ function printHelp() {
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
-  echo "    -l <language> - the programming language of the chaincode to deploy: go (default), javascript, or java"
+  echo "    -l <language> - the programming language of the chaincode to deploy: go (default), java, javascript, typescript"
   echo "    -v <version>  - chaincode version. Must be a round number, 1, 2, 3, etc"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
   echo "    -verbose - verbose mode"
@@ -370,7 +370,7 @@ function createChannel() {
 ## Call the script to isntall and instantiate a chaincode on the channel
 function deployCC() {
 
-  scripts/deployCC.sh $CHANNEL_NAME $CC_RUNTIME_LANGUAGE $VERSION $CLI_DELAY $MAX_RETRY $VERBOSE
+  scripts/deployCC.sh $CHANNEL_NAME $CC_SRC_LANGUAGE $VERSION $CLI_DELAY $MAX_RETRY $VERBOSE
 
   if [ $? -ne 0 ]; then
     echo "ERROR !!! Deploying chaincode failed"
@@ -434,7 +434,7 @@ COMPOSE_FILE_COUCH_ORG3=addOrg3/docker/docker-compose-couch-org3.yaml
 COMPOSE_FILE_ORG3=addOrg3/docker/docker-compose-org3.yaml
 #
 # use golang as the default language for chaincode
-CC_RUNTIME_LANGUAGE=golang
+CC_SRC_LANGUAGE=golang
 # Chaincode version
 VERSION=1
 # default image tag
@@ -491,7 +491,7 @@ while [[ $# -ge 1 ]] ; do
     shift
     ;;
   -l )
-    CC_RUNTIME_LANGUAGE="$2"
+    CC_SRC_LANGUAGE="$2"
     shift
     ;;
   -v )

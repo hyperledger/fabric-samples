@@ -22,12 +22,11 @@ public class ClientApp {
 		// Load a file system based wallet for managing identities.
 		Path walletPath = Paths.get("wallet");
 		Wallet wallet = Wallet.createFileSystemWallet(walletPath);
-
 		// load a CCP
-		Path networkConfigPath = Paths.get("..", "..", "first-network", "connection-org1.yaml");
+		Path networkConfigPath = Paths.get("..", "..", "test-network", "organizations", "peerOrganizations", "org1.example.com", "connection-org1.yaml");
 
 		Gateway.Builder builder = Gateway.createBuilder();
-		builder.identity(wallet, "user1").networkConfig(networkConfigPath).discovery(true);
+		builder.identity(wallet, "appUser").networkConfig(networkConfigPath).discovery(true);
 
 		// create a gateway connection
 		try (Gateway gateway = builder.connect()) {
