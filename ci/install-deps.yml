@@ -5,3 +5,7 @@
 steps:
   - script: sudo sh -c "curl https://raw.githubusercontent.com/kadwanev/retry/master/retry -o /usr/local/bin/retry && chmod +x /usr/local/bin/retry"
     displayName: Install retry CLI
+  - task: NodeTool@0
+    inputs:
+      versionSpec: $(NODE_VER)
+    displayName: 'Install Node.js'
