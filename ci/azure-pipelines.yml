@@ -6,6 +6,9 @@ trigger:
   - master
   - release-1.4
 
+variables:
+  NODE_VER: '12.x'
+
 jobs:
   - job: fabcar_go
     displayName: FabCar (Go)
@@ -17,6 +20,7 @@ jobs:
       - template: install-deps.yml
       - template: install-fabric.yml
       - template: fabcar-go.yml
+
   - job: fabcar_java
     displayName: FabCar (Java)
     pool:
@@ -27,6 +31,7 @@ jobs:
       - template: install-deps.yml
       - template: install-fabric.yml
       - template: fabcar-java.yml
+
   - job: fabcar_javascript
     displayName: FabCar (JavaScript)
     pool:
@@ -37,6 +42,7 @@ jobs:
       - template: install-deps.yml
       - template: install-fabric.yml
       - template: fabcar-javascript.yml
+
   - job: fabcar_typescript
     displayName: FabCar (TypeScript)
     pool:
@@ -47,6 +53,7 @@ jobs:
       - template: install-deps.yml
       - template: install-fabric.yml
       - template: fabcar-typescript.yml
+
   - job: commercialpaper_javascript
     displayName: CommercialPaper (JavaScript)
     pool:
@@ -56,7 +63,8 @@ jobs:
     steps:
       - template: install-deps.yml
       - template: install-fabric.yml
-      - template: commercialpaper-javascript.yml      
+      - template: commercialpaper-javascript.yml
+
   - job: commercialpaper_java
     displayName: CommercialPaper (Java)
     pool:
@@ -67,5 +75,3 @@ jobs:
       - template: install-deps.yml
       - template: install-fabric.yml
       - template: commercialpaper-java.yml      
-
-
