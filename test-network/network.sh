@@ -79,8 +79,8 @@ function removeUnwantedImages() {
   fi
 }
 
-# Versions of fabric known not to work with this release of first-network
-BLACKLISTED_VERSIONS="^1\.0\. ^1\.1\.0-preview ^1\.1\.0-alpha"
+# Versions of fabric known not to work with the test network
+BLACKLISTED_VERSIONS="^1\.0\. ^1\.1\. ^1\.2\. ^1\.3\. ^1\.4\."
 
 # Do some basic sanity checking to make sure that the appropriate versions of fabric
 # binaries/images are available. In the future, additional checking for the presence
@@ -114,13 +114,13 @@ function checkPrereqs() {
   for UNSUPPORTED_VERSION in $BLACKLISTED_VERSIONS; do
     echo "$LOCAL_VERSION" | grep -q $UNSUPPORTED_VERSION
     if [ $? -eq 0 ]; then
-      echo "ERROR! Local Fabric binary version of $LOCAL_VERSION does not match this newer version of the network and is unsupported. Either move to a later version of Fabric or checkout an earlier version of fabric-samples."
+      echo "ERROR! Local Fabric binary version of $LOCAL_VERSION does not match the versions supported by the test network."
       exit 1
     fi
 
     echo "$DOCKER_IMAGE_VERSION" | grep -q $UNSUPPORTED_VERSION
     if [ $? -eq 0 ]; then
-      echo "ERROR! Fabric Docker image version of $DOCKER_IMAGE_VERSION does not match this newer version of the network and is unsupported. Either move to a later version of Fabric or checkout an earlier version of fabric-samples."
+      echo "ERROR! Fabric Docker image version of $DOCKER_IMAGE_VERSION does not match the versions supported by the test network."
       exit 1
     fi
   done
@@ -437,8 +437,6 @@ COMPOSE_FILE_ORG3=addOrg3/docker/docker-compose-org3.yaml
 CC_RUNTIME_LANGUAGE=golang
 # Chaincode version
 VERSION=1
-# Chaincode source path
-CC_SRC_PATH="../chaincode/fabcar/go/"
 # default image tag
 IMAGETAG="latest"
 # default database
