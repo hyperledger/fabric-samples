@@ -9,7 +9,7 @@ const fs = require('fs');
 const { Wallets } = require('fabric-network');
 const path = require('path');
 
-const fixtures = path.resolve(__dirname, '../../../../basic-network');
+const fixtures = path.resolve(__dirname, '../../../../test-network');
 
 async function main() {
 
@@ -20,12 +20,12 @@ async function main() {
         const wallet = await Wallets.newFileSystemWallet('../identity/user/balaji/wallet');
 
         // Identity to credentials to be stored in the wallet
-        const credPath = path.join(fixtures, '/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com');
+        const credPath = path.join(fixtures, '/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com');
         const certificate = fs.readFileSync(path.join(credPath, '/msp/signcerts/Admin@org1.example.com-cert.pem')).toString();
-        const privateKey = fs.readFileSync(path.join(credPath, '/msp/keystore/5ba12183ab07014ba831f9a79cf51fe7e6f62cdebe6193f070445243aedddee9_sk')).toString();
+        const privateKey = fs.readFileSync(path.join(credPath, '/msp/keystore/priv_sk')).toString();
 
         // Load credentials into wallet
-        const identityLabel = 'Admin@org1.example.com';
+        const identityLabel = 'balaji';
        
         const identity = {
             credentials: {

@@ -1,2 +1,4 @@
 cp.tar.gz
-**/organization/**/gateway/connection*.yaml
+**/.gradle
+**/gateway/connection-org1.yaml
+**/gateway/connection-org2.yaml
