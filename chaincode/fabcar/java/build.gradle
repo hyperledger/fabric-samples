@@ -13,7 +13,7 @@ group 'org.hyperledger.fabric.samples'
 version '1.0-SNAPSHOT'
 
 dependencies {
-    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:1.4.3'
+    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:1.4+'
     implementation 'com.owlike:genson:1.5'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
     testImplementation 'org.assertj:assertj-core:3.11.1'
@@ -22,7 +22,7 @@ dependencies {
 
 repositories {
     maven {
-        url "https://nexus.hyperledger.org/content/repositories/snapshots/"
+        url "https://hyperledger.jfrog.io/hyperledger/fabric-maven"
     }
     jcenter()
     maven { 
