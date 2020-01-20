@@ -4,18 +4,14 @@
 
 steps:
   - script: |
-      set -ex
-      mvn dependency:get -DremoteRepositories=https://nexus.hyperledger.org/content/repositories/snapshots -Dartifact=org.hyperledger.fabric:hyperledger-fabric-latest:linux-amd64.latest-SNAPSHOT:tar.gz
-      mvn dependency:copy -Dartifact=org.hyperledger.fabric:hyperledger-fabric-latest:linux-amd64.latest-SNAPSHOT:tar.gz -DoutputDirectory=/tmp
-      cd /usr/local
-      sudo tar xzvf /tmp/hyperledger-fabric-latest-linux-amd64.latest-SNAPSHOT.tar.gz
+      set -eo pipefail
+      wget -q -P /tmp https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-linux-amd64-latest.tar.gz
+      sudo tar xzvf /tmp/hyperledger-fabric-linux-amd64-latest.tar.gz -C /usr/local
     displayName: Download Fabric CLI
   - script: |
-      set -ex
-      mvn dependency:get -DremoteRepositories=https://nexus.hyperledger.org/content/repositories/snapshots -Dartifact=org.hyperledger.fabric-ca:hyperledger-fabric-ca-latest:linux-amd64.latest-SNAPSHOT:tar.gz
-      mvn dependency:copy -Dartifact=org.hyperledger.fabric-ca:hyperledger-fabric-ca-latest:linux-amd64.latest-SNAPSHOT:tar.gz -DoutputDirectory=/tmp
-      cd /usr/local
-      sudo tar xzvf /tmp/hyperledger-fabric-ca-latest-linux-amd64.latest-SNAPSHOT.tar.gz
+      set -eo pipefail
+      wget -q -P /tmp https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-ca-linux-amd64-latest.tar.gz
+      sudo tar xzvf /tmp/hyperledger-fabric-ca-linux-amd64-latest.tar.gz -C /usr/local
     displayName: Download Fabric CA CLI
   - script: bash ci/getDockerImages.sh
     displayName: Pull Fabric Docker images

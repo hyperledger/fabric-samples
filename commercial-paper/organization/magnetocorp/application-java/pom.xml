@@ -63,8 +63,8 @@
 	<repositories>
 		<repository>
 			<id>hyperledger</id>
-			<name>Hyperledger Nexus</name>
-			<url>https://nexus.hyperledger.org/content/repositories/snapshots</url>
+			<name>Hyperledger Artifactory</name>
+			<url>https://hyperledger.jfrog.io/hyperledger/fabric-maven</url>
 		</repository>
 
 		<repository>

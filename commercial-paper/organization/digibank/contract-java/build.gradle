@@ -13,7 +13,7 @@ repositories {
         url 'https://jitpack.io'
     }
     maven {
-        url "https://nexus.hyperledger.org/content/repositories/snapshots/"
+        url "https://hyperledger.jfrog.io/hyperledger/fabric-maven"
     }
 
 }
