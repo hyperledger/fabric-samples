@@ -33,6 +33,9 @@ Organizations:
             Admins:
                 Type: Signature
                 Rule: "OR('Org3MSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('Org3MSP.peer')"
 
         AnchorPeers:
             # AnchorPeers defines the location of peers which can be used
