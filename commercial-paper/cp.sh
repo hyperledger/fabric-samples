@@ -25,7 +25,7 @@ docker ps
 # cd "${DIR}/commercial-paper/organization/magnetocorp/configuration/cli"
 # docker-compose -f docker-compose.yml up -d cliMagnetoCorp
 
-# docker exec cliMagnetoCorp peer lifecycle chaincode package cp.tar.gz --lang node --path /opt/gopath/src/github.com/contract --label cp_0
+# docker exec cliMagnetoCorp peer lifecycle chaincode package cp.tar.gz --lang node --path /opt/gopath/src/github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract --label cp_0
 # docker exec cliMagnetoCorp peer lifecycle chaincode install cp.tar.gz
 # export PACKAGE_ID=$(docker exec cliMagnetoCorp peer lifecycle chaincode queryinstalled 2>&1 | awk -F "[, ]+" '/Label: /{print $3}')
 
@@ -37,7 +37,7 @@ docker ps
 cd "${DIR}/commercial-paper/organization/digibank/configuration/cli"
 docker-compose -f docker-compose.yml up -d cliDigiBank
 CLI_CONTAINER=cliDigiBank
-docker exec ${CLI_CONTAINER} peer lifecycle chaincode package cp.tar.gz --lang java --path /opt/gopath/src/github.com/contract-java/build/libs --label cp_0
+docker exec ${CLI_CONTAINER} peer lifecycle chaincode package cp.tar.gz --lang java --path /opt/gopath/src/github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract-java/build/libs --label cp_0
 docker exec ${CLI_CONTAINER} peer lifecycle chaincode install cp.tar.gz
 export PACKAGE_ID=$(docker exec ${CLI_CONTAINER} peer lifecycle chaincode queryinstalled 2>&1 | awk -F "[, ]+" '/Label: /{print $3}')
 

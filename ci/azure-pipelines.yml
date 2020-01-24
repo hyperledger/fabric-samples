@@ -74,4 +74,14 @@ jobs:
     steps:
       - template: install-deps.yml
       - template: install-fabric.yml
-      - template: commercialpaper-java.yml      
+      - template: commercialpaper-java.yml
+  - job: commercialpaper_go
+    displayName: CommercialPaper (Go)
+    pool:
+      vmImage: ubuntu-18.04
+    dependsOn: []
+    timeoutInMinutes: 60
+    steps:
+      - template: install-deps.yml
+      - template: install-fabric.yml
+      - template: commercialpaper-go.yml

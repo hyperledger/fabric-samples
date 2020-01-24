@@ -13,7 +13,7 @@ steps:
   - script: |
       docker-compose -f docker-compose.yml up -d cliDigiBank
 
-      docker exec cliDigiBank peer lifecycle chaincode package cp.tar.gz --lang java --path /opt/gopath/src/github.com/contract-java/build/libs --label cp_0
+      docker exec cliDigiBank peer lifecycle chaincode package cp.tar.gz --lang java --path /opt/gopath/src/github.com/hyperledger/fabric-samples/commercial-paper/organization/digibank/contract-java/build/libs --label cp_0
       docker exec cliDigiBank peer lifecycle chaincode install cp.tar.gz
       export PACKAGE_ID=$(docker exec cliDigiBank peer lifecycle chaincode queryinstalled 2>&1 | awk -F "[, ]+" '/Label: /{print $3}')
 
