@@ -12,6 +12,6 @@
 	"engine-strict": true,
 	"license": "Apache-2.0",
 	"dependencies": {
-		"fabric-shim": "beta"
+		"fabric-shim": "^2.0.0"
 	}
 }
