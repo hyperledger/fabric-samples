@@ -69,6 +69,7 @@ services:
       environment:
         - FABRIC_LOGGING_SPEC=INFO
         - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+        - ORDERER_GENERAL_LISTENPORT=7050
         - ORDERER_GENERAL_GENESISMETHOD=file
         - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
         - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
