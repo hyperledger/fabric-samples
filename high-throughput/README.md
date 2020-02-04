@@ -94,75 +94,56 @@ and assumed to be correct and at minimal risk to either company simply due to Am
 must be verified before approval and admittance to the chain.
 
 ## How
-This sample provides the chaincode and scripts required to run a high-throughput application. For ease of use, it runs on the same network which is brought
-up by `byfn.sh` in the `first-network` folder within `fabric-samples`, albeit with a few small modifications. The instructions to build the network
-and run some invocations are provided below.
-
-### Build your network
-1. `cd` into the `first-network` folder within `fabric-samples`, e.g. `cd ~/fabric-samples/first-network`
-2. Open `docker-compose-cli.yaml` in your favorite editor, and edit the following lines:
-  * In the `volumes` section of the `cli` container, edit the second line which refers to the chaincode folder to point to the chaincode folder
-    within the `high-throughput` folder, e.g.
-
-    `./../chaincode/:/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode` -->
-    `./../high-throughput/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode`
-  * Again in the `volumes` section, edit the fourth line which refers to the scripts folder so it points to the scripts folder within the
-    `high-throughput` folder, e.g.
-
-    `./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/` -->
-    `./../high-throughput/scripts/:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/`
-
-  * Finally, comment out the `docker exec cli scripts/script.sh` command from the `byfn.sh` script by placing a `#` before it so that the standard BYFN end to end script doesn't run, e.g.
-
-    `#  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $CC_SRC_LANGUAGE $CLI_TIMEOUT $VERBOSE`
-
-3. We can now bring our network up by typing in `./byfn.sh up -c mychannel`
-4. Open a new terminal window and enter the CLI container using `docker exec -it cli bash`, all operations on the network will happen within
-   this container from now on.
+This sample provides the chaincode and scripts required to run a high-throughput application on the Fabric test network.
 
 ### Vendor the chaincode dependencies
-1. Outside of the CLI container, change into the chaincode directory, e.g. `cd ~/fabric-samples/high-throughput/chaincode`
+1. Change into the chaincode directory, e.g. `cd ~/fabric-samples/high-throughput/chaincode`
 2. Vendor the Go dependencies by running the following command: `GO111MODULE=on go mod vendor`
 3. The chaincode directory will now contain a `vendor` directory.
 
-### Install and define the chaincode
-1. Once you're in the CLI container run `cd scripts` to enter the `scripts` folder
-2. Set-up the environment variables by running `source setclienv.sh`
-3. Set-up your channels and anchor peers by running `./channel-setup.sh`
-4. Package and install your chaincode by running `./install-chaincode.sh 1`. The only argument is a number representing the    chaincode version, every time
-   you want to install and upgrade to a new chaincode version simply increment this value by 1 when running the command, e.g. `./install-chaincode.sh 2`
-5. Define your chaincode on the channel by running `./approve-commit-chaincode.sh 1`. The version argument serves the same purpose as in `./install-chaincode.sh 1`
-   and should match the version of the chaincode you just installed. This script also invokes the chaincode `Init` function to start the chaincode container.
-   You can also upgrade the chaincode to a newer version by running `./approve-commit-chaincode.sh 2`.
-6. Your chaincode is now installed and ready to receive invocations
+### Start the network
+
+You can use the `startFabric.sh` script to create an instance of the Fabric test network with a single channel named `mychannel`. The script then deploys the `high-throughput` chaincode to the channel by installing it on the test network peers and committing the chaincode definition to the channel.
+
+Change back into the `high-throughput` directory in `fabic-samples`. Start the network and deploy the chaincode by issuing the following command:
+```
+./startFabric.sh
+```
+
+If successful, you will see messages of the Fabric test network being created and the chaincode being deployed, followed by the execution time of the script:
+```
+Total setup execution time : 141 secs ...
+```
+
+The `high-throughput` chaincode is now ready to receive invocations.
 
 ### Invoke the chaincode
-All invocations are provided as scripts in `scripts` folder; these are detailed below.
+All invocations are provided as scripts in `scripts` folder. You can use these scripts to create and remove assets that you put on the ledger.
 
 #### Update
-The format for update is: `./update-invoke.sh name value operation` where `name` is the name of the variable to update, `value` is the value to
+The format for update is: `./scripts/update-invoke.sh name value operation` where `name` is the name of the variable to update, `value` is the value to
 add to the variable, and `operation` is either `+` or `-` depending on what type of operation you'd like to add to the variable. In the future,
 multiply/divide operations will be supported (or add them yourself to the chaincode as an exercise!)
 
-Example: `./update-invoke.sh myvar 100 +`
+Example: `./scripts/update-invoke.sh myvar 100 +`
 
 #### Get
 The format for get is: `./get-invoke.sh name` where `name` is the name of the variable to get.
 
-Example: `./get-invoke.sh myvar`
-
-#### Delete
-The format for delete is: `./delete-invoke.sh name` where `name` is the name of the variable to delete.
-
-Example: `./delete-invoke.sh myvar`
+Example: `./scripts/get-invoke.sh myvar`
 
 #### Prune
 Pruning takes all the deltas generated for a variable and combines them all into a single row, deleting all previous rows. This helps cleanup
 the ledger when many updates have been performed.
 
-The format for pruning is: `./prune-invoke.sh name` where `name` is the name of the variable to prune.
+The format for pruning is: `./scripts/prune-invoke.sh name` where `name` is the name of the variable to prune.
 
-Example: `./prune-invoke.sh myvar`
+Example: `./scripts/prune-invoke.sh myvar`
+
+#### Delete
+The format for delete is: `./delete-invoke.sh name` where `name` is the name of the variable to delete.
+
+Example: `./scripts/delete-invoke.sh myvar`
 
 ### Test the Network
 Two scripts are provided to show the advantage of using this system when running many parallel transactions at once: `many-updates.sh` and
@@ -178,6 +159,14 @@ errors in the peer and orderer logs.
 There are two other scripts, `get-traditional.sh`, which simply gets the value of a row in the traditional way, with no deltas, and `del-traditional.sh` will delete an asset in the traditional way.
 
 Examples:
-`./many-updates.sh testvar 100 +` --> final value from `./get-invoke.sh testvar` should be 100000
+`./scripts/many-updates.sh testvar 100 +` --> final value from `./scripts/get-invoke.sh testvar` should be 100000
 
-`./many-updates-traditional.sh testvar` --> final value from `./get-traditional.sh testvar` is undefined
+`./scripts/many-updates-traditional.sh testvar` --> final value from `./scripts/get-traditional.sh testvar` is undefined
+
+### Clean up
+
+When you are finished using the `high-throughput` chaincode, you can bring down the network and remove any accompanying artifacts using the `networkDown.sh` script.
+
+```
+./networkDown.sh
+```
