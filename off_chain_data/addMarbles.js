@@ -2,7 +2,7 @@
  * Copyright IBM Corp. All Rights Reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
- * 
+ *
  */
 
 /*
@@ -70,7 +70,7 @@ async function main() {
         // Parse the connection profile. This would be the path to the file downloaded
         // from the IBM Blockchain Platform operational console.
         const ccpPath = path.resolve(__dirname, '..', 'first-network', 'connection-org1.json');
-        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+        const connectionProfile = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
         // Configure a wallet. This wallet must already be primed with an identity that
         // the application can use to interact with the peer node.
@@ -80,7 +80,7 @@ async function main() {
         // Create a new gateway, and connect to the gateway peer node(s). The identity
         // specified must already exist in the specified wallet.
         const gateway = new Gateway();
-        await gateway.connect(ccpPath, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(connectionProfile, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network channel that the smart contract is deployed to.
         const network = await gateway.getNetwork(channelid);

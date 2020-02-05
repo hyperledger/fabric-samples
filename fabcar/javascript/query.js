@@ -6,6 +6,7 @@
 
 const { Gateway, Wallets } = require('fabric-network');
 const path = require('path');
+const fs = require('fs');
 
 const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', 'connection-org1.json');
 
@@ -25,9 +26,11 @@ async function main() {
             return;
         }
 
+        let connectionProfile = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccpPath, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(connectionProfile, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');

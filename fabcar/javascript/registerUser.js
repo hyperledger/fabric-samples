@@ -32,9 +32,11 @@ async function main() {
             return;
         }
 
+        let connectionProfile = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccpPath, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(connectionProfile, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: true } });
 
         // Get the CA client object from the gateway for interacting with the CA.
         const client = gateway.getClient();

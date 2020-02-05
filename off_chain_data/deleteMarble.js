@@ -2,7 +2,7 @@
  * Copyright IBM Corp. All Rights Reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
- * 
+ *
  */
 
 /*
@@ -44,10 +44,12 @@ async function main() {
         const walletPath = path.resolve(__dirname, 'wallet');
         const wallet = new FileSystemWallet(walletPath);
 
+        const connectionProfile = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
         // Create a new gateway, and connect to the gateway peer node(s). The identity
         // specified must already exist in the specified wallet.
         const gateway = new Gateway();
-        await gateway.connect(ccpPath, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(connectionProfile, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network channel that the smart contract is deployed to.
         const network = await gateway.getNetwork(channelid);

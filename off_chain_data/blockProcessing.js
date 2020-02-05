@@ -46,9 +46,9 @@ exports.processBlockEvent = async function (channelname, block, use_couchdb, nan
             }
 
             // tx may be rejected at commit stage by peers
-            // only valid transactions (code=0) update the word state and off-chain db
+            // only valid transactions (code=0) update the world state and off-chain db
             // filter through valid tx, refer below for list of error codes
-            // https://github.com/hyperledger/fabric-sdk-node/blob/release-1.4/fabric-client/lib/protos/peer/transaction.proto
+            // https://github.com/hyperledger/fabric-sdk-node/blob/release-2.0/fabric-protos/protos/peer/transaction.proto
             if (txSuccess[dataItem] !== 0) {
               continue();
             }

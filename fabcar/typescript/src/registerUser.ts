@@ -4,6 +4,7 @@
 
 import { Gateway, Wallets, X509Identity } from 'fabric-network';
 import * as path from 'path';
+import * as fs from 'fs';
 
 const ccpPath = path.resolve(__dirname, '..', '..', '..', 'first-network', 'connection-org1.json');
 
@@ -30,9 +31,11 @@ async function main() {
             return;
         }
 
+        const connectionProfile = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccpPath, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(connectionProfile, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: true } });
 
         // Get the CA client object from the gateway for interacting with the CA.
         const client = gateway.getClient();
