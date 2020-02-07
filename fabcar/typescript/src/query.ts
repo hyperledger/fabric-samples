@@ -4,11 +4,14 @@
 
 import { Gateway, Wallets } from 'fabric-network';
 import * as path from 'path';
+import * as fs from 'fs';
 
-const ccpPath = path.resolve(__dirname, '..', '..', '..', 'first-network', 'connection-org1.json');
 
 async function main() {
     try {
+        // load the network configuration
+        const ccpPath = path.resolve(__dirname, '..', '..', '..', 'first-network', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), 'wallet');
@@ -25,7 +28,7 @@ async function main() {
 
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccpPath, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
