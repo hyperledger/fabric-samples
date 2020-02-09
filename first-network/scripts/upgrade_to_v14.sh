@@ -14,11 +14,13 @@ DELAY="$2"
 CC_SRC_LANGUAGE="$3"
 TIMEOUT="$4"
 VERBOSE="$5"
+NAME="$6"
 : ${CHANNEL_NAME:="mychannel"}
 : ${DELAY:="5"}
 : ${CC_SRC_LANGUAGE:="go"}
 : ${TIMEOUT:="10"}
 : ${VERBOSE:="false"}
+: ${NAME:="mycc"}
 CC_SRC_LANGUAGE=$(echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:])
 COUNTER=1
 MAX_RETRY=5
@@ -47,19 +49,19 @@ sleep $DELAY
 
 #Query on chaincode on Peer0/Org1
 echo "Querying chaincode on org1/peer0..."
-chaincodeQuery 0 1 90
+chaincodeQuery 0 1 90 $NAME
 
 sleep $DELAY
 
 #Invoke on chaincode on Peer0/Org1
 echo "Sending invoke transaction on org1/peer0..."
-chaincodeInvoke 0 1 0 2
+chaincodeInvoke 0 $NAME 1 0 2
 
 sleep $DELAY
 
 #Query on chaincode on Peer0/Org1
 echo "Querying chaincode on org1/peer0..."
-chaincodeQuery 0 1 80
+chaincodeQuery 0 1 80 $NAME
 
 echo
 echo "===================== All GOOD, End-2-End UPGRADE Scenario execution completed ===================== "

@@ -15,12 +15,14 @@ CC_SRC_LANGUAGE="$3"
 TIMEOUT="$4"
 VERBOSE="$5"
 NO_CHAINCODE="$6"
+NAME="$7"
 : ${CHANNEL_NAME:="mychannel"}
 : ${DELAY:="3"}
 : ${CC_SRC_LANGUAGE:="go"}
 : ${TIMEOUT:="10"}
 : ${VERBOSE:="false"}
 : ${NO_CHAINCODE:="false"}
+: ${NAME:="mycc"}
 CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=20
@@ -43,6 +45,7 @@ fi
 
 
 echo "Channel name : "$CHANNEL_NAME
+echo "Chaincode name : "$NAME
 
 # import utils
 . scripts/utils.sh
@@ -95,62 +98,62 @@ updateAnchorPeers 0 2
 if [ "${NO_CHAINCODE}" != "true" ]; then
 
 	## at first we package the chaincode
-	packageChaincode 1 0 1
+	packageChaincode 1 0 1 $NAME
 
 	## Install chaincode on peer0.org1 and peer0.org2
 	echo "Installing chaincode on peer0.org1..."
-	installChaincode 0 1
+	installChaincode 0 1 $NAME
 	echo "Install chaincode on peer0.org2..."
-	installChaincode 0 2
+	installChaincode 0 2 $NAME
 
 	## query whether the chaincode is installed
 	queryInstalled 0 1
 
 	## approve the definition for org1
-	approveForMyOrg 1 0 1
+	approveForMyOrg 1 0 1 $NAME
 
 	## check whether the chaincode definition is ready to be committed
     ## expect org1 to have approved and org2 not to
-	checkCommitReadiness 1 0 1 "\"Org1MSP\": true" "\"Org2MSP\": false"
-	checkCommitReadiness 1 0 2 "\"Org1MSP\": true" "\"Org2MSP\": false"
+	checkCommitReadiness 1 0 1 $NAME "\"Org1MSP\": true" "\"Org2MSP\": false"
+	checkCommitReadiness 1 0 2 $NAME "\"Org1MSP\": true" "\"Org2MSP\": false"
 
 	## now approve also for org2
-	approveForMyOrg 1 0 2
+	approveForMyOrg 1 0 2 $NAME
 
 	## check whether the chaincode definition is ready to be committed
 	## expect them both to have approved
-	checkCommitReadiness 1 0 1 "\"Org1MSP\": true" "\"Org2MSP\": true"
-	checkCommitReadiness 1 0 2 "\"Org1MSP\": true" "\"Org2MSP\": true"
+	checkCommitReadiness 1 0 1 $NAME "\"Org1MSP\": true" "\"Org2MSP\": true"
+	checkCommitReadiness 1 0 2 $NAME "\"Org1MSP\": true" "\"Org2MSP\": true"
 
 	## now that we know for sure both orgs have approved, commit the definition
-	commitChaincodeDefinition 1 0 1 0 2
+	commitChaincodeDefinition 1 $NAME 0 1 0 2
 
 	## query on both orgs to see that the definition committed successfully
-	queryCommitted 1 0 1
-	queryCommitted 1 0 2
+	queryCommitted 1 0 1 $NAME
+	queryCommitted 1 0 2 $NAME
 
 	# invoke init
-	chaincodeInvoke 1 0 1 0 2
+	chaincodeInvoke 1 $NAME 0 1 0 2 
 
 	# Query chaincode on peer0.org1
 	echo "Querying chaincode on peer0.org1..."
-	chaincodeQuery 0 1 100
+	chaincodeQuery 0 1 100 $NAME
 
 	# Invoke chaincode on peer0.org1 and peer0.org2
 	echo "Sending invoke transaction on peer0.org1 peer0.org2..."
-	chaincodeInvoke 0 0 1 0 2
+	chaincodeInvoke 0 $NAME 0 1 0 2
 
 	# Query chaincode on peer0.org1
 	echo "Querying chaincode on peer0.org1..."
-	chaincodeQuery 0 1 90
+	chaincodeQuery 0 1 90 $NAME
 
 	## Install chaincode on peer1.org2
 	echo "Installing chaincode on peer1.org2..."
-	installChaincode 1 2
+	installChaincode 1 2 $NAME
 
 	# Query on chaincode on peer1.org2, check if the result is 90
 	echo "Querying chaincode on peer1.org2..."
-	chaincodeQuery 1 2 90
+	chaincodeQuery 1 2 90 $NAME
 
 fi
 

@@ -25,10 +25,12 @@ DELAY="$2"
 CC_SRC_LANGUAGE="$3"
 TIMEOUT="$4"
 VERBOSE="$5"
+NAME="$6"
 : ${CHANNEL_NAME:="mychannel"}
 : ${TIMEOUT:="10"}
 : ${CC_SRC_LANGUAGE:="go"}
 : ${VERBOSE:="false"}
+: ${NAME:="mycc"}
 CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=5
@@ -55,23 +57,23 @@ echo "Channel name : "$CHANNEL_NAME
 
 # Query chaincode on peer0.org3, check if the result is 90
 echo "Querying chaincode on peer0.org3..."
-chaincodeQuery 0 3 90
+chaincodeQuery 0 3 90 $NAME
 
 # Invoke chaincode on peer0.org1 and peer0.org3
 echo "Sending invoke transaction on peer0.org1 peer0.org3..."
-chaincodeInvoke 0 0 1 0 3
+chaincodeInvoke 0 $NAME 0 1 0 3
 
 # Query on chaincode on peer0.org3, peer0.org2, peer0.org1 check if the result is 80
 # We query a peer in each organization, to ensure peers from all organizations are in sync
 # and there is no state fork between organizations.
 echo "Querying chaincode on peer0.org3..."
-chaincodeQuery 0 3 80
+chaincodeQuery 0 3 80 $NAME
 
 echo "Querying chaincode on peer0.org2..."
-chaincodeQuery 0 2 80
+chaincodeQuery 0 2 80 $NAME
 
 echo "Querying chaincode on peer0.org1..."
-chaincodeQuery 0 1 80
+chaincodeQuery 0 1 80 $NAME
 
 
 echo

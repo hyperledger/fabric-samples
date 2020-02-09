@@ -19,11 +19,13 @@ DELAY="$2"
 CC_SRC_LANGUAGE="$3"
 TIMEOUT="$4"
 VERBOSE="$5"
+NAME="$6"
 : ${CHANNEL_NAME:="mychannel"}
 : ${DELAY:="3"}
 : ${CC_SRC_LANGUAGE:="go"}
 : ${TIMEOUT:="10"}
 : ${VERBOSE:="false"}
+: ${NAME:="mycc"}
 CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=5
@@ -61,23 +63,23 @@ joinChannelWithRetry 1 3
 echo "===================== peer1.org3 joined channel '$CHANNEL_NAME' ===================== "
 
 ## at first we package the chaincode
-packageChaincode 1 0 3
+packageChaincode 1 0 3 $NAME
 
 echo "Installing chaincode on peer0.org3..."
-installChaincode 0 3
+installChaincode 0 3 $NAME
 
 ## query whether the chaincode is installed
 queryInstalled 0 3
 
 ## sanity check: expect the chaincode to be already committed
-queryCommitted 1 0 3
+queryCommitted 1 0 3 $NAME
 
 ## approve it for our org, so that our peers know what package to invoke
-approveForMyOrg 1 0 3
+approveForMyOrg 1 0 3 $NAME
 
 # Query on chaincode on peer0.org3, check if the result is 90
 echo "Querying chaincode on peer0.org3..."
-chaincodeQuery 0 3 90
+chaincodeQuery 0 3 90 $NAME
 
 echo
 echo "========= Finished adding Org3 to your first network! ========= "
