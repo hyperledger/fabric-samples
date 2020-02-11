@@ -21,7 +21,10 @@ setOrdererGlobals() {
 
 # Set environment variables for the peer org
 setGlobals() {
-  ORG=$1
+  if [ -z "$ORG" ]; then
+    ORG=$1
+  fi
+
   if [ $ORG -eq 1 ]; then
     export CORE_PEER_LOCALMSPID="Org1MSP"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG1_CA
