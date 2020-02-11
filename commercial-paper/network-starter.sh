@@ -12,7 +12,7 @@ set -ev
 set -o pipefail
 
 # Where am I?
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export FABRIC_CFG_PATH="${DIR}/../config"
 
