@@ -21,7 +21,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "${DIR}/../../../test-network"
 env | sort > /tmp/env.orig
 
-ORG="1"
+OVERRIDE_ORG="1"
 . ./scripts/envVar.sh
 
 parsePeerConnectionParameters 1 2

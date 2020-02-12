@@ -8,7 +8,7 @@ steps:
       ls -l /usr/local/bin/peer
       sudo tar xzvf /tmp/hyperledger-fabric-linux-amd64-latest.tar.gz -C ..
       ./network.sh down
-      ./network.sh up createChannel -s couchdb -i 2.0.0-beta
+      ./network.sh up createChannel -s couchdb -i 2.0.0
 
       # Copy the connection profiles so they are in the correct organizations. 
       cp "./organizations/peerOrganizations/org1.example.com/connection-org1.yaml" "../commercial-paper/organization/digibank/gateway/"
