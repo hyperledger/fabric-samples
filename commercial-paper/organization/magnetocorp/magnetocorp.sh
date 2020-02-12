@@ -21,7 +21,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "${DIR}/../../../test-network"
 env | sort > /tmp/env.orig
 
-ORG="2"
+OVERRIDE_ORG="2"
 . ./scripts/envVar.sh
 
 

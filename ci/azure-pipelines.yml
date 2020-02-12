@@ -21,6 +21,17 @@ jobs:
       - template: install-fabric.yml
       - template: fabcar-go.yml
 
+  - job: test_network
+    displayName: Start the test network
+    pool:
+      vmImage: ubuntu-18.04
+    dependsOn: []
+    timeoutInMinutes: 60
+    steps:
+      - template: install-deps.yml
+      - template: install-fabric.yml
+      - template: testnetwork.yml
+
   - job: fabcar_java
     displayName: FabCar (Java)
     pool:
@@ -75,6 +86,7 @@ jobs:
       - template: install-deps.yml
       - template: install-fabric.yml
       - template: commercialpaper-java.yml
+
   - job: commercialpaper_go
     displayName: CommercialPaper (Go)
     pool:
