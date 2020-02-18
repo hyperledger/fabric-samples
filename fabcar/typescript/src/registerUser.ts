@@ -2,13 +2,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Gateway, Wallets, X509Identity } from 'fabric-network';
+import { Wallets, X509Identity } from 'fabric-network';
+import * as FabricCAServices from 'fabric-ca-client';
 import * as path from 'path';
-
-const ccpPath = path.resolve(__dirname, '..', '..', '..', 'first-network', 'connection-org1.json');
+import * as fs from 'fs';
 
 async function main() {
     try {
+        // load the network configuration
+        const ccpPath = path.resolve(__dirname, '..', '..', '..', 'first-network', 'connection-org1.json');
+        let ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+
+        // Create a new CA client for interacting with the CA.
+        const caURL = ccp.certificateAuthorities['ca.org1.example.com'].url;
+        const ca = new FabricCAServices(caURL);
 
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), 'wallet');
@@ -30,14 +37,9 @@ async function main() {
             return;
         }
 
-        // Create a new gateway for connecting to our peer node.
-        const gateway = new Gateway();
-        await gateway.connect(ccpPath, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: true } });
-
-        // Get the CA client object from the gateway for interacting with the CA.
-        const client = gateway.getClient();
-        const ca = client.getCertificateAuthority();
-        const adminUser = await client.getUserContext('admin', false);
+        // build a user object for authenticating with the CA
+       const provider = wallet.getProviderRegistry().getProvider(adminIdentity.type);
+       const adminUser = await provider.getUserContext(adminIdentity, 'admin');
 
         // Register the user, enroll the user, and import the new identity into the wallet.
         const secret = await ca.register({ affiliation: 'org1.department1', enrollmentID: 'user1', role: 'client' }, adminUser);

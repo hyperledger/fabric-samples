@@ -2,7 +2,7 @@
  * Copyright IBM Corp. All Rights Reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
- * 
+ *
  */
 
 /*
@@ -40,16 +40,12 @@ is automatically created and initialized to zero if it does not exist.
 
 'use strict';
 
-const { FileSystemWallet, Gateway } = require('fabric-network');
+const { Wallets, Gateway } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
 
 const couchdbutil = require('./couchdbutil.js');
 const blockProcessing = require('./blockProcessing.js');
-
-const ccpPath = path.resolve(__dirname, '..', 'first-network', 'connection-org1.json');
-const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
-const ccp = JSON.parse(ccpJSON);
 
 const config = require('./config.json');
 const channelid = config.channelid;
@@ -98,26 +94,30 @@ async function main() {
 
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), 'wallet');
-        const wallet = new FileSystemWallet(walletPath);
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the user.
-        const userExists = await wallet.exists('user1');
+        const userExists = await wallet.get('user1');
         if (!userExists) {
             console.log('An identity for the user "user1" does not exist in the wallet');
             console.log('Run the enrollUser.js application before retrying');
             return;
         }
 
+        // Parse the connection profile. This would be the path to the file downloaded
+        // from the IBM Blockchain Platform operational console.
+        const ccpPath = path.resolve(__dirname, '..', 'first-network', 'connection-org1.json');
+        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccpPath, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
 
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
 
-        const listener = await network.addBlockListener('offchain-listener',
-            async (err, block) => {
+        const listener = await network.addBlockListener(
+            async (err, blockNum, block) => {
                 if (err) {
                     console.error(err);
                     return;
@@ -125,10 +125,10 @@ async function main() {
                 // Add the block to the processing map by block number
                 await ProcessingMap.set(block.header.number, block);
 
-                console.log(`Added block ${block.header.number} to ProcessingMap`)
+                console.log(`Added block ${blockNum} to ProcessingMap`)
             },
             // set the starting block for the listener
-            { startBlock: parseInt(nextBlock, 10) }
+            { filtered: false, startBlock: parseInt(nextBlock, 10) }
         );
 
         console.log(`Listening for block events, nextblock: ${nextBlock}`);
