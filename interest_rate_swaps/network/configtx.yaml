@@ -41,6 +41,9 @@ Organizations:
                 Type: Signature
                 Rule: "OR('orderer.admin')"
 
+        OrdererEndpoints:
+            - irs-orderer:7050
+
     - &partya
         # DefaultOrg defines the organization which is used in the sampleconfig
         # of the fabric.git development environment
@@ -323,9 +326,6 @@ Orderer: &OrdererDefaults
     # Orderer Type: The orderer implementation to start
     # Available types are "solo" and "kafka"
     OrdererType: solo
-
-    Addresses:
-        - irs-orderer:7050
 
     # Batch Timeout: The amount of time to wait before creating a batch
     BatchTimeout: 2s
