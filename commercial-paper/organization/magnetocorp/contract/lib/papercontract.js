@@ -50,8 +50,23 @@ class CommercialPaperContract extends Contract {
         // No implementation required with this example
         // It could be where data migration is performed, if necessary
         console.log('Instantiate the contract');
+    }    
+    /**
+* Get commercial paper
+* @param {Context} ctx the transaction context
+* @param {String} issuer commercial paper issuer
+* @param {Integer} paperNumber paper number for this issuer
+*/
+async getPaper(ctx, issuer, paperNumber) {
+    try {
+      console.log('getPaper for: ' + issuer + ' ' + paperNumber);
+      let paperKey = CommercialPaper.makeKey([issuer, paperNumber]);
+      let paper = await ctx.paperList.getPaper(paperKey);
+      return paper;
+    } catch(e) {
+      throw new Error('Paper: ' + paperNumber + 'absentfor' + issuer);
     }
-
+  }
     /**
      * Issue commercial paper
      *
