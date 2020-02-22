@@ -2,12 +2,17 @@
  * Copyright IBM Corp. All Rights Reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
+<<<<<<< HEAD
  * 
+=======
+ *
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
  */
 
 'use strict';
 
 const FabricCAServices = require('fabric-ca-client');
+<<<<<<< HEAD
 const { FileSystemWallet, X509WalletMixin } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
@@ -18,6 +23,17 @@ const ccp = JSON.parse(ccpJSON);
 
 async function main() {
     try {
+=======
+const { Wallets, X509WalletMixin } = require('fabric-network');
+const fs = require('fs');
+const path = require('path');
+
+async function main() {
+    try {
+        // load the network configuration
+        const ccpPath = path.resolve(__dirname, '..', 'first-network', 'connection-org1.json');
+        let ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
         // Create a new CA client for interacting with the CA.
         const caURL = ccp.certificateAuthorities['ca.org1.example.com'].url;
@@ -25,11 +41,19 @@ async function main() {
 
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), 'wallet');
+<<<<<<< HEAD
         const wallet = new FileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the admin user.
         const adminExists = await wallet.exists('admin');
+=======
+        const wallet = await Wallets.newFileSystemWallet(walletPath);
+        console.log(`Wallet path: ${walletPath}`);
+
+        // Check to see if we've already enrolled the admin user.
+        const adminExists = await wallet.get('admin');
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
         if (adminExists) {
             console.log('An identity for the admin user "admin" already exists in the wallet');
             return;
@@ -37,8 +61,20 @@ async function main() {
 
         // Enroll the admin user, and import the new identity into the wallet.
         const enrollment = await ca.enroll({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' });
+<<<<<<< HEAD
         const identity = X509WalletMixin.createIdentity('Org1MSP', enrollment.certificate, enrollment.key.toBytes());
         wallet.import('admin', identity);
+=======
+        const x509Identity = {
+            credentials: {
+                certificate: enrollment.certificate,
+                privateKey: enrollment.key.toBytes(),
+            },
+            mspId: 'Org1MSP',
+            type: 'X.509',
+        };
+        await wallet.put('admin', x509Identity);
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
         console.log('Successfully enrolled admin user "admin" and imported it into the wallet');
 
     } catch (error) {

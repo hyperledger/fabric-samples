@@ -104,31 +104,36 @@ and run some invocations are provided below.
   * In the `volumes` section of the `cli` container, edit the second line which refers to the chaincode folder to point to the chaincode folder
     within the `high-throughput` folder, e.g.
 
-    `./../chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go` --> 
-    `./../high-throughput/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go`
+    `./../chaincode/:/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode` -->
+    `./../high-throughput/chaincode/:/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode`
   * Again in the `volumes` section, edit the fourth line which refers to the scripts folder so it points to the scripts folder within the
     `high-throughput` folder, e.g.
 
-    `./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/` --> 
+    `./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/` -->
     `./../high-throughput/scripts/:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/`
 
   * Finally, comment out the `docker exec cli scripts/script.sh` command from the `byfn.sh` script by placing a `#` before it so that the standard BYFN end to end script doesn't run, e.g.
 
-    `#  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE`
+    `#  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $CC_SRC_LANGUAGE $CLI_TIMEOUT $VERBOSE`
 
-3. We can now bring our network up by typing in `./byfn.sh -m up -c mychannel`
+3. We can now bring our network up by typing in `./byfn.sh up -c mychannel`
 4. Open a new terminal window and enter the CLI container using `docker exec -it cli bash`, all operations on the network will happen within
    this container from now on.
 
-### Install and instantiate the chaincode
+### Vendor the chaincode dependencies
+1. Outside of the CLI container, change into the chaincode directory, e.g. `cd ~/fabric-samples/high-throughput/chaincode`
+2. Vendor the Go dependencies by running the following command: `GO111MODULE=on go mod vendor`
+3. The chaincode directory will now contain a `vendor` directory.
+
+### Install and define the chaincode
 1. Once you're in the CLI container run `cd scripts` to enter the `scripts` folder
 2. Set-up the environment variables by running `source setclienv.sh`
 3. Set-up your channels and anchor peers by running `./channel-setup.sh`
-4. Install your chaincode by running `./install-chaincode.sh 1.0`. The only argument is a number representing the chaincode version, every time
-   you want to install and upgrade to a new chaincode version simply increment this value by 1 when running the command, e.g. `./install-chaincode.sh 2.0`
-5. Instantiate your chaincode by running `./instantiate-chaincode.sh 1.0`. The version argument serves the same purpose as in `./install-chaincode.sh 1.0`
-   and should match the version of the chaincode you just installed. In the future, when upgrading the chaincode to a newer version,
-   `./upgrade-chaincode.sh 2.0` should be used instead of `./instantiate-chaincode.sh 1.0`.
+4. Package and install your chaincode by running `./install-chaincode.sh 1`. The only argument is a number representing the    chaincode version, every time
+   you want to install and upgrade to a new chaincode version simply increment this value by 1 when running the command, e.g. `./install-chaincode.sh 2`
+5. Define your chaincode on the channel by running `./approve-commit-chaincode.sh 1`. The version argument serves the same purpose as in `./install-chaincode.sh 1`
+   and should match the version of the chaincode you just installed. This script also invokes the chaincode `Init` function to start the chaincode container.
+   You can also upgrade the chaincode to a newer version by running `./approve-commit-chaincode.sh 2`.
 6. Your chaincode is now installed and ready to receive invocations
 
 ### Invoke the chaincode
@@ -153,13 +158,11 @@ Example: `./delete-invoke.sh myvar`
 
 #### Prune
 Pruning takes all the deltas generated for a variable and combines them all into a single row, deleting all previous rows. This helps cleanup
-the ledger when many updates have been performed. There are two types of pruning: `prunefast` and `prunesafe`. Prune fast performs the deletion
-and aggregation simultaneously, so if an error happens along the way data integrity is not guaranteed. Prune safe performs the aggregation first,
-backs up the results, then performs the deletion. This way, if an error occurs along the way, data integrity is maintained.
+the ledger when many updates have been performed.
 
-The format for pruning is: `./[prunesafe|prunefast]-invoke.sh name` where `name` is the name of the variable to prune.
+The format for pruning is: `./prune-invoke.sh name` where `name` is the name of the variable to prune.
 
-Example: `./prunefast-invoke.sh myvar` or `./prunesafe-invoke.sh myvar`
+Example: `./prune-invoke.sh myvar`
 
 ### Test the Network
 Two scripts are provided to show the advantage of using this system when running many parallel transactions at once: `many-updates.sh` and
@@ -172,8 +175,9 @@ row in the ledger 1000 times, with a value incrementing by one each time (i.e. t
 expectation would be that the final value of the row is 999. However, the final value changes each time this script is run and you'll find
 errors in the peer and orderer logs.
 
-There is one other script, `get-traditional.sh`, which simply gets the value of a row in the traditional way, with no deltas.
+There are two other scripts, `get-traditional.sh`, which simply gets the value of a row in the traditional way, with no deltas, and `del-traditional.sh` will delete an asset in the traditional way.
 
 Examples:
-`./many-updates.sh testvar 100 +` --> final value from `./get-invoke.sh` should be 100000
+`./many-updates.sh testvar 100 +` --> final value from `./get-invoke.sh testvar` should be 100000
+
 `./many-updates-traditional.sh testvar` --> final value from `./get-traditional.sh testvar` is undefined

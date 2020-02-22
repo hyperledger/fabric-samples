@@ -64,6 +64,9 @@ Organizations:
             Admins:
                 Type: Signature
                 Rule: "OR('Org1MSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('Org1MSP.peer')"
 
         # leave this flag set to true.
         AnchorPeers:
@@ -96,6 +99,9 @@ Organizations:
             Admins:
                 Type: Signature
                 Rule: "OR('Org2MSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('Org2MSP.peer')"
 
         AnchorPeers:
             # AnchorPeers defines the location of peers which can be used
@@ -128,6 +134,7 @@ Capabilities:
     # supported by both.
     # Set the value of the capability to true to require it.
     Channel: &ChannelCapabilities
+<<<<<<< HEAD
         # V1.4.3 for Channel is a catchall flag for behavior which has been
         # determined to be desired for all orderers and peers running at the v1.4.3
         # level, but which would be incompatible with orderers and peers from
@@ -141,11 +148,21 @@ Capabilities:
         # V1.1 for Channel enables the new non-backwards compatible
         # features and fixes of fabric v1.1
         V1_1: false
+=======
+        # V2_0 capability ensures that orderers and peers behave according
+        # to v2.0 channel capabilities. Orderers and peers from
+        # prior releases would behave in an incompatible way, and are therefore
+        # not able to participate in channels at v2.0 capability.
+        # Prior to enabling V2.0 channel capabilities, ensure that all
+        # orderers and peers on a channel are at v2.0.0 or later.
+        V2_0: true
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
     # Orderer capabilities apply only to the orderers, and may be safely
     # used with prior release peers.
     # Set the value of the capability to true to require it.
     Orderer: &OrdererCapabilities
+<<<<<<< HEAD
         # V1.4.2 for Orderer is a catchall flag for behavior which has been
         # determined to be desired for all orderers running at the v1.4.2
         # level, but which would be incompatible with orderers from prior releases.
@@ -155,11 +172,21 @@ Capabilities:
         # V1.1 for Orderer enables the new non-backwards compatible
         # features and fixes of fabric v1.1
         V1_1: false
+=======
+        # V2_0 orderer capability ensures that orderers behave according
+        # to v2.0 orderer capabilities. Orderers from
+        # prior releases would behave in an incompatible way, and are therefore
+        # not able to participate in channels at v2.0 orderer capability.
+        # Prior to enabling V2.0 orderer capabilities, ensure that all
+        # orderers on channel are at v2.0.0 or later.
+        V2_0: true
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
     # Application capabilities apply only to the peer network, and may be safely
     # used with prior release orderers.
     # Set the value of the capability to true to require it.
     Application: &ApplicationCapabilities
+<<<<<<< HEAD
         # V1.4.2 for Application enables the new non-backwards compatible
         # features and fixes of fabric v1.4.2.
         V1_4_2: true
@@ -174,6 +201,15 @@ Capabilities:
         # features and fixes of fabric v1.1 (note, this need not be set if
         # later version capabilities are set).
         V1_1: false
+=======
+        # V2_0 application capability ensures that peers behave according
+        # to v2.0 application capabilities. Peers from
+        # prior releases would behave in an incompatible way, and are therefore
+        # not able to participate in channels at v2.0 application capability.
+        # Prior to enabling V2.0 application capabilities, ensure that all
+        # peers on channel are at v2.0.0 or later.
+        V2_0: true
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
 ################################################################################
 #
@@ -202,6 +238,12 @@ Application: &ApplicationDefaults
         Admins:
             Type: ImplicitMeta
             Rule: "MAJORITY Admins"
+        LifecycleEndorsement:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Endorsement"
+        Endorsement:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Endorsement"
 
     Capabilities:
         <<: *ApplicationCapabilities
@@ -216,8 +258,12 @@ Application: &ApplicationDefaults
 Orderer: &OrdererDefaults
 
     # Orderer Type: The orderer implementation to start
+<<<<<<< HEAD
     # Available types are "solo","kafka"  and "etcdraft"
     OrdererType: solo
+=======
+    OrdererType: etcdraft
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
     Addresses:
         - orderer.example.com:7050
@@ -240,6 +286,7 @@ Orderer: &OrdererDefaults
         # max bytes will result in a batch larger than preferred max bytes.
         PreferredMaxBytes: 512 KB
 
+<<<<<<< HEAD
     Kafka:
         # Brokers: A list of Kafka brokers to which the orderer connects
         # NOTE: Use IP:port notation
@@ -275,6 +322,8 @@ Orderer: &OrdererDefaults
               ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
               ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
 
+=======
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
     # Organizations is the list of orgs which are defined as participants on
     # the orderer side of the network
     Organizations:
@@ -340,19 +389,6 @@ Channel: &ChannelDefaults
 ################################################################################
 Profiles:
 
-    TwoOrgsOrdererGenesis:
-        <<: *ChannelDefaults
-        Orderer:
-            <<: *OrdererDefaults
-            Organizations:
-                - *OrdererOrg
-            Capabilities:
-                <<: *OrdererCapabilities
-        Consortiums:
-            SampleConsortium:
-                Organizations:
-                    - *Org1
-                    - *Org2
     TwoOrgsChannel:
         Consortium: SampleConsortium
         <<: *ChannelDefaults
@@ -364,16 +400,41 @@ Profiles:
             Capabilities:
                 <<: *ApplicationCapabilities
 
-    SampleDevModeKafka:
+    SampleMultiNodeEtcdRaft:
         <<: *ChannelDefaults
         Capabilities:
             <<: *ChannelCapabilities
         Orderer:
             <<: *OrdererDefaults
-            OrdererType: kafka
-            Kafka:
-                Brokers:
-                - kafka.example.com:9092
+            OrdererType: etcdraft
+            EtcdRaft:
+                Consenters:
+                - Host: orderer.example.com
+                  Port: 7050
+                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+                - Host: orderer2.example.com
+                  Port: 8050
+                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+                - Host: orderer3.example.com
+                  Port: 9050
+                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+                - Host: orderer4.example.com
+                  Port: 10050
+                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
+                - Host: orderer5.example.com
+                  Port: 11050
+                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
+            Addresses:
+                - orderer.example.com:7050
+                - orderer2.example.com:8050
+                - orderer3.example.com:9050
+                - orderer4.example.com:10050
+                - orderer5.example.com:11050
 
             Organizations:
             - *OrdererOrg
@@ -388,6 +449,7 @@ Profiles:
                 Organizations:
                 - *Org1
                 - *Org2
+<<<<<<< HEAD
 
     SampleMultiNodeEtcdRaft:
         <<: *ChannelDefaults
@@ -438,3 +500,5 @@ Profiles:
                 Organizations:
                 - *Org1
                 - *Org2
+=======
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6

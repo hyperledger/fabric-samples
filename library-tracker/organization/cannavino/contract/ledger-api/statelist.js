@@ -42,7 +42,11 @@ class StateList {
     async getState(key) {
         let ledgerKey = this.ctx.stub.createCompositeKey(this.name, State.splitKey(key));
         let data = await this.ctx.stub.getState(ledgerKey);
+<<<<<<< HEAD:library-tracker/organization/cannavino/contract/ledger-api/statelist.js
         if (data){
+=======
+        if (data && data.toString('utf8')) {
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6:commercial-paper/organization/magnetocorp/contract/ledger-api/statelist.js
             let state = State.deserialize(data, this.supportedClasses);
             return state;
         } else {

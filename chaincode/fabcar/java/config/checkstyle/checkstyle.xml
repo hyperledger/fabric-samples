@@ -28,9 +28,15 @@
     -->
 
     <property name="fileExtensions" value="java, properties, xml"/>
+<<<<<<< HEAD
     
     <module name="SuppressionFilter">
         <property name="file" value="config/checkstyle/suppressions.xml"/>
+=======
+
+    <module name="SuppressionFilter">
+        <property name="file" value="${config_loc}/suppressions.xml"/>
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
         <property name="optional" value="false"/>
     </module>
 

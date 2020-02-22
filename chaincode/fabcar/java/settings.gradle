@@ -2,4 +2,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+<<<<<<< HEAD
 rootProject.name = 'java-chaincode-bootstrap'
+=======
+rootProject.name = 'fabcar'
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6

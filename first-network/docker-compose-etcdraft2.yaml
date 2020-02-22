@@ -20,6 +20,7 @@ services:
     extends:
       file: base/peer-base.yaml
       service: orderer-base
+<<<<<<< HEAD
     container_name: orderer2.example.com
     networks:
     - byfn
@@ -30,11 +31,26 @@ services:
         - orderer2.example.com:/var/hyperledger/production/orderer
     ports:
     - 8050:7050
+=======
+    environment:
+      - ORDERER_GENERAL_LISTENPORT=8050
+    container_name: orderer2.example.com
+    networks:
+      - byfn
+    volumes:
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/:/var/hyperledger/orderer/tls
+      - orderer2.example.com:/var/hyperledger/production/orderer
+    ports:
+      - 8050:8050
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
   orderer3.example.com:
     extends:
       file: base/peer-base.yaml
       service: orderer-base
+<<<<<<< HEAD
     container_name: orderer3.example.com
     networks:
     - byfn
@@ -45,11 +61,26 @@ services:
         - orderer3.example.com:/var/hyperledger/production/orderer
     ports:
     - 9050:7050
+=======
+    environment:
+      - ORDERER_GENERAL_LISTENPORT=9050
+    container_name: orderer3.example.com
+    networks:
+      - byfn
+    volumes:
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/:/var/hyperledger/orderer/tls
+      - orderer3.example.com:/var/hyperledger/production/orderer
+    ports:
+      - 9050:9050
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
   orderer4.example.com:
     extends:
       file: base/peer-base.yaml
       service: orderer-base
+<<<<<<< HEAD
     container_name: orderer4.example.com
     networks:
     - byfn
@@ -60,11 +91,26 @@ services:
         - orderer4.example.com:/var/hyperledger/production/orderer
     ports:
     - 10050:7050
+=======
+    environment:
+      - ORDERER_GENERAL_LISTENPORT=10050
+    container_name: orderer4.example.com
+    networks:
+      - byfn
+    volumes:
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/:/var/hyperledger/orderer/tls
+      - orderer4.example.com:/var/hyperledger/production/orderer
+    ports:
+      - 10050:10050
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
   orderer5.example.com:
     extends:
       file: base/peer-base.yaml
       service: orderer-base
+<<<<<<< HEAD
     container_name: orderer5.example.com
     networks:
     - byfn
@@ -75,3 +121,17 @@ services:
         - orderer5.example.com:/var/hyperledger/production/orderer
     ports:
     - 11050:7050
+=======
+    environment:
+      - ORDERER_GENERAL_LISTENPORT=11050
+    container_name: orderer5.example.com
+    networks:
+      - byfn
+    volumes:
+      - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/:/var/hyperledger/orderer/tls
+      - orderer5.example.com:/var/hyperledger/production/orderer
+    ports:
+      - 11050:11050
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6

@@ -111,7 +111,11 @@ class CommercialPaperContract extends Contract {
         if (paper.isTrading()) {
             paper.setOwner(newOwner);
         } else {
+<<<<<<< HEAD:library-tracker/organization/cannavino/contract/lib/papercontract.js
             throw new Error('Paper ' + issuer + paperNumber + ' is not trading. Current state = ' +paper.getCurrentState());
+=======
+            throw new Error('Paper ' + issuer + paperNumber + ' is not trading. Current state = ' + paper.getCurrentState());
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6:commercial-paper/organization/digibank/contract/lib/papercontract.js
         }
 
         // Update the paper

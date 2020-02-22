@@ -1,0 +1,15 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+steps:
+  - script: |
+      sudo tar xzvf /tmp/hyperledger-fabric-linux-amd64-latest.tar.gz -C ..
+      ./network.sh down
+      ./network.sh up createChannel -s couchdb -i 2.0.0
+      ./network.sh deployCC -l javascript
+
+    workingDirectory: test-network
+    displayName: Start up test network
+    env:
+       FABRIC_CFG_PATH: /usr/local/config

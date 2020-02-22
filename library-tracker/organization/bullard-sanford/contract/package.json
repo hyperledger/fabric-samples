@@ -18,8 +18,13 @@
     "author": "hyperledger",
     "license": "Apache-2.0",
     "dependencies": {
+<<<<<<< HEAD:library-tracker/organization/bullard-sanford/contract/package.json
         "fabric-contract-api": "~1.4.0",
         "fabric-shim": "~1.4.0"
+=======
+        "fabric-contract-api": "^2.0.0",
+        "fabric-shim": "^2.0.0"
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6:commercial-paper/organization/magnetocorp/contract/package.json
     },
     "devDependencies": {
         "chai": "^4.1.2",

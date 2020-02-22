@@ -6,7 +6,13 @@ steps:
   - script: bash startFabric.sh javascript
     workingDirectory: fabcar
     displayName: Start Fabric
+<<<<<<< HEAD
   - script: retry -- npm install
+=======
+  - script: |
+      retry -- npm install
+      npm ls
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
     workingDirectory: fabcar/javascript
     displayName: Install FabCar application dependencies
   - script: |

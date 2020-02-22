@@ -8,12 +8,12 @@ version: '2'
 networks:
   basic:
     external:
-      name: net_basic
+      name: net_test
 
 services:
   cliDigiBank:
     container_name: cliDigiBank
-    image: hyperledger/fabric-tools
+    image: hyperledger/fabric-tools:2.0.0-beta
     tty: true
     environment:
       - GOPATH=/opt/gopath
@@ -24,15 +24,15 @@ services:
       - CORE_PEER_LOCALMSPID=Org1MSP
       - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
       - CORE_CHAINCODE_KEEPALIVE=10
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+      - ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: /bin/bash
     volumes:
         - /var/run/:/host/var/run/
         - ./../../../../organization/digibank:/opt/gopath/src/github.com/
-        - ./../../../../../basic-network/crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./../../../../../test-network/organizations:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
     networks:
         - basic
-    #depends_on:
-    #  - orderer.example.com
-    #  - peer0.org1.example.com
-    #  - couchdb
+

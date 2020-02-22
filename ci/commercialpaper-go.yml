@@ -1,0 +1,109 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+steps:
+  - script: go test ./...
+    workingDirectory: commercial-paper/organization/magnetocorp/contract-go
+    displayName: Go unit test magnetocorp
+  - script: go test ./...
+    workingDirectory: commercial-paper/organization/digibank/contract-go
+    displayName: Go unit test digibank
+
+  - script: |
+      go mod vendor
+    workingDirectory: commercial-paper/organization/magnetocorp/contract-go
+  - script: |
+      go mod vendor
+    workingDirectory: commercial-paper/organization/digibank/contract-go    
+
+  - script: |
+      echo $PATH
+      ls -l /usr/local/bin/peer
+      sudo tar xzvf /tmp/hyperledger-fabric-linux-amd64-latest.tar.gz -C ..
+      ./network.sh down
+      ./network.sh up createChannel -s couchdb -i 2.0.0
+
+      # Copy the connection profiles so they are in the correct organizations. 
+      cp "./organizations/peerOrganizations/org1.example.com/connection-org1.yaml" "../commercial-paper/organization/digibank/gateway/"
+      cp "./organizations/peerOrganizations/org2.example.com/connection-org2.yaml" "../commercial-paper/organization/magnetocorp/gateway/"
+    workingDirectory: test-network
+    displayName: Start Fabric
+    env:
+       FABRIC_CFG_PATH: /usr/local/config
+  - script: |
+      source <(./magnetocorp.sh)
+      peer lifecycle chaincode package cp.tar.gz --lang java --path ./contract-java --label cp_0
+      peer lifecycle chaincode install cp.tar.gz
+
+      export PACKAGE_ID=$(peer lifecycle chaincode queryinstalled --output json | jq -r '.installed_chaincodes[0].package_id')
+      echo $PACKAGE_ID
+
+      peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSHostnameOverride orderer.example.com \
+                                                --channelID mychannel  \
+                                                --name papercontract  \
+                                                -v 0  \
+                                                --package-id $PACKAGE_ID \
+                                                --sequence 1  \
+                                                --tls  \
+                                                --cafile $ORDERER_CA
+                                                
+      peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
+    workingDirectory: commercial-paper/organization/magnetocorp
+    displayName: Setup Commercial Paper contract
+    env:
+      FABRIC_CFG_PATH: /usr/local/config
+  - script: |
+      source <(./digibank.sh)
+      peer lifecycle chaincode package cp.tar.gz --lang java --path ./contract-java --label cp_0
+      peer lifecycle chaincode install cp.tar.gz
+
+      export PACKAGE_ID=$(peer lifecycle chaincode queryinstalled --output json | jq -r '.installed_chaincodes[0].package_id')
+      echo $PACKAGE_ID
+
+      peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSHostnameOverride orderer.example.com \
+                                                --channelID mychannel  \
+                                                --name papercontract  \
+                                                -v 0  \
+                                                --package-id $PACKAGE_ID \
+                                                --sequence 1  \
+                                                --tls  \
+                                                --cafile $ORDERER_CA
+                                                
+      peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
+
+      peer lifecycle chaincode commit -o localhost:7050 \
+                                --peerAddresses localhost:7051 --tlsRootCertFiles ${PEER0_ORG1_CA} \
+                                --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
+                                --ordererTLSHostnameOverride orderer.example.com \
+                                --channelID mychannel --name papercontract -v 0 \
+                                --sequence 1 \
+                                --tls --cafile $ORDERER_CA --waitForEvent 
+
+    workingDirectory: commercial-paper/organization/digibank
+    displayName: Setup Commercial Paper contract
+    env:
+      FABRIC_CFG_PATH: /usr/local/config
+
+
+
+  - script: retry -- npm install
+    workingDirectory: commercial-paper/organization/magnetocorp/application
+    displayName: Install Magnetocorp application
+  - script: |
+      set -ex
+      node addToWallet.js
+      node issue.js
+    workingDirectory: commercial-paper/organization/magnetocorp/application
+    displayName: Magnetocorp issue paper
+
+  - script: retry -- npm install
+    workingDirectory: commercial-paper/organization/digibank/application
+    displayName: Install Digibank application
+  - script: |
+      set -ex
+      node addToWallet.js
+      node buy.js
+      node redeem.js
+    workingDirectory: commercial-paper/organization/digibank/application
+    displayName: Digibank issue paper    

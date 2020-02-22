@@ -64,6 +64,7 @@ set +x
 echo
 
 echo " #################################### "
+<<<<<<< HEAD
 echo -e "\033[1m NODE CHAINCODE\033[0m"
 echo " # ################################## "
 set -x
@@ -71,5 +72,14 @@ echo y | ./byfn.sh -m up -l node -t 60
 copy_logs $? default-channel-node
 echo y | ./eyfn.sh -m up -l node -t 60
 copy_logs $? default-channel-node
+=======
+echo -e "\033[1m JAVASCRIPT CHAINCODE\033[0m"
+echo " # ################################## "
+set -x
+echo y | ./byfn.sh -m up -l javascript -t 60
+copy_logs $? default-channel-javascript
+echo y | ./eyfn.sh -m up -l javascript -t 60
+copy_logs $? default-channel-javascript
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 echo y | ./eyfn.sh -m down
 set +x

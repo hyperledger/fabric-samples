@@ -9,10 +9,15 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "dependencies": {
+<<<<<<< HEAD:library-tracker/organization/cannavino/application/package.json
     "fabric-network": "~1.4.0",
     "fabric-client": "~1.4.0",
+=======
+    "fabric-network": "beta",
+    "fabric-client": "beta",
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6:commercial-paper/organization/magnetocorp/application/package.json
     "js-yaml": "^3.12.0"
   },
   "devDependencies": {

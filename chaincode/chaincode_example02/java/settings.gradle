@@ -1,7 +1,0 @@
-/*
- * Copyright IBM Corp. 2017 All Rights Reserved.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-rootProject.name = 'fabric-chaincode-example-gradle'
-

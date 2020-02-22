@@ -64,6 +64,12 @@ Organizations:
             Admins:
                 Type: Signature
                 Rule: OR('partya.admin')
+<<<<<<< HEAD
+=======
+            Endorsement:
+                Type: Signature
+                Rule: "OR('partya.peer')"
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
         # leave this flag set to true.
         AnchorPeers:
@@ -96,6 +102,12 @@ Organizations:
             Admins:
                 Type: Signature
                 Rule: OR('partyb.admin')
+<<<<<<< HEAD
+=======
+            Endorsement:
+                Type: Signature
+                Rule: "OR('partyb.peer')"
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
         # leave this flag set to true.
         AnchorPeers:
@@ -128,6 +140,12 @@ Organizations:
             Admins:
                 Type: Signature
                 Rule: "OR('partyc.admin')"
+<<<<<<< HEAD
+=======
+            Endorsement:
+                Type: Signature
+                Rule: "OR('partyc.peer')"
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
         # leave this flag set to true.
         AnchorPeers:
@@ -161,6 +179,12 @@ Organizations:
             Admins:
                 Type: Signature
                 Rule: OR('auditor.admin')
+<<<<<<< HEAD
+=======
+            Endorsement:
+                Type: Signature
+                Rule: "OR('auditor.peer')"
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
         # leave this flag set to true.
         AnchorPeers:
@@ -193,6 +217,12 @@ Organizations:
             Admins:
                 Type: Signature
                 Rule: "OR('rrprovider.admin')"
+<<<<<<< HEAD
+=======
+            Endorsement:
+                Type: Signature
+                Rule: "OR('rrprovider.peer')"
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
         # leave this flag set to true.
         AnchorPeers:
@@ -227,6 +257,7 @@ Capabilities:
     # supported by both.
     # Set the value of the capability to true to require it.
     Channel: &ChannelCapabilities
+<<<<<<< HEAD
         # V1.4.3 for Channel is a catchall flag for behavior which has been
         # determined to be desired for all orderers and peers running at the v1.4.3
         # level, but which would be incompatible with orderers and peers from
@@ -240,11 +271,21 @@ Capabilities:
         # V1.1 for Channel enables the new non-backwards compatible
         # features and fixes of fabric v1.1
         V1_1: false
+=======
+        # V2_0 capability ensures that orderers and peers behave according
+        # to v2.0 channel capabilities. Orderers and peers from
+        # prior releases would behave in an incompatible way, and are therefore
+        # not able to participate in channels at v2.0 capability.
+        # Prior to enabling V2.0 channel capabilities, ensure that all
+        # orderers and peers on a channel are at v2.0.0 or later.
+        V2_0: true
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
     # Orderer capabilities apply only to the orderers, and may be safely
     # used with prior release peers.
     # Set the value of the capability to true to require it.
     Orderer: &OrdererCapabilities
+<<<<<<< HEAD
         # V1.4.2 for Orderer is a catchall flag for behavior which has been
         # determined to be desired for all orderers running at the v1.4.2
         # level, but which would be incompatible with orderers from prior releases.
@@ -254,11 +295,21 @@ Capabilities:
         # V1.1 for Orderer enables the new non-backwards compatible
         # features and fixes of fabric v1.1
         V1_1: false
+=======
+        # V2_0 orderer capability ensures that orderers behave according
+        # to v2.0 orderer capabilities. Orderers from
+        # prior releases would behave in an incompatible way, and are therefore
+        # not able to participate in channels at v2.0 orderer capability.
+        # Prior to enabling V2.0 orderer capabilities, ensure that all
+        # orderers on channel are at v2.0.0 or later.
+        V2_0: true
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
     # Application capabilities apply only to the peer network, and may be safely
     # used with prior release orderers.
     # Set the value of the capability to true to require it.
     Application: &ApplicationCapabilities
+<<<<<<< HEAD
         # V1.4.2 for Application enables the new non-backwards compatible
         # features and fixes of fabric v1.4.2.
         V1_4_2: true
@@ -273,6 +324,15 @@ Capabilities:
         # features and fixes of fabric v1.1 (note, this need not be set if
         # later version capabilities are set).
         V1_1: false
+=======
+        # V2_0 application capability ensures that peers behave according
+        # to v2.0 application capabilities. Peers from
+        # prior releases would behave in an incompatible way, and are therefore
+        # not able to participate in channels at v2.0 application capability.
+        # Prior to enabling V2.0 application capabilities, ensure that all
+        # peers on channel are at v2.0.0 or later.
+        V2_0: true
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
 ################################################################################
 #
@@ -301,6 +361,15 @@ Application: &ApplicationDefaults
         Admins:
             Type: ImplicitMeta
             Rule: "MAJORITY Admins"
+<<<<<<< HEAD
+=======
+        LifecycleEndorsement:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Endorsement"
+        Endorsement:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Endorsement"
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
     Capabilities:
         <<: *ApplicationCapabilities
@@ -393,6 +462,7 @@ Channel: &ChannelDefaults
         Admins:
             Type: ImplicitMeta
             Rule: "MAJORITY Admins"
+<<<<<<< HEAD
 
     # Capabilities describes the channel level capabilities, see the
     # dedicated Capabilities section elsewhere in this file for a full
@@ -400,6 +470,15 @@ Channel: &ChannelDefaults
     Capabilities:
         <<: *ChannelCapabilities
 
+=======
+
+    # Capabilities describes the channel level capabilities, see the
+    # dedicated Capabilities section elsewhere in this file for a full
+    # description
+    Capabilities:
+        <<: *ChannelCapabilities
+
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 ################################################################################
 #
 #   Profile

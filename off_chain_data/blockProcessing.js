@@ -50,14 +50,22 @@ exports.processBlockEvent = async function (channelname, block, use_couchdb, nan
             // filter through valid tx, refer below for list of error codes
             // https://github.com/hyperledger/fabric-sdk-node/blob/release-1.4/fabric-client/lib/protos/peer/transaction.proto
             if (txSuccess[dataItem] !== 0) {
+<<<<<<< HEAD
               continue();
+=======
+              continue;
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
             }
 
             const timestamp = dataArray[dataItem].payload.header.channel_header.timestamp;
 
             // continue to next tx if no actions are set
             if (dataArray[dataItem].payload.data.actions == undefined) {
+<<<<<<< HEAD
                 continue();
+=======
+                continue;
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
             }
 
             // actions are stored as an array. In Fabric 1.4.3 only one

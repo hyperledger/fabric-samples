@@ -118,8 +118,11 @@ The following prerequisites are needed to run this sample:
   line parameter of the script.
 * A local installation of `configtxgen` and `cryptogen` in the `PATH` environment,
   or included in `fabric-samples/bin` directory.
+<<<<<<< HEAD
 * Vendoring the chaincode. In the `chaincode` directory, run `govendor init` and
   `govendor add +external` to vendor the shim from your local copy of fabric.
+=======
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
 ### Bringing up the network
 
@@ -138,10 +141,15 @@ commands in the following section.
 
 ### Transactions
 
-The chaincode is instantiated as follows:
+The chaincode is initialized as follows:
 ```
+<<<<<<< HEAD
 peer chaincode instantiate -o irs-orderer:7050 -C irs -n irscc -l golang -v 0 -c '{"Args":["init","auditor","1000000","rrprovider","myrr"]}' -P "AND(OR('partya.peer','partyb.peer','partyc.peer'), 'auditor.peer')"
+=======
+peer chaincode invoke -o irs-orderer:7050 --isInit -C irs --waitForEvent -n irscc --peerAddresses irs-rrprovider:7051 --peerAddresses irs-partya:7051 --peerAddresses irs-partyb:7051 --peerAddresses irs-partyc:7051 --peerAddresses irs-auditor:7051 -c '{"Args":["init","auditor","1000000","rrprovider","myrr"]}'
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 ```
+
 This sets an auditing threshold of 1M, above which the `auditor` organization
 needs to be involved. It also specifies the `myrr` reference rate provided by
 the `rrprovider` organization.

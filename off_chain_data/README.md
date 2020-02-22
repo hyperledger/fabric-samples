@@ -92,13 +92,27 @@ node blockEventListener.js
 ```
 
 If the command is successful, you should see the output of the listener reading
+<<<<<<< HEAD
 the first 4 configuration blocks of `mychannel`:
 
 ```
+=======
+the configuration blocks of `mychannel` in addition to the blocks that recorded
+the approval and commitment of the marbles chaincode definition.
+
+```
+Listening for block events, nextblock: 0
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 Added block 0 to ProcessingMap
 Added block 1 to ProcessingMap
 Added block 2 to ProcessingMap
 Added block 3 to ProcessingMap
+<<<<<<< HEAD
+=======
+Added block 4 to ProcessingMap
+Added block 5 to ProcessingMap
+Added block 6 to ProcessingMap
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 ------------------------------------------------
 Block Number: 0
 ------------------------------------------------
@@ -107,10 +121,40 @@ Block Number: 1
 Block Number: 2
 ------------------------------------------------
 Block Number: 3
+<<<<<<< HEAD
 Added block 4 to ProcessingMap
 ------------------------------------------------
 Block Number: 4
 
+=======
+Block Timestamp: 2019-08-08T19:47:56.148Z
+ChaincodeID: _lifecycle
+[]
+------------------------------------------------
+Block Number: 4
+Block Timestamp: 2019-08-08T19:48:00.234Z
+ChaincodeID: _lifecycle
+[]
+------------------------------------------------
+Block Number: 5
+Block Timestamp: 2019-08-08T19:48:14.092Z
+ChaincodeID: _lifecycle
+[ { key: 'namespaces/fields/marbles/Collections',
+    is_delete: false,
+    value: '\u0012\u0000' },
+  { key: 'namespaces/fields/marbles/EndorsementInfo',
+    is_delete: false,
+    value: '\u0012\r\n\u00031.0\u0010\u0001\u001a\u0004escc' },
+  { key: 'namespaces/fields/marbles/Sequence',
+    is_delete: false,
+    value: '\b\u0001' },
+  { key: 'namespaces/fields/marbles/ValidationInfo',
+    is_delete: false,
+    value: '\u00122\n\u0004vscc\u0012*\n(\u0012\f\u0012\n\b\u0002\u0012\u0002\b\u0000\u0012\u0002\b\u0001\u001a\u000b\u0012\t\n\u0007Org1MSP\u001a\u000b\u0012\t\n\u0007Org2MSP' },
+  { key: 'namespaces/metadata/marbles',
+    is_delete: false,
+    value: '\n\u0013ChaincodeDefinition\u0012\bSequence\u0012\u000fEndorsementInfo\u0012\u000eValidationInfo\u0012\u000bCollections' } ]
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 ```
 
 `blockEventListener.js` creates a listener named "offchain-listener" on the
@@ -124,9 +168,15 @@ started.
 
 `BlockProcessing.js` runs as a daemon and pulls each block in order from the
 BlockMap. It then uses the read-write set of that block to extract the latest
+<<<<<<< HEAD
 key value data and store it in the database. The first four configuration blocks
 of `mychannel` did not any data to the database because the blocks did not
 contain a read-write set.
+=======
+key value data and store it in the database. The configuration blocks of
+mychannel did not any data to the database because the blocks did not contain a
+read-write set.
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
 The channel event listener also writes metadata from each block to a log file
 defined as channelid_chaincodeid.log. In this example, events will be written to

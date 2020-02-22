@@ -7,7 +7,11 @@ trigger:
   - release-1.4
 
 variables:
+<<<<<<< HEAD
   NODE_VER: '10.x'
+=======
+  NODE_VER: '12.x'
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 
 jobs:
   - job: fabcar_go
@@ -21,6 +25,20 @@ jobs:
       - template: install-fabric.yml
       - template: fabcar-go.yml
 
+<<<<<<< HEAD
+=======
+  - job: test_network
+    displayName: Start the test network
+    pool:
+      vmImage: ubuntu-18.04
+    dependsOn: []
+    timeoutInMinutes: 60
+    steps:
+      - template: install-deps.yml
+      - template: install-fabric.yml
+      - template: testnetwork.yml
+
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
   - job: fabcar_java
     displayName: FabCar (Java)
     pool:
@@ -53,3 +71,39 @@ jobs:
       - template: install-deps.yml
       - template: install-fabric.yml
       - template: fabcar-typescript.yml
+<<<<<<< HEAD
+=======
+
+  - job: commercialpaper_javascript
+    displayName: CommercialPaper (JavaScript)
+    pool:
+      vmImage: ubuntu-18.04
+    dependsOn: []
+    timeoutInMinutes: 60
+    steps:
+      - template: install-deps.yml
+      - template: install-fabric.yml
+      - template: commercialpaper-javascript.yml
+
+  - job: commercialpaper_java
+    displayName: CommercialPaper (Java)
+    pool:
+      vmImage: ubuntu-18.04
+    dependsOn: []
+    timeoutInMinutes: 60
+    steps:
+      - template: install-deps.yml
+      - template: install-fabric.yml
+      - template: commercialpaper-java.yml
+
+  - job: commercialpaper_go
+    displayName: CommercialPaper (Go)
+    pool:
+      vmImage: ubuntu-18.04
+    dependsOn: []
+    timeoutInMinutes: 60
+    steps:
+      - template: install-deps.yml
+      - template: install-fabric.yml
+      - template: commercialpaper-go.yml
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6

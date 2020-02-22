@@ -5,6 +5,7 @@
 steps:
   - script: |
       set -eo pipefail
+<<<<<<< HEAD
       wget -q -P /tmp https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-linux-amd64-1.4.5-stable.tar.gz
       sudo tar xzvf /tmp/hyperledger-fabric-linux-amd64-1.4.5-stable.tar.gz -C /usr/local
     displayName: Download Fabric CLI
@@ -26,4 +27,15 @@ steps:
 
       docker pull hyperledger/fabric-couchdb:0.4.15
       docker tag hyperledger/fabric-couchdb:0.4.15 hyperledger/fabric-couchdb:latest
+=======
+      wget -q -P /tmp https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-linux-amd64-latest.tar.gz
+      sudo tar xzvf /tmp/hyperledger-fabric-linux-amd64-latest.tar.gz -C /usr/local
+    displayName: Download Fabric CLI
+  - script: |
+      set -eo pipefail
+      wget -q -P /tmp https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-ca-linux-amd64-latest.tar.gz
+      sudo tar xzvf /tmp/hyperledger-fabric-ca-linux-amd64-latest.tar.gz -C /usr/local
+    displayName: Download Fabric CA CLI
+  - script: bash ci/getDockerImages.sh
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
     displayName: Pull Fabric Docker images

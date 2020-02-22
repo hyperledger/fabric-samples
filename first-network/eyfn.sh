@@ -29,9 +29,8 @@ function printHelp () {
   echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
   echo "    -t <timeout> - CLI timeout duration in seconds (defaults to 10)"
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
-  echo "    -f <docker-compose-file> - specify which docker-compose file use (defaults to docker-compose-cli.yaml)"
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
-  echo "    -l <language> - the chaincode language: golang (default) or node"
+  echo "    -l <language> - the programming language of the chaincode to deploy: go (default), javascript, or java"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
   echo "    -v - verbose mode"
   echo
@@ -40,7 +39,7 @@ function printHelp () {
   echo
   echo "	eyfn.sh generate -c mychannel"
   echo "	eyfn.sh up -c mychannel -s couchdb"
-  echo "	eyfn.sh up -l node"
+  echo "	eyfn.sh up -l javascript"
   echo "	eyfn.sh down -c mychannel"
   echo
   echo "Taking all defaults:"
@@ -112,22 +111,13 @@ function networkUp () {
   echo "###############################################################"
   echo "############### Have Org3 peers join network ##################"
   echo "###############################################################"
-  docker exec Org3cli ./scripts/step2org3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+  docker exec Org3cli ./scripts/step2org3.sh $CHANNEL_NAME $CLI_DELAY $CC_SRC_LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to have Org3 peers join network"
     exit 1
   fi
-  echo
-  echo "###############################################################"
-  echo "##### Upgrade chaincode to have Org3 peers on the network #####"
-  echo "###############################################################"
-  docker exec cli ./scripts/step3org3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
-  if [ $? -ne 0 ]; then
-    echo "ERROR !!!! Unable to add Org3 peers on network"
-    exit 1
-  fi
   # finish by running the test
-  docker exec Org3cli ./scripts/testorg3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+  docker exec Org3cli ./scripts/testorg3.sh $CHANNEL_NAME $CLI_DELAY $CC_SRC_LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to run test"
     exit 1
@@ -136,7 +126,11 @@ function networkUp () {
 
 # Tear down running network
 function networkDown () {
+<<<<<<< HEAD
   docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_KAFKA -f $COMPOSE_FILE_RAFT2 -f $COMPOSE_FILE_ORG3 -f $COMPOSE_FILE_COUCH down --volumes --remove-orphans
+=======
+  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_RAFT2 -f $COMPOSE_FILE_ORG3 -f $COMPOSE_FILE_COUCH down --volumes --remove-orphans
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
   # Don't remove containers, images, etc if restarting
   if [ "$MODE" != "restart" ]; then
     #Cleanup the chaincode containers
@@ -145,8 +139,6 @@ function networkDown () {
     removeUnwantedImages
     # remove orderer block and other channel configuration transactions and certs
     rm -rf channel-artifacts/*.block channel-artifacts/*.tx crypto-config ./org3-artifacts/crypto-config/ channel-artifacts/org3.json
-    # remove the docker-compose yaml file that was customized to the example
-    rm -f docker-compose-e2e.yaml
   fi
 }
 
@@ -157,7 +149,7 @@ function createConfigTx () {
   echo "###############################################################"
   echo "####### Generate and submit config tx to add Org3 #############"
   echo "###############################################################"
-  docker exec cli scripts/step1org3.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+  docker exec cli scripts/step1org3.sh $CHANNEL_NAME $CLI_DELAY $CC_SRC_LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to create config tx"
     exit 1
@@ -227,9 +219,6 @@ if [ ! -d crypto-config ]; then
   exit 1
 fi
 
-# Obtain the OS and Architecture string that will be used to select the correct
-# native binaries for your platform
-OS_ARCH=$(echo "$(uname -s|tr '[:upper:]' '[:lower:]'|sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
 # timeout duration - the duration the CLI should wait for a response from
 # another container before giving up
 CLI_TIMEOUT=10
@@ -245,12 +234,19 @@ COMPOSE_FILE_COUCH=docker-compose-couch.yaml
 COMPOSE_FILE_ORG3=docker-compose-org3.yaml
 #
 COMPOSE_FILE_COUCH_ORG3=docker-compose-couch-org3.yaml
+<<<<<<< HEAD
 # kafka and zookeeper compose file
 COMPOSE_FILE_KAFKA=docker-compose-kafka.yaml
 # two additional etcd/raft orderers
 COMPOSE_FILE_RAFT2=docker-compose-etcdraft2.yaml
 # use golang as the default language for chaincode
 LANGUAGE=golang
+=======
+# two additional etcd/raft orderers
+COMPOSE_FILE_RAFT2=docker-compose-etcdraft2.yaml
+# use go as the default language for chaincode
+CC_SRC_LANGUAGE=go
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 # default image tag
 IMAGETAG="latest"
 
@@ -272,7 +268,7 @@ else
   printHelp
   exit 1
 fi
-while getopts "h?c:t:d:f:s:l:i:v" opt; do
+while getopts "h?c:t:d:s:l:i:v" opt; do
   case "$opt" in
     h|\?)
       printHelp
@@ -284,11 +280,9 @@ while getopts "h?c:t:d:f:s:l:i:v" opt; do
     ;;
     d)  CLI_DELAY=$OPTARG
     ;;
-    f)  COMPOSE_FILE=$OPTARG
-    ;;
     s)  IF_COUCHDB=$OPTARG
     ;;
-    l)  LANGUAGE=$OPTARG
+    l)  CC_SRC_LANGUAGE=$OPTARG
     ;;
     i)  IMAGETAG=$OPTARG
     ;;

@@ -1,8 +1,12 @@
 /channel-artifacts/*.tx
 /channel-artifacts/*.block
 /crypto-config/*
-/docker-compose-e2e.yaml
 /ledgers
 /ledgers-backup
 /channel-artifacts/*.json
+<<<<<<< HEAD
 /org3-artifacts/crypto-config/*
+=======
+/org3-artifacts/crypto-config/*
+/connection-*.*
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6

@@ -4,8 +4,12 @@
 
 plugins {
     id 'checkstyle'
+<<<<<<< HEAD
     id 'com.github.johnrengelman.shadow' version '2.0.4'
     id 'java-library'
+=======
+    id 'java-library-distribution'
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
     id 'jacoco'
 }
 
@@ -13,8 +17,14 @@ group 'org.hyperledger.fabric.samples'
 version '1.0-SNAPSHOT'
 
 dependencies {
+<<<<<<< HEAD
     implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:1.4+'
     implementation 'com.owlike:genson:1.5'
+=======
+    compileOnly 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.0.+'
+    implementation 'com.owlike:genson:1.5'
+    testImplementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.0.+'
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
     testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
     testImplementation 'org.assertj:assertj-core:3.11.1'
     testImplementation 'org.mockito:mockito-core:2.+'
@@ -25,8 +35,13 @@ repositories {
         url "https://hyperledger.jfrog.io/hyperledger/fabric-maven"
     }
     jcenter()
+<<<<<<< HEAD
     maven { 
         url 'https://jitpack.io' 
+=======
+    maven {
+        url 'https://jitpack.io'
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
     }
 }
 
@@ -43,6 +58,7 @@ checkstyleTest {
     source ='src/test/java'
 }
 
+<<<<<<< HEAD
 shadowJar {
     baseName = 'chaincode'
     version = null
@@ -52,6 +68,8 @@ shadowJar {
     }
 }
 
+=======
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
 jacocoTestCoverageVerification {
     afterEvaluate {
         classDirectories = files(classDirectories.files.collect {
@@ -67,7 +85,11 @@ jacocoTestCoverageVerification {
             }
         }
     }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 3dbe116a30d517e1e828afb61b2198763141f2e6
     finalizedBy jacocoTestReport
 }
 

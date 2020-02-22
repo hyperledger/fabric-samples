@@ -1,19 +1,20 @@
 /*
- * SPDX-License-Identifier:
+ *  SPDX-License-Identifier: Apache-2.0
  */
 
 package org.papernet;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import org.papernet.ledgerapi.State;
 import org.hyperledger.fabric.contract.annotation.DataType;
 import org.hyperledger.fabric.contract.annotation.Property;
 import org.json.JSONObject;
 import org.json.JSONPropertyIgnore;
+import org.papernet.ledgerapi.State;
 
 @DataType()
 public class CommercialPaper extends State {
+
     // Enumerate commercial paper state values
     public final static String ISSUED = "ISSUED";
     public final static String TRADING = "TRADING";
@@ -161,8 +162,8 @@ public class CommercialPaper extends State {
         String maturityDateTime = json.getString("maturityDateTime");
         String owner = json.getString("owner");
         int faceValue = json.getInt("faceValue");
-        String state = json.getString("state");        
-        return createInstance(issuer, paperNumber, issueDateTime, maturityDateTime, faceValue,owner,state);
+        String state = json.getString("state");
+        return createInstance(issuer, paperNumber, issueDateTime, maturityDateTime, faceValue, owner, state);
     }
 
     public static byte[] serialize(CommercialPaper paper) {
@@ -175,7 +176,8 @@ public class CommercialPaper extends State {
     public static CommercialPaper createInstance(String issuer, String paperNumber, String issueDateTime,
             String maturityDateTime, int faceValue, String owner, String state) {
         return new CommercialPaper().setIssuer(issuer).setPaperNumber(paperNumber).setMaturityDateTime(maturityDateTime)
-                .setFaceValue(faceValue).setKey().setIssueDateTime(issueDateTime).setOwner(owner).setState(state);
+                .setFaceValue(faceValue).setKey().setIssueDateTime(issueDateTime).setOwner(issuer).setState(state);
     }
+
 
 }

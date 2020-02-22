@@ -69,6 +69,8 @@ one for the chaincode environment and a CLI to interact with the chaincode.  The
 commands for create and join channel are embedded in the CLI container, so we
 can jump immediately to the chaincode calls.
 
+.. note:: TLS is not enabled as it is not supported when running chaincode in dev mode.
+
 Terminal 2 - Build & start the chaincode
 ----------------------------------------
 
@@ -86,14 +88,14 @@ Now, compile your chaincode:
 
 .. code:: sh
 
-  cd chaincode_example02/go
-  go build -o chaincode_example02
+  cd abstore/go
+  go build -o abstore
 
 Now run the chaincode:
 
 .. code:: sh
 
-  CORE_PEER_ADDRESS=peer:7052 CORE_CHAINCODE_ID_NAME=mycc:0 ./chaincode_example02
+  CORE_CHAINCODE_ID_NAME=mycc:0 CORE_PEER_TLS_ENABLED=false ./abstore -peer.address peer:7052
 
 The chaincode is started with peer and chaincode logs indicating successful registration with the peer.
 Note that at this stage the chaincode is not associated with any channel. This is done in subsequent steps
@@ -114,7 +116,7 @@ We'll leverage the CLI container to drive these calls.
 
 .. code:: bash
 
-  peer chaincode install -p chaincodedev/chaincode/chaincode_example02/go -n mycc -v 0
+  peer chaincode install -p chaincodedev/chaincode/abstore/go -n mycc -v 0
   peer chaincode instantiate -n mycc -v 0 -c '{"Args":["init","a","100","b","200"]}' -C myc
 
 Now issue an invoke to move ``10`` from ``a`` to ``b``.
@@ -132,7 +134,7 @@ Finally, query ``a``.  We should see a value of ``90``.
 Testing new chaincode
 ---------------------
 
-By default, we mount only ``chaincode_example02``.  However, you can easily test different
+By default, we mount only ``abstore``.  However, you can easily test different
 chaincodes by adding them to the ``chaincode`` subdirectory and relaunching
 your network.  At this point they will be accessible in your ``chaincode`` container.
 

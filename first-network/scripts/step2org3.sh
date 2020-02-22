@@ -16,21 +16,32 @@ echo "========= Getting Org3 on to your first network ========= "
 echo
 CHANNEL_NAME="$1"
 DELAY="$2"
-LANGUAGE="$3"
+CC_SRC_LANGUAGE="$3"
 TIMEOUT="$4"
 VERBOSE="$5"
 : ${CHANNEL_NAME:="mychannel"}
 : ${DELAY:="3"}
-: ${LANGUAGE:="golang"}
+: ${CC_SRC_LANGUAGE:="go"}
 : ${TIMEOUT:="10"}
 : ${VERBOSE:="false"}
-LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
+CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=5
+PACKAGE_ID=""
 
-CC_SRC_PATH="github.com/chaincode/chaincode_example02/go/"
-if [ "$LANGUAGE" = "node" ]; then
-	CC_SRC_PATH="/opt/gopath/src/github.com/chaincode/chaincode_example02/node/"
+if [ "$CC_SRC_LANGUAGE" = "go" -o "$CC_SRC_LANGUAGE" = "golang" ]; then
+	CC_RUNTIME_LANGUAGE=golang
+	CC_SRC_PATH="github.com/hyperledger/fabric-samples/chaincode/abstore/go/"
+elif [ "$CC_SRC_LANGUAGE" = "javascript" ]; then
+	CC_RUNTIME_LANGUAGE=node # chaincode runtime language is node.js
+	CC_SRC_PATH="/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/abstore/javascript/"
+elif [ "$CC_SRC_LANGUAGE" = "java" ]; then
+	CC_RUNTIME_LANGUAGE=java
+	CC_SRC_PATH="/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode/abstore/java/"
+else
+	echo The chaincode language ${CC_SRC_LANGUAGE} is not supported by this script
+	echo Supported chaincode languages are: go, javascript, java
+	exit 1
 fi
 
 # import utils
@@ -48,11 +59,28 @@ joinChannelWithRetry 0 3
 echo "===================== peer0.org3 joined channel '$CHANNEL_NAME' ===================== "
 joinChannelWithRetry 1 3
 echo "===================== peer1.org3 joined channel '$CHANNEL_NAME' ===================== "
-echo "Installing chaincode 2.0 on peer0.org3..."
-installChaincode 0 3 2.0
+
+## at first we package the chaincode
+packageChaincode 1 0 3
+
+echo "Installing chaincode on peer0.org3..."
+installChaincode 0 3
+
+## query whether the chaincode is installed
+queryInstalled 0 3
+
+## sanity check: expect the chaincode to be already committed
+queryCommitted 1 0 3
+
+## approve it for our org, so that our peers know what package to invoke
+approveForMyOrg 1 0 3
+
+# Query on chaincode on peer0.org3, check if the result is 90
+echo "Querying chaincode on peer0.org3..."
+chaincodeQuery 0 3 90
 
 echo
-echo "========= Org3 is now halfway onto your first network ========= "
+echo "========= Finished adding Org3 to your first network! ========= "
 echo
 
 exit 0
