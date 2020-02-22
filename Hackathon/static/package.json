@@ -1,0 +1,41 @@
+{
+    "title": "Bare",
+    "name": "startbootstrap-bare",
+    "version": "4.2.1",
+    "scripts": {
+        "start": "node_modules/.bin/gulp watch"
+    },
+    "description": "A basic HTML starter template for Bootstrap",
+    "keywords": [
+        "css",
+        "sass",
+        "html",
+        "responsive",
+        "theme",
+        "template"
+    ],
+    "homepage": "https://startbootstrap.com/template-overviews/bare",
+    "bugs": {
+        "url": "https://github.com/BlackrockDigital/startbootstrap-bare/issues",
+        "email": "feedback@startbootstrap.com"
+    },
+    "license": "MIT",
+    "author": "Start Bootstrap",
+    "contributors": [
+        "David Miller (http://davidmiller.io/)"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/BlackrockDigital/startbootstrap-bare.git"
+    },
+    "dependencies": {
+        "bootstrap": "4.3.1",
+        "jquery": "3.4.1"
+    },
+    "devDependencies": {
+        "browser-sync": "2.26.7",
+        "del": "^4.1.1",
+        "gulp": "4.0.2",
+        "merge-stream": "2.0.0"
+    }
+}

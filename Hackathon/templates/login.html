@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+<title> User Login - Hackathon 2020 </title>
+
+  <!-- Bootstrap core CSS -->
+   <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+
+
+  <!-- Custom styles for this template -->
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/business-frontpage.css') }}" rel="stylesheet">
+
+
+</head>
+<style>
+    .card {
+        float: none;
+        margin: 0 auto 10px;
+    }
+    .card-footer {
+        float: none;
+        margin: 0 auto 10px;
+        border: none;
+    }
+</style>
+<body>
+<div class="card" style="width: 40rem;">
+  <img class="card-img-top" src="../static/img/loginsplash.png" alt="Card image cap">
+  <div class="card-body">
+    <form>
+  <div class="form-group">
+    <label for="exampleInputEmail1">Student Login</label>
+    <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="CWID">
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword1">Password</label>
+    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+  </div>
+    <div class="card-footer">
+        <a href="{{ url_for('registrar') }}"button type="button" class="btn btn-primary">Registrar</a>
+        <a href="{{ url_for('student') }}"button type="button" class="btn btn-primary">Student</a>
+        <a href="{{ url_for('faculty') }}" button type="button" class="btn btn-primary">Faculty</a>
+
+    </div>
+</div>
+
+</body>
+</html>
