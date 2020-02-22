@@ -10,7 +10,7 @@ app.get('/createNewBlock', function (req, res) {
     res.sendFile('createNewBlock.html', { root: './client/html' });
 });
 app.get('/searchBlock', function (req, res) {
-    res.sendFile('about.html', { root: './client/html' });
+    res.sendFile('searchForBlock.html', { root: './client/html' });
 });
 app.get('/results', function (req, res) {
     res.sendFile('searchResults.html', { root: './client/html' });
