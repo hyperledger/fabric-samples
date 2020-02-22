@@ -1,0 +1,33 @@
+.center{
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
+
+p{
+  color: white;
+  text-align: center;
+  font-family: Brush Script MT;
+  font-size: 35px;
+}
+
+body{
+  background-color: rgb(50, 255, 9);
+}
+
+/*h1{
+  color: white;
+  text-align: center;
+  font-family: serif;
+  font-size: 30px;
+}*/
+
+.text-block {
+    position: center;
+    bottom: 20px;
+    right: 20px;
+    background-color: black;
+    color: white;
+    padding-left: 55px;
+    padding-right: 20px;
