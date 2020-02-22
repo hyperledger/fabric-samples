@@ -2,18 +2,18 @@ const express = require('express')
 const app = express()
 const port = 3000
 
-app.use(express.static('Client/Public'));
+app.use(express.static('client/public'));
 app.get('/menu', function (req, res) {
-    res.sendFile('title.html', { root: './Client/Views' });
+    res.sendFile('mainMenu.html', { root: './client/html' });
 });
 app.get('/createNewBlock', function (req, res) {
-    res.sendFile('game.html', { root: './client/Views' });
+    res.sendFile('createNewBlock.html', { root: '../client/html' });
 });
 app.get('/searchBlock', function (req, res) {
-    res.sendFile('about.html', { root: './client/Views' });
+    res.sendFile('about.html', { root: './client/html' });
 });
 app.get('/results', function (req, res) {
-    res.sendFile('menu.html', { root: './client/Views' });
+    res.sendFile('searchResults.html', { root: './client/html' });
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
