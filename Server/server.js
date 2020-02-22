@@ -7,7 +7,7 @@ app.get('/menu', function (req, res) {
     res.sendFile('mainMenu.html', { root: './client/html' });
 });
 app.get('/createNewBlock', function (req, res) {
-    res.sendFile('createNewBlock.html', { root: '../client/html' });
+    res.sendFile('createNewBlock.html', { root: './client/html' });
 });
 app.get('/searchBlock', function (req, res) {
     res.sendFile('about.html', { root: './client/html' });
