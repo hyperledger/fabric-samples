@@ -1,4 +1,7 @@
 const express = require('express')
+var bodyParser = require('body-parser');
+app.use(express.static('client/public'));
+app.use(bodyParser.json({ type: 'application/json' }));
 const app = express()
 const port = 3000
 
