@@ -1,22 +1,19 @@
 const express = require('express')
-var bodyParser = require('body-parser');
-app.use(express.static('client/public'));
-app.use(bodyParser.json({ type: 'application/json' }));
 const app = express()
 const port = 3000
 
-app.use(express.static('client/public'));
+app.use(express.static('client'));
 app.get('/menu', function (req, res) {
-    res.sendFile('mainMenu.html', { root: './client/html' });
+    res.sendFile('mainMenu.html', { root: '../client/html' });
 });
 app.get('/createNewBlock', function (req, res) {
-    res.sendFile('createNewBlock.html', { root: './client/html' });
+    res.sendFile('createNewBlock.html', { root: '../client/html' });
 });
 app.get('/searchBlock', function (req, res) {
-    res.sendFile('searchForBlock.html', { root: './client/html' });
+    res.sendFile('searchForBlock.html', { root: '../client/html' });
 });
 app.get('/results', function (req, res) {
-    res.sendFile('searchResults.html', { root: './client/html' });
+    res.sendFile('searchResults.html', { root: '../client/html' });
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
