@@ -15,14 +15,12 @@ CC_SRC_LANGUAGE="$3"
 TIMEOUT="$4"
 VERBOSE="$5"
 NO_CHAINCODE="$6"
-NAME="$7"
 : ${CHANNEL_NAME:="mychannel"}
 : ${DELAY:="3"}
 : ${CC_SRC_LANGUAGE:="go"}
 : ${TIMEOUT:="10"}
 : ${VERBOSE:="false"}
 : ${NO_CHAINCODE:="false"}
-: ${NAME:="mycc"}
 CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=20
@@ -45,7 +43,6 @@ fi
 
 
 echo "Channel name : "$CHANNEL_NAME
-echo "Chaincode name : "$NAME
 
 # import utils
 . scripts/utils.sh
