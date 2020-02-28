@@ -66,7 +66,7 @@ The contract code is available as either JavaScript, Java or Go. You can use eit
 In your 'MagnetoCorp' window run the following commands, to show the shell environment variables needed to act as that organization.
 
 ```
-cd fabric-samples/commercial-paper/magentocorp
+cd fabric-samples/commercial-paper/organization/magnetocorp
 ./magnetocorp.sh
 ```
 
