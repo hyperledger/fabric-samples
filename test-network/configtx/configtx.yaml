@@ -213,7 +213,6 @@ Application: &ApplicationDefaults
 Orderer: &OrdererDefaults
 
     # Orderer Type: The orderer implementation to start
-    # Available types are "solo" and "kafka"
     OrdererType: etcdraft
 
     EtcdRaft:
