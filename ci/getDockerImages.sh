@@ -6,7 +6,7 @@ echo "======== PULL DOCKER IMAGES ========"
 REPO_URL=hyperledger-fabric.jfrog.io
 ORG_NAME="fabric"
 
-VERSION=2.0.0
+VERSION=2.1
 ARCH="amd64"
 : ${STABLE_VERSION:=$VERSION-stable}
 STABLE_TAG=$ARCH-$STABLE_VERSION
