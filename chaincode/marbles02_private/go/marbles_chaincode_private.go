@@ -27,7 +27,10 @@ SPDX-License-Identifier: Apache-2.0
 // peer chaincode query -C mychannel -n marblesp -c '{"Args":["readMarble","marble1"]}'
 // peer chaincode query -C mychannel -n marblesp -c '{"Args":["readMarblePrivateDetails","marble1"]}'
 // peer chaincode query -C mychannel -n marblesp -c '{"Args":["getMarblesByRange","marble1","marble4"]}'
-//
+
+// Query a marble's public data hash
+//	peer chaincode query -C mychannel -n marblesp -c '{"Args":["getMarbleHash","collectionMarbles","marble1"]}'
+
 // Rich Query (Only supported if CouchDB is used as state database):
 //   peer chaincode query -C mychannel -n marblesp -c '{"Args":["queryMarblesByOwner","tom"]}'
 //   peer chaincode query -C mychannel -n marblesp -c '{"Args":["queryMarbles","{\"selector\":{\"owner\":\"tom\"}}"]}'
@@ -166,6 +169,9 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	case "getMarblesByRange":
 		//get marbles based on range query
 		return t.getMarblesByRange(stub, args)
+	case "getMarbleHash":
+		//verify a marble using the public hash
+		return t.getMarbleHash(stub, args)
 	default:
 		//error
 		fmt.Println("invoke did not find func: " + function)
@@ -648,4 +654,30 @@ func getQueryResultForQueryString(stub shim.ChaincodeStubInterface, queryString 
 	fmt.Printf("- getQueryResultForQueryString queryResult:\n%s\n", buffer.String())
 
 	return buffer.Bytes(), nil
+}
+
+// ===============================================
+// getMarbleHash - use the public data hash to verify a private marble
+// Result is the hash on the public ledger of a marble stored a private data collection
+// ===============================================
+func (t *SimpleChaincode) getMarbleHash(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	var name, collection string
+	var err error
+
+	if len(args) != 2 {
+		return shim.Error("Incorrect number of arguments. Expecting the collection and the name of the marble to query")
+	}
+
+	collection = args[0]
+	name = args[1]
+
+	// GetPrivateDataHash can use any collection deployed with the chaincode as input
+	hashAsbytes, err := stub.GetPrivateDataHash(collection, name)
+	if err != nil {
+		return shim.Error("Failed to get public data hash for marble:" + err.Error())
+	} else if hashAsbytes == nil {
+		return shim.Error("Marble does not exist: " + name)
+	}
+
+	return shim.Success(hashAsbytes)
 }
