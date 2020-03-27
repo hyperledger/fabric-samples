@@ -123,7 +123,7 @@ ${PEER1_ORG1} lifecycle chaincode install \
   fabcar.tar.gz
 
 echo "Determining package ID for smart contract on peer0.org1.example.com"
-REGEX='Package ID: (.*), Label: fabcarv1'
+REGEX='Package ID: ([^,]*), Label: fabcarv1'
 if [[ `${PEER0_ORG1} lifecycle chaincode queryinstalled` =~ $REGEX ]]; then
   PACKAGE_ID_ORG1=${BASH_REMATCH[1]}
 else
@@ -155,7 +155,7 @@ echo "Installing smart contract on peer1.org2.example.com"
 ${PEER1_ORG2} lifecycle chaincode install fabcar.tar.gz
 
 echo "Determining package ID for smart contract on peer0.org2.example.com"
-REGEX='Package ID: (.*), Label: fabcarv1'
+REGEX='Package ID: ([^,]*), Label: fabcarv1'
 if [[ `${PEER0_ORG2} lifecycle chaincode queryinstalled` =~ $REGEX ]]; then
   PACKAGE_ID_ORG2=${BASH_REMATCH[1]}
 else
