@@ -216,7 +216,7 @@ chaincodeInvokeInit() {
   # it using the "-o" option
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
     set -x
-    peer chaincode invoke -o localhost:7050 -C $CHANNEL_NAME -n fabcar $PEER_CONN_PARMS --isInit -c '{"function":"init","Args":[]}' >&log.txt
+    peer chaincode invoke -o localhost:7050 -C $CHANNEL_NAME -n fabcar $PEER_CONN_PARMS --isInit -c '{"function":"initLedger","Args":[]}' >&log.txt
     res=$?
     set +x
   else
