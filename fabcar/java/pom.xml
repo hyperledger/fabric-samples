@@ -4,7 +4,7 @@
    <modelVersion>4.0.0</modelVersion>
    <groupId>fabcar-java</groupId>
    <artifactId>fabcar-java</artifactId>
-   <version>1.4.0-SNAPSHOT</version>
+   <version>2.0.0-SNAPSHOT</version>
    <build>
       <plugins>
          <plugin>
