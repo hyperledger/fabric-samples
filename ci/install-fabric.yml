@@ -5,13 +5,11 @@
 steps:
   - script: |
       set -eo pipefail
-      wget -q -P /tmp https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-linux-amd64-latest.tar.gz
-      sudo tar xzvf /tmp/hyperledger-fabric-linux-amd64-latest.tar.gz -C /usr/local
+      curl -L --retry 5 --retry-delay 3 https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-linux-amd64-latest.tar.gz | tar xz
     displayName: Download Fabric CLI
   - script: |
       set -eo pipefail
-      wget -q -P /tmp https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-ca-linux-amd64-latest.tar.gz
-      sudo tar xzvf /tmp/hyperledger-fabric-ca-linux-amd64-latest.tar.gz -C /usr/local
+      curl -L --retry 5 --retry-delay 3 https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-ca-linux-amd64-latest.tar.gz | tar xz
     displayName: Download Fabric CA CLI
   - script: bash ci/getDockerImages.sh
     displayName: Pull Fabric Docker images
