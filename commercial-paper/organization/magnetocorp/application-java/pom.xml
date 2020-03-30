@@ -75,7 +75,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.hyperledger.fabric-gateway-java</groupId>
+			<groupId>org.hyperledger</groupId>
 			<artifactId>fabric-gateway-java</artifactId>
 			<version>1.4.0-SNAPSHOT</version>
 		</dependency>
