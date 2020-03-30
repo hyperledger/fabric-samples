@@ -35,7 +35,7 @@ async function main() {
             type: 'X.509'
         }
 
-    
+
         await wallet.put(identityLabel,identity);
 
     } catch (error) {

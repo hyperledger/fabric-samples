@@ -20,13 +20,13 @@ async function main() {
         const wallet = await Wallets.newFileSystemWallet('../identity/user/balaji/wallet');
 
         // Identity to credentials to be stored in the wallet
-        const credPath = path.join(fixtures, '/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com');
-        const certificate = fs.readFileSync(path.join(credPath, '/msp/signcerts/Admin@org1.example.com-cert.pem')).toString();
+        const credPath = path.join(fixtures, '/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com');
+        const certificate = fs.readFileSync(path.join(credPath, '/msp/signcerts/User1@org1.example.com-cert.pem')).toString();
         const privateKey = fs.readFileSync(path.join(credPath, '/msp/keystore/priv_sk')).toString();
 
         // Load credentials into wallet
         const identityLabel = 'balaji';
-       
+
         const identity = {
             credentials: {
                 certificate,
