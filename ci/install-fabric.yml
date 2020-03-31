@@ -5,17 +5,15 @@
 steps:
   - script: |
       set -eo pipefail
-      wget -q -P /tmp https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-linux-amd64-1.4.5-stable.tar.gz
-      sudo tar xzvf /tmp/hyperledger-fabric-linux-amd64-1.4.5-stable.tar.gz -C /usr/local
+      curl -L --retry 5 --retry-delay 3 https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-linux-amd64-1.4-stable.tar.gz | tar xz
     displayName: Download Fabric CLI
   - script: |
       set -eo pipefail
-      wget -q -P /tmp https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-ca-linux-amd64-1.4.5-stable.tar.gz
-      sudo tar xzvf /tmp/hyperledger-fabric-ca-linux-amd64-1.4.5-stable.tar.gz -C /usr/local
+      curl -L --retry 5 --retry-delay 3 https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-ca-linux-amd64-1.4-stable.tar.gz | tar xz
     displayName: Download Fabric CA CLI
   - script: |
       set -ex
-      version=1.4.5
+      version=1.4
       for i in ca ccenv javaenv peer orderer tools; do
         docker pull hyperledger-fabric.jfrog.io/fabric-$i:amd64-$version-stable
         docker tag hyperledger-fabric.jfrog.io/fabric-$i:amd64-$version-stable hyperledger/fabric-$i:amd64-$version-stable
