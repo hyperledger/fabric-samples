@@ -14,7 +14,9 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<!-- fabric-chaincode-java -->
-		<fabric-chaincode-java.version>1.4.2</fabric-chaincode-java.version>
+		<fabric-chaincode-java.version>2.0.0</fabric-chaincode-java.version>
+		<!-- fabric-gateway-java -->
+		<fabric-gateway-java.version>2.0.0</fabric-gateway-java.version>
 
 	</properties>
 
@@ -62,12 +64,6 @@
 
 	<repositories>
 		<repository>
-			<id>hyperledger</id>
-			<name>Hyperledger Artifactory</name>
-			<url>https://hyperledger.jfrog.io/hyperledger/fabric-maven</url>
-		</repository>
-
-		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
@@ -75,9 +71,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.hyperledger</groupId>
+			<groupId>org.hyperledger.fabric</groupId>
 			<artifactId>fabric-gateway-java</artifactId>
-			<version>1.4.0-SNAPSHOT</version>
+			<version>${fabric-gateway-java.version}</version>
 		</dependency>
 
 		<!-- Used for datatype annotations only -->
