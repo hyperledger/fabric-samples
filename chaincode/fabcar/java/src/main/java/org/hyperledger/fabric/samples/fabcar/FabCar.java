@@ -95,7 +95,7 @@ public final class FabCar implements ContractInterface {
         };
 
         for (int i = 0; i < carData.length; i++) {
-            String key = String.format("CAR%03d", i);
+            String key = String.format("CAR%d", i);
 
             Car car = genson.deserialize(carData[i], Car.class);
             String carState = genson.serialize(car);
