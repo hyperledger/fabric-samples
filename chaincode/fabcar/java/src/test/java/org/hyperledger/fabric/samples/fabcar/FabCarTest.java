@@ -213,14 +213,14 @@ public final class FabCarTest {
         when(ctx.getStub()).thenReturn(stub);
         when(stub.getStateByRange("CAR0", "CAR999")).thenReturn(new MockCarResultsIterator());
 
-        Car[] cars = contract.queryAllCars(ctx);
+        CarQueryResult[] cars = contract.queryAllCars(ctx);
 
-        final List<Car> expectedCars = new ArrayList<Car>();
-        expectedCars.add(new Car("Toyota", "Prius", "blue", "Tomoko"));
-        expectedCars.add(new Car("Ford", "Mustang", "red", "Brad"));
-        expectedCars.add(new Car("Hyundai", "Tucson", "green", "Jin Soo"));
-        expectedCars.add(new Car("Fiat", "Punto", "violet", "Pari"));
-        expectedCars.add(new Car("Holden", "Barina", "brown", "Shotaro"));
+        final List<CarQueryResult> expectedCars = new ArrayList<CarQueryResult>();
+        expectedCars.add(new CarQueryResult("CAR0", new Car("Toyota", "Prius", "blue", "Tomoko")));
+        expectedCars.add(new CarQueryResult("CAR1", new Car("Ford", "Mustang", "red", "Brad")));
+        expectedCars.add(new CarQueryResult("CAR2", new Car("Hyundai", "Tucson", "green", "Jin Soo")));
+        expectedCars.add(new CarQueryResult("CAR7", new Car("Fiat", "Punto", "violet", "Pari")));
+        expectedCars.add(new CarQueryResult("CAR9", new Car("Holden", "Barina", "brown", "Shotaro")));
 
         assertThat(cars).containsExactlyElementsOf(expectedCars);
     }
@@ -239,7 +239,7 @@ public final class FabCarTest {
 
             Car car = contract.changeCarOwner(ctx, "CAR0", "Dr Evil");
 
-            assertThat(car).isEqualTo(new Car("Toyota", "Prius", "blue", "Dr Evil"));
+            assertThat(car).isEqualTo(new CarQueryResult("CAR0", new Car("Toyota", "Prius", "blue", "Dr Evil")));
         }
 
         @Test
