@@ -59,7 +59,7 @@ public class Issue {
 
         // Issue commercial paper
         System.out.println("Submit commercial paper issue transaction.");
-        byte[] response = contract.submitTransaction("issue", "MagnetoCorp", "00002", "2020-05-31", "2020-11-30", "5000000");
+        byte[] response = contract.submitTransaction("issue", "MagnetoCorp", "00001", "2020-05-31", "2020-11-30", "5000000");
 
         // Process response
         System.out.println("Process issue transaction response.");

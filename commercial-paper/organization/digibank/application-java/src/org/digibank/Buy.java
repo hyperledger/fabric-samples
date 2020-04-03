@@ -15,58 +15,60 @@ import org.hyperledger.fabric.gateway.Gateway;
 import org.hyperledger.fabric.gateway.GatewayException;
 import org.hyperledger.fabric.gateway.Network;
 import org.hyperledger.fabric.gateway.Wallet;
+import org.hyperledger.fabric.gateway.Wallets;
 import org.papernet.CommercialPaper;
 
 public class Buy {
 
-	private static final String ENVKEY="CONTRACT_NAME";
-	
-	public static void main(String[] args) {
-		Gateway.Builder builder = Gateway.createBuilder();
+  private static final String ENVKEY="CONTRACT_NAME";
 
-		String contractName="papercontract";
-		// get the name of the contract, in case it is overridden
-		Map<String,String> envvar = System.getenv();
-		if (envvar.containsKey(ENVKEY)){
-			contractName=envvar.get(ENVKEY);
-		}
+  public static void main(String[] args) {
+    Gateway.Builder builder = Gateway.createBuilder();
 
-		try {
-			// A wallet stores a collection of identities
-			Path walletPath = Paths.get("..", "identity", "user", "balaji", "wallet");
-			Wallet wallet = Wallet.createFileSystemWallet(walletPath);
+    String contractName="papercontract";
+    // get the name of the contract, in case it is overridden
+    Map<String,String> envvar = System.getenv();
+    if (envvar.containsKey(ENVKEY)){
+      contractName=envvar.get(ENVKEY);
+    }
 
-			String userName = "Admin@org1.example.com";
+    try {
+      // A wallet stores a collection of identities
+      Path walletPath = Paths.get(".", "wallet");
+      Wallet wallet = Wallets.newFileSystemWallet(walletPath);
+      System.out.println("Read wallet info from: " + walletPath);
 
-			Path connectionProfile = Paths.get("..", "gateway", "networkConnection.yaml");
+      String userName = "User1@org1.example.com";
 
-		    // Set connection options on the gateway builder
-			builder.identity(wallet, userName).networkConfig(connectionProfile).discovery(false);
+      Path connectionProfile = Paths.get("..", "gateway", "connection-org1.yaml");
 
-		    // Connect to gateway using application specified parameters
-			try(Gateway gateway = builder.connect()) {
+      // Set connection options on the gateway builder
+      builder.identity(wallet, userName).networkConfig(connectionProfile).discovery(false);
 
-				// Access PaperNet network
-			    System.out.println("Use network channel: mychannel.");
-			    Network network = gateway.getNetwork("mychannel");
+      // Connect to gateway using application specified parameters
+      try(Gateway gateway = builder.connect()) {
 
-			    // Get addressability to commercial paper contract
-			    System.out.println("Use org.papernet.commercialpaper smart contract.");
-			    Contract contract = network.getContract(contractName, "org.papernet.commercialpaper");
+        // Access PaperNet network
+        System.out.println("Use network channel: mychannel.");
+        Network network = gateway.getNetwork("mychannel");
 
-			    // Buy commercial paper
-				System.out.println("Submit commercial paper buy transaction.");
-				byte[] response = contract.submitTransaction("buy", "MagnetoCorp", "00001", "MagnetoCorp", "DigiBank", "4900000", "2020-05-31");
+        // Get addressability to commercial paper contract
+        System.out.println("Use org.papernet.commercialpaper smart contract.");
+        Contract contract = network.getContract(contractName, "org.papernet.commercialpaper");
 
-				// Process response
-				System.out.println("Process buy transaction response.");
-				CommercialPaper paper = CommercialPaper.deserialize(response);
-				System.out.println(paper);
-			}
-		} catch (GatewayException | IOException | TimeoutException | InterruptedException e) {
-			e.printStackTrace();
-			System.exit(-1);
-		}
-	}
+        // Buy commercial paper
+        System.out.println("Submit commercial paper buy transaction.");
+        byte[] response = contract.submitTransaction("buy", "MagnetoCorp", "00001", "MagnetoCorp", "DigiBank", "4900000", "2020-05-31");
+
+        // Process response
+        System.out.println("Process buy transaction response.");
+        CommercialPaper paper = CommercialPaper.deserialize(response);
+        System.out.println(paper);
+      }
+    } catch (GatewayException | IOException | TimeoutException | InterruptedException e) {
+      e.printStackTrace();
+      System.exit(-1);
+    }
+  }
 
 }

@@ -46,7 +46,7 @@ public class AddToWallet {
           "User1@org2.example.com-cert.pem"));
       System.out.println("certificatePem: " + certificatePath.toString());
       Path privateKeyPath = credentialPath.resolve(Paths.get("keystore",
-          "c7077781c776d90009b3f68a75b15109e1cb82ae5dbdcc0b79644ff47d280db8_sk"));
+          "priv_sk"));
 
       X509Certificate certificate = readX509Certificate(certificatePath);
       PrivateKey privateKey = getPrivateKey(privateKeyPath);
@@ -57,7 +57,7 @@ public class AddToWallet {
       String identityLabel = "User1@org2.example.com";
       wallet.put(identityLabel, identity);
 
-      System.out.println("成功写入钱包信息：" + walletPath.toString());
+      System.out.println("Write wallet info into " + walletPath.toString() + " successfully.");
 
     } catch (IOException | CertificateException | InvalidKeyException e) {
       System.err.println("Error adding to wallet");
