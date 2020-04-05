@@ -52,14 +52,14 @@ async function main() {
         await gateway.connect(connectionProfile, connectionOptions);
 
         // Access PaperNet network
-        console.log('Use network channel: mychannel.');
+        console.log('Use network channel: PaperNet.');
 
-        const network = await gateway.getNetwork('mychannel');
+        const network = await gateway.getNetwork('PaperNet');
 
         // Get addressability to commercial paper contract
         console.log('Use org.papernet.commercialpaper smart contract.');
 
-        const contract = await network.getContract('papercontract');
+        const contract = await network.getContract('papercontract', 'org.papernet.commercialpaper');
 
         // issue commercial paper
         console.log('Submit commercial paper issue transaction.');
