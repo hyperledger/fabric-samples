@@ -1,7 +1,7 @@
 Maintainers
 ===========
 
-fabric-samples uses a non-author code review policy, requiring a single +2 from a non-author maintainer.
+fabric-samples uses a non-author code review policy, requiring a single approval from a non-author maintainer.
 
 | Name                      | GitHub           | Chat           | email                               |
 |---------------------------|------------------|----------------|-------------------------------------|
