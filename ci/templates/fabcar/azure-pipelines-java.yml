@@ -3,12 +3,12 @@
 #
 
 steps:
-  - script: bash startFabric.sh java
+  - script: ./startFabric.sh java
     workingDirectory: fabcar
     displayName: Start Fabric
   - script: retry -- mvn dependency:go-offline
     workingDirectory: fabcar/java
-    displayName: Install FabCar application dependencies
+    displayName: Install FabCar Application Dependencies
   - script: mvn test
     workingDirectory: fabcar/java
-    displayName: Run FabCar application
+    displayName: Run FabCar Application

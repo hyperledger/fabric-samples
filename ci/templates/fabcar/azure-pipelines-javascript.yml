@@ -3,14 +3,14 @@
 #
 
 steps:
-  - script: bash startFabric.sh javascript
+  - script: ./startFabric.sh javascript
     workingDirectory: fabcar
     displayName: Start Fabric
   - script: |
       retry -- npm install
       npm ls
     workingDirectory: fabcar/javascript
-    displayName: Install FabCar application dependencies
+    displayName: Install FabCar Application Dependencies
   - script: |
       set -ex
       node enrollAdmin
@@ -18,4 +18,4 @@ steps:
       node invoke
       node query
     workingDirectory: fabcar/javascript
-    displayName: Run FabCar application
+    displayName: Run FabCar Application

@@ -3,12 +3,12 @@
 #
 
 steps:
-  - script: bash startFabric.sh typescript
+  - script: ./startFabric.sh typescript
     workingDirectory: fabcar
     displayName: Start Fabric
   - script: retry -- npm install
     workingDirectory: fabcar/typescript
-    displayName: Install FabCar application dependencies
+    displayName: Install FabCar Application Dependencies
   - script: npm run build
     workingDirectory: fabcar/typescript
     displayName: Build FabCar application
@@ -19,4 +19,4 @@ steps:
       node dist/invoke
       node dist/query
     workingDirectory: fabcar/typescript
-    displayName: Run FabCar application
+    displayName: Run FabCar Application

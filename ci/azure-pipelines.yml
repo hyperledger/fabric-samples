@@ -7,94 +7,71 @@ trigger:
   - release-1.4
 
 variables:
-  NODE_VER: '12.x'
-  PATH: $(Agent.BuildDirectory)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+  FABRIC_VERSION: 2.0
+  NODE_VER: 12.x
+  PATH: $(Build.Repository.LocalPath)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
 jobs:
-  - job: fabcar_go
+  - job: CommercialPaper_Go
+    displayName: Commercial Paper (Go)
+    pool:
+      vmImage: ubuntu-18.04
+    steps:
+      - template: templates/install-deps.yml
+      - template: templates/commercial-paper/azure-pipelines-go.yml
+
+  - job: CommercialPaper_Java
+    displayName: Commercial Paper (Java)
+    pool:
+      vmImage: ubuntu-18.04
+    steps:
+      - template: templates/install-deps.yml
+      - template: templates/commercial-paper/azure-pipelines-java.yml
+
+  - job: CommercialPaper_JavaScript
+    displayName: Commercial Paper (JavaScript)
+    pool:
+      vmImage: ubuntu-18.04
+    steps:
+      - template: templates/install-deps.yml
+      - template: templates/commercial-paper/azure-pipelines-javascript.yml
+
+  - job: FabCar_Go
     displayName: FabCar (Go)
     pool:
       vmImage: ubuntu-18.04
-    dependsOn: []
-    timeoutInMinutes: 60
     steps:
-      - template: install-deps.yml
-      - template: install-fabric.yml
-      - template: fabcar-go.yml
+      - template: templates/install-deps.yml
+      - template: templates/fabcar/azure-pipelines-go.yml
 
-  - job: test_network
-    displayName: Start the test network
-    pool:
-      vmImage: ubuntu-18.04
-    dependsOn: []
-    timeoutInMinutes: 60
-    steps:
-      - template: install-deps.yml
-      - template: install-fabric.yml
-      - template: testnetwork.yml
-
-  - job: fabcar_java
+  - job: FabCar_Java
     displayName: FabCar (Java)
     pool:
       vmImage: ubuntu-18.04
-    dependsOn: []
-    timeoutInMinutes: 60
     steps:
-      - template: install-deps.yml
-      - template: install-fabric.yml
-      - template: fabcar-java.yml
+      - template: templates/install-deps.yml
+      - template: templates/fabcar/azure-pipelines-java.yml
 
-  - job: fabcar_javascript
+  - job: FabCar_JavaScript
     displayName: FabCar (JavaScript)
     pool:
       vmImage: ubuntu-18.04
-    dependsOn: []
-    timeoutInMinutes: 60
     steps:
-      - template: install-deps.yml
-      - template: install-fabric.yml
-      - template: fabcar-javascript.yml
+      - template: templates/install-deps.yml
+      - template: templates/fabcar/azure-pipelines-javascript.yml
 
-  - job: fabcar_typescript
+  - job: Fabcar_TypeScript
     displayName: FabCar (TypeScript)
     pool:
       vmImage: ubuntu-18.04
-    dependsOn: []
-    timeoutInMinutes: 60
     steps:
-      - template: install-deps.yml
-      - template: install-fabric.yml
-      - template: fabcar-typescript.yml
+      - template: templates/install-deps.yml
+      - template: templates/fabcar/azure-pipelines-typescript.yml
 
-  - job: commercialpaper_javascript
-    displayName: CommercialPaper (JavaScript)
+  - job: TestNetwork
+    displayName: Test Network
     pool:
       vmImage: ubuntu-18.04
-    dependsOn: []
-    timeoutInMinutes: 60
     steps:
-      - template: install-deps.yml
-      - template: install-fabric.yml
-      - template: commercialpaper-javascript.yml
-
-  - job: commercialpaper_java
-    displayName: CommercialPaper (Java)
-    pool:
-      vmImage: ubuntu-18.04
-    dependsOn: []
-    timeoutInMinutes: 60
-    steps:
-      - template: install-deps.yml
-      - template: install-fabric.yml
-      - template: commercialpaper-java.yml
-
-  - job: commercialpaper_go
-    displayName: CommercialPaper (Go)
-    pool:
-      vmImage: ubuntu-18.04
-    dependsOn: []
-    timeoutInMinutes: 60
-    steps:
-      - template: install-deps.yml
-      - template: install-fabric.yml
-      - template: commercialpaper-go.yml
+      - template: templates/install-deps.yml
+      - template: templates/test-network/azure-pipelines.yml
