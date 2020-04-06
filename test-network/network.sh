@@ -497,7 +497,7 @@ while [[ $# -ge 1 ]] ; do
     shift
     ;;
   -i )
-    IMAGETAG=$(go env GOARCH)"-""$2"
+    IMAGETAG="$2"
     shift
     ;;
   -verbose )
