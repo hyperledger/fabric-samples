@@ -17,26 +17,26 @@ import com.owlike.genson.annotation.JsonProperty;
  */
 @DataType()
 public final class CarQueryResult {
-	@Property()
-	private final String key;
-	
-	@Property()
-	private final Car record;
-	
-	public CarQueryResult(@JsonProperty("Key") final String key, @JsonProperty("Record") final Car record) {
-		this.key = key;
-		this.record = record;
-	}
-	
+    @Property()
+    private final String key;
+
+    @Property()
+    private final Car record;
+
+    public CarQueryResult(@JsonProperty("Key") final String key, @JsonProperty("Record") final Car record) {
+        this.key = key;
+        this.record = record;
+    }
+
     public String getKey() {
-		return key;
-	}
+        return key;
+    }
 
-	public Car getRecord() {
-		return record;
-	}
+    public Car getRecord() {
+        return record;
+    }
 
-	@Override
+    @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
@@ -50,7 +50,7 @@ public final class CarQueryResult {
 
         Boolean recordsAreEquals = this.getRecord().equals(other.getRecord());
         Boolean keysAreEquals = this.getKey().equals(other.getKey());
-        
+
         return recordsAreEquals && keysAreEquals;
     }
 
@@ -58,11 +58,10 @@ public final class CarQueryResult {
     public int hashCode() {
         return Objects.hash(this.getKey(), this.getRecord());
     }
-    
-    @Override
-	public String toString() {
-		return "{\"Key\":\"" + key + "\"" +  "\"Record\":{\"" + record + "}\"}";
-	}
-	
-}
 
+    @Override
+    public String toString() {
+        return "{\"Key\":\"" + key + "\"" + "\"Record\":{\"" + record + "}\"}";
+    }
+
+}

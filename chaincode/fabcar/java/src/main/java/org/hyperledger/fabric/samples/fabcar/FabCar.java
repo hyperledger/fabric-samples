@@ -146,14 +146,14 @@ public final class FabCar implements ContractInterface {
         final String startKey = "CAR0";
         final String endKey = "CAR999";
         List<CarQueryResult> queryResults = new ArrayList<CarQueryResult>();
-        
+
         QueryResultsIterator<KeyValue> results = stub.getStateByRange(startKey, endKey);
-        
+
         for (KeyValue result: results) {
-        	
             Car car = genson.deserialize(result.getStringValue(), Car.class);
             queryResults.add(new CarQueryResult(result.getKey(), car));
         }
+
         CarQueryResult[] response = queryResults.toArray(new CarQueryResult[queryResults.size()]);
 
         return response;
