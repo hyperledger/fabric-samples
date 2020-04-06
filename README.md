@@ -29,10 +29,6 @@ chmod +x ./scripts/bootstrap.sh
 ./scripts/bootstrap.sh [version] [ca version] [thirdparty_version]
 ```
 
-### Continuous Integration
-
-Please have a look at [Continuous Integration Process](docs/fabric-samples-ci.md)
-
 ## License <a name="license"></a>
 
 Hyperledger Project source code files are made available under the Apache
