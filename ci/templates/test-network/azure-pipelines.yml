@@ -1,0 +1,11 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+steps:
+  - script: |
+      ./network.sh up createChannel -s couchdb -i ${FABRIC_VERSION} # FABRIC_VERSION is set in ci/azure-pipelines.yml
+      ./network.sh deployCC -l javascript
+      ./network.sh down
+    workingDirectory: test-network
+    displayName: Start Test Network

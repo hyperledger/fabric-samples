@@ -3,6 +3,6 @@
 #
 
 steps:
-  - script: bash startFabric.sh go
+  - script: ./startFabric.sh go
     workingDirectory: fabcar
     displayName: Start Fabric
