@@ -63,15 +63,15 @@ public final class FabCarTest {
 
             carList = new ArrayList<KeyValue>();
 
-            carList.add(new MockKeyValue("CAR000",
+            carList.add(new MockKeyValue("CAR0",
                     "{\"color\":\"blue\",\"make\":\"Toyota\",\"model\":\"Prius\",\"owner\":\"Tomoko\"}"));
-            carList.add(new MockKeyValue("CAR001",
+            carList.add(new MockKeyValue("CAR1",
                     "{\"color\":\"red\",\"make\":\"Ford\",\"model\":\"Mustang\",\"owner\":\"Brad\"}"));
-            carList.add(new MockKeyValue("CAR002",
+            carList.add(new MockKeyValue("CAR2",
                     "{\"color\":\"green\",\"make\":\"Hyundai\",\"model\":\"Tucson\",\"owner\":\"Jin Soo\"}"));
-            carList.add(new MockKeyValue("CAR007",
+            carList.add(new MockKeyValue("CAR7",
                     "{\"color\":\"violet\",\"make\":\"Fiat\",\"model\":\"Punto\",\"owner\":\"Pari\"}"));
-            carList.add(new MockKeyValue("CAR009",
+            carList.add(new MockKeyValue("CAR9",
                     "{\"color\":\"brown\",\"make\":\"Holden\",\"model\":\"Barina\",\"owner\":\"Shotaro\"}"));
         }
 
@@ -112,10 +112,10 @@ public final class FabCarTest {
             Context ctx = mock(Context.class);
             ChaincodeStub stub = mock(ChaincodeStub.class);
             when(ctx.getStub()).thenReturn(stub);
-            when(stub.getStringState("CAR000"))
+            when(stub.getStringState("CAR0"))
                     .thenReturn("{\"color\":\"blue\",\"make\":\"Toyota\",\"model\":\"Prius\",\"owner\":\"Tomoko\"}");
 
-            Car car = contract.queryCar(ctx, "CAR000");
+            Car car = contract.queryCar(ctx, "CAR0");
 
             assertThat(car).isEqualTo(new Car("Toyota", "Prius", "blue", "Tomoko"));
         }
@@ -126,14 +126,14 @@ public final class FabCarTest {
             Context ctx = mock(Context.class);
             ChaincodeStub stub = mock(ChaincodeStub.class);
             when(ctx.getStub()).thenReturn(stub);
-            when(stub.getStringState("CAR000")).thenReturn("");
+            when(stub.getStringState("CAR0")).thenReturn("");
 
             Throwable thrown = catchThrowable(() -> {
-                contract.queryCar(ctx, "CAR000");
+                contract.queryCar(ctx, "CAR0");
             });
 
             assertThat(thrown).isInstanceOf(ChaincodeException.class).hasNoCause()
-                    .hasMessage("Car CAR000 does not exist");
+                    .hasMessage("Car CAR0 does not exist");
             assertThat(((ChaincodeException) thrown).getPayload()).isEqualTo("CAR_NOT_FOUND".getBytes());
         }
     }
@@ -148,25 +148,25 @@ public final class FabCarTest {
         contract.initLedger(ctx);
 
         InOrder inOrder = inOrder(stub);
-        inOrder.verify(stub).putStringState("CAR000",
+        inOrder.verify(stub).putStringState("CAR0",
                 "{\"color\":\"blue\",\"make\":\"Toyota\",\"model\":\"Prius\",\"owner\":\"Tomoko\"}");
-        inOrder.verify(stub).putStringState("CAR001",
+        inOrder.verify(stub).putStringState("CAR1",
                 "{\"color\":\"red\",\"make\":\"Ford\",\"model\":\"Mustang\",\"owner\":\"Brad\"}");
-        inOrder.verify(stub).putStringState("CAR002",
+        inOrder.verify(stub).putStringState("CAR2",
                 "{\"color\":\"green\",\"make\":\"Hyundai\",\"model\":\"Tucson\",\"owner\":\"Jin Soo\"}");
-        inOrder.verify(stub).putStringState("CAR003",
+        inOrder.verify(stub).putStringState("CAR3",
                 "{\"color\":\"yellow\",\"make\":\"Volkswagen\",\"model\":\"Passat\",\"owner\":\"Max\"}");
-        inOrder.verify(stub).putStringState("CAR004",
+        inOrder.verify(stub).putStringState("CAR4",
                 "{\"color\":\"black\",\"make\":\"Tesla\",\"model\":\"S\",\"owner\":\"Adrian\"}");
-        inOrder.verify(stub).putStringState("CAR005",
+        inOrder.verify(stub).putStringState("CAR5",
                 "{\"color\":\"purple\",\"make\":\"Peugeot\",\"model\":\"205\",\"owner\":\"Michel\"}");
-        inOrder.verify(stub).putStringState("CAR006",
+        inOrder.verify(stub).putStringState("CAR6",
                 "{\"color\":\"white\",\"make\":\"Chery\",\"model\":\"S22L\",\"owner\":\"Aarav\"}");
-        inOrder.verify(stub).putStringState("CAR007",
+        inOrder.verify(stub).putStringState("CAR7",
                 "{\"color\":\"violet\",\"make\":\"Fiat\",\"model\":\"Punto\",\"owner\":\"Pari\"}");
-        inOrder.verify(stub).putStringState("CAR008",
+        inOrder.verify(stub).putStringState("CAR8",
                 "{\"color\":\"indigo\",\"make\":\"Tata\",\"model\":\"nano\",\"owner\":\"Valeria\"}");
-        inOrder.verify(stub).putStringState("CAR009",
+        inOrder.verify(stub).putStringState("CAR9",
                 "{\"color\":\"brown\",\"make\":\"Holden\",\"model\":\"Barina\",\"owner\":\"Shotaro\"}");
     }
 
@@ -179,15 +179,15 @@ public final class FabCarTest {
             Context ctx = mock(Context.class);
             ChaincodeStub stub = mock(ChaincodeStub.class);
             when(ctx.getStub()).thenReturn(stub);
-            when(stub.getStringState("CAR000"))
+            when(stub.getStringState("CAR0"))
                     .thenReturn("{\"color\":\"blue\",\"make\":\"Toyota\",\"model\":\"Prius\",\"owner\":\"Tomoko\"}");
 
             Throwable thrown = catchThrowable(() -> {
-                contract.createCar(ctx, "CAR000", "Nissan", "Leaf", "green", "Siobhán");
+                contract.createCar(ctx, "CAR0", "Nissan", "Leaf", "green", "Siobhán");
             });
 
             assertThat(thrown).isInstanceOf(ChaincodeException.class).hasNoCause()
-                    .hasMessage("Car CAR000 already exists");
+                    .hasMessage("Car CAR0 already exists");
             assertThat(((ChaincodeException) thrown).getPayload()).isEqualTo("CAR_ALREADY_EXISTS".getBytes());
         }
 
@@ -197,9 +197,9 @@ public final class FabCarTest {
             Context ctx = mock(Context.class);
             ChaincodeStub stub = mock(ChaincodeStub.class);
             when(ctx.getStub()).thenReturn(stub);
-            when(stub.getStringState("CAR000")).thenReturn("");
+            when(stub.getStringState("CAR0")).thenReturn("");
 
-            Car car = contract.createCar(ctx, "CAR000", "Nissan", "Leaf", "green", "Siobhán");
+            Car car = contract.createCar(ctx, "CAR0", "Nissan", "Leaf", "green", "Siobhán");
 
             assertThat(car).isEqualTo(new Car("Nissan", "Leaf", "green", "Siobhán"));
         }
@@ -213,14 +213,14 @@ public final class FabCarTest {
         when(ctx.getStub()).thenReturn(stub);
         when(stub.getStateByRange("CAR0", "CAR999")).thenReturn(new MockCarResultsIterator());
 
-        Car[] cars = contract.queryAllCars(ctx);
+        CarQueryResult[] cars = contract.queryAllCars(ctx);
 
-        final List<Car> expectedCars = new ArrayList<Car>();
-        expectedCars.add(new Car("Toyota", "Prius", "blue", "Tomoko"));
-        expectedCars.add(new Car("Ford", "Mustang", "red", "Brad"));
-        expectedCars.add(new Car("Hyundai", "Tucson", "green", "Jin Soo"));
-        expectedCars.add(new Car("Fiat", "Punto", "violet", "Pari"));
-        expectedCars.add(new Car("Holden", "Barina", "brown", "Shotaro"));
+        final List<CarQueryResult> expectedCars = new ArrayList<CarQueryResult>();
+        expectedCars.add(new CarQueryResult("CAR0", new Car("Toyota", "Prius", "blue", "Tomoko")));
+        expectedCars.add(new CarQueryResult("CAR1", new Car("Ford", "Mustang", "red", "Brad")));
+        expectedCars.add(new CarQueryResult("CAR2", new Car("Hyundai", "Tucson", "green", "Jin Soo")));
+        expectedCars.add(new CarQueryResult("CAR7", new Car("Fiat", "Punto", "violet", "Pari")));
+        expectedCars.add(new CarQueryResult("CAR9", new Car("Holden", "Barina", "brown", "Shotaro")));
 
         assertThat(cars).containsExactlyElementsOf(expectedCars);
     }
@@ -234,12 +234,12 @@ public final class FabCarTest {
             Context ctx = mock(Context.class);
             ChaincodeStub stub = mock(ChaincodeStub.class);
             when(ctx.getStub()).thenReturn(stub);
-            when(stub.getStringState("CAR000"))
+            when(stub.getStringState("CAR0"))
                     .thenReturn("{\"color\":\"blue\",\"make\":\"Toyota\",\"model\":\"Prius\",\"owner\":\"Tomoko\"}");
 
-            Car car = contract.changeCarOwner(ctx, "CAR000", "Dr Evil");
+            Car car = contract.changeCarOwner(ctx, "CAR0", "Dr Evil");
 
-            assertThat(car).isEqualTo(new Car("Toyota", "Prius", "blue", "Dr Evil"));
+            assertThat(car).isEqualTo(new CarQueryResult("CAR0", new Car("Toyota", "Prius", "blue", "Dr Evil")));
         }
 
         @Test
@@ -248,14 +248,14 @@ public final class FabCarTest {
             Context ctx = mock(Context.class);
             ChaincodeStub stub = mock(ChaincodeStub.class);
             when(ctx.getStub()).thenReturn(stub);
-            when(stub.getStringState("CAR000")).thenReturn("");
+            when(stub.getStringState("CAR0")).thenReturn("");
 
             Throwable thrown = catchThrowable(() -> {
-                contract.changeCarOwner(ctx, "CAR000", "Dr Evil");
+                contract.changeCarOwner(ctx, "CAR0", "Dr Evil");
             });
 
             assertThat(thrown).isInstanceOf(ChaincodeException.class).hasNoCause()
-                    .hasMessage("Car CAR000 does not exist");
+                    .hasMessage("Car CAR0 does not exist");
             assertThat(((ChaincodeException) thrown).getPayload()).isEqualTo("CAR_NOT_FOUND".getBytes());
         }
     }
