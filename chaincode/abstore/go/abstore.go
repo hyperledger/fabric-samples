@@ -121,15 +121,15 @@ func (t *ABstore) Query(ctx contractapi.TransactionContextInterface, A string) (
 
 	jsonResp := "{\"Name\":\"" + A + "\",\"Amount\":\"" + string(Avalbytes) + "\"}"
 	fmt.Printf("Query Response:%s\n", jsonResp)
-	return jsonResp, nil
+	return string(Avalbytes), nil
 }
 
 func main() {
-	cc,err:=contractapi.NewChaincode(new(ABstore))
-	if err!=nil{
+	cc, err := contractapi.NewChaincode(new(ABstore))
+	if err != nil {
 		panic(err.Error())
 	}
 	if err := cc.Start(); err != nil {
 		fmt.Printf("Error starting ABstore chaincode: %s", err)
-    }
+	}
 }

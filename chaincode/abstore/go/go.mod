@@ -1,5 +1,5 @@
-module github.com/Zzocker/fabric-samples/chaincode/abstore/go
+module github.com/hyperledger/fabric-samples/chaincode/abstore/go
 
-go 1.14
+go 1.13
 
 require github.com/hyperledger/fabric-contract-api-go v1.0.0
