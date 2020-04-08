@@ -17,177 +17,119 @@ limitations under the License.
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
-	"github.com/hyperledger/fabric-chaincode-go/shim"
-	pb "github.com/hyperledger/fabric-protos-go/peer"
+	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
 // ABstore Chaincode implementation
 type ABstore struct {
+	contractapi.Contract
 }
 
-func (t *ABstore) Init(stub shim.ChaincodeStubInterface) pb.Response {
+func (t *ABstore) Init(ctx contractapi.TransactionContextInterface, A string, Aval int, B string, Bval int) error {
 	fmt.Println("ABstore Init")
-	_, args := stub.GetFunctionAndParameters()
-	var A, B string    // Entities
-	var Aval, Bval int // Asset holdings
 	var err error
-
-	if len(args) != 4 {
-		return shim.Error("Incorrect number of arguments. Expecting 4")
-	}
-
 	// Initialize the chaincode
-	A = args[0]
-	Aval, err = strconv.Atoi(args[1])
-	if err != nil {
-		return shim.Error("Expecting integer value for asset holding")
-	}
-	B = args[2]
-	Bval, err = strconv.Atoi(args[3])
-	if err != nil {
-		return shim.Error("Expecting integer value for asset holding")
-	}
 	fmt.Printf("Aval = %d, Bval = %d\n", Aval, Bval)
-
 	// Write the state to the ledger
-	err = stub.PutState(A, []byte(strconv.Itoa(Aval)))
+	err = ctx.GetStub().PutState(A, []byte(strconv.Itoa(Aval)))
 	if err != nil {
-		return shim.Error(err.Error())
+		return err
 	}
 
-	err = stub.PutState(B, []byte(strconv.Itoa(Bval)))
+	err = ctx.GetStub().PutState(B, []byte(strconv.Itoa(Bval)))
 	if err != nil {
-		return shim.Error(err.Error())
+		return err
 	}
 
-	return shim.Success(nil)
-}
-
-func (t *ABstore) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
-	fmt.Println("ABstore Invoke")
-	function, args := stub.GetFunctionAndParameters()
-	if function == "invoke" {
-		// Make payment of X units from A to B
-		return t.invoke(stub, args)
-	} else if function == "delete" {
-		// Deletes an entity from its state
-		return t.delete(stub, args)
-	} else if function == "query" {
-		// the old "Query" is now implemtned in invoke
-		return t.query(stub, args)
-	}
-
-	return shim.Error("Invalid invoke function name. Expecting \"invoke\" \"delete\" \"query\"")
+	return nil
 }
 
 // Transaction makes payment of X units from A to B
-func (t *ABstore) invoke(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	var A, B string    // Entities
-	var Aval, Bval int // Asset holdings
-	var X int          // Transaction value
+func (t *ABstore) Invoke(ctx contractapi.TransactionContextInterface, A, B string, X int) error {
 	var err error
-
-	if len(args) != 3 {
-		return shim.Error("Incorrect number of arguments. Expecting 3")
-	}
-
-	A = args[0]
-	B = args[1]
-
+	var Aval int
+	var Bval int
 	// Get the state from the ledger
 	// TODO: will be nice to have a GetAllState call to ledger
-	Avalbytes, err := stub.GetState(A)
+	Avalbytes, err := ctx.GetStub().GetState(A)
 	if err != nil {
-		return shim.Error("Failed to get state")
+		return fmt.Errorf("Failed to get state")
 	}
 	if Avalbytes == nil {
-		return shim.Error("Entity not found")
+		return fmt.Errorf("Entity not found")
 	}
 	Aval, _ = strconv.Atoi(string(Avalbytes))
 
-	Bvalbytes, err := stub.GetState(B)
+	Bvalbytes, err := ctx.GetStub().GetState(B)
 	if err != nil {
-		return shim.Error("Failed to get state")
+		return fmt.Errorf("Failed to get state")
 	}
 	if Bvalbytes == nil {
-		return shim.Error("Entity not found")
+		return fmt.Errorf("Entity not found")
 	}
 	Bval, _ = strconv.Atoi(string(Bvalbytes))
 
 	// Perform the execution
-	X, err = strconv.Atoi(args[2])
-	if err != nil {
-		return shim.Error("Invalid transaction amount, expecting a integer value")
-	}
 	Aval = Aval - X
 	Bval = Bval + X
 	fmt.Printf("Aval = %d, Bval = %d\n", Aval, Bval)
 
 	// Write the state back to the ledger
-	err = stub.PutState(A, []byte(strconv.Itoa(Aval)))
+	err = ctx.GetStub().PutState(A, []byte(strconv.Itoa(Aval)))
 	if err != nil {
-		return shim.Error(err.Error())
+		return err
 	}
 
-	err = stub.PutState(B, []byte(strconv.Itoa(Bval)))
+	err = ctx.GetStub().PutState(B, []byte(strconv.Itoa(Bval)))
 	if err != nil {
-		return shim.Error(err.Error())
+		return err
 	}
 
-	return shim.Success(nil)
+	return nil
 }
 
-// Deletes an entity from state
-func (t *ABstore) delete(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	if len(args) != 1 {
-		return shim.Error("Incorrect number of arguments. Expecting 1")
-	}
-
-	A := args[0]
+// Delete  an entity from state
+func (t *ABstore) Delete(ctx contractapi.TransactionContextInterface, A string) error {
 
 	// Delete the key from the state in ledger
-	err := stub.DelState(A)
+	err := ctx.GetStub().DelState(A)
 	if err != nil {
-		return shim.Error("Failed to delete state")
+		return fmt.Errorf("Failed to delete state")
 	}
 
-	return shim.Success(nil)
+	return nil
 }
 
-// query callback representing the query of a chaincode
-func (t *ABstore) query(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	var A string // Entities
+// Query callback representing the query of a chaincode
+func (t *ABstore) Query(ctx contractapi.TransactionContextInterface, A string) (string, error) {
 	var err error
-
-	if len(args) != 1 {
-		return shim.Error("Incorrect number of arguments. Expecting name of the person to query")
-	}
-
-	A = args[0]
-
 	// Get the state from the ledger
-	Avalbytes, err := stub.GetState(A)
+	Avalbytes, err := ctx.GetStub().GetState(A)
 	if err != nil {
 		jsonResp := "{\"Error\":\"Failed to get state for " + A + "\"}"
-		return shim.Error(jsonResp)
+		return "", errors.New(jsonResp)
 	}
 
 	if Avalbytes == nil {
 		jsonResp := "{\"Error\":\"Nil amount for " + A + "\"}"
-		return shim.Error(jsonResp)
+		return "", errors.New(jsonResp)
 	}
 
 	jsonResp := "{\"Name\":\"" + A + "\",\"Amount\":\"" + string(Avalbytes) + "\"}"
 	fmt.Printf("Query Response:%s\n", jsonResp)
-	return shim.Success(Avalbytes)
+	return string(Avalbytes), nil
 }
 
 func main() {
-	err := shim.Start(new(ABstore))
+	cc, err := contractapi.NewChaincode(new(ABstore))
 	if err != nil {
+		panic(err.Error())
+	}
+	if err := cc.Start(); err != nil {
 		fmt.Printf("Error starting ABstore chaincode: %s", err)
 	}
 }
