@@ -38,15 +38,9 @@ fetchChannelConfig() {
   setGlobals $ORG
 
   echo "Fetching the most recent configuration block for the channel"
-  if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
-    set -x
-    peer channel fetch config config_block.pb -o orderer.example.com:7050 -c $CHANNEL --cafile $ORDERER_CA
-    set +x
-  else
-    set -x
-    peer channel fetch config config_block.pb -o orderer.example.com:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL --tls --cafile $ORDERER_CA
-    set +x
-  fi
+  set -x
+  peer channel fetch config config_block.pb -o orderer.example.com:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL --tls --cafile $ORDERER_CA
+  set +x
 
   echo "Decoding config block to JSON and isolating config to ${OUTPUT}"
   set -x
