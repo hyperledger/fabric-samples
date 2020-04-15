@@ -54,6 +54,7 @@ public class CommercialPaperContract implements ContractInterface {
         // No implementation required with this example
         // It could be where data migration is performed, if necessary
         LOG.info("No data migration to perform");
+        LOG.info("CommercialPaperContract instantiate!!!");
     }
 
     /**
