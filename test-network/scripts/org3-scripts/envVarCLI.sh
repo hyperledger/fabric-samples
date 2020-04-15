@@ -45,31 +45,6 @@ setGlobals() {
   fi
 }
 
-# parsePeerConnectionParameters $@
-# Helper function that takes the parameters from a chaincode operation
-# (e.g. invoke, query, instantiate) and checks for an even number of
-# peers and associated org, then sets $PEER_CONN_PARMS and $PEERS
-parsePeerConnectionParameters() {
-  # check for uneven number of peer and org parameters
-
-  PEER_CONN_PARMS=""
-  PEERS=""
-  while [ "$#" -gt 0 ]; do
-    setGlobals $1
-    PEER="peer0.org$1"
-    PEERS="$PEERS $PEER"
-    PEER_CONN_PARMS="$PEER_CONN_PARMS --peerAddresses $CORE_PEER_ADDRESS"
-    if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "true" ]; then
-      TLSINFO=$(eval echo "--tlsRootCertFiles \$PEER0_ORG$1_CA")
-      PEER_CONN_PARMS="$PEER_CONN_PARMS $TLSINFO"
-    fi
-    # shift by two to get the next pair of peer/org parameters
-    shift
-  done
-  # remove leading space for output
-  PEERS="$(echo -e "$PEERS" | sed -e 's/^[[:space:]]*//')"
-}
-
 verifyResult() {
   if [ $1 -ne 0 ]; then
     echo "!!!!!!!!!!!!!!! "$2" !!!!!!!!!!!!!!!!"
