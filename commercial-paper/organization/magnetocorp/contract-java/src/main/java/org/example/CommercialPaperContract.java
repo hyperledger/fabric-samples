@@ -3,8 +3,6 @@ SPDX-License-Identifier: Apache-2.0
 */
 package org.example;
 
-import java.util.logging.Logger;
-
 import org.example.ledgerapi.State;
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.contract.ContractInterface;
@@ -15,6 +13,8 @@ import org.hyperledger.fabric.contract.annotation.Info;
 import org.hyperledger.fabric.contract.annotation.License;
 import org.hyperledger.fabric.contract.annotation.Transaction;
 import org.hyperledger.fabric.shim.ChaincodeStub;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A custom context provides easy access to list of all commercial papers
@@ -29,7 +29,7 @@ import org.hyperledger.fabric.shim.ChaincodeStub;
 public class CommercialPaperContract implements ContractInterface {
 
     // use the classname for the logger, this way you can refactor
-    private final static Logger LOG = Logger.getLogger(CommercialPaperContract.class.getName());
+    private Logger LOG = LoggerFactory.getLogger(CommercialPaperContract.class);
 
     @Override
     public Context createContext(ChaincodeStub stub) {
@@ -83,6 +83,8 @@ public class CommercialPaperContract implements ContractInterface {
         paper.setOwner(issuer);
 
         System.out.println(paper);
+        LOG.info("==== issue ====");
+        LOG.info("here is the paper:\n {}", paper);
         // Add the paper to the list of all similar commercial papers in the ledger
         // world state
         ctx.paperList.addPaper(paper);
