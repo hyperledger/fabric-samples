@@ -23,7 +23,8 @@ dependencies {
     implementation group: 'org.hyperledger.fabric-chaincode-java', name: 'fabric-chaincode-shim', version: '2.0.+'
     implementation group: 'org.json', name: 'json', version: '20180813'
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-    implementation group: 'ch.qos.logbak', name: 'logback-classic', version: '1.1.11'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.11'
+
     testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
     testImplementation 'org.assertj:assertj-core:3.11.1'
     testImplementation 'org.mockito:mockito-core:2.+'
