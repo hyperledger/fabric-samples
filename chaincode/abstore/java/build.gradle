@@ -25,7 +25,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.0.+'
+    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.+'
 }
 
 shadowJar {

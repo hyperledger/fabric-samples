@@ -18,8 +18,8 @@
     "author": "Hyperledger",
     "license": "Apache-2.0",
     "dependencies": {
-        "fabric-ca-client": "beta",
-        "fabric-network": "beta"
+        "fabric-ca-client": "^2.1.0",
+        "fabric-network": "^2.1.0"
     },
     "devDependencies": {
         "@types/chai": "^4.1.7",
