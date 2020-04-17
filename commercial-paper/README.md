@@ -61,7 +61,7 @@ You can re-use this console window if you wish, but it is recommended to run a d
 
 ### Setup the Organizations' environments
 
-The contract code is available as either JavaScript, Java or Go. You can use either one, and the choice of contract language does not affect the choice of client language. With the v2.0 Fabric chaincode lifecycle, this requires operations for both MagentoCorp and Digibank admin.  Open two windows in the fabric-samples/commercial paper directory, one for each organization.
+The contract code is available as either JavaScript, Java or Go. You can use either one, and the choice of contract language does not affect the choice of client language. With the v2.0 Fabric chaincode lifecycle, this requires operations for both MagnetoCorp and Digibank admin.  Open two windows in the fabric-samples/commercial paper directory, one for each organization.
 
 In your 'MagnetoCorp' window run the following commands, to show the shell environment variables needed to act as that organization.
 
@@ -70,7 +70,7 @@ cd fabric-samples/commercial-paper/organization/magnetocorp
 ./magnetocorp.sh
 ```
 
-You can either copy and paste thee directly into the terminal, or invoke directly in you own command shell. For example if you are using bash or zsh on Linux you can use this command.
+You can either copy and paste them directly into the terminal, or invoke directly in your own command shell. For example if you are using bash or zsh on Linux you can use this command.
 
 ```
 source <(./magnetocorp.sh)
@@ -79,13 +79,13 @@ source <(./magnetocorp.sh)
 Similarly in your 'DigiBank' window run the following command
 
 ```
-cd fabric-samples/commercial-paper/digibank
+cd fabric-samples/commercial-paper/organization/digibank
 ./digibank.sh
 ```
 
 ### Deploy the smart contract to the channel
 
-You need to perform similar operations for both organizations. For different contract langauges the steps are very similar. The steps for JavaScript are shown first, with the details of different languages afterwards. 
+You need to perform similar operations for both organizations. For different contract languages the steps are very similar. The steps for JavaScript are shown first, with the details of different languages afterwards. 
 
 
 **For a JavaScript Contract**
@@ -93,7 +93,7 @@ You need to perform similar operations for both organizations. For different con
 Running in MagnetoCorp:
 
 ```
-# MAGENTOCORP
+# MAGNETOCORP
 
 peer lifecycle chaincode package cp.tar.gz --lang node --path ./contract --label cp_0
 peer lifecycle chaincode install cp.tar.gz
@@ -174,15 +174,15 @@ peer chaincode query -o localhost:7050  --ordererTLSHostnameOverride orderer.exa
 
 **For a Java Contract:**
 
-Before the `peer lifecycle chaincode package` command, you will need to change into each organization's `contract-java` directory and issues
+Before the `peer lifecycle chaincode package` command, you will need to change into each organization's `contract-java` directory and issue
 
 ```
 ./gradlew build
 ```
 
-Then when you package the contract, use this variation of the command to specify language
+Then from the parent directory when you package the contract, use this variation of the command to specify the java specific contract
 ```
-peer lifecycle chaincode package cp.tar.gz --lang java --path /opt/gopath/src/github.com/contract-java --label cp_0
+peer lifecycle chaincode package cp.tar.gz --lang java --path ./contract-java --label cp_0
 ```
 
 After this point the steps are exactly the same as for JavaScript
@@ -190,13 +190,13 @@ After this point the steps are exactly the same as for JavaScript
 **For a Go Contract:**
 
 
-Before the `peer lifecycle chaincode package` command, you will need to change into each organization's `contract-go` directory and issues
+Before the `peer lifecycle chaincode package` command, you will need to change into each organization's `contract-go` directory and issue
 
 ```
 go mod vendor
 ```
 
-Then when you package the contract, use this variation of the command to specify language
+Then from the parent directory when you package the contract, use this variation of the command to specify the go specific contract
 ```
 peer lifecycle chaincode package cp.tar.gz --lang golang --path ./contract-go --label cp_0
 ```
