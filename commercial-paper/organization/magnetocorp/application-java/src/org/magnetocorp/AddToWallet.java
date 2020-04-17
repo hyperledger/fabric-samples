@@ -5,40 +5,64 @@ SPDX-License-Identifier: Apache-2.0
 package org.magnetocorp;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import org.hyperledger.fabric.gateway.GatewayException;
+import java.security.InvalidKeyException;
+import java.security.PrivateKey;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import org.hyperledger.fabric.gateway.Identities;
 import org.hyperledger.fabric.gateway.Wallet;
-import org.hyperledger.fabric.gateway.Wallet.Identity;
+import org.hyperledger.fabric.gateway.Wallets;
+import org.hyperledger.fabric.gateway.Identity;
 
 public class AddToWallet {
 
-	public static void main(String[] args) {
-		try {
-			// A wallet stores a collection of identities
-			Path walletPath = Paths.get("..", "identity", "user", "isabella", "wallet");
-			Wallet wallet = Wallet.createFileSystemWallet(walletPath);
+  private static X509Certificate readX509Certificate(final Path certificatePath) throws IOException, CertificateException {
+    try (Reader certificateReader = Files.newBufferedReader(certificatePath, StandardCharsets.UTF_8)) {
+      return Identities.readX509Certificate(certificateReader);
+    }
+  }
 
-	        // Location of credentials to be stored in the wallet
-			Path credentialPath = Paths.get("..", "..",".." ,".." ,"basic-network", "crypto-config",
-					"peerOrganizations", "org1.example.com", "users", "User1@org1.example.com", "msp");
-			Path certificatePem = credentialPath.resolve(Paths.get("signcerts",
-					"User1@org1.example.com-cert.pem"));
-			Path privateKey = credentialPath.resolve(Paths.get("keystore",
-					"c75bd6911aca808941c3557ee7c97e90f3952e379497dc55eb903f31b50abc83_sk"));
+  private static PrivateKey getPrivateKey(final Path privateKeyPath) throws IOException, InvalidKeyException {
+    try (Reader privateKeyReader = Files.newBufferedReader(privateKeyPath, StandardCharsets.UTF_8)) {
+      return Identities.readPrivateKey(privateKeyReader);
+    }
+  }
 
-		       // Load credentials into wallet
-			String identityLabel = "User1@org1.example.com";
-			Identity identity = Identity.createIdentity("Org1MSP", Files.newBufferedReader(certificatePem), Files.newBufferedReader(privateKey));
+  public static void main(String[] args) {
+    try {
+      // A wallet stores a collection of identities
+      Path walletPath = Paths.get(".", "wallet");
+      Wallet wallet = Wallets.newFileSystemWallet(walletPath);
 
-			wallet.put(identityLabel, identity);
+      Path credentialPath = Paths.get("..", "..", "..",".." ,"test-network", "organizations",
+          "peerOrganizations", "org2.example.com", "users", "User1@org2.example.com", "msp");
+      System.out.println("credentialPath: " + credentialPath.toString());
+      Path certificatePath = credentialPath.resolve(Paths.get("signcerts",
+          "User1@org2.example.com-cert.pem"));
+      System.out.println("certificatePem: " + certificatePath.toString());
+      Path privateKeyPath = credentialPath.resolve(Paths.get("keystore",
+          "priv_sk"));
 
-		} catch (IOException e) {
-			System.err.println("Error adding to wallet");
-			e.printStackTrace();
-		}
-	}
+      X509Certificate certificate = readX509Certificate(certificatePath);
+      PrivateKey privateKey = getPrivateKey(privateKeyPath);
+
+      Identity identity = Identities.newX509Identity("Org2MSP", certificate, privateKey);
+
+
+      String identityLabel = "User1@org2.example.com";
+      wallet.put(identityLabel, identity);
+
+      System.out.println("Write wallet info into " + walletPath.toString() + " successfully.");
+
+    } catch (IOException | CertificateException | InvalidKeyException e) {
+      System.err.println("Error adding to wallet");
+      e.printStackTrace();
+    }
+  }
 
 }
