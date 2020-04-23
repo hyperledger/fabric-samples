@@ -1,0 +1,162 @@
+Organizations:
+- &id004
+  Name: OrdererOrg
+  ID: OrdererMSP
+  MSPDir: crypto-config/ordererOrganizations/bcp.com/msp
+  Policies:
+    Readers:
+      Type: Signature
+      Rule: OR('OrdererMSP.member')
+    Writers:
+      Type: Signature
+      Rule: OR('OrdererMSP.member')
+    Admins:
+      Type: Signature
+      Rule: OR('OrdererMSP.admin')
+- &id008
+  Name: BcpMSP
+  ID: BcpMSP
+  MSPDir: crypto-config/peerOrganizations/bcp.com/msp
+  Policies:
+    Readers:
+      Type: Signature
+      Rule: OR('BcpMSP.admin','BcpMSP.peer','BcpMSP.client')
+    Writers:
+      Type: Signature
+      Rule: OR('BcpMSP.admin','BcpMSP.client')
+    Admins:
+      Type: Signature
+      Rule: OR('BcpMSP.admin')
+  AnchorPeers:
+  - Host: peer0.bcp.com
+    Port: 7051
+Capabilities:
+  Channel:
+    V1_3: true
+  Orderer:
+    V1_1: true
+  Application:
+    V1_3: true
+    V1_2: false
+    V1_1: false
+Application:
+  Organizations:
+  Policies: &id006
+    Readers:
+      Type: ImplicitMeta
+      Rule: ANY Readers
+    Writers:
+      Type: ImplicitMeta
+      Rule: ANY Writers
+    Admins:
+      Type: ImplicitMeta
+      Rule: MAJORITY Admins
+  Capabilities: &id007
+    V1_3: true
+    V1_2: false
+    V1_1: false
+Orderer:
+  OrdererType: solo
+  Addresses:
+  - orderer.bcp.com:7050
+  BatchTimeout: 2s
+  BatchSize: &id002
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+  Kafka: &id003
+    Brokers:
+    - 127.0.0.1:9092
+  Organizations:
+  Policies: &id005
+    Readers:
+      Type: ImplicitMeta
+      Rule: ANY Readers
+    Writers:
+      Type: ImplicitMeta
+      Rule: ANY Writers
+    Admins:
+      Type: ImplicitMeta
+      Rule: MAJORITY Admins
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: ANY Writers
+Channel:
+  Policies: &id001
+    Readers:
+      Type: ImplicitMeta
+      Rule: ANY Readers
+    Writers:
+      Type: ImplicitMeta
+      Rule: ANY Writers
+    Admins:
+      Type: ImplicitMeta
+      Rule: MAJORITY Admins
+  Capabilities: &id009
+    V1_3: true
+Profiles:
+  SampleMultiNodeEtcdRaft:
+    Policies: *id001
+    Capabilities:
+      V1_3: true
+    Orderer:
+      OrdererType: etcdraft
+      Addresses:
+      - orderer.bcp.com:7050
+      - orderer2.bcp.com:8050
+      - orderer3.bcp.com:9050
+      BatchTimeout: 2s
+      BatchSize: *id002
+      Kafka: *id003
+      Organizations:
+      - *id004
+      Policies: *id005
+      EtcdRaft:
+        Consenters:
+        - ClientTLSCert: crypto-config/ordererOrganizations/bcp.com/orderers/orderer.bcp.com/tls/server.crt
+          Port: 7050
+          Host: orderer.bcp.com
+          ServerTLSCert: crypto-config/ordererOrganizations/bcp.com/orderers/orderer.bcp.com/tls/server.crt
+        - ClientTLSCert: crypto-config/ordererOrganizations/bcp.com/orderers/orderer2.bcp.com/tls/server.crt
+          Port: 8050
+          Host: orderer2.bcp.com
+          ServerTLSCert: crypto-config/ordererOrganizations/bcp.com/orderers/orderer2.bcp.com/tls/server.crt
+        - ClientTLSCert: crypto-config/ordererOrganizations/bcp.com/orderers/orderer3.bcp.com/tls/server.crt
+          Port: 9050
+          Host: orderer3.bcp.com
+          ServerTLSCert: crypto-config/ordererOrganizations/bcp.com/orderers/orderer3.bcp.com/tls/server.crt
+      Capabilities:
+        V1_1: true
+    Application:
+      Organizations:
+      - *id004
+      Policies: *id006
+      Capabilities: *id007
+    Consortiums:
+      SampleConsortium:
+        Organizations:
+        - *id008
+  PrivateChannel:
+    Consortium: SampleConsortium
+    Policies: *id001
+    Capabilities: *id009
+    Application:
+      Organizations:
+      - *id008
+      Policies: *id006
+      Capabilities:
+        V1_3: true
+        V1_2: false
+        V1_1: false
+  OneOrgChannel:
+    Consortium: SampleConsortium
+    Policies: *id001
+    Capabilities: *id009
+    Application:
+      Organizations:
+      - *id008
+      Policies: *id006
+      Capabilities:
+        V1_3: true
+        V1_2: false
+        V1_1: false

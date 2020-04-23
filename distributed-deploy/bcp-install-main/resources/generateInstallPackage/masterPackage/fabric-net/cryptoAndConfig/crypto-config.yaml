@@ -1,0 +1,16 @@
+OrdererOrgs:
+- Name: Orderer
+  Domain: bcp.com
+  Specs:
+  - Hostname: orderer
+  - Hostname: orderer2
+  - Hostname: orderer3
+PeerOrgs:
+- Name: Bcp
+  Domain: bcp.com
+  EnableNodeOUs: true
+  Specs:
+  - Hostname: peer0
+  - Hostname: peer1
+  Users:
+    Count: 1

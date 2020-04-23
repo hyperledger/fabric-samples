@@ -1,0 +1,6 @@
+2020-02-27 10:42:56.997 [main] ERROR com.cgb.bcpinstall.biz.InitializeBiz - 配置文件中peer没有配置相应的交易查询端口
+2020-02-27 10:43:25.916 [main] ERROR com.cgb.bcpinstall.biz.InitializeBiz - 配置文件中后台没有配置相应的websocket端口
+2020-02-27 10:43:25.917 [main] ERROR com.cgb.bcpinstall.biz.InitializeBiz - 配置文件中peer没有配置相应的交易查询端口
+2020-02-27 10:44:07.079 [main] ERROR com.cgb.bcpinstall.biz.InitializeBiz - 配置文件中orderer或peer的域名不匹配
+2020-02-27 10:44:27.795 [main] ERROR com.cgb.bcpinstall.biz.helper.Initializer - 创建证书失败
+2020-02-27 11:03:01.920 [main] ERROR com.cgb.bcpinstall.biz.InitializeBiz - 配置文件中相关配置项出错或为空

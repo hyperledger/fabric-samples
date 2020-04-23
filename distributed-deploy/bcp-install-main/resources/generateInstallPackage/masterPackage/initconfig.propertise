@@ -1,0 +1,19 @@
+network: bankunion
+channelName: bankconsortium
+orgMSPID: BcpMSP
+orgName: bcp
+ordererDomain: bcp.com
+peerDomain: bcp.com
+ordererHostConfig:
+  orderer.bcp.com: 127.0.0.1:7050
+  orderer2.bcp.com: 127.0.0.1:8050
+  orderer3.bcp.com: 127.0.0.1:9050
+peerHostConfig:
+  peer0.bcp.com: 127.0.0.1:7051
+  peer1.bcp.com: 127.0.0.1:8051
+metricPortConfig:
+  peer0.bcp.com: 9443
+  peer1.bcp.com: 10443
+couchdbPortConfig:
+  peer0.bcp.com: 5984
+  peer1.bcp.com: 6984

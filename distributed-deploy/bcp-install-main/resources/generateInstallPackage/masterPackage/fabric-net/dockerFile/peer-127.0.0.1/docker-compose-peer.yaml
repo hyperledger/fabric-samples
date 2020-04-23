@@ -1,0 +1,148 @@
+version: '2'
+volumes:
+  peer0.bcp.com:
+  peer1.bcp.com:
+networks:
+  ?
+  :
+services:
+  peer0.BcpMSP.couchdb0:
+    image: hyperledger/fabric-couchdb
+    environment:
+    - COUCHDB_USER=
+    - COUCHDB_PASSWORD=
+    container_name: peer0.BcpMSP.couchdb0
+    networks:
+    -
+  peer0.bcp.com:
+    container_name: peer0.bcp.com
+    image: hyperledger/fabric-peer:$IMAGE_TAG
+    environment:
+    - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+    - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=peer_null
+    - FABRIC_LOGGING_SPEC=INFO
+    - CORE_PEER_TLS_ENABLED=true
+    - CORE_PEER_GOSSIP_USELEADERELECTION=true
+    - CORE_PEER_GOSSIP_ORGLEADER=false
+    - CORE_PEER_PROFILE_ENABLED=true
+    - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+    - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+    - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+    - CORE_PEER_ID=peer0.bcp.com
+    - CORE_PEER_ADDRESS=peer0.bcp.com:7051
+    - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+    - CORE_PEER_CHAINCODEADDRESS=peer0.bcp.com:7052
+    - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+    - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.bcp.com:8051
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.bcp.com:7051
+    - CORE_PEER_LOCALMSPID=BcpMSP
+    - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9443
+    - CORE_METRICS_PROVIDER=prometheus
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=peer0.BcpMSP.couchdb0:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+    depends_on:
+    - peer0.BcpMSP.couchdb0
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: peer node start
+    volumes:
+    - /var/run/:/host/var/run/
+    - ../crypto-config/peerOrganizations/bcp.com/peers/peer0.bcp.com/msp:/etc/hyperledger/fabric/msp
+    - ../crypto-config/peerOrganizations/bcp.com/peers/peer0.bcp.com/tls:/etc/hyperledger/fabric/tls
+    - peer0.bcp.com:/var/hyperledger/production
+    extra_hosts:
+    - orderer.bcp.com:192.168.43.59
+    - orderer2.bcp.com:192.168.43.59
+    - orderer3.bcp.com:192.168.43.59
+    - peer1.bcp.com:192.168.43.59
+    ports:
+    - 7051:7051
+    - 9443:9443
+    networks:
+    -
+  peer1.BcpMSP.couchdb1:
+    image: hyperledger/fabric-couchdb
+    environment:
+    - COUCHDB_USER=
+    - COUCHDB_PASSWORD=
+    container_name: peer1.BcpMSP.couchdb1
+    networks:
+    -
+  peer1.bcp.com:
+    container_name: peer1.bcp.com
+    image: hyperledger/fabric-peer:$IMAGE_TAG
+    environment:
+    - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+    - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=peer_null
+    - FABRIC_LOGGING_SPEC=INFO
+    - CORE_PEER_TLS_ENABLED=true
+    - CORE_PEER_GOSSIP_USELEADERELECTION=true
+    - CORE_PEER_GOSSIP_ORGLEADER=false
+    - CORE_PEER_PROFILE_ENABLED=true
+    - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+    - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+    - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+    - CORE_PEER_ID=peer1.bcp.com
+    - CORE_PEER_ADDRESS=peer1.bcp.com:8051
+    - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+    - CORE_PEER_CHAINCODEADDRESS=peer1.bcp.com:8052
+    - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+    - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.bcp.com:7051
+    - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.bcp.com:8051
+    - CORE_PEER_LOCALMSPID=BcpMSP
+    - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9443
+    - CORE_METRICS_PROVIDER=prometheus
+    - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=peer1.BcpMSP.couchdb1:5984
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+    - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+    depends_on:
+    - peer1.BcpMSP.couchdb1
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: peer node start
+    volumes:
+    - /var/run/:/host/var/run/
+    - ../crypto-config/peerOrganizations/bcp.com/peers/peer1.bcp.com/msp:/etc/hyperledger/fabric/msp
+    - ../crypto-config/peerOrganizations/bcp.com/peers/peer1.bcp.com/tls:/etc/hyperledger/fabric/tls
+    - peer1.bcp.com:/var/hyperledger/production
+    extra_hosts:
+    - orderer.bcp.com:192.168.43.59
+    - orderer2.bcp.com:192.168.43.59
+    - orderer3.bcp.com:192.168.43.59
+    - peer0.bcp.com:192.168.43.59
+    ports:
+    - 8051:8051
+    - 10443:9443
+    networks:
+    -
+  cli:
+    container_name: cli
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+    - GOPATH=/opt/gopath
+    - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+    - FABRIC_LOGGING_SPEC=INFO
+    - CORE_PEER_ID=cli
+    - CORE_PEER_ADDRESS=peer0.bcp.com:7051
+    - CORE_PEER_LOCALMSPID=BcpMSP
+    - CORE_PEER_TLS_ENABLED=true
+    - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bcp.com/peers/peer0.bcp.com/tls/server.crt
+    - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bcp.com/peers/peer0.bcp.com/tls/server.key
+    - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bcp.com/peers/peer0.bcp.com/tls/ca.crt
+    - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/bcp.com/users/Admin@bcp.com/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+    - /var/run/:/host/var/run/
+    - /opt/gopath/src/github.com/hyperledger/fabric/core:/opt/gopath/src/github.com/hyperledger/fabric/core
+    - ../crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+    - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+    - ../channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+    - peer0.bcp.com
+    - peer1.bcp.com
+    networks:
+    -

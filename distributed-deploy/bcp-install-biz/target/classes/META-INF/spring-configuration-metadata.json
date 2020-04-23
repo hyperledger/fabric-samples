@@ -1,0 +1,18 @@
+{
+  "hints": [],
+  "groups": [
+    {
+      "sourceType": "com.cgb.bcpinstall.config.GlobalConfig",
+      "name": "global",
+      "type": "com.cgb.bcpinstall.config.GlobalConfig"
+    }
+  ],
+  "properties": [
+    {
+      "sourceType": "com.cgb.bcpinstall.config.GlobalConfig",
+      "name": "global.master",
+      "description": "是否主节点",
+      "type": "java.lang.Integer"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+version: '2'
+volumes:
+  orderer.bcp.com:
+  orderer2.bcp.com:
+  orderer3.bcp.com:
+networks:
+  null0:
+  null1:
+  null2:
+services:
+  orderer.bcp.com:
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    environment:
+    - FABRIC_LOGGING_SPEC=INFO
+    - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+    - ORDERER_GENERAL_GENESISMETHOD=file
+    - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+    - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+    - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+    - ORDERER_GENERAL_TLS_ENABLED=true
+    - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+    - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+    - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    - ORDERER_KAFKA_TOPIC_REPLICATIONFACTOR=1
+    - ORDERER_KAFKA_VERBOSE=true
+    - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+    - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+    - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    container_name: orderer.bcp.com
+    networks:
+    - null0
+    volumes:
+    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+    - ../crypto-config/ordererOrganizations/bcp.com/orderers/orderer.bcp.com/msp:/var/hyperledger/orderer/msp
+    - ../crypto-config/ordererOrganizations/bcp.com/orderers/orderer.bcp.com/tls/:/var/hyperledger/orderer/tls
+    - orderer.bcp.com:/var/hyperledger/production/orderer
+    - /var/run/:/opt/gopath/src/github.com/hyperledger/fabric
+    ports:
+    - 7050:7050
+    extra_hosts:
+    - orderer2.bcp.com:192.168.43.59
+    - orderer3.bcp.com:192.168.43.59
+  orderer2.bcp.com:
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    environment:
+    - FABRIC_LOGGING_SPEC=INFO
+    - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+    - ORDERER_GENERAL_GENESISMETHOD=file
+    - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+    - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+    - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+    - ORDERER_GENERAL_TLS_ENABLED=true
+    - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+    - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+    - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    - ORDERER_KAFKA_TOPIC_REPLICATIONFACTOR=1
+    - ORDERER_KAFKA_VERBOSE=true
+    - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+    - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+    - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    container_name: orderer2.bcp.com
+    networks:
+    - null1
+    volumes:
+    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+    - ../crypto-config/ordererOrganizations/bcp.com/orderers/orderer2.bcp.com/msp:/var/hyperledger/orderer/msp
+    - ../crypto-config/ordererOrganizations/bcp.com/orderers/orderer2.bcp.com/tls/:/var/hyperledger/orderer/tls
+    - orderer2.bcp.com:/var/hyperledger/production/orderer
+    - /var/run/:/opt/gopath/src/github.com/hyperledger/fabric
+    ports:
+    - 8050:7050
+    extra_hosts:
+    - orderer.bcp.com:192.168.43.59
+    - orderer3.bcp.com:192.168.43.59
+  orderer3.bcp.com:
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    environment:
+    - FABRIC_LOGGING_SPEC=INFO
+    - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+    - ORDERER_GENERAL_GENESISMETHOD=file
+    - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+    - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+    - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+    - ORDERER_GENERAL_TLS_ENABLED=true
+    - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+    - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+    - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    - ORDERER_KAFKA_TOPIC_REPLICATIONFACTOR=1
+    - ORDERER_KAFKA_VERBOSE=true
+    - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+    - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+    - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    container_name: orderer3.bcp.com
+    networks:
+    - null2
+    volumes:
+    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+    - ../crypto-config/ordererOrganizations/bcp.com/orderers/orderer3.bcp.com/msp:/var/hyperledger/orderer/msp
+    - ../crypto-config/ordererOrganizations/bcp.com/orderers/orderer3.bcp.com/tls/:/var/hyperledger/orderer/tls
+    - orderer3.bcp.com:/var/hyperledger/production/orderer
+    - /var/run/:/opt/gopath/src/github.com/hyperledger/fabric
+    ports:
+    - 9050:7050
+    extra_hosts:
+    - orderer.bcp.com:192.168.43.59
+    - orderer2.bcp.com:192.168.43.59

@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: bcp-mgr
+  servlet:
+    multipart:
+      maxFileSize: 500MB
+      maxRequestSize: 500MB
+  profiles:
+    active: dev
+
+#线程池相关配置
+thread:
+  pool:
+    #核心线程数
+    corePoolSize: 10
+    #最大线程数
+    maxPoolSize: 20
+    # 队列最大长度
+    queueCapacity: 50
+    #线程池维护线程所允许的空闲时间
+    keepAliveSeconds: 6000
+
+server:
+  port: 8080
+  tomcat:
+    min-spare-threads: 20
+    max-threads: 200
+  connection-timeout: 6000
+
+httpClient:
+  poolSize: 30
+  socketTimeout: 60000
+  connectTimeout: 60000
+  connectionRequestTimeout: 60000
+  defaultMaxPerRoute: 10
+
+whiteList:
+  referer: localhost,192.168.43.59
+
+# 运行时参数
+global:
+  # 是否发起机构: 1 -- 发起机构，0 -- 其他机构
+  initOrg: 1
+  # 是否主节点: 1 -- 主节点，0 -- 从节点
+  master: 1
+
+init:
+  # initconfig.propertise 文件路径；默认为空，空--不创建初始化的文件；
+  # 传入文件路径时，则为初始化，创建完初始化文件后，自动退出
+  # 测试时可以通过参数传入；
+  # 用脚本启动时，需要通过参数传入
+  config: ""
+  # 产生配置文件的根目录
+  dir: ""
+  # 是否做初始化，0 -- 否；1 -- 是
+  yes: 0
+
+install:
+  # 安装模式: newInstall, updateNetwork
+  mode: "newInstall"
+  # 安装路径
+  path: ""
