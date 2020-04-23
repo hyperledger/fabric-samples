@@ -4,7 +4,7 @@
    <modelVersion>4.0.0</modelVersion>
    <groupId>fabcar-java</groupId>
    <artifactId>fabcar-java</artifactId>
-   <version>2.0.0-SNAPSHOT</version>
+   <version>2.1.1</version>
    <build>
       <plugins>
          <plugin>
@@ -15,6 +15,35 @@
                <target>1.8</target>
             </configuration>
          </plugin>
+
+	 <plugin>
+           <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-shade-plugin</artifactId>
+           <version>3.2.0</version>
+           <executions>
+             <!-- Attach the shade goal into the package phase -->
+             <execution>
+               <phase>package</phase>
+               <goals>
+		 <goal>shade</goal>
+               </goals>
+             </execution>
+           </executions>
+           <configuration>
+             <createDependencyReducedPom>false</createDependencyReducedPom>
+             <filters>
+               <filter>
+		 <artifact>*:*</artifact>
+		 <excludes>
+                   <exclude>META-INF/*.SF</exclude>
+                   <exclude>META-INF/*.DSA</exclude>
+                   <exclude>META-INF/*.RSA</exclude>
+		 </excludes>
+               </filter>
+             </filters>
+           </configuration>
+	 </plugin>
+
       </plugins>
    </build>
    <repositories>
@@ -28,7 +57,7 @@
       <dependency>
          <groupId>org.hyperledger.fabric</groupId>
          <artifactId>fabric-gateway-java</artifactId>
-         <version>1.4.3</version>
+         <version>2.1.1</version>
       </dependency>
       <dependency>
          <groupId>org.junit.platform</groupId>

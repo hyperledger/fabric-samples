@@ -11,6 +11,7 @@ import org.hyperledger.fabric.gateway.Contract;
 import org.hyperledger.fabric.gateway.Gateway;
 import org.hyperledger.fabric.gateway.Network;
 import org.hyperledger.fabric.gateway.Wallet;
+import org.hyperledger.fabric.gateway.Wallets;
 
 public class ClientApp {
 
@@ -21,7 +22,7 @@ public class ClientApp {
 	public static void main(String[] args) throws Exception {
 		// Load a file system based wallet for managing identities.
 		Path walletPath = Paths.get("wallet");
-		Wallet wallet = Wallet.createFileSystemWallet(walletPath);
+		Wallet wallet = Wallets.newFileSystemWallet(walletPath);
 		// load a CCP
 		Path networkConfigPath = Paths.get("..", "..", "test-network", "organizations", "peerOrganizations", "org1.example.com", "connection-org1.yaml");
 
