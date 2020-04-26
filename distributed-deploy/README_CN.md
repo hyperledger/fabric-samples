@@ -48,7 +48,7 @@ make release
 
 我们需要将上一小节**构建部署包**中生成的`jar`文件，即`bcp-install.jar`分别复制到*masterPackage*和*slavePackage*中。
 
-![](11)
+![](./static/masterPackge.png)
 
 我们将`peer0`作为主节点服务器，将*masterPackage*目录复制到`peer0`服务器上。同时我们需要将*slavePackage*目录分别复制到`peer1`, `orderer0`, `orderer1`, `orderer2`服务器中。
 
@@ -56,7 +56,7 @@ make release
 
 我们首先需要得到`peer0`, `peer1`, `orderer0`, `orderer1`以及`orderer2`所在服务器的**ip**和对应的**端口**。然后修改*masterPackage*目录中的initconfig.properties配置文件。
 
-![](22)
+![](./static/config_initconfig_propertise.png)
 
 ### 执行部署安装脚本
 
@@ -66,7 +66,7 @@ make release
 ./start-installService-slave.sh -p /home/deploy/
 ```
 
-![](33)
+![](./static/start_slave.png)
 
 所有从节点部署包启动成功后，在`peer0`服务器上执行主节点部署包目录下的**start-installService-master.sh**脚本，这个脚本有两个必填启动选项，分别是“-m”和“-p”。“-m”表示部署操作，可选值有“newInstall”和“updateNetwork”，“-p”，表示安装目录，必须填写为绝对路径，我们可以使用如下的命令启动主节点部署包:
 
@@ -74,7 +74,7 @@ make release
 ./start-installService-master.sh -m newInstall -p /home/deploy
 ```
 
-![](44)
+![](./static/start_master.png)
 
 ## 扩缩容部署流程
 
@@ -117,7 +117,9 @@ make release
 
 ## 部署包配置文件initconfig.propertise
 
-**initconfig.propertise**文件位于主节点安装部署包的目录中, 文件主要分为五部分的配置，分别为`fabric机构信息配置`, `orderer相关配置`, `peer相关配置`, `区块链管理平台相关配置`, `前端相关配置`。
+**initconfig.propertise**文件位于主节点安装部署包的目录中, 文件主要分为五部分的配置，分别为`fabric机构信息配置`, `orderer相关配置`, `peer相关配置`, `区块链管理平台相关配置`, `前端相关配置`, 如下所示:
+
+![](./static/initconfig_propertise.png)
 
 ### orderer配置
 
