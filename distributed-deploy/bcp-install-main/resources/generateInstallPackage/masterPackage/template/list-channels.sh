@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+# Copyright CGB Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 
 CORE_PEER_ADDRESS="$1"
 CORE_PEER_TLS_ROOTCERT_FILE="$2"

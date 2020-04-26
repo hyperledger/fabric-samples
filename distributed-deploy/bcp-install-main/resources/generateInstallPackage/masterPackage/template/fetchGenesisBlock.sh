@@ -1,3 +1,10 @@
+#!/bin/bash
+#
+# Copyright CGB Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
 CHANNEL_NAME="$1"
 ORDERER_CA="$2"
 CORE_PEER_LOCALMSPID="$3"

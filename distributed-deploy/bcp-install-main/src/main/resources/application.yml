@@ -1,3 +1,8 @@
+# Copyright CGB Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
 spring:
   application:
     name: bcp-mgr

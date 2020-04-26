@@ -1,5 +1,11 @@
 #!/bin/bash
-# 这个文件在 cli 里执行
+#
+# Copyright CGB Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# 这个文件在cli里执行
 
 CHANNEL_NAME="$1"
 ORDERER_CA="$2"

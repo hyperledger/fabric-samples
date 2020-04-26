@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+# Copyright CGB Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 
 function printHelp() {
   echo "在调用前，需要设置 CRYPTTOGEN_FILE_PATH 环境变量，使其指向 cryptogen 工具路径"

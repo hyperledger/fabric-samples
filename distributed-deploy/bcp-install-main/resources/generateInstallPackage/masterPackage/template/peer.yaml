@@ -1,3 +1,8 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
 peer0.org1.example.com:
   container_name: peer0.org1.example.com
   image: hyperledger/fabric-peer:$IMAGE_TAG

@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+# Copyright CGB Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 
 chmod +x $(pwd)/tools/linux/configtxgen
 chmod +x $(pwd)/tools/linux/cryptogen

@@ -1,3 +1,10 @@
+#!/bin/bash
+#
+# Copyright CGB Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
 CHANNEL_NAME="$1"
 ORDERER_CA="$2"
 CORE_PEER_LOCALMSPID="$3"
@@ -13,4 +20,3 @@ fi
 peer channel fetch config config_block_${CHANNEL_NAME}.pb -o $CORE_PEER_ADDRESS -c $CHANNEL_NAME --tls --cafile $ORDERER_CA
 configtxlator proto_decode --input config_block_${CHANNEL_NAME}.pb --type common.Block | jq '.data.data[0].payload.data.config' > config_${CHANNEL_NAME}.json
 cp ./config_${CHANNEL_NAME}.json /host/var/run/
-
