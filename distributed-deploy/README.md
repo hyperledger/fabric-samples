@@ -35,7 +35,7 @@ In this section，we will show how to use our tool to deploy the hyperledger fab
 
 After you have built the bcp-install.jar in your project, now you need to copy the jar to the directory named masterPackage and slavePackage, they are both under the generateInstallPackage as the picture1 show;You should notice that you also need to upload the masterPackage and slavePackage to the machines, the masterPackage should be uploaded to master node and slavePackage should be the slave one.
 
-![](./static/masterPackge.png)
+![](./static/masterPackage.png)
 
 Then we will show you how to deploy the the hyperledger fabric network, in the presentation below, we have two peer nodes named peer0 and peer1,and we have three orderer nodes named oderder0,orderer1,orderer2,and we choose peer0 as master node and the others are the slave ones.
 

@@ -48,7 +48,7 @@ make release
 
 我们需要将上一小节**构建部署包**中生成的`jar`文件，即`bcp-install.jar`分别复制到*masterPackage*和*slavePackage*中。
 
-![](./static/masterPackge.png)
+![](./static/masterPackage.png)
 
 我们将`peer0`作为主节点服务器，将*masterPackage*目录复制到`peer0`服务器上。同时我们需要将*slavePackage*目录分别复制到`peer1`, `orderer0`, `orderer1`, `orderer2`服务器中。
 
