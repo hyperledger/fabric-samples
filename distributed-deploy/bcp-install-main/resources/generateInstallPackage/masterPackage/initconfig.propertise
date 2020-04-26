@@ -1,19 +1,46 @@
+# Copyright CGB Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# docker在创建环境时用到的网络名称
 network: bankunion
+
+# 创建的链名称
 channelName: bankconsortium
+
+# 接入链网络的机构MSPID
 orgMSPID: BcpMSP
+
+# 接入链网络的机构名
 orgName: bcp
+
+# orderer所使用的域名。 如: bcplatform.com
 ordererDomain: bcp.com
+
+# peer所使用的域名。 如: bcplatform.com
 peerDomain: bcp.com
+
+# 这一项需要填写接入区块链网络的orderer节点host配置信息和开启的访问端口。
+# 如果orderer节点有多个，则需要配置多个orderer节点的host配置信息，一般建议至少接入三个orderer节点。
+# 左边是域名，右边是IP地址和端口。注意要与ordererDomain一致。例：orderer. bcplatform.com 172.100.10.1:7050
 ordererHostConfig:
   orderer.bcp.com: 127.0.0.1:7050
   orderer2.bcp.com: 127.0.0.1:8050
   orderer3.bcp.com: 127.0.0.1:9050
+
+# 这一项需要填写接入区块链网络的peer节点host配置信息和开启的访问端口。
+# 如果peer节点有多个，则需要配置多个peer节点的host配置信息，一般建议至少接入两个peer节点。
+# 左边是域名，右边是IP地址和端口。注意要与peerDomain一致。例：Peer0.orgName.bcplatform.com 172.100.10.4:7051。
 peerHostConfig:
   peer0.bcp.com: 127.0.0.1:7051
   peer1.bcp.com: 127.0.0.1:8051
+
+# 配置peer的交易数查询端口，要与peerHostConfig配置中的host一一对应。例：Peer0.orgName.bcplatform.com:9443。
 metricPortConfig:
   peer0.bcp.com: 9443
   peer1.bcp.com: 10443
+
 couchdbPortConfig:
   peer0.bcp.com: 5984
   peer1.bcp.com: 6984

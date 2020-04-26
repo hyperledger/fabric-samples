@@ -184,7 +184,7 @@ function clearCli(){
 # Generate the needed certificates, the genesis block and start the network.
 function networkUp() {
   checkAndInstallGo
-  fabricCodePull
+  # fabricCodePull
 
   checkPrereqs
   dockerInstall
