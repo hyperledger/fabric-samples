@@ -42,6 +42,7 @@ github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5a
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/hyperledger/fabric-chaincode-go v0.0.0-20191108205148-17c4b2760b56 h1:BUCrT0VEO4ryJ7DAEGccqnEJcdHydx7wIJQ0ZGFEjJM=
 github.com/hyperledger/fabric-chaincode-go v0.0.0-20191108205148-17c4b2760b56/go.mod h1:HZK6PKLWrvdD/t0oSLiyaRaUM6fZ7qjJuOlb0zrn0mo=
+github.com/hyperledger/fabric-chaincode-go v0.0.0-20200128192331-2d899240a7ed h1:VNnrD/ilIUO9DDHQP/uioYSy1309rYy0Z1jf3GLNRIc=
 github.com/hyperledger/fabric-chaincode-go v0.0.0-20200128192331-2d899240a7ed/go.mod h1:N7H3sA7Tx4k/YzFq7U0EPdqJtqvM4Kild0JoCc7C0Dc=
 github.com/hyperledger/fabric-contract-api-go v0.0.0-20191118113407-4c6ff12b4f96 h1:1PaDE2QfQB/5ZnvlrYZNH62xMtKE/9cjwIzy9fjpJmg=
 github.com/hyperledger/fabric-contract-api-go v0.0.0-20191118113407-4c6ff12b4f96/go.mod h1:SdJkyS7/oJltu5Ap//5sCEdNlvj+ZzD3TwnJOt3zf4c=
@@ -51,6 +52,7 @@ github.com/hyperledger/fabric-protos-go v0.0.0-20190821214336-621b908d5022/go.mo
 github.com/hyperledger/fabric-protos-go v0.0.0-20190919234611-2a87503ac7c9/go.mod h1:xVYTjK4DtZRBxZ2D9aE4y6AbLaPwue2o/criQyQbVD0=
 github.com/hyperledger/fabric-protos-go v0.0.0-20191114160927-6bee4929a99f h1:t6+iLphkbJrM8i6YB0T/XxvoTlo50FglEf2hMJHxuOo=
 github.com/hyperledger/fabric-protos-go v0.0.0-20191114160927-6bee4929a99f/go.mod h1:xVYTjK4DtZRBxZ2D9aE4y6AbLaPwue2o/criQyQbVD0=
+github.com/hyperledger/fabric-protos-go v0.0.0-20200124220212-e9cfc186ba7b h1:rZ3Vro68vStzLYfcSrQlprjjCf5UmFk7QjKGgHL8IQg=
 github.com/hyperledger/fabric-protos-go v0.0.0-20200124220212-e9cfc186ba7b/go.mod h1:xVYTjK4DtZRBxZ2D9aE4y6AbLaPwue2o/criQyQbVD0=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/joho/godotenv v1.3.0 h1:Zjp+RcGpHhGlrMbJzXTrZZPrWj+1vfm90La1wgB6Bhc=
