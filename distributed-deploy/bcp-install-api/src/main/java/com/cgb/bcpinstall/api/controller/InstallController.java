@@ -128,7 +128,7 @@ public class InstallController {
         if (StringUtils.isEmpty(filePath)) {
             downloadResponse.setCode(ResponseCode.Fail);
             // downloadResponse.setMsg("打包安装文件失败");
-            downloadResponse.setMsg("Fail to package exception");
+            downloadResponse.setMsg("Fail to install the package exception");
             setErrorResult(response, downloadResponse);
             return;
         }
