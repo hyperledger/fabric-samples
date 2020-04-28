@@ -195,7 +195,8 @@ public class FabricConfigGenImpl implements FabricConfigGen {
         try {
             result = yamlFileService.loadYamlFile(txTempFile);
         } catch (FileNotFoundException e) {
-            log.error("找不到指定文件,文件路径:" + txTempFile);
+            // log.error("找不到指定文件,文件路径:" + txTempFile);
+            log.error("Cannot find the specified file, file path:" + txTempFile);
             e.printStackTrace();
         }
         return result;
@@ -247,5 +248,4 @@ public class FabricConfigGenImpl implements FabricConfigGen {
         }
         return writeYamlFile(cryptoConfig, CRYPTO);
     }
-
 }

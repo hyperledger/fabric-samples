@@ -47,7 +47,6 @@ public class RequestContextHandler {
 
     }
 
-
     public static Object get(String key) {
         Map<String, Object> map = threadLocal.get();
         if (null == map) {
@@ -62,13 +61,10 @@ public class RequestContextHandler {
         set(LoginConstant.CURRENT_USER_NAME, userName);
     }
 
-
-
     public static void setCurrentUserId(String id) {
         set(LoginConstant.CURRENT_USER_ID, id);
 
     }
-
 
     public static void setCurrentUserToken(String token) {
         set(LoginConstant.CURRENT_USER_TOKEN, token);
@@ -79,11 +75,9 @@ public class RequestContextHandler {
         return value == null ? null : value.toString();
     }
 
-
     public static void remove() {
         threadLocal.remove();
     }
-
 
     @RunWith(MockitoJUnitRunner.class)
     public static class UnitTest {
@@ -117,7 +111,6 @@ public class RequestContextHandler {
             logger.info("main thread done");
         }
 
-
         @Test
         public void TestUser() {
             RequestContextHandler.setCurrentUserId(111 + "");
@@ -129,6 +122,4 @@ public class RequestContextHandler {
 
         }
     }
-
-
 }

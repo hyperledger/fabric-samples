@@ -39,9 +39,8 @@ public class InvokeLogAspect extends AbstractPrintLog {
 
     /* TODO 日志处理
    @Autowired
-    private LogService logService;*/
-
-
+    private LogService logService;
+    */
     @Override
     protected void handleLog(ProceedingJoinPoint joinPoint, Object[] args, Object returnObj, long costTime) {
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
@@ -65,12 +64,9 @@ public class InvokeLogAspect extends AbstractPrintLog {
     public void excudePointcut() {
     }
 
-
     @Around("excudePointcut()")
     @Override
     public Object execute(ProceedingJoinPoint joinPoint) throws Throwable {
         return super.execute(joinPoint);
     }
-
-
 }

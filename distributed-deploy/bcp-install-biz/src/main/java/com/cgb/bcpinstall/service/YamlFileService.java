@@ -72,5 +72,4 @@ public class YamlFileService {
     public Map<Object, Object> loadYamlFile(String filePath) throws FileNotFoundException {
         return new Yaml().loadAs(new FileInputStream(new File(filePath)), Map.class);
     }
-
 }

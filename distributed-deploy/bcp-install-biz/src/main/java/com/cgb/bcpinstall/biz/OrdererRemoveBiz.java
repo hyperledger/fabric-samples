@@ -66,53 +66,66 @@ public class OrdererRemoveBiz {
     private FileService fileService;
 
     public void ordererRemove(Map<String, String> removedOrdererHostConfig, InitConfigEntity configEntity) {
-        log.info("主节点启动 cli 容器");
+        // log.info("主节点启动 cli 容器");
+        log.info("The master node starts the cli container");
         // 启动一个 cli 容器
         if (!fabricCliService.createCliContainer(modeService.getInstallPath() + "cli", configEntity)) {
-            log.error("创建cli容器失败");
+            // log.error("创建cli容器失败");
+            log.error("Failed to create cli container");
             return;
         }
 
         // 收集所有节点加入的通道
-        log.info("获取所有节点加入的通道列表");
+        // log.info("获取所有节点加入的通道列表");
+        log.info("Get channel list belongs to all joined nodes");
         Set<String> channelList = new HashSet<>();
         try {
             channelList.addAll(fabricCliService.getAllChannels(configEntity));
         } catch (IOException e) {
-            log.error("获取节点加入的所有通道异常", e);
+            // log.error("获取节点加入的所有通道异常", e);
+            log.error("Abnormal error when getting the channel list belonging to all the joined nodes", e);
             e.printStackTrace();
         }
-        log.info("缩容orderer-获取的通道列表：" + JSON.toJSONString(channelList));
-        log.info("修改网络配置");
+        // log.info("缩容orderer-获取的通道列表：" + JSON.toJSONString(channelList));
+        // log.info("修改网络配置");
+        log.info("Reduce orderer - Obtained channel list：" + JSON.toJSONString(channelList));
+        log.info("Modify network configuration");
 
         Map<String, String> oldOrdererConfig = configEntity.getOrdererHostConfig();
         oldOrdererConfig.putAll(removedOrdererHostConfig);
 
         for (String host : removedOrdererHostConfig.keySet()) {
-            log.info("缩容orderer-oldOrdererConfig=" + JSON.toJSONString(oldOrdererConfig));
+            // log.info("缩容orderer-oldOrdererConfig=" + JSON.toJSONString(oldOrdererConfig));
+            log.info("Reduce orderer-oldOrdererConfig=" + JSON.toJSONString(oldOrdererConfig));
             oldOrdererConfig.remove(host);
             // 修改网络配置
-            log.info("将移除的 orderer(s) 从系统通道中移除");
+            // log.info("将移除的 orderer(s) 从系统通道中移除");
+            log.info("Remove the stopped orderer(s) from the system channel");
             // 先修改系统通道
             if (!updateService.updateNetworkConfig(configEntity.getNetwork() + "-sys-channel", configEntity, oldOrdererConfig)) {
-                log.error(String.format("为系统通道 %s 更新网络配置失败", configEntity.getNetwork() + "-sys-channel"));
+                // log.error(String.format("为系统通道 %s 更新网络配置失败", configEntity.getNetwork() + "-sys-channel"));
+                log.error(String.format("Failed to update network configuration for system channel %s", configEntity.getNetwork() + "-sys-channel"));
                 return;
             }
             channelList.remove(configEntity.getNetwork() + "-sys-channel");
             for (String channelName : channelList) {
-                log.info(String.format("将移除的 orderer(s) 从通道 %s 中移除", channelName));
+                // log.info(String.format("将移除的 orderer(s) 从通道 %s 中移除", channelName));
+                log.info(String.format("Remove the removed orderer(s) from channel %s", channelName));
                 if (!updateService.updateNetworkConfig(channelName, configEntity, oldOrdererConfig)) {
-                    log.error(String.format("为通道 %s 更新网络配置失败", channelName));
+                    // log.error(String.format("为通道 %s 更新网络配置失败", channelName));
+                    log.error(String.format("Failed to update network configuration for channel %s", channelName));
                 }
             }
         }
 
-
-        log.info("移除主节点目录下的证书");
+        // log.info("移除主节点目录下的证书");
+        log.info("Delete the certificate in the master node directory");
         fileService.removeCertFile(RoleEnum.ORDER, configEntity, removedOrdererHostConfig, true);
-        log.info("移除 orderer(s) 节点");
+        // log.info("移除 orderer(s) 节点");
+        log.info("Remove orderer(s) node");
         removeOrdererContainer(removedOrdererHostConfig, configEntity);
-        log.info("将已移除的 orderer(s) 节点从数据库中删除");
+        // log.info("将已移除的 orderer(s) 节点从数据库中删除");
+        log.info("Remove the removed orderer(s) node from the database");
         // 从数据库中删除
         for (String host : removedOrdererHostConfig.keySet()) {
             String ip = removedOrdererHostConfig.get(host);
@@ -129,7 +142,8 @@ public class OrdererRemoveBiz {
             try {
                 this.checkPointDb.deleteNodeRecord(nodeDO);
             } catch (SQLException e) {
-                log.error(String.format("将节点 %s 从数据库中删除异常", host), e);
+                // log.error(String.format("将节点 %s 从数据库中删除异常", host), e);
+                log.error(String.format("Exception when deleting node %s from database", host), e);
                 e.printStackTrace();
             }
         }
@@ -162,12 +176,12 @@ public class OrdererRemoveBiz {
                 try {
                     FileUtils.copyFile(new File(stopNodeFilePath), new File(modeService.getInstallPath() + "stopNode.sh"));
                 } catch (Exception e) {
-                    log.info("复制stopNode.sh发生异常");
+                    // log.info("复制stopNode.sh发生异常");
+                    log.info("An exception occurred while copying stopNode.sh");
                     return;
                 }
                 updateService.removeNode(RoleEnum.ORDER, peerRemoveCmd.getOrdererDomain(), peerRemoveCmd.getHostNames(), peerRemoveCmd.getPorts());
             } else {
-
                 String stopFilePath = modeService.getInitDir() + "template/stopNode.sh";
                 String url = "http://" + ip + ":8080/v1/install/remove";
                 do {
@@ -180,9 +194,11 @@ public class OrdererRemoveBiz {
                             }
                         }
 
-                        log.warn(String.format("给节点 %s 发送移除命令返回失败，稍后重试", ip));
+                        // log.warn(String.format("给节点 %s 发送移除命令返回失败，稍后重试", ip));
+                        log.warn(String.format("Failed to send remove command to node %s, try again later", ip));
                     } catch (Exception e) {
-                        log.warn(String.format("给节点 %s 发送移除命令异常，稍后重试", ip), e);
+                        // log.warn(String.format("给节点 %s 发送移除命令异常，稍后重试", ip), e);
+                        log.warn(String.format("Exception occurred when sending remove command to node %s, try again later", ip), e);
                         e.printStackTrace();
                     }
 
@@ -195,5 +211,4 @@ public class OrdererRemoveBiz {
             }
         }
     }
-
 }

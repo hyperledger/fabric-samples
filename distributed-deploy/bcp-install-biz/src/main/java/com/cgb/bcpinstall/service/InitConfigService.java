@@ -53,7 +53,8 @@ public class InitConfigService {
         try {
             initConfigEntity = yaml.loadAs(new FileInputStream(file), InitConfigEntity.class);
         } catch (Exception e) {
-            log.error("配置文件读取异常，请检查各配置项是否符合格式要求");
+            // log.error("配置文件读取异常，请检查各配置项是否符合格式要求");
+            log.error("An exception occurred while reading the configuration file, please check whether each configuration item meets the format requirements");
         }
         return initConfigEntity;
     }
@@ -62,20 +63,24 @@ public class InitConfigService {
         boolean isCorrect = true;
 
         if (!isNotEmptyConfig(initConfigEntity)) {
-            log.error("配置文件中相关配置项为空");
+            // log.error("配置文件中相关配置项为空");
+            log.error("The relevant configuration items in the configuration file are empty");
             isCorrect = false;
         }
 
         if (!isCorrectFormat(initConfigEntity)) {
-            log.error("配置文件中相关域名的ip和端口格式不正确");
+            // log.error("配置文件中相关域名的ip和端口格式不正确");
+            log.error("The ip and port formats of related domain names in the configuration file are incorrect");
             isCorrect = false;
         }
         if (!isCorrectDomain(initConfigEntity)) {
-            log.error("配置文件中orderer或peer的域名不匹配");
+            // log.error("配置文件中orderer或peer的域名不匹配");
+            log.error("The orderer or peer domain names in the configuration file do not match");
             isCorrect = false;
         }
         if (!checkPeerConfig(initConfigEntity)) {
-            log.error("配置文件中peer没有配置相应的交易查询端口");
+            // log.error("配置文件中peer没有配置相应的交易查询端口");
+            log.error("The peer does not configure the relevant transaction query interface in the configuration file");
             isCorrect = false;
         }
 

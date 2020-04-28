@@ -96,14 +96,16 @@ public class InstallService {
                     do {
                         HttpInstallResponse response = remoteService.sendInstallCommand(server, role, null, configEntity);
                         if (ResponseCode.SUCCESS.getCode().equals(response.getCode())) {
-                            log.warn(String.format("发送安装指令给 %s 节点安装 %s 成功", server.getHost(), role.name().toLowerCase()));
+                            // log.warn(String.format("发送安装指令给 %s 节点安装 %s 成功", server.getHost(), role.name().toLowerCase()));
+                            log.warn(String.format("Send installation instructions to %s node to install %s successfully", server.getHost(), role.name().toLowerCase()));
                             server.setStatus(InstallStatusEnum.INSTALLING);
                             break;
                         }
                         if (retryCount == retryTotal) {
                             break;
                         }
-                        log.warn(String.format("发送安装指令给 %s 节点安装 %s 失败，稍后重试...", server.getHost(), role.name().toLowerCase()));
+                        // log.warn(String.format("发送安装指令给 %s 节点安装 %s 失败，稍后重试...", server.getHost(), role.name().toLowerCase()));
+                        log.warn(String.format("Sending installation instructions to %s node failed to install %s, try again later...", server.getHost(), role.name().toLowerCase()));
                         try {
                             Thread.sleep(3000);
                         } catch (InterruptedException e) {
@@ -122,7 +124,8 @@ public class InstallService {
             if (checkCount == checkTotal) {
                 break;
             }
-            log.info(String.format("等待所有 %s 节点完成安装...", role.name().toLowerCase()));
+            // log.info(String.format("等待所有 %s 节点完成安装...", role.name().toLowerCase()));
+            log.info(String.format("Wait for all %s nodes to complete the installation...", role.name().toLowerCase()));
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
@@ -142,7 +145,8 @@ public class InstallService {
      * @param role
      */
     public boolean startRole(RoleEnum role, List<String> rolePorts, Map<String, String> hosts, String roleFolderName, String host) {
-        log.info(String.format("开始执行角色 %s 的脚本", role.name()));
+        // log.info(String.format("开始执行角色 %s 的脚本", role.name()));
+        log.info(String.format("Start executing the script code of role %s", role.name()));
         if (!new File(modeService.getInstallPath()).exists()) {
             FileUtil.makeFilePath(modeService.getInstallPath(), false);
         }
@@ -168,7 +172,8 @@ public class InstallService {
                 ProcessUtil.Result res = ProcessUtil.execCmd("bash " + shellFilePath, env, workingDir);
                 return res.getCode() == 0;
             } catch (Exception e) {
-                log.error(String.format("启动角色%s脚本异常", role.name()), e);
+                // log.error(String.format("启动角色%s脚本异常", role.name()), e);
+                log.error(String.format("An exception occurred while executing script code for role %s", role.name()), e);
                 e.printStackTrace();
             }
         }
@@ -194,7 +199,8 @@ public class InstallService {
             }
         }
         if (result.isSuccess()) {
-            log.info(String.format("节点 %s 已完成 %s 角色的安装", remoteAddress, result.getRole().name()));
+            // log.info(String.format("节点 %s 已完成 %s 角色的安装", remoteAddress, result.getRole().name()));
+            log.info(String.format("Node %s has completed the installation of %s roles", remoteAddress, result.getRole().name()));
 
             // 加入数据库
             switch (result.getRole()) {

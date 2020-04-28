@@ -89,11 +89,13 @@ public class EnvironmentService {
             return;
         }
 
-        log.info(String.format("写入 hosts 文件: %s", JSONObject.toJSONString(hosts)));
+        // log.info(String.format("写入 hosts 文件: %s", JSONObject.toJSONString(hosts)));
+        log.info(String.format("Write to hosts file: %s", JSONObject.toJSONString(hosts)));
 
         try {
             String hostContent = FileUtil.getFileContent("/etc/hosts");
-            log.info("写入 hosts 文件,hostContent=" + hostContent);
+            // log.info("写入 hosts 文件, hostContent=" + hostContent);
+            log.info("write to hosts file, hostContent=" + hostContent);
 
             String[] hostConfigArray = hostContent.split("\n");
 
@@ -116,14 +118,16 @@ public class EnvironmentService {
 
             if (!append) {
                 oldHostBuilder.append(String.join("\n", hostConfigArray));
-                log.info("写入 hosts 文件,hostConfigArray.build=" + oldHostBuilder.toString());
+                // log.info("写入 hosts 文件,hostConfigArray.build=" + oldHostBuilder.toString());
+                log.info("write to hosts file, hostConfigArray.build=" + oldHostBuilder.toString());
             }
             oldHostBuilder.append(newHostBuilder);
             FileOutputStream fos = new FileOutputStream(new File("/etc/hosts"), append);
             fos.write(oldHostBuilder.toString().getBytes());
             fos.close();
         } catch (IOException e) {
-            log.error("写入/etc/hosts文件异常", e);
+            // log.error("写入/etc/hosts文件异常", e);
+            log.error("An exception occurred while writing to the /etc/hosts file", e);
             e.printStackTrace();
         }
 
@@ -131,7 +135,8 @@ public class EnvironmentService {
         if (ports.stream().noneMatch("2375"::equals)) {
             ports.add("2375");
         }
-        log.info(String.format("端口加入防火墙: %s", ports.stream().collect(Collectors.joining(","))));
+        // log.info(String.format("端口加入防火墙: %s", ports.stream().collect(Collectors.joining(","))));
+        log.info(String.format("Add the port to the firewall: %s", ports.stream().collect(Collectors.joining(","))));
         for (String port : ports) {
             addPortIntoFirewall(port);
         }
@@ -147,7 +152,8 @@ public class EnvironmentService {
                 succ = true;
             }
         } catch (Exception e) {
-            log.error("调用 firewall-cmd 添加端口异常", e);
+            // log.error("调用 firewall-cmd 添加端口异常", e);
+            log.error("An exception occurred when running firewall-cmd to add a port", e);
             e.printStackTrace();
         }
 
@@ -159,7 +165,8 @@ public class EnvironmentService {
                     ProcessUtil.execCmd("service iptables save", null, "./");
                 }
             } catch (Exception e) {
-                log.error("调用 iptables 添加端口异常", e);
+                // log.error("调用 iptables 添加端口异常", e);
+                log.error("An exception occurred when calling iptables to add a port", e);
                 e.printStackTrace();
             }
         }
@@ -188,7 +195,8 @@ public class EnvironmentService {
                 succ = true;
             }
         } catch (Exception e) {
-            log.error("调用 firewall-cmd 添加端口异常", e);
+            // log.error("调用 firewall-cmd 添加端口异常", e);
+            log.error("An exception occurred when running firewall-cmd to add a port", e);
             e.printStackTrace();
         }
 
@@ -200,7 +208,8 @@ public class EnvironmentService {
                     ProcessUtil.execCmd("service iptables save", null, "./");
                 }
             } catch (Exception e) {
-                log.error("调用 iptables 添加端口异常", e);
+                // log.error("调用 iptables 添加端口异常", e);
+                log.error("An exception occurred when calling iptables to add a port", e);
                 e.printStackTrace();
             }
         }

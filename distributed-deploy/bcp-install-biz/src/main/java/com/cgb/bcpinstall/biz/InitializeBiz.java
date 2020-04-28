@@ -63,23 +63,28 @@ public class InitializeBiz {
             InitConfigEntity configEntity = initConfigService.parseConfigFile(this.initConfigFile);
             if (configEntity == null) {
                 response.setCode(ResponseCode.Fail);
-                response.setMsg("解析初始化配置文件失败");
+                // response.setMsg("解析初始化配置文件失败");
+                response.setMsg("Failed to parse the initialization configuration file");
                 return response;
             }
 
             if (!initConfigService.isCorrectConfig(configEntity)) {
-                log.error("配置文件中相关配置项出错或为空");
+                // log.error("配置文件中相关配置项出错或为空");
+                log.error("The relevant configuration items in the configuration file are wrong or empty");
                 response.setCode(ResponseCode.Fail);
-                response.setMsg("配置文件中相关配置项出错或为空");
+                // response.setMsg("配置文件中相关配置项出错或为空");
+                response.setMsg("The relevant configuration items in the configuration file are wrong or empty");
                 return response;
             }
             configFileGen.createConfigFile(configEntity);
         } catch (FileNotFoundException fe) {
-            log.error("文件不存在异常", fe);
+            // log.error("文件不存在异常", fe);
+            log.error("Exception file does not exist", fe);
             response.setCode(ResponseCode.Fail);
             fe.printStackTrace();
         } catch (Exception e) {
-            log.error("初始化发生异常", e);
+            // log.error("初始化发生异常", e);
+            log.error("Exception occurred during initialization", e);
             response.setCode(ResponseCode.Fail);
             e.printStackTrace();
         }

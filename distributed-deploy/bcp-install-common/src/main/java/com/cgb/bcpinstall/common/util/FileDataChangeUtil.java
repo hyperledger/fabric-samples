@@ -25,7 +25,8 @@ public class FileDataChangeUtil {
         }catch (Exception e){
             e.printStackTrace();
         }
-        return "解析文件失败!!!";
+        // return "解析文件失败!!!";
+        return "Failed to parse file!!!";
     }
 
     //从数据流中读取文本内容
@@ -42,7 +43,8 @@ public class FileDataChangeUtil {
         }catch (Exception e){
             e.printStackTrace();
         }
-        return "解析文件失败!!!";
+        // return "解析文件失败!!!";
+        return "Failed to parse file!!!";
     }
 
 

@@ -150,5 +150,4 @@ public class OSinfo {
 		System.out.println("isMacOS:"+OSinfo.isMacOS());
 		System.out.println("isMacOSX:"+OSinfo.isMacOSX());
 	}
- 
 }

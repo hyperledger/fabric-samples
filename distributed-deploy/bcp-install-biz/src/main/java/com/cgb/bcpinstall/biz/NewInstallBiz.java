@@ -75,12 +75,14 @@ public class NewInstallBiz implements InstallMode {
 
     @Override
     public void run(InitConfigEntity configEntity) {
-        log.info("主节点开始安装流程...");
+        // log.info("主节点开始安装流程...");
+        log.info("The master node starts the installation process...");
 
         // 将所有的从节点注册到角色列表
         registerSlaveServers(configEntity);
 
-        log.info("主节点添加到角色列表");
+        // log.info("主节点添加到角色列表");
+        log.info("Add the master node to the role list");
 
         // 也把自己添加到角色列表里
         List<String> allMyIps = NetUtil.getLocalIPList();
@@ -90,12 +92,14 @@ public class NewInstallBiz implements InstallMode {
 
         List<RoleEnum> allMyRoles = this.getAllMyRoles();
 
-        log.info("主节点复制安装文件");
+        // log.info("主节点复制安装文件");
+        log.info("Copy the installation file to the master node");
         // 为自己复制安装文件
         fileService.copyInstallFiles(allMyIps, allMyRoles, configEntity);
 
         // 修改自己的状态
-        log.info("主节点修改安装状态");
+        // log.info("主节点修改安装状态");
+        log.info("Master node to modify the installation status");
         for (String ip : allMyIps) {
             this.rolesBiz.setServerStatus(ip, InstallStatusEnum.DOWNLOADED);
         }
@@ -112,18 +116,22 @@ public class NewInstallBiz implements InstallMode {
             }
         }
 
-        log.info("将安装包推给每个从节点");
+        // log.info("将安装包推给每个从节点");
+        log.info("Push the installation package to each slave node");
         pushInstallPackages(configEntity);
 
-        log.info("安装 orderer");
+        // log.info("安装 orderer");
+        log.info("Install orderer");
         // 首先安装 Orderer
         installService.install(RoleEnum.ORDER, configEntity);
 
-        log.info("安装 peer");
+        // log.info("安装 peer");
+        log.info("Install peer");
         // 安装 Peer
         installService.install(RoleEnum.PEER, configEntity);
 
-        log.info("等待所有节点完成安装...");
+        // log.info("等待所有节点完成安装...");
+        log.info("Wait for all nodes to complete the installation...");
         int retryCount = 1;
         int retryTotal = 7;
         while (true) {
@@ -131,7 +139,8 @@ public class NewInstallBiz implements InstallMode {
                 break;
             }
             if (retryCount == retryTotal) {
-                log.info("安装状态查询超时，部署可能出现异常，请排查！");
+                // log.info("安装状态查询超时，部署可能出现异常，请排查！");
+                log.info("Installation status query timed out, deployment may be abnormal, please check!");
                 break;
             }
             try {
@@ -142,7 +151,8 @@ public class NewInstallBiz implements InstallMode {
             retryCount++;
         }
 
-        log.info("通知所有服务器安装结束");
+        // log.info("通知所有服务器安装结束");
+        log.info("Notify all servers that installation is complete");
         // 通知所有服务器结束
         Set<String> serverUrl = getServersUrl();
         remoteService.notifyNodesToEnd(serverUrl);
@@ -154,7 +164,6 @@ public class NewInstallBiz implements InstallMode {
             roleService.addServerRole(ip, "8080", configEntity);
         }
     }
-
 
     private List<RoleEnum> getAllMyRoles() {
         List<RoleEnum> roleList = new ArrayList<>();
@@ -174,7 +183,8 @@ public class NewInstallBiz implements InstallMode {
     }
 
     private boolean createFabricGenesis(InitConfigEntity configEntity) {
-        log.info("开始 fabric 创世");
+        // log.info("开始 fabric 创世");
+        log.info("Start fabric create genesis");
 
         String fabricDir = modeService.getInstallPath() + "channel-artifacts" + File.separator;
         FileUtil.makeFilePath(fabricDir, true);
@@ -182,17 +192,21 @@ public class NewInstallBiz implements InstallMode {
         String sysChannelName = configEntity.getNetwork() + "-sys-channel";
 
         String cmd = CacheUtil.getConfigtxgenFilePath() + " -profile SampleMultiNodeEtcdRaft -channelID " + sysChannelName + " -outputBlock " + fabricDir + "genesis.block";
-        log.info("生成创世块-执行命令：" + cmd);
+        // log.info("生成创世块-执行命令：" + cmd);
+        log.info("Generate genesis block -- execute command：" + cmd);
         try {
             ProcessUtil.Result res = ProcessUtil.execCmd(cmd, null, modeService.getInstallPath());
             if (res.getCode() == 0) {
-                log.info("创世成功");
+                // log.info("创世成功");
+                log.info("Genesis block creation succeeded");
                 return true;
             } else {
-                log.warn("创世失败");
+                // log.warn("创世失败");
+                log.warn("Genesis block creation failed");
             }
         } catch (Exception e) {
-            log.error("生成创世块异常", e);
+            // log.error("生成创世块异常", e);
+            log.error("Genesis block creation abnormal", e);
             e.printStackTrace();
         }
 
@@ -204,7 +218,8 @@ public class NewInstallBiz implements InstallMode {
         List<String> allSlaveIps = parseAllSlaveIps(configEntity);
         //推送安装包
         for (String slaveIp : allSlaveIps) {
-            log.info(String.format("向从节点 %s 推送安装包", slaveIp));
+            // log.info(String.format("向从节点 %s 推送安装包", slaveIp));
+            log.info(String.format("Push the installation package to the master node %s", slaveIp));
             remoteService.pushSlaveInstallPackage(slaveIp, configEntity);
         }
     }

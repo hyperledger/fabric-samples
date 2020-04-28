@@ -105,7 +105,8 @@ public class FileService {
                 case ORDER:
                     String orderDir = dockerSrcFile + (StringUtils.isEmpty(srcFolderName) ? "order-" + ip : srcFolderName);
                     if (!new File(orderDir).exists()) {
-                        log.info(String.format("目录 %s 不存在", orderDir));
+                        // log.info(String.format("目录 %s 不存在", orderDir));
+                        log.info(String.format("Directory %s does not exist", orderDir));
                         break;
                     }
                     FileUtils.copyDirectory(new File(orderDir), new File(destPath + (StringUtils.isEmpty(destFolderName) ? "order" : destFolderName)));
@@ -118,14 +119,16 @@ public class FileService {
                 case PEER:
                     String peerDir = dockerSrcFile + (StringUtils.isEmpty(srcFolderName) ? "peer-" + ip : srcFolderName);
                     if (!new File(peerDir).exists()) {
-                        log.info(String.format("目录 %s 不存在", peerDir));
+                        // log.info(String.format("目录 %s 不存在", peerDir));
+                        log.info(String.format("Directory %s does not exist", peerDir));
                         break;
                     }
                     FileUtils.copyDirectory(new File(peerDir), new File(destPath + (StringUtils.isEmpty(destFolderName) ? "peer" : destFolderName)));
                     break;
             }
         } catch (Exception e) {
-            log.error(String.format("为 %s 复制 %s 角色文件失败", ip, role.name()), e);
+            // log.error(String.format("为 %s 复制 %s 角色文件失败", ip, role.name()), e);
+            log.error(String.format("Failed to copy %s role files for %s",  role.name(), ip), e);
             e.printStackTrace();
         }
     }
@@ -138,7 +141,8 @@ public class FileService {
      * @param destPath
      */
     public void copyCertFiles(RoleEnum role, String ip, String destPath, InitConfigEntity configEntity) {
-        log.info(String.format("为服务器 %s 角色 %s 复制证书文件, 目标目录: %s", ip, role.name(), destPath));
+        // log.info(String.format("为服务器 %s 角色 %s 复制证书文件, 目标目录: %s", ip, role.name(), destPath));
+        log.info(String.format("Copy certificate file for server %s role %s, target directory: %s", ip, role.name(), destPath));
 
         if (!destPath.endsWith(File.separator)) {
             destPath = destPath + File.separator;
@@ -173,7 +177,8 @@ public class FileService {
                 try {
                     FileUtils.copyDirectory(new File(srcDir), new File(certRootPath + relativePath));
                 } catch (IOException e) {
-                    log.error(String.format("复制%s证书文件异常", role.name()), e);
+                    // log.error(String.format("复制%s证书文件异常", role.name()), e);
+                    log.error(String.format("An exception occurred while copying the %s certificate file", role.name()), e);
                     e.printStackTrace();
                 }
             }
@@ -189,7 +194,8 @@ public class FileService {
         try {
             FileUtils.copyDirectory(new File(srcDir), new File(modeService.getInstallPath() + "crypto-config"));
         } catch (IOException e) {
-            log.error("主节点复制证书文件异常", e);
+            // log.error("主节点复制证书文件异常", e);
+            log.error("An exception occurred when the master node copied the certificate file", e);
             e.printStackTrace();
         }
     }
@@ -198,16 +204,19 @@ public class FileService {
      * 将configtx.yaml文件复制到主节点
      */
     public void masterCopyConfigtxFile() {
-        log.info("复制 configtx.yaml 文件到安装目录");
+        // log.info("复制 configtx.yaml 文件到安装目录");
+        log.info("Copy the configtx.yaml file to the installation directory");
         FileUtil.makeFilePath(modeService.getInstallPath(), false);
 
         String srcRootPath = FileUtil.reviseDir(modeService.getInitDir());
         String srcFile = srcRootPath + "fabric-net" + File.separator + "cryptoAndConfig" + File.separator + "configtx.yaml";
         try {
-            log.info("生成创世快-从" + srcFile + "复制到" + modeService.getInstallPath() + "configtx.yaml");
+            // log.info("生成创世块-从" + srcFile + "复制到" + modeService.getInstallPath() + "configtx.yaml");
+            log.info("Generate genesis block - from" + srcFile + "copy to" + modeService.getInstallPath() + "configtx.yaml");
             FileUtils.copyFile(new File(srcFile), new File(modeService.getInstallPath() + "configtx.yaml"));
         } catch (IOException e) {
-            log.error("复制 configtx.yaml 文件到安装目录异常", e);
+            // log.error("复制 configtx.yaml 文件到安装目录异常", e);
+            log.error("An exception occurred when copying the configtx.yaml file to the installation directory", e);
             e.printStackTrace();
         }
     }
@@ -220,14 +229,16 @@ public class FileService {
      * @return
      */
     public String packInstallFiles(String serverAddress, List<RoleEnum> roleList, InitConfigEntity configEntity) {
-        log.info(String.format("为服务器 %s 准备智能安装包, 该服务器承担的角色：%s", serverAddress, roleList.stream().map(Enum::name).collect(Collectors.joining(","))));
+        // log.info(String.format("为服务器 %s 准备智能安装包, 该服务器承担的角色：%s", serverAddress, roleList.stream().map(Enum::name).collect(Collectors.joining(","))));
+        log.info(String.format("Prepare a smart installation package for server %s, the role assumed by this server is: %s", serverAddress, roleList.stream().map(Enum::name).collect(Collectors.joining(","))));
 
         if (configEntity == null) {
             try {
                 Yaml yaml = new Yaml();
                 configEntity = yaml.loadAs(new FileInputStream(new File(this.initConfigFile)), InitConfigEntity.class);
             } catch (Exception e) {
-                log.error("安装过程发生异常", e);
+                // log.error("安装过程发生异常", e);
+                log.error("An exception occurred during the installation process", e);
                 e.printStackTrace();
             }
         }
@@ -258,7 +269,8 @@ public class FileService {
 
             return packFilePath;
         } catch (IOException e) {
-            log.error("生成智能安装包时异常", e);
+            // log.error("生成智能安装包时异常", e);
+            log.error("Exception when generating smart installation package", e);
             e.printStackTrace();
         }
 
@@ -284,7 +296,8 @@ public class FileService {
                 role = "orderer";
                 break;
         }
-        log.info(String.format("为新 %s 节点 %s 准备智能安装包", role, serverAddress));
+        // log.info(String.format("为新 %s 节点 %s 准备智能安装包", role, serverAddress));
+        log.info(String.format("Prepare smart installation package for new %s node %s", role, serverAddress));
 
         // 建一个临时目录
         String tmpPath = System.getProperty("java.io.tmpdir");
@@ -311,7 +324,8 @@ public class FileService {
 
             return packFilePath;
         } catch (IOException e) {
-            log.error("生成智能安装包时异常", e);
+            // log.error("生成智能安装包时异常", e);
+            log.error("Exception when generating smart installation package", e);
             e.printStackTrace();
         }
 
@@ -346,7 +360,8 @@ public class FileService {
                     rmPath = modeService.getInstallPath() + ordererCertPath;
                 }
             }
-            log.info("缩容节点，移除证书路径：" + rmPath);
+            // log.info("缩容节点，移除证书路径：" + rmPath);
+            log.info("Reduce nodes, remove certificate path: " + rmPath);
             FileUtil.rmFile(new File(rmPath));
         }
     }

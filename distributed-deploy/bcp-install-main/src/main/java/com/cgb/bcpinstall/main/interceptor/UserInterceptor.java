@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.util.List;
 
-
 /**
  * @program: UserInterceptor
  * @description:
@@ -55,8 +54,6 @@ public class UserInterceptor implements HandlerInterceptor {
         return menus.parallelStream().anyMatch(menu ->
                 menu.equals(u)
         );
-
-
     }
 
     @Override
@@ -102,7 +99,6 @@ public class UserInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
         RequestContextHandler.remove();
-
     }
 
     private void resultInfo(HttpServletResponse response, ResponseCode code) throws Exception {
@@ -114,5 +110,4 @@ public class UserInterceptor implements HandlerInterceptor {
         writer.flush();
         writer.close();
     }
-
 }

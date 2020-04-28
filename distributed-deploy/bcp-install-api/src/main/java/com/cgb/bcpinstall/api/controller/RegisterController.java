@@ -55,7 +55,8 @@ public class RegisterController {
     public HttpInstallResponse regRole(@RequestBody RoleRegEntity roleRegEntity, HttpServletRequest request) {
         String remoteAddr = request.getRemoteAddr();
 
-        log.info(String.format("从节点 %s 开始注册", remoteAddr));
+        // log.info(String.format("从节点 %s 开始注册", remoteAddr));
+        log.info(String.format("Slave node %s starts registration", remoteAddr));
 
         roleService.addServerRole(remoteAddr, roleRegEntity.getServerPort(),null);
 

@@ -62,7 +62,6 @@ public class ModeService {
         return response;
     }
 
-
     /**
      * @return true -- 初始化完成
      */
@@ -70,10 +69,12 @@ public class ModeService {
         String logFilePath = this.getInstallPath() + "bcp-app-mgr-" + host + File.separator + "log.out";
         try {
             ProcessUtil.Result result = ProcessUtil.execCmd("sh ./fetchBackendInit.sh " + logFilePath, null, shPath);
-            log.info(StringUtils.isEmpty(result.getData()) ? "后台初始化中，请耐心等待............" : "后台初始化成功");
+            // log.info(StringUtils.isEmpty(result.getData()) ? "后台初始化中，请耐心等待............" : "后台初始化成功");
+            log.info(StringUtils.isEmpty(result.getData()) ? "Please wait patiently during background initialization............" : "Background initialization successful");
             return !StringUtils.isEmpty(result.getData());
         } catch (Exception e) {
-            log.error("查询管理后台日志异常", e);
+            // log.error("查询管理后台日志异常", e);
+            log.error("An exception occurred while querying the management background log", e);
             e.printStackTrace();
         }
 
@@ -98,7 +99,8 @@ public class ModeService {
             }
         }
         if (result.isSuccess()) {
-            log.info(String.format("节点 %s 已完成 %s 角色的安装", remoteAddress, result.getRole().name()));
+            // log.info(String.format("节点 %s 已完成 %s 角色的安装", remoteAddress, result.getRole().name()));
+            log.info(String.format("Node %s has completed the installation of role %s", remoteAddress, result.getRole().name()));
 
             // 加入数据库
             switch (result.getRole()) {
@@ -131,7 +133,8 @@ public class ModeService {
                 try {
                     this.checkPointDb.addNodeRecord(nodeDO);
                 } catch (SQLException e) {
-                    log.error(String.format("添加节点 %s 角色 %s 到数据库失败", ip, role.name().toLowerCase()), e);
+                    // log.error(String.format("添加节点 %s 角色 %s 到数据库失败", ip, role.name().toLowerCase()), e);
+                    log.error(String.format("Failed when adding role 2 of node 1 to the database", ip, role.name().toLowerCase()), e);
                     e.printStackTrace();
                 }
             }

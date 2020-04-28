@@ -96,7 +96,6 @@ public final class Utils {
                     IOUtils.closeQuietly(fileInputStream);
                     archiveOutputStream.closeArchiveEntry();
                 }
-
             }
 
             if (null != chaincodeMetaInf) {
@@ -122,9 +121,7 @@ public final class Utils {
                         IOUtils.closeQuietly(fileInputStream);
                         archiveOutputStream.closeArchiveEntry();
                     }
-
                 }
-
             }
         } finally {
             IOUtils.closeQuietly(archiveOutputStream);
@@ -274,7 +271,6 @@ public final class Utils {
         }
 
         return encodeHexString(bytes);
-
     }
 
     /**
@@ -282,5 +278,4 @@ public final class Utils {
      */
     private Utils() {
     }
-
 }

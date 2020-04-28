@@ -101,7 +101,8 @@ public class UpdateService {
             FileUtils.copyFile(new File(modeService.getInitDir() + "template/create-update-pb.sh"), new File(modeService.getInstallPath() + "cli/scripts/create-update-pb.sh"));
             FileUtils.copyFile(new File(modeService.getInitDir() + "template/update-channel-config.sh"), new File(modeService.getInstallPath() + "cli/scripts/update-channel-config.sh"));
         } catch (IOException e) {
-            log.error("复制脚本文件异常", e);
+            // log.error("复制脚本文件异常", e);
+            log.error("An exception occurred while copying the script file", e);
             e.printStackTrace();
             return false;
         }
@@ -121,7 +122,8 @@ public class UpdateService {
         try {
             ProcessUtil.execCmd(cmd, null, modeService.getInstallPath() + "cli");
         } catch (Exception e) {
-            log.error(String.format("执行脚本获取通道 %s 配置异常", channelName), e);
+            // log.error(String.format("执行脚本获取通道 %s 配置异常", channelName), e);
+            log.error(String.format("An exception occurred while executing the script code to obtain the configuration of channel %s", channelName), e);
             e.printStackTrace();
             return false;
         }
@@ -129,7 +131,8 @@ public class UpdateService {
         // 修改通道配置: 增加 orderer 相关配置
         String filePath = String.format("/var/run/config_%s.json", channelName);
         if (!new File(filePath).exists()) {
-            log.error(String.format("通道 %s 配置文件 %s 不存在", channelName, filePath));
+            // log.error(String.format("通道 %s 配置文件 %s 不存在", channelName, filePath));
+            log.error(String.format("Channel %s configuration file %s does not exist", channelName, filePath));
             return false;
         }
         JSONObject jsonObject = JSONObject.parseObject(FileUtil.getFileContent(filePath));
@@ -143,7 +146,8 @@ public class UpdateService {
 
             String certFilePath = modeService.getInstallPath() + "crypto-config/ordererOrganizations/" + configEntity.getOrdererDomain() + "/orderers/" + oHost + "/tls/server.crt";
             if (!new File(certFilePath).exists()) {
-                log.error(String.format("orderer %s 的证书文件 %s 不存在", oHost, certFilePath));
+                // log.error(String.format("orderer %s 的证书文件 %s 不存在", oHost, certFilePath));
+                log.error(String.format("Certificate file %s of orderer %s does not exist", certFilePath, oHost));
                 return false;
             }
 
@@ -164,7 +168,8 @@ public class UpdateService {
         File modifiedFile = new File(String.format("/var/run/config_%s_modified.json", channelName));
         FileUtil.writeTxtFile(jsonObject.toJSONString(), modifiedFile, "UTF-8");
         if (!modifiedFile.exists()) {
-            log.error(String.format("创建通道 %s 配置编辑文件 %s 失败", channelName, modifiedFile.getAbsolutePath()));
+            // log.error(String.format("创建通道 %s 配置编辑文件 %s 失败", channelName, modifiedFile.getAbsolutePath()));
+            log.error(String.format("Failed when creating configuration file %s for channel %s", modifiedFile.getAbsolutePath(), channelName));
             return false;
         }
 
@@ -173,7 +178,8 @@ public class UpdateService {
         try {
             ProcessUtil.execCmd(cmd, null, "/var/run");
         } catch (Exception e) {
-            log.error(String.format("为通道 %s 执行脚本生成pb文件异常", channelName), e);
+            // log.error(String.format("为通道 %s 执行脚本生成pb文件异常", channelName), e);
+            log.error(String.format("An exception occurred while generating a pb file for the channel %s execution script", channelName), e);
             e.printStackTrace();
             return false;
         }
@@ -182,7 +188,8 @@ public class UpdateService {
         try {
             ProcessUtil.execCmd(cmd, null, modeService.getInstallPath() + "cli");
         } catch (Exception e) {
-            log.error(String.format("为通道 %s 执行脚本更新网络配置异常", channelName), e);
+            // log.error(String.format("为通道 %s 执行脚本更新网络配置异常", channelName), e);
+            log.error(String.format("An exception occurred while executing a script to update the network configuration for channel %s", channelName), e);
             e.printStackTrace();
         }
 
@@ -195,15 +202,18 @@ public class UpdateService {
         }
         for (String host : hostNames) {
             try {
-                log.info("移除节点容器：sh stopNode.sh " + host.split(domain)[0]);
+                // log.info("移除节点容器：sh stopNode.sh " + host.split(domain)[0]);
+                log.info("Remove node container：sh stopNode.sh " + host.split(domain)[0]);
                 ProcessUtil.execCmd("sh stopNode.sh " + host.split(domain)[0], null, modeService.getInstallPath());
                 String roleFileName = role == RoleEnum.ORDER ? "ordererOrganizations" : "peerOrganizations";
                 String nodeFileName = role == RoleEnum.ORDER ? "orderers" : "peers";
                 String rmCertFile = String.format("crypto-config" + File.separator + "%s" + File.separator + "%s" + File.separator + "%s" + File.separator + "%s", roleFileName, domain, nodeFileName, host);
-                log.info("移除节点容器证书，路径：" + modeService.getInstallPath() + rmCertFile);
+                // log.info("移除节点容器证书，路径：" + modeService.getInstallPath() + rmCertFile);
+                log.info("Remove node container certificate, path：" + modeService.getInstallPath() + rmCertFile);
                 FileUtil.rmFile(new File(modeService.getInstallPath() + rmCertFile));
             } catch (Exception e) {
-                log.error(String.format("移除节点 %s 异常", host), e);
+                // log.error(String.format("移除节点 %s 异常", host), e);
+                log.error(String.format("An exception occurred while removing node %s", host), e);
                 e.printStackTrace();
             }
         }

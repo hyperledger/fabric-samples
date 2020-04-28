@@ -83,7 +83,8 @@ public class FabricCliService {
             FileUtils.copyFile(new File("/var/run/genesis.block"), new File(modeService.getInstallPath() + "channel-artifacts" + File.separator + "genesis.block"));
             FileUtils.copyFile(new File("/var/run/genesis.block"), initPathGenesisFile);
         } catch (Exception e) {
-            log.error(String.format("执行脚本获取通道 %s 配置异常", CHANNEL_NAME), e);
+            // log.error(String.format("执行脚本获取通道 %s 配置异常", CHANNEL_NAME), e);
+            log.error(String.format("An exception occurred while executing the script to get the configuration of channel %s", CHANNEL_NAME), e);
             e.printStackTrace();
             return false;
         }
@@ -134,7 +135,8 @@ public class FabricCliService {
                     }
                 }
             } catch (Exception e) {
-                log.error("执行 docker 脚步获取通道异常", e);
+                // log.error("执行 docker 脚步获取通道异常", e);
+                log.error("An exception occurred while executing docker steps to get the channel", e);
                 e.printStackTrace();
             }
         }
@@ -158,11 +160,13 @@ public class FabricCliService {
 
         try {
             if (!this.createCliYamlFile(destFilePath, initConfigEntity)) {
-                log.error("创建cli容器相关文件失败");
+                // log.error("创建cli容器相关文件失败");
+                log.error("Failed to create files related to cli container");
                 return false;
             }
         } catch (IOException e) {
-            log.error("创建cli容器相关文件异常", e);
+            // log.error("创建cli容器相关文件异常", e);
+            log.error("An exception occurred while creating the cli container related file", e);
             e.printStackTrace();
 
             return false;
@@ -171,11 +175,13 @@ public class FabricCliService {
         try {
             ProcessUtil.Result result = ProcessUtil.execCmd("bash " + destFilePath + "start-peer.sh startCli", null, destFilePath);
             if (result.getCode() == 0) {
-                log.info("启动 cli 容器成功");
+                // log.info("启动 cli 容器成功");
+                log.info("Successfully started cli container");
                 return true;
             }
         } catch (Exception e) {
-            log.error("执行启动 cli 容器的脚步异常", e);
+            // log.error("执行启动 cli 容器的脚本异常", e);
+            log.error("An exception occurred while executing the script of the cli container", e);
             e.printStackTrace();
         }
 

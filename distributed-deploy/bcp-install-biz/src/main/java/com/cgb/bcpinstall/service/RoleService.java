@@ -46,7 +46,6 @@ public class RoleService {
     @Autowired
     protected GlobalConfig globalConfig;
 
-
     /**
      * 根据服务器IP地址解析其所担任的角色，并添加到RoleBiz中
      *
@@ -70,11 +69,13 @@ public class RoleService {
      * @return 返回 RoleEnum->端口列表
      */
     public Map<RoleEnum, List<String>> parseAllRoles(String slaveAddress, InitConfigEntity configEntity) {
-        log.info(String.format("为服务器 %s 解析角色", slaveAddress));
+        // log.info(String.format("为服务器 %s 解析角色", slaveAddress));
+        log.info(String.format("Resolve roles for server %s", slaveAddress));
         Map<RoleEnum, List<String>> roles = new HashMap<>(16);
         this.parseRole(roles, slaveAddress, configEntity.getOrdererHostConfig(), RoleEnum.ORDER, configEntity);
         this.parseRole(roles, slaveAddress, configEntity.getPeerHostConfig(), RoleEnum.PEER, configEntity);
-        log.info(String.format("服务器 %s 解析后，所承担的角色有: ", slaveAddress, roles.keySet().stream().map(Enum::name).collect(Collectors.joining(","))));
+        // log.info(String.format("服务器 %s 解析后，所承担的角色有: ", slaveAddress, roles.keySet().stream().map(Enum::name).collect(Collectors.joining(","))));
+        log.info(String.format("After parsing by server %s, the assumed roles are: ", slaveAddress, roles.keySet().stream().map(Enum::name).collect(Collectors.joining(","))));
         return roles;
     }
 

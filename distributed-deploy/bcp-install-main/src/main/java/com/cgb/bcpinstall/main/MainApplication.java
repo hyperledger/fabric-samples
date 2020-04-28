@@ -55,17 +55,20 @@ public class MainApplication {
     public static void main(String[] args) {
         ApplicationContext app = SpringApplication.run(MainApplication.class, args);
         SpringUtil.setApplicationContext(app);
-        log.info("bcp-install 安装服务已启动...");
+        // log.info("bcp-install 安装服务已启动...");
+        log.info("bcp-install installation service has started...");
         GlobalConfig config = (GlobalConfig) SpringUtil.getBean("globalConfig");
         if (config.getMaster() == 1) {
-            log.info("本结点是主节点");
+            // log.info("本结点是主节点");
+            log.info("This node is the master node");
             InitializeBiz initializeBiz = (InitializeBiz) SpringUtil.getBean("initializeBiz");
             if (initializeBiz.needInit()) {
                 BaseResponse response = initializeBiz.initialize();
                 if (!response.getCode().equals(ResponseCode.SUCCESS)) {
                     log.error(response.getMsg());
                 } else {
-                    log.info("初始化完成");
+                    // log.info("初始化完成");
+                    log.info("Initialization completed");
                 }
                 SpringApplication.exit(app, () -> 0);
                 return;
@@ -94,7 +97,8 @@ public class MainApplication {
 
         @Override
         public void run(String... args) {
-            log.info("bcp-app-install 完成资源初始化");
+            // log.info("bcp-app-install 完成资源初始化");
+            log.info("bcp-app-install completed the resource initialization");
             initToolsFilePath();
         }
 
@@ -123,9 +127,13 @@ public class MainApplication {
                 CacheUtil.putConfigtxgenFilePath(toolsPath + "linux" + "/" + ToolsConstant.CONFIGTXGEN);
                 CacheUtil.putConfigtxlatorFilePath(toolsPath + "linux" + "/" + ToolsConstant.CONFIGTXLATOR);
             }
-            log.info("***  " + ToolsConstant.CRYPTOGEN + "工具本地路径为：" + CacheUtil.getCryptogenFilePath());
-            log.info("***  " + ToolsConstant.CONFIGTXGEN + "工具本地路径为：" + CacheUtil.getConfigtxgenFilePath());
-            log.info("***  " + ToolsConstant.CONFIGTXLATOR + "工具本地路径为：" + CacheUtil.getConfigtxlatorFilePath());
+            // log.info("***  " + ToolsConstant.CRYPTOGEN + "工具本地路径为：" + CacheUtil.getCryptogenFilePath());
+            // log.info("***  " + ToolsConstant.CONFIGTXGEN + "工具本地路径为：" + CacheUtil.getConfigtxgenFilePath());
+            // log.info("***  " + ToolsConstant.CONFIGTXLATOR + "工具本地路径为：" + CacheUtil.getConfigtxlatorFilePath());
+
+            log.info("***  " + ToolsConstant.CRYPTOGEN + "The local path of the tool is:" + CacheUtil.getCryptogenFilePath());
+            log.info("***  " + ToolsConstant.CONFIGTXGEN + "The local path of the tool is:" + CacheUtil.getConfigtxgenFilePath());
+            log.info("***  " + ToolsConstant.CONFIGTXLATOR + "The local path of the tool is:" + CacheUtil.getConfigtxlatorFilePath());
         }
     }
 }

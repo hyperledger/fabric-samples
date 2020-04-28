@@ -98,7 +98,8 @@ public class InstallController {
     public void getInstallData(@PathVariable("os") String osType, HttpServletRequest request, HttpServletResponse response) {
         String remoteAddr = request.getRemoteAddr();
 
-        log.info(String.format("从节点 %s 开始下载安装包", remoteAddr));
+        // log.info(String.format("从节点 %s 开始下载安装包", remoteAddr));
+        log.info(String.format("The slave node %s starts to download the installation package", remoteAddr));
 
         BaseResponse downloadResponse = new BaseResponse();
 
@@ -106,14 +107,16 @@ public class InstallController {
         try {
             osEnum = OSEnum.valueOf(osType);
         } catch (Exception e) {
-            log.error("解析系统类型异常", e);
+            // log.error("解析系统类型异常", e);
+            log.error("Parsing system type exception", e);
             e.printStackTrace();
         }
         if (osEnum == null) {
-            log.error(String.format("从节点系统类型错误: %s", osType));
+            // log.error(String.format("从节点系统类型错误: %s", osType));
 
             downloadResponse.setCode(ResponseCode.Fail);
-            downloadResponse.setMsg("不支持指定的系统类型: " + osType);
+            // downloadResponse.setMsg("不支持指定的系统类型: " + osType);
+            downloadResponse.setMsg("Slave node system type error: " + osType);
             setErrorResult(response, downloadResponse);
             return;
         }
@@ -124,7 +127,8 @@ public class InstallController {
         String filePath = fileService.packInstallFiles(remoteAddr, roleList, null);
         if (StringUtils.isEmpty(filePath)) {
             downloadResponse.setCode(ResponseCode.Fail);
-            downloadResponse.setMsg("打包安装文件失败");
+            // downloadResponse.setMsg("打包安装文件失败");
+            downloadResponse.setMsg("Package installation file failed");
             setErrorResult(response, downloadResponse);
             return;
         }
@@ -147,23 +151,28 @@ public class InstallController {
             IOUtils.copy(is, os);
 
             // 修改服务器对应的状态
-            log.info(String.format("设置从节点 %s 状态为下载完成", remoteAddr));
+            // log.info(String.format("设置从节点 %s 状态为下载完成", remoteAddr));
+            log.info(String.format("Set slave node %s status to download complete", remoteAddr));
             this.rolesBiz.setServerStatus(remoteAddr, InstallStatusEnum.DOWNLOADED);
 
         } catch (FileNotFoundException e) {
-            log.error("下载文件不存在", e);
+            // log.error("下载文件不存在", e);
+            log.error("The download file does not exist", e);
             e.printStackTrace();
 
             downloadResponse.setCode(ResponseCode.Fail);
-            downloadResponse.setMsg("下载文件不存在");
+            // downloadResponse.setMsg("下载文件不存在");
+            downloadResponse.setMsg("The download file does not exist");
 
             setErrorResult(response, downloadResponse);
         } catch (IOException e) {
-            log.error("获取HttpServletResponse输出流发生异常", e);
+            // log.error("获取HttpServletResponse输出流发生异常", e);
+            log.error("Get HttpServletResponse output stream exception", e);
             e.printStackTrace();
 
             downloadResponse.setCode(ResponseCode.Fail);
-            downloadResponse.setMsg("获取HttpServletResponse输出流发生异常");
+            // downloadResponse.setMsg("获取HttpServletResponse输出流发生异常");
+            downloadResponse.setMsg("Get HttpServletResponse output stream exception");
 
             setErrorResult(response, downloadResponse);
         } finally {
@@ -176,7 +185,8 @@ public class InstallController {
     @ApiOperation(value = "下载安装文件")
     @InvokeLog(name = "pushInstallPackage", description = "推送安装文件")
     public HttpInstallResponse pushInstallPackage(HttpServletRequest request) {
-        log.info("准备接收主节点推送的安装包");
+        // log.info("准备接收主节点推送的安装包");
+        log.info("Prepare to receive the installation package pushed by the master node");
 
         this.installBiz.setMasterServer("http://" + request.getRemoteAddr() + ":8080");
 
@@ -188,7 +198,8 @@ public class InstallController {
 
             this.installBiz.installPackageReady();
         } catch (Exception e) {
-            log.error("接收安装包异常", e);
+            // log.error("接收安装包异常", e);
+            log.error("Abnormal reception of installation package", e);
             response.setCode(ResponseCode.Fail.getCode());
             e.printStackTrace();
         }
@@ -220,7 +231,8 @@ public class InstallController {
     @InvokeLog(name = "doInstall", description = "开始安装")
     public HttpInstallResponse doInstall(HttpServletRequest request) {
         HttpInstallResponse response = new HttpInstallResponse();
-        log.info("从节点收到安装指令");
+        // log.info("从节点收到安装指令");
+        log.info("The slave node receives the installation instruction");
         try {
             //获取安装指令实例
             Part contentPart = request.getPart("content");
@@ -281,7 +293,8 @@ public class InstallController {
                 Part part = request.getPart("file");
                 part.write(filePath);
             }
-            log.info("从节点收到移除指令");
+            // log.info("从节点收到移除指令");
+            log.info("The slave node received the removal instruction");
             String domain = removeCmd.getRole() == RoleEnum.ORDER ? removeCmd.getOrdererDomain() : removeCmd.getPeerDomain();
             updateService.removeNode(removeCmd.getRole(), domain, removeCmd.getHostNames(), removeCmd.getPorts());
         } catch (Exception e) {
@@ -311,7 +324,8 @@ public class InstallController {
             Part part = request.getPart("file");
             installBiz.handleUpdate(cmd, part);
         } catch (Exception e) {
-            log.error("接收更新指令异常", e);
+            // log.error("接收更新指令异常", e);
+            log.error("Receive update instruction exception", e);
             response.setCode(ResponseCode.Fail.getCode());
             e.printStackTrace();
         }
@@ -330,7 +344,8 @@ public class InstallController {
     @ApiOperation(value = "完成安装")
     @InvokeLog(name = "installFinished", description = "完成安装")
     public HttpInstallResponse installFinished(@RequestBody InstallResult result, HttpServletRequest request) {
-        log.info(String.format("从节点 %s 完成安装", request.getRemoteAddr()));
+        // log.info(String.format("从节点 %s 完成安装", request.getRemoteAddr()));
+        log.info(String.format("Slave node %s completes the installation", request.getRemoteAddr()));
 
         modeService.updateInstallResult(request.getRemoteAddr(), result, null);
         return new HttpInstallResponse();
@@ -346,7 +361,8 @@ public class InstallController {
     @ApiOperation(value = "结束安装")
     @InvokeLog(name = "endInstall", description = "结束安装")
     public HttpInstallResponse endInstall(@RequestBody EndCmd result) {
-        log.info("从节点收到结束安装指令");
+        // log.info("从节点收到结束安装指令");
+        log.info("The master node receives the end installation instruction");
 
         this.installBiz.doEnd();
         return new HttpInstallResponse();

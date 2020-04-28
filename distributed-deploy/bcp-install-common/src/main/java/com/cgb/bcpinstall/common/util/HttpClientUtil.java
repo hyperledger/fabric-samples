@@ -161,7 +161,8 @@ public class HttpClientUtil {
                     //.setSSLHostnameVerifier(hv)
                     .build();
         } catch (Exception e) {
-            log.error("初始化http client异常", e);
+            // log.error("初始化http client异常", e);
+            log.error("An exception occurred while initializing http client", e);
             e.printStackTrace();
         }
     }
@@ -363,7 +364,8 @@ public class HttpClientUtil {
                 out = new ByteArrayOutputStream();
                 IOUtils.copy(in, out);
 
-                throw new DownloadFileException(out.toString(), "下载文件失败");
+                // throw new DownloadFileException(out.toString(), "下载文件失败");
+                throw new DownloadFileException(out.toString(), "File download failed");
             }
 
             File file = new File(localFilePath);
@@ -400,7 +402,8 @@ public class HttpClientUtil {
                 return result;
             }
         } catch (IOException e) {
-            log.error(String.format("上传文件 %s 到 %s 异常", filePath, url));
+            // log.error(String.format("上传文件 %s 到 %s 异常", filePath, url));
+            log.error(String.format("An exception occurred while uploading files %s to %s", filePath, url));
             e.printStackTrace();
         }
 
@@ -437,7 +440,8 @@ public class HttpClientUtil {
                 return result;
             }
         } catch (Exception e) {
-            log.error(String.format("发送文件 %s 到 %s 异常", filePath, url));
+            // log.error(String.format("发送文件 %s 到 %s 异常", filePath, url));
+            log.error(String.format("An exception occurred while sending files %s to %s", filePath, url));
             e.printStackTrace();
         }
 
@@ -488,7 +492,5 @@ public class HttpClientUtil {
             }
             return false;
         }
-
     }
-
 }

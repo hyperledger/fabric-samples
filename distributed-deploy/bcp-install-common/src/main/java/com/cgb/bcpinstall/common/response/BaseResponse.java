@@ -78,7 +78,6 @@ public class BaseResponse<T> implements Serializable {
         this.data = data;
     }
 
-
     @Override
     public String toString() {
         return new ToStringBuilder(this)
@@ -88,7 +87,6 @@ public class BaseResponse<T> implements Serializable {
                 .toString();
     }
 
-
     public String toJsonString() {
         return "{" +
                 "\"msg\":\"" + msg + "\"," +
@@ -96,5 +94,4 @@ public class BaseResponse<T> implements Serializable {
                 "\"data\":\"" + data + "\"" +
                 '}';
     }
-
 }

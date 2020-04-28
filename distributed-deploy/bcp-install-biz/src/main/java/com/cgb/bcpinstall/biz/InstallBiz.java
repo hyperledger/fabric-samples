@@ -106,7 +106,8 @@ public class InstallBiz {
         if (this.globalConfig.getMaster() == 1) {
             File configFile = new File(this.initConfigFile);
             if (!configFile.exists() || !configFile.isFile()) {
-                log.error(String.format("initconfig.propertise(传入的路径：%s)文件不存在, 请按任意键结束，重新运行", this.initConfigFile));
+                // log.error(String.format("initconfig.propertise(传入的路径：%s)文件不存在, 请按任意键结束，重新运行", this.initConfigFile));
+                log.error(String.format("initconfig.propertise(Incoming path:%s) the file does not exist, please press any key to end and re-run", this.initConfigFile));
                 this.finished.set(true);
                 return;
             }
@@ -114,7 +115,8 @@ public class InstallBiz {
             try {
                 this.configEntity = initConfigService.parseConfigFile(this.initConfigFile);
                 if (configEntity == null) {
-                    log.error("解析初始化配置文件失败");
+                    // log.error("解析初始化配置文件失败");
+                    log.error("Failed to parse the initialization configuration file");
                     this.doEnd();
                     return;
                 }
@@ -124,12 +126,14 @@ public class InstallBiz {
                     return;
                 }
                 if (this.configEntity.getOrdererHostConfig().size() < 3) {
-                    log.error("orderer 节点不能少于3个，请重新编辑配置文件，结束安装");
+                    // log.error("orderer 节点不能少于3个，请重新编辑配置文件，结束安装");
+                    log.error("There must be at least 3 orderer nodes, please edit the configuration file again to end the installation");
                     this.doEnd();
                     return;
                 }
                 if (this.configEntity.getPeerHostConfig().size() < 2) {
-                    log.error("peer 节点不能少于2个，请重新编辑配置文件，结束安装");
+                    // log.error("peer 节点不能少于2个，请重新编辑配置文件，结束安装");
+                    log.error("There must be at least two peer nodes. please edit the configuration file again to end the installation");
                     this.doEnd();
                     return;
                 }
@@ -140,7 +144,8 @@ public class InstallBiz {
                     if (checkModifyInstall()) {
                         installModeAction = (InstallMode) SpringUtil.getBean("updateNetworkBiz");
                     } else {
-                        System.out.println("在配置文件中没有找到需要更新的信息");
+                        // System.out.println("在配置文件中没有找到需要更新的信息");
+                        System.out.println("No information needed to be updated in the configuration file");
                     }
                 }
                 if (installModeAction != null) {
@@ -149,7 +154,8 @@ public class InstallBiz {
                 }
 
             } catch (Exception e) {
-                log.error("安装过程发生异常", e);
+                // log.error("安装过程发生异常", e);
+                log.error("An exception occurred during the installation process", e);
                 e.printStackTrace();
             }
         }
@@ -164,7 +170,8 @@ public class InstallBiz {
         try {
             return !this.checkPointDb.nodesTableEmpty();
         } catch (SQLException e) {
-            log.error("查询本地数据库失败", e);
+            // log.error("查询本地数据库失败", e);
+            log.error("Query local database failed", e);
             e.printStackTrace();
         }
 
@@ -178,7 +185,8 @@ public class InstallBiz {
      */
     public void slaveInstall(RoleEnum role, List<String> ports, Map<String, String> hosts, String roleFolderName) {
         new Thread(() -> {
-            log.info(String.format("从节点开始进行角色 %s 的安装", role.name()));
+            // log.info(String.format("从节点开始进行角色 %s 的安装", role.name()));
+            log.info(String.format("The slave node starts the installation of role %s", role.name()));
             if (this.startInstall(role, ports, hosts, roleFolderName)) {
                 InstallResult result = new InstallResult();
                 result.setRole(role);
@@ -189,11 +197,13 @@ public class InstallBiz {
                         if (!StringUtils.isEmpty(res)) {
                             HttpInstallResponse response = JSONObject.parseObject(res, HttpInstallResponse.class);
                             if (ResponseCode.SUCCESS.getCode().equals(response.getCode())) {
-                                log.info(String.format("向主节点报告安装 %s 状态成功", role.name()));
+                                // log.info(String.format("向主节点报告安装 %s 状态成功", role.name()));
+                                log.info(String.format("Report successful installation %s status to the master node", role.name()));
                                 break;
                             }
                         }
-                        log.info(String.format("向主节点报告安装 %s 状态失败，稍后重试...", role.name()));
+                        // log.info(String.format("向主节点报告安装 %s 状态失败，稍后重试...", role.name()));
+                        log.info(String.format("Report failed installation %s status to the master node, try again later ...", role.name()));
                         try {
                             Thread.sleep(5000);
                         } catch (Exception e) {
@@ -202,7 +212,8 @@ public class InstallBiz {
 
                     } while (true);
                 } catch (Exception e) {
-                    log.error("向主服务器发送安装完成状态异常", e);
+                    // log.error("向主服务器发送安装完成状态异常", e);
+                    log.error("Send abnormal installation completion status to the main server", e);
                     e.printStackTrace();
                 }
             }
@@ -243,16 +254,18 @@ public class InstallBiz {
         try {
             ProcessUtil.Result result = ProcessUtil.execCmd("docker exec " + currentOrdererName + " bash updateOrdererHost.sh " + newOrderName + " " + ip, null, modeService.getInstallPath());
             if (result.getCode() == 0) {
-                log.info(String.format("更新 docker 容器 %s 的 Hosts 成功: ", currentOrdererName));
+                // log.info(String.format("更新 docker 容器 %s 的 Hosts 成功: ", currentOrdererName));
+                log.info(String.format("Successfully updated Hosts of docker container %s: ", currentOrdererName));
             } else {
-                log.error(String.format("更新 docker 容器 %s 的 Hosts 失败: " + result.getData(), currentOrdererName));
+                // log.error(String.format("更新 docker 容器 %s 的 Hosts 失败: " + result.getData(), currentOrdererName));
+                log.error(String.format("Failed to update Hosts of docker container %s: " + result.getData(), currentOrdererName));
             }
         } catch (Exception e) {
-            log.error(String.format("更新 docker 容器 %s 的 HostsPath 异常", currentOrdererName), e);
+            // log.error(String.format("更新 docker 容器 %s 的 HostsPath 异常", currentOrdererName), e);
+            log.error(String.format("Update HostsPath exception of docker container %s", currentOrdererName), e);
             e.printStackTrace();
         }
     }
-
 
     public void handleUpdate(UpdateCmd cmd, Part part) {
         try {
@@ -273,7 +286,7 @@ public class InstallBiz {
 
     public void doEnd() {
         this.finished.set(true);
-        System.out.println("*****安装服务已完成*****");
+        // System.out.println("*****安装服务已完成*****");
+        System.out.println("*****Installation service is complete*****");
     }
-
 }

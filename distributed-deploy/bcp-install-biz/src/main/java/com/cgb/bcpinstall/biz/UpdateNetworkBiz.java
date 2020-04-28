@@ -62,7 +62,8 @@ public class UpdateNetworkBiz implements InstallMode {
                 && CollectionUtils.isEmpty(removedNodeConfigs.getPeerHostConfig())
                 && CollectionUtils.isEmpty(addedNodeConfigs.getOrdererHostConfig())
                 && CollectionUtils.isEmpty(addedNodeConfigs.getPeerHostConfig()))) {
-            log.info("未发现与上次安装的差异，无需安装任何节点");
+            // log.info("未发现与上次安装的差异，无需安装任何节点");
+            log.info("Did not find the difference from the last installation, no need to install any node");
             return;
         }
         doRemoveNodes(removedNodeConfigs, configEntity);
@@ -176,7 +177,8 @@ public class UpdateNetworkBiz implements InstallMode {
         try {
             return this.checkPointDb.find(nodeDO);
         } catch (SQLException e) {
-            log.error("查询数据库异常", e);
+            // log.error("查询数据库异常", e);
+            log.error("Exception when querying the database", e);
             e.printStackTrace();
         }
 

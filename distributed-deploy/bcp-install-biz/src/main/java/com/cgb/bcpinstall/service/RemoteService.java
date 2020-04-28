@@ -54,7 +54,6 @@ public class RemoteService {
     @Autowired
     protected RolesBiz rolesBiz;
 
-
     /**
      * 主节点给从节点发送安装指令
      *
@@ -63,7 +62,8 @@ public class RemoteService {
      * @return
      */
     public HttpInstallResponse sendInstallCommand(ServerEntity server, RoleEnum role, String folderName, InitConfigEntity configEntity) {
-        log.info(String.format("主节点给从节点 %s 发送安装角色：%s", server.getHost(), role.name()));
+        // log.info(String.format("主节点给从节点 %s 发送安装角色：%s", server.getHost(), role.name()));
+        log.info(String.format("The master node sends the installation role %s to slave node %s", role.name(), server.getHost()));
         try {
             Map<String, String> revisedHosts = new HashMap<>();
             Map<String, String> hosts = environmentService.getRoleNeedSetHost(role, configEntity);
@@ -85,13 +85,16 @@ public class RemoteService {
             //发生安装指令
             String result = this.httpClient.sendFileAndJson(server.getHttpUrl() + "/v1/install/start", "", JSONObject.toJSONString(entity));
             if (result.isEmpty()) {
-                log.error("注册角色返回结果为空");
+                // log.error("注册角色返回结果为空");
+                log.error("The result value returned when registering a role is empty");
             } else {
-                log.info("注册角色返回结果: " + result);
+                // log.info("注册角色返回结果: " + result);
+                log.info("The value returned when registering a role is: " + result);
                 return JSON.parseObject(result, HttpInstallResponse.class);
             }
         } catch (Exception e) {
-            log.error("发送安装指令异常", e);
+            // log.error("发送安装指令异常", e);
+            log.error("An exception occurred when sending the installation instruction", e);
             e.printStackTrace();
         }
 
@@ -120,7 +123,8 @@ public class RemoteService {
             if (!StringUtils.isEmpty(result)) {
                 HttpInstallResponse response = JSONObject.parseObject(result, HttpInstallResponse.class);
                 if (ResponseCode.SUCCESS.getCode().equals(response.getCode())) {
-                    log.info(String.format("向从节点 %s 推送安装包成功", remoteAddr));
+                    // log.info(String.format("向从节点 %s 推送安装包成功", remoteAddr));
+                    log.info(String.format("Successfully pushed the installation package to slave node %s", remoteAddr));
                     this.rolesBiz.setServerStatus(remoteAddr, InstallStatusEnum.DOWNLOADED);
                     break;
                 }
@@ -128,7 +132,8 @@ public class RemoteService {
             if (retryCount == retryTotal) {
                 break;
             }
-            log.info(String.format("向从节点 %s 推送安装包失败，稍后重试...", remoteAddr));
+            // log.info(String.format("向从节点 %s 推送安装包失败，稍后重试...", remoteAddr));
+            log.info(String.format("Failed to push the installation package to slave node %s, try again later...", remoteAddr));
             try {
                 Thread.sleep(8000);
             } catch (Exception e) {
@@ -159,15 +164,18 @@ public class RemoteService {
                     if (!StringUtils.isEmpty(result)) {
                         HttpInstallResponse response = JSONObject.parseObject(result, HttpInstallResponse.class);
                         if (ResponseCode.SUCCESS.getCode().equals(response.getCode())) {
-                            log.info(String.format("发送结束指令给 %s 成功", url));
+                            // log.info(String.format("发送结束指令给 %s 成功", url));
+                            log.info(String.format("Successfully sent the end command to node %s", url));
                             break;
                         }
                     }
                     if (retryCount == retryTotal) {
-                        log.info("发送结束指令超时");
+                        // log.info("发送结束指令超时");
+                        log.info("Send end command timeout");
                         break;
                     }
-                    log.info(String.format("发送结束指令给 %s 失败，稍后重试...", url));
+                    // log.info(String.format("发送结束指令给 %s 失败，稍后重试...", url));
+                    log.info(String.format("Failed to send end command to node %s, try again later...", url));
                     try {
                         Thread.sleep(5000);
                     } catch (Exception e) {
@@ -176,7 +184,8 @@ public class RemoteService {
                     retryCount++;
                 } while (true);
             } catch (IOException e) {
-                log.error(String.format("发送结束指令给 %s 异常", url));
+                // log.error(String.format("发送结束指令给 %s 异常", url));
+                log.error(String.format("An exception occurred when sending the end command to node %s", url));
                 e.printStackTrace();
             }
         }

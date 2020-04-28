@@ -81,26 +81,33 @@ public class PeerExtendBiz {
     public void peerExtend(Map<String, String> diffPeerHostConfig, InitConfigEntity configEntity) {
         //在主节点修改crypto-config.yaml文件，添加新节点hostname,编写生成证书命令行，参数extend，执行命令生成新节点证书,生成新增节点的compose文件
         //在crypto-config配置文件添加新节点hostName，调用generate.sh生成新节点证书
-        log.info("在crypto-config配置文件添加新节点hostName，调用generate.sh生成新节点证书");
+        // log.info("在crypto-config配置文件添加新节点hostName，调用generate.sh生成新节点证书");
+        log.info("Add a new node hostName in the crypto-config configuration file, run generate.sh to generate a new node certificate");
         /*initializer.reCreateNewPeerConfigFile(configEntity);*/
         fabricConfigGen.cryptoGen(configEntity);
         configFileGen.createExtendCerts();
         //生成新节点的docker-compose文件
-        log.info("生成新节点的docker-compose文件");
+        // log.info("生成新节点的docker-compose文件");
+        log.info("Generate a docker-compose file for the new node");
 
         Map<String, List<String>> peerHostGroup = dockerConfigGen.groupHostByIp(diffPeerHostConfig);
         Map<String, String> ipPathMap = this.createNewPeerDockerFile(configEntity, peerHostGroup);
         //将新生成的证书拷贝到主节点安装目录
-        log.info("将新生成的证书拷贝到主节点安装目录");
+        // log.info("将新生成的证书拷贝到主节点安装目录");
+        log.info("Copy the newly generated certificate to the master node installation directory");
         fileService.masterCopyCryptoConfig();
-        log.info("注册新Peer节点角色");
+        // log.info("注册新Peer节点角色");
+        log.info("Register a new Peer node role");
         List<String> ports = this.registerNewPeerRole(peerHostGroup);
-        log.info("推送新peer的安装文件");
+        // log.info("推送新peer的安装文件");
+        log.info("Send new peer installation file");
         this.sendNewPeerFile(ipPathMap, configEntity);
         //启动新节点
-        log.info("启动新新增peer");
+        // log.info("启动新新增peer");
+        log.info("Run the new peer node");
         List<ServerEntity> serverList = this.startNewPeer(ipPathMap, ports, configEntity);
-        log.info("等待所有 peer 启动成功");
+        // log.info("等待所有 peer 启动成功");
+        log.info("Wait for all peer nodes to start successfully");
         while (serverList.stream().anyMatch(s -> s.getStatus() != InstallStatusEnum.SUCCESS)) {
             try {
                 Thread.sleep(5000);
@@ -110,13 +117,16 @@ public class PeerExtendBiz {
         }
         // 将新节点的域名更新到cli所在宿主机的host
         // 在宿主机防火墙中打开新节点的端口
-        log.info("将新节点的域名写入到hosts，在防火墙中开启新节点端口");
+        // log.info("将新节点的域名写入到hosts，在防火墙中开启新节点端口");
+        log.info("Write the domain name of the new node to the hosts, and open the new node port in the firewall");
         environmentService.updateNewPeerHostPort(diffPeerHostConfig);
 
         // 启动一个 cli 容器
-        log.info("主节点创建cli容器");
+        // log.info("主节点创建cli容器");
+        log.info("The master node creates a cli container");
         if (!fabricCliService.createCliContainer(modeService.getInstallPath() + "cli", configEntity)) {
-            log.error("创建cli容器失败");
+            // log.error("创建cli容器失败");
+            log.error("Failed to create cli container");
             return;
         }
 
@@ -130,12 +140,15 @@ public class PeerExtendBiz {
 
         //新节点加入链
         if (!CollectionUtils.isEmpty(channelList)) {
-            log.info("新增节点加入链");
+            // log.info("新增节点加入链");
+            log.info("New node joins the chain");
             Set<String> joinChannels = newPeerJoinChannel(configEntity, diffPeerHostConfig, channelList);
-            log.info("新增节点加入链-joinChannels=" + JSON.toJSONString(joinChannels));
+            // log.info("新增节点加入链-joinChannels=" + JSON.toJSONString(joinChannels));
+            log.info("New node joins the chain - joinChannels=" + JSON.toJSONString(joinChannels));
         }
 
-        log.info("将新 peer(s) 信息加入本地数据库");
+        // log.info("将新 peer(s) 信息加入本地数据库");
+        log.info("Add the new peer(s) node information to the local database");
         // 更新数据库
         for (String host : diffPeerHostConfig.keySet()) {
             String ip = diffPeerHostConfig.get(host);
@@ -153,11 +166,11 @@ public class PeerExtendBiz {
             try {
                 this.checkPointDb.addNodeRecord(nodeDO);
             } catch (SQLException e) {
-                log.error(String.format("添加新 peer 节点 %s 记录到数据库异常", host), e);
+                // log.error(String.format("添加新 peer 节点 %s 记录到数据库异常", host), e);
+                log.error(String.format("An exception occurred while recording the new peer node %s to the database", host), e);
                 e.printStackTrace();
             }
         }
-
     }
 
     private List<String> registerNewPeerRole(Map<String, List<String>> peerHostGroup) {
@@ -182,12 +195,14 @@ public class PeerExtendBiz {
                 fileService.copyFiles(RoleEnum.PEER, ip, folderName, modeService.getInstallPath(), folderName, configEntity, null);
                 this.rolesBiz.setServerStatus(ip, InstallStatusEnum.DOWNLOADED);
             } else {
-                log.info("为新增 peer 打包安装包");
+                // log.info("为新增 peer 打包安装包");
+                log.info("Package the installation package for the newly added peer node");
 
                 String packFilePath = fileService.packExtendNodeFiles(ip, folderName, RoleEnum.PEER, configEntity);
 
                 // 发送到节点启动
-                log.info("将生成的文件包发送到新增 peer 节点");
+                // log.info("将生成的文件包发送到新增 peer 节点");
+                log.info("Send the generated file package to the newly added peer node");
                 remoteService.pushSlaveInstallPackage(ip, packFilePath, configEntity);
             }
         }
@@ -196,7 +211,8 @@ public class PeerExtendBiz {
     private List<ServerEntity> startNewPeer(Map<String, String> ipPathMap, List<String> ports, InitConfigEntity configEntity) {
         List<ServerEntity> serverList = this.rolesBiz.getRolesMap().get(RoleEnum.PEER);
         for (String ip : ipPathMap.keySet()) {
-            log.info(String.format("发送安装命令到新增 peer 节点 %s", ip));
+            // log.info(String.format("发送安装命令到新增 peer 节点 %s", ip));
+            log.info(String.format("Send installation command to the newly added peer node %s", ip));
 
             String path = ipPathMap.get(ip);
 
@@ -215,12 +231,14 @@ public class PeerExtendBiz {
                         do {
                             HttpInstallResponse response = remoteService.sendInstallCommand(server, RoleEnum.PEER, folderName, configEntity);
                             if (ResponseCode.SUCCESS.getCode().equals(response.getCode())) {
-                                log.warn(String.format("发送安装指令给 %s 节点安装 peer 成功", ip));
+                                // log.warn(String.format("发送安装指令给 %s 节点安装 peer 成功", ip));
+                                log.warn(String.format("Send installation instructions to %s, successful installation of peer node", ip));
                                 this.rolesBiz.setServerStatus(ip, InstallStatusEnum.INSTALLING);
                                 break;
                             }
 
-                            log.warn(String.format("发送安装指令给 %s 节点安装 peer 失败，稍后重试...", ip));
+                            // log.warn(String.format("发送安装指令给 %s 节点安装 peer 失败，稍后重试...", ip));
+                            log.warn(String.format("Send installation instruction to %s, failed to install peer node, try again later...", ip));
                             try {
                                 Thread.sleep(3000);
                             } catch (InterruptedException e) {
@@ -260,7 +278,8 @@ public class PeerExtendBiz {
                     FileUtils.copyFile(new File(modeService.getInitDir() + "template/newPeerJoinChannel.sh"), new File(modeService.getInstallPath() + "cli/scripts/newPeerJoinChannel.sh"));
                     ProcessUtil.Result result = ProcessUtil.execCmd(cmd, null, modeService.getInstallPath() + "cli");
                 } catch (Exception e) {
-                    log.error("执行 docker 脚本异常", e);
+                    // log.error("执行 docker 脚本异常", e);
+                    log.error("An exception occurred while executing the docker script", e);
                     e.printStackTrace();
                 }
             }
@@ -279,7 +298,8 @@ public class PeerExtendBiz {
         Set<String> selectChannels = new HashSet<>();
         Map<String, String> selectChannelIndexMap = new HashMap<>(16);
         //选择需要加入的业务链
-        System.out.println("请根据以下列表，选择扩容peer需要加入的业务链。");
+        // System.out.println("请根据以下列表，选择扩容peer需要加入的业务链。");
+        System.out.println("Please select the business chain that the expanded peer node needs to join according to the following list");
         StringBuilder builder = new StringBuilder();
         int nextLine = 1;
         for (String channel : queryChannelList) {
@@ -296,17 +316,20 @@ public class PeerExtendBiz {
         }
         System.out.println(builder.toString());
         Scanner sc = new Scanner(System.in);
-        System.out.print("请输入需要加入的链名编号(多于一个编号时以“,”分割,请回车后输入):");
+        // System.out.print("请输入需要加入的链名编号(多于一个编号时以“,”分割,请回车后输入):");
+        System.out.print("Please enter the chain name number to be added (if more than one number is divided by ",", please enter after entering):");
 
         String inputIndexList = "";
         if (sc.hasNextLine()) {
             inputIndexList = sc.nextLine();
-            System.out.println("用户输入" + inputIndexList);
+            // System.out.println("用户输入" + inputIndexList);
+            System.out.println("User input" + inputIndexList);
         }
         sc.close();
 
         if (StringUtils.isEmpty(inputIndexList)) {
-            log.info("扩容节点——用户输入为空，默认加入本机构的所有业务链");
+            // log.info("扩容节点——用户输入为空，默认加入本机构的所有业务链");
+            log.info("Expansion node -- User input is empty, default to join all business chains of the institution");
             selectChannels.addAll(queryChannelList);
             selectChannels.remove("");
         } else {

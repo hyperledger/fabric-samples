@@ -72,7 +72,8 @@ public class PeerRemoveBiz {
 
     public void peerRemove(Map<String, String> removedPeerHostConfig, InitConfigEntity configEntity) {
         // 通知移除的 peer 节点停止并删除相关文件
-        log.info("移除节点停止peer容器");
+        // log.info("移除节点停止peer容器");
+        log.info("Remove the node to stop the peer container");
         Map<String, List<String>> removeGroup = dockerConfigGen.groupHostByIp(removedPeerHostConfig);
         String stopNodeFilePath = (this.initDir.endsWith(File.separator) ? this.initDir : this.initDir + File.separator) + "template/stopNode.sh";
         for (String ip : removeGroup.keySet()) {
@@ -82,7 +83,8 @@ public class PeerRemoveBiz {
                 try {
                     FileUtils.copyFile(new File(stopNodeFilePath), new File(modeService.getInstallPath() + "stopNode.sh"));
                 } catch (Exception e) {
-                    log.info("复制stopNode.sh发生异常");
+                    // log.info("复制stopNode.sh发生异常");
+                    log.info("An exception occurred while copying the stopNode.sh file");
                     return;
                 }
                 updateService.removeNode(RoleEnum.PEER, peerRemoveCmd.getPeerDomain(), peerRemoveCmd.getHostNames(), peerRemoveCmd.getPorts());
@@ -100,9 +102,11 @@ public class PeerRemoveBiz {
                             }
                         }
 
-                        log.warn(String.format("给节点 %s 发送移除命令返回失败，稍后重试", ip));
+                        // log.warn(String.format("给节点 %s 发送移除命令返回失败，稍后重试", ip));
+                        log.warn(String.format("Failed when sending delete command to node %s, try again later", ip));
                     } catch (Exception e) {
-                        log.warn(String.format("给节点 %s 发送移除命令异常，稍后重试", ip), e);
+                        // log.warn(String.format("给节点 %s 发送移除命令异常，稍后重试", ip), e);
+                        log.warn(String.format("An exception occurred while sending a remove command to node %s, try again later", ip), e);
                         e.printStackTrace();
                     }
 
@@ -115,10 +119,12 @@ public class PeerRemoveBiz {
             }
         }
         //将主节点相关证书删除
-        log.info("将主节点相关证书删除");
+        // log.info("将主节点相关证书删除");
+        log.info("Delete the certificate of the master node");
         fileService.removeCertFile(RoleEnum.PEER, configEntity, removedPeerHostConfig, true);
         // 更新本地数据库
-        log.info("将已移除的 peer(s) 节点从数据库中删除");
+        // log.info("将已移除的 peer(s) 节点从数据库中删除");
+        log.info("Delete the removed peer(s) node from the database");
         // 从数据库中删除
         for (String host : removedPeerHostConfig.keySet()) {
             String ip = removedPeerHostConfig.get(host);
@@ -135,11 +141,10 @@ public class PeerRemoveBiz {
             try {
                 this.checkPointDb.deleteNodeRecord(nodeDO);
             } catch (SQLException e) {
-                log.error(String.format("将节点 %s 从数据库中删除异常", host), e);
+                // log.error(String.format("将节点 %s 从数据库中删除异常", host), e);
+                log.error(String.format("An exception occurred while deleting node %s from the database", host), e);
                 e.printStackTrace();
             }
         }
     }
-
-
 }

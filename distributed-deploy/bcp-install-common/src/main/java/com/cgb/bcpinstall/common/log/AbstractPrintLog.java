@@ -45,7 +45,8 @@ public abstract class AbstractPrintLog {
 
 
     public static final Logger logger = LoggerFactory.getLogger(AbstractPrintLog.class);
-    private static final String MSG = "\n --请求--\n --方法：{}\n --描述：{}\n --位置：{}\n --参数：{}\n --返回：{}\n --耗时：{} ms";
+    // private static final String MSG = "\n --请求--\n --方法：{}\n --描述：{}\n --位置：{}\n --参数：{}\n --返回：{}\n --耗时：{} ms";
+    private static final String MSG = "\n --request--\n --method:{}\n --description:{}\n --position:{}\n --parameter:{}\n --result:{}\n --time consuming:{} ms";
     /**
      * 服务响应超过2秒打印警告日志
      */

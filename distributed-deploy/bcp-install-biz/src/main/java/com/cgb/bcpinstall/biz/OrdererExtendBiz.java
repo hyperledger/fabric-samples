@@ -89,19 +89,22 @@ public class OrdererExtendBiz {
     private DockerConfigGenImpl dockerConfigGen;
 
     public void ordererExtend(Map<String, String> newOrdererHostConfig, InitConfigEntity configEntity) {
-        log.info("为新增 orderer 生成证书");
+        // log.info("为新增 orderer 生成证书");
+        log.info("Generate certificate for new orderer");
         // 生成证书
         try {
             fabricConfigGen.configTxGen(configEntity);
             fabricConfigGen.cryptoGen(configEntity);
             configFileGen.createExtendCerts();
         } catch (Exception e) {
-            log.error("为新增的 orderer 节点生成证书异常", e);
+            // log.error("为新增的 orderer 节点生成证书异常", e);
+            log.error("Generate certificate exception for newly added orderer node", e);
             e.printStackTrace();
             return;
         }
 
-        log.info("为新增 orderer 生成 docker 相关文件");
+        // log.info("为新增 orderer 生成 docker 相关文件");
+        log.info("Generate docker related files for new orderer");
         // 生成 docker-compose-order-xxxx.yaml 和 start-order.sh 文件
 
         Map<String, String> filePathMap = new HashMap<>(16);
@@ -122,65 +125,78 @@ public class OrdererExtendBiz {
             }
         }
 
-        log.info("将新生成的证书拷贝到主节点安装目录");
+        // log.info("将新生成的证书拷贝到主节点安装目录");
+        log.info("Copy the newly generated certificate to the master node installation directory");
         fileService.masterCopyCryptoConfig();
         fileService.masterCopyConfigtxFile();
 
         // 启动一个 cli 容器
-        log.info("主节点创建cli容器");
+        // log.info("主节点创建cli容器");
+        log.info("The master node creates a cli container");
         if (!fabricCliService.createCliContainer(modeService.getInstallPath() + "cli", configEntity)) {
-            log.error("创建cli容器失败");
+            // log.error("创建cli容器失败");
+            log.error("Failed to create cli container");
             return;
         }
 
-        log.info("修改所有其他 orderer 节点配置");
+        // log.info("修改所有其他 orderer 节点配置");
+        log.info("Modify all other orderer node configurations");
         // 修改所有其他 orderer 节点配置，并重启
         updateOldOrdererContainers(newOrdererHostConfig, configEntity);
 
         // 收集所有节点加入的通道
-        log.info("获取所有节点加入的通道列表");
+        // log.info("获取所有节点加入的通道列表");
+        log.info("Get a list of channels added by all nodes");
         Set<String> channelList = new HashSet<>();
         try {
             channelList.addAll(fabricCliService.getAllChannels(configEntity));
         } catch (IOException e) {
-            log.error("获取节点加入的所有通道异常", e);
+            // log.error("获取节点加入的所有通道异常", e);
+            log.error("Get all the channels that the node joins are abnormal", e);
             e.printStackTrace();
         }
 
-
-        log.info("修改网络配置");
+        // log.info("修改网络配置");
+        log.info("Modify network configuration");
         // 修改网络配置
-        log.info("将新加入的 orderer(s) 加入系统通道");
+        // log.info("将新加入的 orderer(s) 加入系统通道");
+        log.info("Add the newly added orderer(s) to the system channel");
 
         Map<String, String> oldOrdererConfig = updateService.getOldNodeConfigMap(configEntity.getOrdererHostConfig(), newOrdererHostConfig);
 
         for (String newOrdererHost : newOrdererHostConfig.keySet()) {
-            log.info("扩容orderer-oldOrdererConfig=" + JSON.toJSONString(oldOrdererConfig));
+            // log.info("扩容orderer-oldOrdererConfig=" + JSON.toJSONString(oldOrdererConfig));
+            log.info("Expansion orderer-oldOrdererConfig=" + JSON.toJSONString(oldOrdererConfig));
             oldOrdererConfig.put(newOrdererHost, newOrdererHostConfig.get(newOrdererHost));
             // 先修改系统通道
             if (!updateService.updateNetworkConfig(configEntity.getNetwork() + "-sys-channel", configEntity, oldOrdererConfig)) {
-                log.error(String.format("为系统通道 %s 更新网络配置失败", configEntity.getNetwork() + "-sys-channel"));
+                // log.error(String.format("为系统通道 %s 更新网络配置失败", configEntity.getNetwork() + "-sys-channel"));
+                log.error(String.format("Failed to update network configuration for system channel %s", configEntity.getNetwork() + "-sys-channel"));
                 return;
             }
 
             // 更新业务通道
             if (!CollectionUtils.isEmpty(channelList)) {
                 for (String channelName : channelList) {
-                    log.info(String.format("将新加入的 orderer(s) 加入 %s 通道", channelName));
+                    // log.info(String.format("将新加入的 orderer(s) 加入 %s 通道", channelName));
+                    log.info(String.format("Add the newly added orderer(s) to the %s channel", channelName));
                     if (!updateService.updateNetworkConfig(channelName, configEntity, oldOrdererConfig)) {
-                        log.error(String.format("为通道 %s 更新网络配置失败", channelName));
+                        // log.error(String.format("为通道 %s 更新网络配置失败", channelName));
+                        log.error(String.format("Failed to update network configuration for channel %s", channelName));
                     }
                 }
             }
         }
 
-
-        log.info("获取最新创世块");
+        // log.info("获取最新创世块");
+        log.info("Get the latest genesis block");
         if (!fabricCliService.fetchGenesisBlock(configEntity)) {
-            log.error("获取创世块发生错误");
+            // log.error("获取创世块发生错误");
+            log.error("Error getting genesis block");
         }
 
-        log.info("注册 orderer 节点角色");
+        // log.info("注册 orderer 节点角色");
+        log.info("Register orderer node role");
         List<String> ports = new ArrayList<>();
         for (String ip : orderGroups.keySet()) {
             List<String> hostList = orderGroups.get(ip);
@@ -200,20 +216,24 @@ public class OrdererExtendBiz {
                 fileService.copyFiles(RoleEnum.ORDER, ip, folderName, modeService.getInstallPath(), folderName, configEntity, null);
                 this.rolesBiz.setServerStatus(ip, InstallStatusEnum.DOWNLOADED);
             } else {
-                log.info("为新增 orderer 打包安装包");
+                // log.info("为新增 orderer 打包安装包");
+                log.info("Package installation package for new orderer");
 
                 String packFilePath = fileService.packExtendNodeFiles(ip, folderName, RoleEnum.ORDER, configEntity);
                 // 发送到节点启动
-                log.info("将生成的文件包发送到新增 orderer 节点");
+                // log.info("将生成的文件包发送到新增 orderer 节点");
+                log.info("Send the generated file package to the newly added orderer node");
                 remoteService.pushSlaveInstallPackage(ip, packFilePath, configEntity);
             }
         }
 
-        log.info("启动 orderer 节点");
+        // log.info("启动 orderer 节点");
+        log.info("Start the orderer node");
         // 等待节点启动成功
         List<ServerEntity> serverList = this.rolesBiz.getRolesMap().get(RoleEnum.ORDER);
         for (String ip : filePathMap.keySet()) {
-            log.info(String.format("发送安装命令到新增 orderer 节点 %s", ip));
+            // log.info(String.format("发送安装命令到新增 orderer 节点 %s", ip));
+            log.info(String.format("Send installation command to newly added orderer node %s", ip));
 
             String path = filePathMap.get(ip);
 
@@ -232,12 +252,14 @@ public class OrdererExtendBiz {
                         do {
                             HttpInstallResponse response = remoteService.sendInstallCommand(server, RoleEnum.ORDER, folderName, configEntity);
                             if (ResponseCode.SUCCESS.getCode().equals(response.getCode())) {
-                                log.warn(String.format("发送安装指令给 %s 节点安装 orderer 成功", ip));
+                                // log.warn(String.format("发送安装指令给 %s 节点安装 orderer 成功", ip));
+                                log.warn(String.format("Send installation instructions to %s node to install orderer successfully", ip));
                                 this.rolesBiz.setServerStatus(ip, InstallStatusEnum.INSTALLING);
                                 break;
                             }
 
-                            log.warn(String.format("发送安装指令给 %s 节点安装 orderer 失败，稍后重试...", ip));
+                            // log.warn(String.format("发送安装指令给 %s 节点安装 orderer 失败，稍后重试...", ip));
+                            log.warn(String.format("Sending installation instructions to %s node failed to install orderer, try again later...", ip));
                             try {
                                 Thread.sleep(3000);
                             } catch (InterruptedException e) {
@@ -250,7 +272,8 @@ public class OrdererExtendBiz {
             }
         }
 
-        log.info("等待所有 orderer 启动成功");
+        // log.info("等待所有 orderer 启动成功");
+        log.info("Wait for all orderers to start successfully");
         while (serverList.stream().anyMatch(s -> s.getStatus() != InstallStatusEnum.SUCCESS)) {
             try {
                 Thread.sleep(5000);
@@ -259,7 +282,8 @@ public class OrdererExtendBiz {
             }
         }
 
-        log.info("将新 orderer(s) 信息加入本地数据库");
+        // log.info("将新 orderer(s) 信息加入本地数据库");
+        log.info("Add new orderer(s) information to local database");
         // 更新数据库
         for (String host : newOrdererHostConfig.keySet()) {
             String ip = newOrdererHostConfig.get(host);
@@ -278,13 +302,12 @@ public class OrdererExtendBiz {
             try {
                 this.checkPointDb.addNodeRecord(nodeDO);
             } catch (SQLException e) {
-                log.error(String.format("添加新 orderer 节点 %s 记录到数据库异常", host), e);
+                // log.error(String.format("添加新 orderer 节点 %s 记录到数据库异常", host), e);
+                log.error(String.format("Exception when adding a new orderer node %s to the database", host), e);
                 e.printStackTrace();
             }
         }
-
     }
-
 
     /**
      * 更新原 orderer 节点
@@ -329,7 +352,8 @@ public class OrdererExtendBiz {
                     FileUtils.copyFile(new File(updateOrdererHostPath), new File(shDesPath));
                     installBiz.updateOrderers(cmd);
                 } catch (IOException e) {
-                    log.error("复制updateOrdererHost.sh文件发生异常");
+                    // log.error("复制updateOrdererHost.sh文件发生异常");
+                    log.error("An exception occurred while copying updateOrdererHost.sh file");
                     e.printStackTrace();
                 }
             } else {
@@ -337,7 +361,8 @@ public class OrdererExtendBiz {
                 int retryTotal = 10;
                 do {
                     if (retryTotal == retryInit) {
-                        log.error("重试超过次数");
+                        // log.error("重试超过次数");
+                        log.error("Error due to more retries");
                         break;
                     }
                     String result = this.httpClient.sendFileAndJson("http://" + ip + ":8080/v1/install/update", updateOrdererHostPath, JSONObject.toJSONString(cmd));
@@ -347,7 +372,8 @@ public class OrdererExtendBiz {
                             break;
                         }
                     }
-                    log.error(String.format("发送更新 orderer 指令到节点 %s 返回错误, 稍后重试", ip));
+                    // log.error(String.format("发送更新 orderer 指令到节点 %s 返回错误, 稍后重试", ip));
+                    log.error(String.format("An error was returned when sending the update orderer command to node %s, try again later", ip));
                     try {
                         Thread.sleep(3000);
                     } catch (InterruptedException e) {
@@ -358,6 +384,4 @@ public class OrdererExtendBiz {
             }
         }
     }
-
-
 }

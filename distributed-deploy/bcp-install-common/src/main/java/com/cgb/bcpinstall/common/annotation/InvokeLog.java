@@ -47,5 +47,4 @@ public @interface InvokeLog {
      * @return
      */
     boolean printReturn() default true;
-
 }
