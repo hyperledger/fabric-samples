@@ -70,16 +70,16 @@ public class InitializeBiz {
 
             if (!initConfigService.isCorrectConfig(configEntity)) {
                 // log.error("配置文件中相关配置项出错或为空");
-                log.error("The relevant configuration items in the configuration file are wrong or empty");
+                log.error("The configuration file is not valid and the value cannot be null");
                 response.setCode(ResponseCode.Fail);
                 // response.setMsg("配置文件中相关配置项出错或为空");
-                response.setMsg("The relevant configuration items in the configuration file are wrong or empty");
+                response.setMsg("The configuration file is not valid and the value cannot be null");
                 return response;
             }
             configFileGen.createConfigFile(configEntity);
         } catch (FileNotFoundException fe) {
             // log.error("文件不存在异常", fe);
-            log.error("Exception file does not exist", fe);
+            log.error("File Not Exist Exception", fe);
             response.setCode(ResponseCode.Fail);
             fe.printStackTrace();
         } catch (Exception e) {

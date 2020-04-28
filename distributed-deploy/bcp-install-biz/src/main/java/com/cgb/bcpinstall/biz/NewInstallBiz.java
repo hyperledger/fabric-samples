@@ -99,7 +99,7 @@ public class NewInstallBiz implements InstallMode {
 
         // 修改自己的状态
         // log.info("主节点修改安装状态");
-        log.info("Master node to modify the installation status");
+        log.info("Modify the master node status");
         for (String ip : allMyIps) {
             this.rolesBiz.setServerStatus(ip, InstallStatusEnum.DOWNLOADED);
         }
@@ -184,7 +184,7 @@ public class NewInstallBiz implements InstallMode {
 
     private boolean createFabricGenesis(InitConfigEntity configEntity) {
         // log.info("开始 fabric 创世");
-        log.info("Start fabric create genesis");
+        log.info("begin to create the genesis block");
 
         String fabricDir = modeService.getInstallPath() + "channel-artifacts" + File.separator;
         FileUtil.makeFilePath(fabricDir, true);
@@ -198,15 +198,15 @@ public class NewInstallBiz implements InstallMode {
             ProcessUtil.Result res = ProcessUtil.execCmd(cmd, null, modeService.getInstallPath());
             if (res.getCode() == 0) {
                 // log.info("创世成功");
-                log.info("Genesis block creation succeeded");
+                log.info("Genesis block create success");
                 return true;
             } else {
                 // log.warn("创世失败");
-                log.warn("Genesis block creation failed");
+                log.warn("Genesis block create failed");
             }
         } catch (Exception e) {
             // log.error("生成创世块异常", e);
-            log.error("Genesis block creation abnormal", e);
+            log.error("Exception occur when the Genesis block create ", e);
             e.printStackTrace();
         }
 

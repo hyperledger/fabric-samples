@@ -105,7 +105,7 @@ public class InstallService {
                             break;
                         }
                         // log.warn(String.format("发送安装指令给 %s 节点安装 %s 失败，稍后重试...", server.getHost(), role.name().toLowerCase()));
-                        log.warn(String.format("Sending installation instructions to %s node failed to install %s, try again later...", server.getHost(), role.name().toLowerCase()));
+                        log.warn(String.format("Failed to sending installation instructions to %s node  to install %s, try again later...", server.getHost(), role.name().toLowerCase()));
                         try {
                             Thread.sleep(3000);
                         } catch (InterruptedException e) {
@@ -200,7 +200,7 @@ public class InstallService {
         }
         if (result.isSuccess()) {
             // log.info(String.format("节点 %s 已完成 %s 角色的安装", remoteAddress, result.getRole().name()));
-            log.info(String.format("Node %s has completed the installation of %s roles", remoteAddress, result.getRole().name()));
+            log.info(String.format("Node %s has intalled complete %s roles", remoteAddress, result.getRole().name()));
 
             // 加入数据库
             switch (result.getRole()) {

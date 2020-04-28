@@ -98,13 +98,13 @@ public class OrdererExtendBiz {
             configFileGen.createExtendCerts();
         } catch (Exception e) {
             // log.error("为新增的 orderer 节点生成证书异常", e);
-            log.error("Generate certificate exception for newly added orderer node", e);
+            log.error("Exception when generate certificate for new orderer node", e);
             e.printStackTrace();
             return;
         }
 
         // log.info("为新增 orderer 生成 docker 相关文件");
-        log.info("Generate docker related files for new orderer");
+        log.info("Generate docker files for new orderer");
         // 生成 docker-compose-order-xxxx.yaml 和 start-order.sh 文件
 
         Map<String, String> filePathMap = new HashMap<>(16);
@@ -140,19 +140,19 @@ public class OrdererExtendBiz {
         }
 
         // log.info("修改所有其他 orderer 节点配置");
-        log.info("Modify all other orderer node configurations");
+        log.info("Modify configurations in all other orderer node ");
         // 修改所有其他 orderer 节点配置，并重启
         updateOldOrdererContainers(newOrdererHostConfig, configEntity);
 
         // 收集所有节点加入的通道
         // log.info("获取所有节点加入的通道列表");
-        log.info("Get a list of channels added by all nodes");
+        log.info("Get the channels list  by all nodes");
         Set<String> channelList = new HashSet<>();
         try {
             channelList.addAll(fabricCliService.getAllChannels(configEntity));
         } catch (IOException e) {
             // log.error("获取节点加入的所有通道异常", e);
-            log.error("Get all the channels that the node joins are abnormal", e);
+            log.error("Exception occur when get  the channels list", e);
             e.printStackTrace();
         }
 
@@ -179,7 +179,7 @@ public class OrdererExtendBiz {
             if (!CollectionUtils.isEmpty(channelList)) {
                 for (String channelName : channelList) {
                     // log.info(String.format("将新加入的 orderer(s) 加入 %s 通道", channelName));
-                    log.info(String.format("Add the newly added orderer(s) to the %s channel", channelName));
+                    log.info(String.format("Add the new orderer(s) to the %s channel", channelName));
                     if (!updateService.updateNetworkConfig(channelName, configEntity, oldOrdererConfig)) {
                         // log.error(String.format("为通道 %s 更新网络配置失败", channelName));
                         log.error(String.format("Failed to update network configuration for channel %s", channelName));
@@ -192,11 +192,11 @@ public class OrdererExtendBiz {
         log.info("Get the latest genesis block");
         if (!fabricCliService.fetchGenesisBlock(configEntity)) {
             // log.error("获取创世块发生错误");
-            log.error("Error getting genesis block");
+            log.error("Error occur when fetch genesis block");
         }
 
         // log.info("注册 orderer 节点角色");
-        log.info("Register orderer node role");
+        log.info("Register the orderer role");
         List<String> ports = new ArrayList<>();
         for (String ip : orderGroups.keySet()) {
             List<String> hostList = orderGroups.get(ip);
@@ -217,12 +217,12 @@ public class OrdererExtendBiz {
                 this.rolesBiz.setServerStatus(ip, InstallStatusEnum.DOWNLOADED);
             } else {
                 // log.info("为新增 orderer 打包安装包");
-                log.info("Package installation package for new orderer");
+                log.info("Package  for new orderer");
 
                 String packFilePath = fileService.packExtendNodeFiles(ip, folderName, RoleEnum.ORDER, configEntity);
                 // 发送到节点启动
                 // log.info("将生成的文件包发送到新增 orderer 节点");
-                log.info("Send the generated file package to the newly added orderer node");
+                log.info("Send the package to the new orderer node");
                 remoteService.pushSlaveInstallPackage(ip, packFilePath, configEntity);
             }
         }
@@ -233,7 +233,7 @@ public class OrdererExtendBiz {
         List<ServerEntity> serverList = this.rolesBiz.getRolesMap().get(RoleEnum.ORDER);
         for (String ip : filePathMap.keySet()) {
             // log.info(String.format("发送安装命令到新增 orderer 节点 %s", ip));
-            log.info(String.format("Send installation command to newly added orderer node %s", ip));
+            log.info(String.format("Send installation command to new orderer node %s", ip));
 
             String path = filePathMap.get(ip);
 
@@ -373,7 +373,7 @@ public class OrdererExtendBiz {
                         }
                     }
                     // log.error(String.format("发送更新 orderer 指令到节点 %s 返回错误, 稍后重试", ip));
-                    log.error(String.format("An error was returned when sending the update orderer command to node %s, try again later", ip));
+                    log.error(String.format("Receive error from node %s when command to update, try again later", ip));
                     try {
                         Thread.sleep(3000);
                     } catch (InterruptedException e) {

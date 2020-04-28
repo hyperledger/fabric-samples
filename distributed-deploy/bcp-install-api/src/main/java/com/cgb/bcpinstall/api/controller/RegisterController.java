@@ -56,7 +56,7 @@ public class RegisterController {
         String remoteAddr = request.getRemoteAddr();
 
         // log.info(String.format("从节点 %s 开始注册", remoteAddr));
-        log.info(String.format("Slave node %s starts registration", remoteAddr));
+        log.info(String.format("Slave node %s starts to regist", remoteAddr));
 
         roleService.addServerRole(remoteAddr, roleRegEntity.getServerPort(),null);
 

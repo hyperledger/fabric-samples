@@ -77,18 +77,18 @@ public class OrdererRemoveBiz {
 
         // 收集所有节点加入的通道
         // log.info("获取所有节点加入的通道列表");
-        log.info("Get channel list belongs to all joined nodes");
+        log.info("Get channel list info");
         Set<String> channelList = new HashSet<>();
         try {
             channelList.addAll(fabricCliService.getAllChannels(configEntity));
         } catch (IOException e) {
             // log.error("获取节点加入的所有通道异常", e);
-            log.error("Abnormal error when getting the channel list belonging to all the joined nodes", e);
+            log.error("Exception occur when get channel list info", e);
             e.printStackTrace();
         }
         // log.info("缩容orderer-获取的通道列表：" + JSON.toJSONString(channelList));
         // log.info("修改网络配置");
-        log.info("Reduce orderer - Obtained channel list：" + JSON.toJSONString(channelList));
+        log.info("scale down orderer - Obtained channel list：" + JSON.toJSONString(channelList));
         log.info("Modify network configuration");
 
         Map<String, String> oldOrdererConfig = configEntity.getOrdererHostConfig();
@@ -96,11 +96,11 @@ public class OrdererRemoveBiz {
 
         for (String host : removedOrdererHostConfig.keySet()) {
             // log.info("缩容orderer-oldOrdererConfig=" + JSON.toJSONString(oldOrdererConfig));
-            log.info("Reduce orderer-oldOrdererConfig=" + JSON.toJSONString(oldOrdererConfig));
+            log.info("scale down orderer-oldOrdererConfig=" + JSON.toJSONString(oldOrdererConfig));
             oldOrdererConfig.remove(host);
             // 修改网络配置
             // log.info("将移除的 orderer(s) 从系统通道中移除");
-            log.info("Remove the stopped orderer(s) from the system channel");
+            log.info("stop the orderer(s) and remove from the system channel");
             // 先修改系统通道
             if (!updateService.updateNetworkConfig(configEntity.getNetwork() + "-sys-channel", configEntity, oldOrdererConfig)) {
                 // log.error(String.format("为系统通道 %s 更新网络配置失败", configEntity.getNetwork() + "-sys-channel"));
@@ -110,7 +110,7 @@ public class OrdererRemoveBiz {
             channelList.remove(configEntity.getNetwork() + "-sys-channel");
             for (String channelName : channelList) {
                 // log.info(String.format("将移除的 orderer(s) 从通道 %s 中移除", channelName));
-                log.info(String.format("Remove the removed orderer(s) from channel %s", channelName));
+                log.info(String.format("Remove the  orderer(s) from channel %s", channelName));
                 if (!updateService.updateNetworkConfig(channelName, configEntity, oldOrdererConfig)) {
                     // log.error(String.format("为通道 %s 更新网络配置失败", channelName));
                     log.error(String.format("Failed to update network configuration for channel %s", channelName));
@@ -125,7 +125,7 @@ public class OrdererRemoveBiz {
         log.info("Remove orderer(s) node");
         removeOrdererContainer(removedOrdererHostConfig, configEntity);
         // log.info("将已移除的 orderer(s) 节点从数据库中删除");
-        log.info("Remove the removed orderer(s) node from the database");
+        log.info("Remove the orderer(s) node from the database");
         // 从数据库中删除
         for (String host : removedOrdererHostConfig.keySet()) {
             String ip = removedOrdererHostConfig.get(host);

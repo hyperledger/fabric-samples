@@ -94,7 +94,7 @@ public class PeerExtendBiz {
         Map<String, String> ipPathMap = this.createNewPeerDockerFile(configEntity, peerHostGroup);
         //将新生成的证书拷贝到主节点安装目录
         // log.info("将新生成的证书拷贝到主节点安装目录");
-        log.info("Copy the newly generated certificate to the master node installation directory");
+        log.info("Copy the new-generated certificate to the master node installation directory");
         fileService.masterCopyCryptoConfig();
         // log.info("注册新Peer节点角色");
         log.info("Register a new Peer node role");
@@ -196,13 +196,13 @@ public class PeerExtendBiz {
                 this.rolesBiz.setServerStatus(ip, InstallStatusEnum.DOWNLOADED);
             } else {
                 // log.info("为新增 peer 打包安装包");
-                log.info("Package the installation package for the newly added peer node");
+                log.info("Package  for the new peer node");
 
                 String packFilePath = fileService.packExtendNodeFiles(ip, folderName, RoleEnum.PEER, configEntity);
 
                 // 发送到节点启动
                 // log.info("将生成的文件包发送到新增 peer 节点");
-                log.info("Send the generated file package to the newly added peer node");
+                log.info("Send the  package to the new peer node");
                 remoteService.pushSlaveInstallPackage(ip, packFilePath, configEntity);
             }
         }
@@ -212,7 +212,7 @@ public class PeerExtendBiz {
         List<ServerEntity> serverList = this.rolesBiz.getRolesMap().get(RoleEnum.PEER);
         for (String ip : ipPathMap.keySet()) {
             // log.info(String.format("发送安装命令到新增 peer 节点 %s", ip));
-            log.info(String.format("Send installation command to the newly added peer node %s", ip));
+            log.info(String.format("Send installation command to the new peer node %s", ip));
 
             String path = ipPathMap.get(ip);
 
@@ -232,7 +232,7 @@ public class PeerExtendBiz {
                             HttpInstallResponse response = remoteService.sendInstallCommand(server, RoleEnum.PEER, folderName, configEntity);
                             if (ResponseCode.SUCCESS.getCode().equals(response.getCode())) {
                                 // log.warn(String.format("发送安装指令给 %s 节点安装 peer 成功", ip));
-                                log.warn(String.format("Send installation instructions to %s, successful installation of peer node", ip));
+                                log.warn(String.format("Send installation instructions to %s node to install peer successfully", ip));
                                 this.rolesBiz.setServerStatus(ip, InstallStatusEnum.INSTALLING);
                                 break;
                             }

@@ -75,7 +75,7 @@ public class RoleService {
         this.parseRole(roles, slaveAddress, configEntity.getOrdererHostConfig(), RoleEnum.ORDER, configEntity);
         this.parseRole(roles, slaveAddress, configEntity.getPeerHostConfig(), RoleEnum.PEER, configEntity);
         // log.info(String.format("服务器 %s 解析后，所承担的角色有: ", slaveAddress, roles.keySet().stream().map(Enum::name).collect(Collectors.joining(","))));
-        log.info(String.format("After parsing by server %s, the assumed roles are: ", slaveAddress, roles.keySet().stream().map(Enum::name).collect(Collectors.joining(","))));
+        log.info(String.format("Parsed by server %s, the  roles are: ", slaveAddress, roles.keySet().stream().map(Enum::name).collect(Collectors.joining(","))));
         return roles;
     }
 

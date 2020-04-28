@@ -171,7 +171,7 @@ public class InstallBiz {
             return !this.checkPointDb.nodesTableEmpty();
         } catch (SQLException e) {
             // log.error("查询本地数据库失败", e);
-            log.error("Query local database failed", e);
+            log.error("Fail to query the local database", e);
             e.printStackTrace();
         }
 
@@ -186,7 +186,7 @@ public class InstallBiz {
     public void slaveInstall(RoleEnum role, List<String> ports, Map<String, String> hosts, String roleFolderName) {
         new Thread(() -> {
             // log.info(String.format("从节点开始进行角色 %s 的安装", role.name()));
-            log.info(String.format("The slave node starts the installation of role %s", role.name()));
+            log.info(String.format("Begin to install the role %s in the slave node", role.name()));
             if (this.startInstall(role, ports, hosts, roleFolderName)) {
                 InstallResult result = new InstallResult();
                 result.setRole(role);
@@ -198,12 +198,12 @@ public class InstallBiz {
                             HttpInstallResponse response = JSONObject.parseObject(res, HttpInstallResponse.class);
                             if (ResponseCode.SUCCESS.getCode().equals(response.getCode())) {
                                 // log.info(String.format("向主节点报告安装 %s 状态成功", role.name()));
-                                log.info(String.format("Report successful installation %s status to the master node", role.name()));
+                                log.info(String.format("Report install1 %s success to the master node", role.name()));
                                 break;
                             }
                         }
                         // log.info(String.format("向主节点报告安装 %s 状态失败，稍后重试...", role.name()));
-                        log.info(String.format("Report failed installation %s status to the master node, try again later ...", role.name()));
+                        log.info(String.format("Fail to report the status of %s to the master node, try again later ...", role.name()));
                         try {
                             Thread.sleep(5000);
                         } catch (Exception e) {
@@ -213,7 +213,7 @@ public class InstallBiz {
                     } while (true);
                 } catch (Exception e) {
                     // log.error("向主服务器发送安装完成状态异常", e);
-                    log.error("Send abnormal installation completion status to the main server", e);
+                    log.error("Exception occur when send  status to the main server after install complete", e);
                     e.printStackTrace();
                 }
             }
@@ -262,7 +262,7 @@ public class InstallBiz {
             }
         } catch (Exception e) {
             // log.error(String.format("更新 docker 容器 %s 的 HostsPath 异常", currentOrdererName), e);
-            log.error(String.format("Update HostsPath exception of docker container %s", currentOrdererName), e);
+            log.error(String.format("Exception occur when update HostsPath  of docker container %s", currentOrdererName), e);
             e.printStackTrace();
         }
     }

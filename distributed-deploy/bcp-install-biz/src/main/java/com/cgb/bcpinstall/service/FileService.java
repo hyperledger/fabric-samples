@@ -297,7 +297,7 @@ public class FileService {
                 break;
         }
         // log.info(String.format("为新 %s 节点 %s 准备智能安装包", role, serverAddress));
-        log.info(String.format("Prepare smart installation package for new %s node %s", role, serverAddress));
+        log.info(String.format("Prepare the package to install the smart contracts  for new %s node %s", role, serverAddress));
 
         // 建一个临时目录
         String tmpPath = System.getProperty("java.io.tmpdir");
@@ -325,7 +325,7 @@ public class FileService {
             return packFilePath;
         } catch (IOException e) {
             // log.error("生成智能安装包时异常", e);
-            log.error("Exception when generating smart installation package", e);
+            log.error("Exception when generating the package for the smart contracts ", e);
             e.printStackTrace();
         }
 
@@ -361,7 +361,7 @@ public class FileService {
                 }
             }
             // log.info("缩容节点，移除证书路径：" + rmPath);
-            log.info("Reduce nodes, remove certificate path: " + rmPath);
+            log.info("scale down nodes, remove certificate path: " + rmPath);
             FileUtil.rmFile(new File(rmPath));
         }
     }

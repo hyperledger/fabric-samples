@@ -63,7 +63,7 @@ public class RemoteService {
      */
     public HttpInstallResponse sendInstallCommand(ServerEntity server, RoleEnum role, String folderName, InitConfigEntity configEntity) {
         // log.info(String.format("主节点给从节点 %s 发送安装角色：%s", server.getHost(), role.name()));
-        log.info(String.format("The master node sends the installation role %s to slave node %s", role.name(), server.getHost()));
+        log.info(String.format("The master node sends the comm1 to install role %s to slave node %s", role.name(), server.getHost()));
         try {
             Map<String, String> revisedHosts = new HashMap<>();
             Map<String, String> hosts = environmentService.getRoleNeedSetHost(role, configEntity);
@@ -86,10 +86,10 @@ public class RemoteService {
             String result = this.httpClient.sendFileAndJson(server.getHttpUrl() + "/v1/install/start", "", JSONObject.toJSONString(entity));
             if (result.isEmpty()) {
                 // log.error("注册角色返回结果为空");
-                log.error("The result value returned when registering a role is empty");
+                log.error("Receive the result is null after registering a role");
             } else {
                 // log.info("注册角色返回结果: " + result);
-                log.info("The value returned when registering a role is: " + result);
+                log.info("The value received when registering a role is: " + result);
                 return JSON.parseObject(result, HttpInstallResponse.class);
             }
         } catch (Exception e) {

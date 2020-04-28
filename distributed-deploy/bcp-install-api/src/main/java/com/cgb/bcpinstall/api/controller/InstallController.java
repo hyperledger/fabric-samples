@@ -108,7 +108,7 @@ public class InstallController {
             osEnum = OSEnum.valueOf(osType);
         } catch (Exception e) {
             // log.error("解析系统类型异常", e);
-            log.error("Parsing system type exception", e);
+            log.error("Parsing os type exception", e);
             e.printStackTrace();
         }
         if (osEnum == null) {
@@ -116,7 +116,7 @@ public class InstallController {
 
             downloadResponse.setCode(ResponseCode.Fail);
             // downloadResponse.setMsg("不支持指定的系统类型: " + osType);
-            downloadResponse.setMsg("Slave node system type error: " + osType);
+            downloadResponse.setMsg("Unsupport the os type : " + osType);
             setErrorResult(response, downloadResponse);
             return;
         }
@@ -128,7 +128,7 @@ public class InstallController {
         if (StringUtils.isEmpty(filePath)) {
             downloadResponse.setCode(ResponseCode.Fail);
             // downloadResponse.setMsg("打包安装文件失败");
-            downloadResponse.setMsg("Package installation file failed");
+            downloadResponse.setMsg("Fail to package exception");
             setErrorResult(response, downloadResponse);
             return;
         }
@@ -152,27 +152,27 @@ public class InstallController {
 
             // 修改服务器对应的状态
             // log.info(String.format("设置从节点 %s 状态为下载完成", remoteAddr));
-            log.info(String.format("Set slave node %s status to download complete", remoteAddr));
+            log.info(String.format("slave node %s download complete", remoteAddr));
             this.rolesBiz.setServerStatus(remoteAddr, InstallStatusEnum.DOWNLOADED);
 
         } catch (FileNotFoundException e) {
             // log.error("下载文件不存在", e);
-            log.error("The download file does not exist", e);
+            log.error("File Not Exist Exception", e);
             e.printStackTrace();
 
             downloadResponse.setCode(ResponseCode.Fail);
             // downloadResponse.setMsg("下载文件不存在");
-            downloadResponse.setMsg("The download file does not exist");
+            downloadResponse.setMsg("File Not Exist Exception");
 
             setErrorResult(response, downloadResponse);
         } catch (IOException e) {
             // log.error("获取HttpServletResponse输出流发生异常", e);
-            log.error("Get HttpServletResponse output stream exception", e);
+            log.error("Writting HttpServletResponse IO exception", e);
             e.printStackTrace();
 
             downloadResponse.setCode(ResponseCode.Fail);
             // downloadResponse.setMsg("获取HttpServletResponse输出流发生异常");
-            downloadResponse.setMsg("Get HttpServletResponse output stream exception");
+            downloadResponse.setMsg("Writting HttpServletResponse IO exception");
 
             setErrorResult(response, downloadResponse);
         } finally {
@@ -186,7 +186,7 @@ public class InstallController {
     @InvokeLog(name = "pushInstallPackage", description = "推送安装文件")
     public HttpInstallResponse pushInstallPackage(HttpServletRequest request) {
         // log.info("准备接收主节点推送的安装包");
-        log.info("Prepare to receive the installation package pushed by the master node");
+        log.info("Prepare to receive the  package from the master node");
 
         this.installBiz.setMasterServer("http://" + request.getRemoteAddr() + ":8080");
 
@@ -199,7 +199,7 @@ public class InstallController {
             this.installBiz.installPackageReady();
         } catch (Exception e) {
             // log.error("接收安装包异常", e);
-            log.error("Abnormal reception of installation package", e);
+            log.error("Exception when receive the package and Abort!", e);
             response.setCode(ResponseCode.Fail.getCode());
             e.printStackTrace();
         }

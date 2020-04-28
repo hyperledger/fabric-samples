@@ -100,7 +100,7 @@ public class ModeService {
         }
         if (result.isSuccess()) {
             // log.info(String.format("节点 %s 已完成 %s 角色的安装", remoteAddress, result.getRole().name()));
-            log.info(String.format("Node %s has completed the installation of role %s", remoteAddress, result.getRole().name()));
+            log.info(String.format("Node %s has installde complete role %s", remoteAddress, result.getRole().name()));
 
             // 加入数据库
             switch (result.getRole()) {
