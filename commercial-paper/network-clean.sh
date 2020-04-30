@@ -16,11 +16,14 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export FABRIC_CFG_PATH="${DIR}/../config"
 
-cd "${DIR}/../test-network/"
+pushd "${DIR}/../test-network/"
 
 docker kill cliDigiBank cliMagnetoCorp logspout || true
 ./network.sh down
+popd
+
+rm -rf organization/magnetocorp/identity/
+rm -rf organization/digibank/identity/
 
 # remove any stopped containers
 docker rm $(docker ps -aq)
-
