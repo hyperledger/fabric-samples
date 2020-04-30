@@ -1,6 +1,6 @@
 # Off Chain data
 
-This sample demonstrates how you can use [Peer channel-based event services](https://hyperledger-fabric.readthedocs.io/en/release-2.0/peer_event_services.html)
+This sample demonstrates how you can use [Peer channel-based event services](https://hyperledger-fabric.readthedocs.io/en/master/peer_event_services.html)
 to replicate the data on your blockchain network to an off chain database.
 Using an off chain database allows you to analyze the data from your network or
 build a dashboard without degrading the performance of your application.
