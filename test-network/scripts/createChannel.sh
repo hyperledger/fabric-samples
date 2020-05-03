@@ -35,13 +35,13 @@ createAncorPeerTx() {
 
 	for orgmsp in Org1MSP Org2MSP; do
 
-	echo "#######    Generating anchor peer update for ${orgmsp}  ##########"
+	echo "#######    Generating anchor peer update transaction for ${orgmsp}  ##########"
 	set -x
 	configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/${orgmsp}anchors.tx -channelID $CHANNEL_NAME -asOrg ${orgmsp}
 	res=$?
 	set +x
 	if [ $res -ne 0 ]; then
-		echo "Failed to generate anchor peer update for ${orgmsp}..."
+		echo "Failed to generate anchor peer update transaction for ${orgmsp}..."
 		exit 1
 	fi
 	echo
@@ -123,11 +123,11 @@ verifyResult() {
 FABRIC_CFG_PATH=${PWD}/configtx
 
 ## Create channeltx
-echo "### Generating channel configuration transaction '${CHANNEL_NAME}.tx' ###"
+echo "### Generating channel create transaction '${CHANNEL_NAME}.tx' ###"
 createChannelTx
 
 ## Create anchorpeertx
-echo "### Generating channel configuration transaction '${CHANNEL_NAME}.tx' ###"
+echo "### Generating anchor peer update transactions ###"
 createAncorPeerTx
 
 FABRIC_CFG_PATH=$PWD/../config/
