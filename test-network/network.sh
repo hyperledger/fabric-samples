@@ -234,7 +234,7 @@ function createOrgs() {
     echo "##### Generate certificates using Fabric CA's ############"
     echo "##########################################################"
 
-    IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE_CA up -d 2>&1
+    IMAGE_TAG=$(fabric-ca-client version |sed -ne 's/ Version: //p' | head -1) docker-compose -f $COMPOSE_FILE_CA up -d 2>&1
 
     . organizations/fabric-ca/registerEnroll.sh
 
