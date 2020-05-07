@@ -128,7 +128,7 @@ checkCommitReadiness() {
   # we either get a successful response, or reach MAX RETRY
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
     sleep $DELAY
-    echo "Attempting to check the commit readiness of the chaincode definition on peer0.org${ORG} secs"
+    echo "Attempting to check the commit readiness of the chaincode definition on peer0.org${ORG}, Retry after $DELAY seconds."
     set -x
     peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name fabcar --version ${VERSION} --sequence ${VERSION} --output json --init-required >&log.txt
     res=$?
@@ -230,7 +230,7 @@ chaincodeQuery() {
   # we either get a successful response, or reach MAX RETRY
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
     sleep $DELAY
-    echo "Attempting to Query peer0.org${ORG} ...$(($(date +%s) - starttime)) secs"
+    echo "Attempting to Query peer0.org${ORG}, Retry after $DELAY seconds."
     set -x
     peer chaincode query -C $CHANNEL_NAME -n fabcar -c '{"Args":["queryAllCars"]}' >&log.txt
     res=$?
