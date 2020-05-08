@@ -37,7 +37,7 @@ function printHelp() {
   echo "    -l <language> - the programming language of the chaincode to deploy: go (default), java, javascript, typescript"
   echo "    -v <version>  - chaincode version. Must be a round number, 1, 2, 3, etc"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
-  echo "    -cai <CA_imagetag> - the image tag to be used for CA (defaults to \"latest\")"
+  echo "    -cai <ca_imagetag> - the image tag to be used for CA (defaults to \"${CA_IMAGETAG}\")"
   echo "    -verbose - verbose mode"
   echo "  network.sh -h (print this message)"
   echo
