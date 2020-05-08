@@ -37,6 +37,7 @@ function printHelp() {
   echo "    -l <language> - the programming language of the chaincode to deploy: go (default), java, javascript, typescript"
   echo "    -v <version>  - chaincode version. Must be a round number, 1, 2, 3, etc"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
+  echo "    -cai <ca_imagetag> - the image tag to be used for CA (defaults to \"${CA_IMAGETAG}\")"
   echo "    -verbose - verbose mode"
   echo "  network.sh -h (print this message)"
   echo
@@ -219,7 +220,7 @@ function createOrgs() {
     if [ $? -ne 0 ]; then
       echo "Fabric CA client not found locally, downloading..."
       cd ..
-      curl -s -L "https://github.com/hyperledger/fabric-ca/releases/download/v1.4.4/hyperledger-fabric-ca-${OS_ARCH}-1.4.4.tar.gz" | tar xz || rc=$?
+      curl -s -L "https://github.com/hyperledger/fabric-ca/releases/download/v${CA_IMAGETAG}/hyperledger-fabric-ca-${OS_ARCH}-${CA_IMAGETAG}.tar.gz" | tar xz
     if [ -n "$rc" ]; then
         echo "==> There was an error downloading the binary file."
         echo "fabric-ca-client binary is not available to download"
@@ -234,7 +235,7 @@ function createOrgs() {
     echo "##### Generate certificates using Fabric CA's ############"
     echo "##########################################################"
 
-    IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE_CA up -d 2>&1
+    IMAGE_TAG=${CA_IMAGETAG} docker-compose -f $COMPOSE_FILE_CA up -d 2>&1
 
     . organizations/fabric-ca/registerEnroll.sh
 
@@ -437,6 +438,8 @@ CC_SRC_LANGUAGE=golang
 VERSION=1
 # default image tag
 IMAGETAG="latest"
+# default ca image tag
+CA_IMAGETAG="1.4.6"
 # default database
 DATABASE="leveldb"
 
@@ -498,6 +501,10 @@ while [[ $# -ge 1 ]] ; do
     ;;
   -i )
     IMAGETAG="$2"
+    shift
+    ;;
+  -cai )
+    CA_IMAGETAG="$2"
     shift
     ;;
   -verbose )
