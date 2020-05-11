@@ -31,6 +31,7 @@
 export PATH=${PWD}/../bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=${PWD}
 export VERBOSE=false
+export NO_CHAINCODE=false
 
 # Print the usage message
 function printHelp() {
@@ -47,6 +48,9 @@ function printHelp() {
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -l <language> - the programming language of the chaincode to deploy: go (default), javascript, or java"
+  echo "    -p <chaincode path> - the path of the chaincode to package and deploy"
+  echo "    -m <chaincode name> - the name of the chaincode to deploy"
+  echo "    -e <chaincode version> - the version of the chaincode to be deployed"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
   echo "    -a - launch certificate authorities (no certificate authorities are launched by default)"
   echo "    -n - do not deploy chaincode (abstore chaincode is deployed by default)"
@@ -67,6 +71,10 @@ function printHelp() {
   echo "	byfn.sh generate"
   echo "	byfn.sh up"
   echo "	byfn.sh down"
+  echo
+  echo "Installing your own chaincode:"
+  echo "  byfn.sh up -c mychannel -l javascript -cpath ../../fabric-samples/chaincode/mychaincode -cname mychaincode -version 1"
+  echo 
 }
 
 # Ask user for confirmation to proceed
@@ -174,7 +182,7 @@ function networkUp() {
   echo "Sleeping 15s to allow Raft cluster to complete booting"
   sleep 15
 
-  if [ "${NO_CHAINCODE}" != "true" ]; then
+  if [[ "${NO_CHAINCODE}" != "true" ]] && [[ -z "${CC_SRC_PATH}" ]]; then
     echo Vendoring Go dependencies ...
     pushd ../chaincode/abstore/go
     GO111MODULE=on go mod vendor
@@ -183,7 +191,7 @@ function networkUp() {
   fi
 
   # now run the end to end script
-  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $CC_SRC_LANGUAGE $CLI_TIMEOUT $VERBOSE $NO_CHAINCODE
+  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $CC_SRC_LANGUAGE $CLI_TIMEOUT $VERBOSE $NO_CHAINCODE $CC_SRC_PATH $CC_NAME $VERSION
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Test failed"
     exit 1
@@ -465,7 +473,7 @@ else
   exit 1
 fi
 
-while getopts "h?c:t:d:s:l:i:anv" opt; do
+while getopts "h?c:t:d:s:l:i:p:m:e:anv" opt; do
   case "$opt" in
   h | \?)
     printHelp
@@ -473,30 +481,51 @@ while getopts "h?c:t:d:s:l:i:anv" opt; do
     ;;
   c)
     CHANNEL_NAME=$OPTARG
+    echo "CHANNEL_NAME: "$CHANNEL_NAME
     ;;
   t)
     CLI_TIMEOUT=$OPTARG
+    echo "CLI_TIMEOUT: "$CLI_TIMEOUT
     ;;
   d)
     CLI_DELAY=$OPTARG
+    echo "CLI_DELAY: "$CLI_DELAY
     ;;
   s)
     IF_COUCHDB=$OPTARG
+    echo "IF_COUCHDB: "$IF_COUCHDB
     ;;
   l)
     CC_SRC_LANGUAGE=$OPTARG
+    echo "CC_SRC_LANGUAGE: "$CC_SRC_LANGUAGE
     ;;
   i)
     IMAGETAG=$(go env GOARCH)"-"$OPTARG
+    echo "IMAGETAG: "$IMAGETAG
+    ;;
+  p)
+    CC_SRC_PATH=$OPTARG
+    echo "CC_SRC_PATH: "$CC_SRC_PATH
+    ;;
+  m)
+    CC_NAME=$OPTARG
+    echo "CC_NAME: "$CC_NAME
+    ;;
+  e)
+    VERSION=$OPTARG
+    echo "VERSION: "$VERSION
     ;;
   a)
     CERTIFICATE_AUTHORITIES=true
+    echo "CERTIFICATE_AUTHORITIES: "$CERTIFICATE_AUTHORITIES
     ;;
   n)
     NO_CHAINCODE=true
+    echo "NO_CHAINCODE: "$NO_CHAINCODE
     ;;
   v)
     VERBOSE=true
+    echo "VERBOSE: "$VERBOSE
     ;;
   esac
 done
