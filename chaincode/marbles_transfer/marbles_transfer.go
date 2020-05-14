@@ -47,8 +47,8 @@ type Marble struct {
 	PublicDescription string `json:"public_description"`
 }
 
-// CreateMarble creates a marble and sets it as owned by the client's org
-func (s *SmartContract) CreateMarble(ctx contractapi.TransactionContextInterface, marbleID string) error {
+// IssueAsset creates a marble and sets it as owned by the client's org
+func (s *SmartContract) IssueAsset(ctx contractapi.TransactionContextInterface, marbleID string) error {
 
 	transMap, err := ctx.GetStub().GetTransient()
 	if err != nil {
@@ -113,7 +113,7 @@ func (s *SmartContract) ChangePublicDescription(ctx contractapi.TransactionConte
 		return fmt.Errorf("failed to get verified OrgID: %s", err.Error())
 	}
 
-	marble, err := s.QueryMarble(ctx, marbleID)
+	marble, err := s.GetAsset(ctx, marbleID)
 	if err != nil {
 		return fmt.Errorf("failed to get marble: %s", err.Error())
 	}
@@ -135,17 +135,31 @@ func (s *SmartContract) ChangePublicDescription(ctx contractapi.TransactionConte
 
 // AgreeToSell adds seller's asking price to seller's implicit private data collection
 func (s *SmartContract) AgreeToSell(ctx contractapi.TransactionContextInterface, marbleID string) error {
+	// Query marble and verify that this clientOrgId actually owns the marble.
+	marble, err := s.GetAsset(ctx, marbleID)
+	if err != nil {
+		return err
+	}
 
-	return agreeToMarblePrice(ctx, marbleID, typeMarbleForSale)
+	clientOrgID, err := getClientOrgID(ctx, true)
+	if err != nil {
+		return fmt.Errorf("failed to get verified OrgID: %s", err.Error())
+	}
+
+	if clientOrgID != marble.OwnerOrg {
+		return fmt.Errorf("a client from %s cannot sell a marble owned by %s", clientOrgID, marble.OwnerOrg)
+	}
+
+	return agreeToPrice(ctx, marbleID, typeMarbleForSale)
 }
 
 // AgreeToBuy adds buyer's bid price to buyer's implicit private data collection
 func (s *SmartContract) AgreeToBuy(ctx contractapi.TransactionContextInterface, marbleID string) error {
-	return agreeToMarblePrice(ctx, marbleID, typeMarbleBid)
+	return agreeToPrice(ctx, marbleID, typeMarbleBid)
 }
 
-// agreeToMarblePrice adds a bid or ask price to caller's implicit private data collection
-func agreeToMarblePrice(ctx contractapi.TransactionContextInterface, marbleID string, priceType string) error {
+// agreeToPrice adds a bid or ask price to caller's implicit private data collection
+func agreeToPrice(ctx contractapi.TransactionContextInterface, marbleID string, priceType string) error {
 
 	// Get client org id and verify it matches peer org id.
 	// In this scenario, client is only authorized to read/write private data from its own peer.
@@ -153,9 +167,6 @@ func agreeToMarblePrice(ctx contractapi.TransactionContextInterface, marbleID st
 	if err != nil {
 		return fmt.Errorf("failed to get verified OrgID: %s", err.Error())
 	}
-
-	// TODO query marble and verify that this clientOrgId actually owns the marble.
-	// That is, You can only put the marble for sale if you own it.
 
 	// price is private, therefore it gets passed in transient field
 	transMap, err := ctx.GetStub().GetTransient()
@@ -193,9 +204,9 @@ func agreeToMarblePrice(ctx contractapi.TransactionContextInterface, marbleID st
 // Org2 would call a verify function on his peer.
 // The properties and salt would passed in, get hashed in the chaincode, and compared with the on-chain hash of the marble properties (queried via GetPrivateDataHash).
 
-// TransferMarble checks transfer conditions and then transfers marble state to buyer.
-// TransferMarble can only be called by current owner
-func (s *SmartContract) TransferMarble(ctx contractapi.TransactionContextInterface, marbleID string, buyerOrgID string) error {
+// TransferAsset checks transfer conditions and then transfers marble state to buyer.
+// TransferAsset can only be called by current owner
+func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, marbleID string, buyerOrgID string) error {
 
 	// Get client org id and verify it matches peer org id.
 	// For a transfer, selling client must get endorsement from their own peer and from buyer peer, therefore don't verify client org id matches peer org id
@@ -219,7 +230,7 @@ func (s *SmartContract) TransferMarble(ctx contractapi.TransactionContextInterfa
 		return fmt.Errorf("marble_price key not found in the transient map")
 	}
 
-	marble, err := s.QueryMarble(ctx, marbleID)
+	marble, err := s.GetAsset(ctx, marbleID)
 	if err != nil {
 		return fmt.Errorf("failed to get marble: %s", err.Error())
 	}
@@ -360,25 +371,35 @@ func transferMarbleState(ctx contractapi.TransactionContextInterface, marble *Ma
 // getClientOrgID gets the client org ID.
 // The client org ID can optionally be verified against the peer org ID, to ensure that a client from another org doesn't attempt to read or write private data from this peer.
 // The only exception in this scenario is for TransferMarble, since the current owner needs to get an endorsement from the buyer's peer.
-func getClientOrgID(ctx contractapi.TransactionContextInterface, verifyClientOrgMatchesPeerOrg bool) (string, error) {
+func getClientOrgID(ctx contractapi.TransactionContextInterface, verifyOrg bool) (string, error) {
 
 	clientOrgID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
 		return "", fmt.Errorf("failed getting client's orgID: %s", err.Error())
 	}
 
-	if verifyClientOrgMatchesPeerOrg {
-		peerOrgID, err := shim.GetMSPID()
+	if verifyOrg {
+		err = verifyClientOrgMatchesPeerOrg(clientOrgID)
 		if err != nil {
-			return "", fmt.Errorf("failed getting peer's orgID: %s", err.Error())
-		}
-
-		if clientOrgID != peerOrgID {
-			return "", fmt.Errorf("client from org %s is not authorized to read or write private data from an org %s peer", clientOrgID, peerOrgID)
+			return "", err
 		}
 	}
 
 	return clientOrgID, nil
+}
+
+// verify client org id and matches peer org id.
+func verifyClientOrgMatchesPeerOrg(clientOrgID string) error {
+	peerOrgID, err := shim.GetMSPID()
+	if err != nil {
+		return fmt.Errorf("failed getting peer's orgID: %s", err.Error())
+	}
+
+	if clientOrgID != peerOrgID {
+		return fmt.Errorf("client from org %s is not authorized to read or write private data from an org %s peer", clientOrgID, peerOrgID)
+	}
+
+	return nil
 }
 
 // setMarbleStateBasedEndorsement adds an endorsement policy to a marble so that only a peer from an owning org can update or transfer the marble.
@@ -400,6 +421,21 @@ func setMarbleStateBasedEndorsement(ctx contractapi.TransactionContextInterface,
 	}
 
 	return nil
+}
+
+func getClientImplicitCollectionName(ctx contractapi.TransactionContextInterface) (string, error) {
+	clientOrgID, err := getClientOrgID(ctx, true)
+	if err != nil {
+		return "", fmt.Errorf("failed to get verified OrgID: %s", err.Error())
+	}
+
+	err = verifyClientOrgMatchesPeerOrg(clientOrgID)
+	if err != nil {
+		return "", err
+	}
+
+	collection := "_implicit_org_" + clientOrgID
+	return collection, nil
 }
 
 func main() {
