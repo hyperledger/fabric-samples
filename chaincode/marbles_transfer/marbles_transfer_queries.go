@@ -22,12 +22,26 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
-// QueryMarble returns the public marble data
-func (s *SmartContract) QueryMarble(ctx contractapi.TransactionContextInterface, marbleID string) (*Marble, error) {
+// QueryResult structure used for handling result of query
+type QueryResult struct {
+	Record    *Marble
+	TxId      string    `json:"txId"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+type Agreement struct {
+	ID      string `json:"marble_id"`
+	Price   int    `json:"price"`
+	TradeID string `json:"trade_id"`
+}
+
+// GetAsset returns the public marble data
+func (s *SmartContract) GetAsset(ctx contractapi.TransactionContextInterface, marbleID string) (*Marble, error) {
 
 	// since only public data is accessed in this function, no access control is required
 
@@ -45,17 +59,15 @@ func (s *SmartContract) QueryMarble(ctx contractapi.TransactionContextInterface,
 	return marble, nil
 }
 
-// QueryMarblePrivateImmutableProperties returns the immutable marble properties from owner's private data collection
-func (s *SmartContract) QueryMarblePrivateImmutableProperties(ctx contractapi.TransactionContextInterface, marbleID string) (string, error) {
+// GetAssetPrivateProperties returns the immutable marble properties from owner's private data collection
+func (s *SmartContract) GetAssetPrivateProperties(ctx contractapi.TransactionContextInterface, marbleID string) (string, error) {
 
 	// Get client org id and verify it matches peer org id.
 	// In this scenario, client is only authorized to read/write private data from its own peer.
-	clientOrgID, err := getClientOrgID(ctx, true)
+	collection, err := getClientImplicitCollectionName(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to get verified OrgID: %s", err.Error())
+		return "", err
 	}
-
-	collection := "_implicit_org_" + clientOrgID
 
 	immutableProperties, err := ctx.GetStub().GetPrivateData(collection, marbleID)
 	if err != nil {
@@ -68,27 +80,23 @@ func (s *SmartContract) QueryMarblePrivateImmutableProperties(ctx contractapi.Tr
 	return string(immutableProperties), nil
 }
 
-// QueryMarbleSalesPrice returns the sales price as an integer
-func (s *SmartContract) QueryMarbleSalesPrice(ctx contractapi.TransactionContextInterface, marbleID string) (string, error) {
-	return queryMarblePrice(ctx, marbleID, typeMarbleForSale)
+// GetAssetSalesPrice returns the sales price as an integer
+func (s *SmartContract) GetAssetSalesPrice(ctx contractapi.TransactionContextInterface, marbleID string) (string, error) {
+	return getAssetPrice(ctx, marbleID, typeMarbleForSale)
 }
 
-// QueryMarbleBidPrice returns the bid price as an integer
-func (s *SmartContract) QueryMarbleBidPrice(ctx contractapi.TransactionContextInterface, marbleID string) (string, error) {
-	return queryMarblePrice(ctx, marbleID, typeMarbleBid)
+// GetAssetBidPrice returns the bid price as an integer
+func (s *SmartContract) GetAssetBidPrice(ctx contractapi.TransactionContextInterface, marbleID string) (string, error) {
+	return getAssetPrice(ctx, marbleID, typeMarbleBid)
 }
 
-// queryMarblePrice gets the bid or ask price from caller's implicit private data collection
-func queryMarblePrice(ctx contractapi.TransactionContextInterface, marbleID string, priceType string) (string, error) {
+// getAssetPrice gets the bid or ask price from caller's implicit private data collection
+func getAssetPrice(ctx contractapi.TransactionContextInterface, marbleID string, priceType string) (string, error) {
 
-	// Get client org id and verify it matches peer org id.
-	// In this scenario, client is only authorized to read/write private data from its own peer.
-	clientOrgID, err := getClientOrgID(ctx, true)
+	collection, err := getClientImplicitCollectionName(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to get verified OrgID: %s", err.Error())
+		return "", err
 	}
-
-	collection := "_implicit_org_" + clientOrgID
 
 	marblePriceKey, err := ctx.GetStub().CreateCompositeKey(priceType, []string{marbleID})
 	if err != nil {
@@ -106,16 +114,82 @@ func queryMarblePrice(ctx contractapi.TransactionContextInterface, marbleID stri
 	return string(marblePriceJSON), nil
 }
 
-// TODO add a query to get all of an organization's proposed sales
-// Use GetPrivateDataByPartialCompositeKey to find all keys starting with typeMarbleForSale
-// hint: see sample at https://github.com/hyperledger/fabric-samples/blob/master/chaincode/marbles02/go/marbles_chaincode.go#L458
+// QueryAssetSaleAgreements returns all of an organization's proposed sales
+func (s *SmartContract) QueryAssetSaleAgreements(ctx contractapi.TransactionContextInterface) ([]Agreement, error) {
+	return queryAgreementsByType(ctx, typeMarbleForSale)
+}
 
-// TODO add a query to get all of an organization's proposed buys
-// Use GetPrivateDataByPartialCompositeKey to find all keys starting with typeMarbleBid
+// QueryAssetBuyAgreements returns all of an organization's proposed buys
+func (s *SmartContract) QueryAssetBuyAgreements(ctx contractapi.TransactionContextInterface) ([]Agreement, error) {
+	return queryAgreementsByType(ctx, typeMarbleBid)
+}
+
+func queryAgreementsByType(ctx contractapi.TransactionContextInterface, agreeType string) ([]Agreement, error) {
+	collection, err := getClientImplicitCollectionName(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Query for any object type starting with `agreeType`
+	agreementsIterator, err := ctx.GetStub().GetPrivateDataByPartialCompositeKey(collection, agreeType, []string{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from private data collection: %s", err.Error())
+	}
+	defer agreementsIterator.Close()
+
+	agreements := []Agreement{}
+
+	for agreementsIterator.HasNext() {
+		resp, err := agreementsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		newAgree := new(Agreement)
+		err = json.Unmarshal(resp.Value, newAgree)
+		if err != nil {
+			return nil, err
+		}
+
+		agreements = append(agreements, *newAgree)
+	}
+
+	return agreements, nil
+}
 
 // TODO add a JSON index and query to return all of an organization's marbles larger than a certain size (only works when using CouchDB state database)
 // hint: see sample index at https://github.com/hyperledger/fabric-samples/blob/master/chaincode/marbles02/go/META-INF/statedb/couchdb/indexes/indexOwner.json
 // hint: see sample query at https://github.com/hyperledger/fabric-samples/blob/master/chaincode/marbles02/go/marbles_chaincode.go#L515
 
-// TODO add a history query so that users can see the chain of custody for a marble since issuance
-// hint: see sample at https://github.com/hyperledger/fabric-samples/blob/master/chaincode/marbles02/go/marbles_chaincode.go#L692
+// QueryAssetHistory returns the chain of custody for a marble since issuance
+func (s *SmartContract) QueryAssetHistory(ctx contractapi.TransactionContextInterface, marbleID string) ([]QueryResult, error) {
+	resultsIterator, err := ctx.GetStub().GetHistoryForKey(marbleID)
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	records := []QueryResult{}
+
+	for resultsIterator.HasNext() {
+		response, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		marble := new(Marble)
+		err = json.Unmarshal(response.Value, marble)
+		if err != nil {
+			return nil, err
+		}
+
+		record := QueryResult{
+			TxId:      response.TxId,
+			Timestamp: time.Unix(response.Timestamp.Seconds, int64(response.Timestamp.Nanos)),
+			Record:    marble,
+		}
+		records = append(records, record)
+	}
+
+	return records, nil
+}

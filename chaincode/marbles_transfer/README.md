@@ -180,12 +180,12 @@ export MARBLE_PROPERTIES=$(echo -n "{\"object_type\":\"marble_properties\",\"mar
 ```
 We can now use the following command to create a marble that belongs to Org1:
 ```
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"CreateMarble","Args":["marble1"]}' --transient "{\"marble_properties\":\"$MARBLE_PROPERTIES\"}"
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"IssueAsset","Args":["marble1"]}' --transient "{\"marble_properties\":\"$MARBLE_PROPERTIES\"}"
 ```
 
 We can can query the Org1 implicit data collection to see the marble that was created:
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"QueryMarblePrivateImmutableProperties","Args":["marble1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"GetAssetPrivateProperties","Args":["marble1"]}'
 ```
 
 When successful, the command will return the following result:
@@ -195,7 +195,7 @@ When successful, the command will return the following result:
 
 We can also query the ledger to see the public ownership record:
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"QueryMarble","Args":["marble1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"GetAsset","Args":["marble1"]}'
 ```
 The command will return the record that the marble1 is owned by Org1:
 ```
@@ -207,7 +207,7 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 ```
 Query the ledger again to see the updated description:
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"QueryMarble","Args":["marble1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"GetAsset","Args":["marble1"]}'
 ```
 We can now see that the marble is for sale:
 ```
@@ -221,7 +221,7 @@ We can now see that the marble is for sale:
 
 If we operate from the Org2 terminal, we can use the smart contract query the public marble data:
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"QueryMarble","Args":["marble1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"GetAsset","Args":["marble1"]}'
 ```
 From this query, Org2 learns that marble1 is for sale:
 ```
@@ -251,7 +251,7 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 
 We can query the Org1 private data collection to read the agreed to selling price:
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"QueryMarbleSalesPrice","Args":["marble1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"GetAssetSalesPrice","Args":["marble1"]}'
 ```
 
 ## Agree to buy as Org2
@@ -263,7 +263,7 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 ```
 You can read the agreed purchase price from the Org2 implicit data collection:
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"QueryMarbleBidPrice","Args":["marble1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"GetAssetBidPrice","Args":["marble1"]}'
 ```
 
   ![Org1 and Org2 agree on transfer](images/transfer_marbles_2.png)  
@@ -278,7 +278,7 @@ After both organizations have agreed to their price, Org1 can attempt to transfe
 Operate from the Org1 terminal. The owner of the marble needs to initiate the transfer. Note that the command below uses the `--peerAddresses` flag to target the peers of both Org1 and Org2. Both organizations need to endorse the transfer.
 
 ```
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"TransferMarble","Args":["marble1","Org2MSP"]}' --transient "{\"marble_properties\":\"$MARBLE_PROPERTIES\",\"marble_price\":\"$MARBLE_PRICE\"}" --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"TransferAsset","Args":["marble1","Org2MSP"]}' --transient "{\"marble_properties\":\"$MARBLE_PROPERTIES\",\"marble_price\":\"$MARBLE_PRICE\"}" --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
 ```
 Because the two organizations have not agreed to the same price, the transfer cannot be completed:
 ```
@@ -293,13 +293,13 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 
 Now that the buyer and seller have agreed to the same price, Org1 can transfer the marble to Org2.
 ```
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"TransferMarble","Args":["marble1","Org2MSP"]}' --transient "{\"marble_properties\":\"$MARBLE_PROPERTIES\",\"marble_price\":\"$MARBLE_PRICE\"}" --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"TransferAsset","Args":["marble1","Org2MSP"]}' --transient "{\"marble_properties\":\"$MARBLE_PROPERTIES\",\"marble_price\":\"$MARBLE_PRICE\"}" --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
 ```
 
 You can query the marble ownership record to verify that the transfer was successful.
 
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"QueryMarble","Args":["marble1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"GetAsset","Args":["marble1"]}'
 ```
 
 The record now lists Org2 as the Marble owner:
@@ -314,7 +314,7 @@ The record now lists Org2 as the Marble owner:
 
 Operate from the Org2 terminal. Now that Org2 owns the marble, we can read the marble details from the Org2 implicit data collection:
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"QueryMarblePrivateImmutableProperties","Args":["marble1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"GetAssetPrivateProperties","Args":["marble1"]}'
 ```
 
 Org2 can now update the marble public description:
@@ -324,7 +324,7 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 
 Query the ledger to verify that the marble is no longer for sale:
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"QueryMarble","Args":["marble1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"GetAsset","Args":["marble1"]}'
 ```
 
 ## Clean up
