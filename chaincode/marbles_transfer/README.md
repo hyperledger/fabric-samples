@@ -215,7 +215,7 @@ We can now see that the marble is for sale:
 ```
 
   ![Org1 creates a Marble](images/transfer_marbles_1.png)  
-*Figure 1: When Org1 creates a marble that they own, the marble details are stored in the Org1 implicit data collection on the Org1 peer. The public ownership record is stored in the channel world state, and is stored on both the Org1 and Org2 peers. A hash of the marble details is also visible in the channel world state and is stored on the peers of both organizations.*
+*Figure 1: When Org1 creates a marble that they own, the marble details are stored in the Org1 implicit data collection on the Org1 peer. The public ownership record is stored in the channel world state, and is stored on both the Org1 and Org2 peers. A hash of the marble key and a hash the marble details are also visible in the channel world state and are stored on the peers of both organizations.*
 
 ### Operate from the Org2 terminal
 
@@ -243,7 +243,7 @@ To sell a marble, both the buyer and the seller must agree on a marble price. Ea
 
 ## Agree to sell as Org1
 
-Operate from the Org1 terminal. Org1 will agree to set the marble price as 110 dollars. The `trade_id` is used as salt to prevent a channel member that is not a buyer or a seller from guessing the price. This value needs to be passed out of band, through email or other communication, between the buyer and the seller.
+Operate from the Org1 terminal. Org1 will agree to set the marble price as 110 dollars. The `trade_id` is used as salt to prevent a channel member that is not a buyer or a seller from guessing the price. This value needs to be passed out of band, through email or other communication, between the buyer and the seller. The buyer and the seller can also add salt to the marble key to prevent other members of the channel from guessing which marble is for sale.
 ```
 export MARBLE_PRICE=$(echo -n "{\"marble_id\":\"marble1\",\"trade_id\":\"109f4b3c50d7b0df729d299bc6f8e9ef9066971f\",\"price\":110}" | base64)
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"AgreeToSell","Args":["marble1"]}' --transient "{\"marble_price\":\"$MARBLE_PRICE\"}"
@@ -267,7 +267,7 @@ peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.exam
 ```
 
   ![Org1 and Org2 agree on transfer](images/transfer_marbles_2.png)  
-*Figure 2: After Org1 and Org2 agree to transfer the marble, the price agreed to by each organization is stored in their private data collections. A composite key of "MarbleforSale" is used to prevent a collision with the marble details and marble ownership record. The price that is agreed to is only stored on the peers of each organization. However, the hash of both agreements is stored in the channel world state on every peer joined to the channel.*  
+*Figure 2: After Org1 and Org2 agree to transfer the marble, the price agreed to by each organization is stored in their private data collections. A composite key for the seller and the buyer is used to prevent a collision with the marble details and marble ownership record. The price that is agreed to is only stored on the peers of each organization. However, the hash of both agreements is stored in the channel world state on every peer joined to the channel.*  
 
 ## Transfer the marble from to Org2
 
