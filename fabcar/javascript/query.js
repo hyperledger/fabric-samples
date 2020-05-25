@@ -46,6 +46,9 @@ async function main() {
         const result = await contract.evaluateTransaction('queryAllCars');
         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
 
+        // Disconnect from the gateway.
+        await gateway.disconnect();
+        
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         process.exit(1);
