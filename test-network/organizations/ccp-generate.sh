@@ -23,7 +23,7 @@ function yaml_ccp {
         -e "s/\${CAPORT}/$3/" \
         -e "s#\${PEERPEM}#$PP#" \
         -e "s#\${CAPEM}#$CP#" \
-        organizations/ccp-template.yaml | sed -e $'s/\\\\n/\\\n        /g'
+        organizations/ccp-template.yaml | sed -e $'s/\\\\n/\\\n          /g'
 }
 
 ORG=1

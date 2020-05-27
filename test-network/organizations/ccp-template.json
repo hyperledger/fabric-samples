@@ -39,7 +39,7 @@
             "url": "https://localhost:${CAPORT}",
             "caName": "ca-org${ORG}",
             "tlsCACerts": {
-                "pem": "${CAPEM}"
+                "pem": ["${CAPEM}"]
             },
             "httpOptions": {
                 "verify": false
