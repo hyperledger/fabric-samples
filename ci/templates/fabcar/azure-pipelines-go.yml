@@ -6,3 +6,16 @@ steps:
   - script: ./startFabric.sh go
     workingDirectory: fabcar
     displayName: Start Fabric
+  - task: GoTool@0
+    displayName: 'Use Go 1.14.2'
+    inputs:
+      version: '1.14.2'
+  - task: Go@0
+    displayName: 'go build'
+    inputs:
+      command: build
+      arguments: '-o "fabcar"'
+      workingDirectory: fabcar/go
+  - script: DISCOVERY_AS_LOCALHOST=TRUE ./fabcar
+    workingDirectory: fabcar/go
+    displayName: Run FabCar Application
