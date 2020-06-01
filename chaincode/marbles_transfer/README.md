@@ -256,7 +256,13 @@ peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.exam
 
 ## Agree to buy as Org2
 
-Operate from the Org2 terminal. Run the following command to agree to buy marble1 for 100 dollars. As of now, Org2 will agree to a different price than Org2. Don't worry, the two organizations will agree to the same price in a future step. However, we we can use this temporary disagreement as a test of what happens if the buyer and the seller agree to a different price. Org2 needs to use the same `trade_id` as Org1.
+Operate from the Org2 terminal. Run the following command to verify the asset properties before agreeing to buy. The asset properties and salt would be passed out of band, through email or other communication, between the buyer and seller.
+```
+export MARBLE_PROPERTIES=$(echo -n "{\"object_type\":\"marble_properties\",\"marble_id\":\"marble1\",\"color\":\"blue\",\"size\":35,\"salt\":\"a94a8fe5ccb19ba61c4c0873d391e987982fbbd3\"}" | base64)
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"VerifyAsset","Args":["marble1"]}' --transient "{\"marble_properties\":\"$MARBLE_PROPERTIES\"}"
+```
+
+Run the following command to agree to buy marble1 for 100 dollars. As of now, Org2 will agree to a different price than Org2. Don't worry, the two organizations will agree to the same price in a future step. However, we we can use this temporary disagreement as a test of what happens if the buyer and the seller agree to a different price. Org2 needs to use the same `trade_id` as Org1.
 ```
 export MARBLE_PRICE=$(echo -n "{\"marble_id\":\"marble1\",\"trade_id\":\"109f4b3c50d7b0df729d299bc6f8e9ef9066971f\",\"price\":100}" | base64)
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n marbles_transfer -c '{"function":"AgreeToBuy","Args":["marble1"]}' --transient "{\"marble_price\":\"$MARBLE_PRICE\"}"

@@ -24,6 +24,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/hyperledger/fabric-chaincode-go/pkg/statebased"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
@@ -31,8 +32,10 @@ import (
 )
 
 const (
-	typeMarbleForSale = "S"
-	typeMarbleBid     = "B"
+	typeMarbleForSale     = "S"
+	typeMarbleBid         = "B"
+	typeMarbleSaleReceipt = "SR"
+	typeMarbleBuyReceipt  = "BR"
 )
 
 type SmartContract struct {
@@ -45,6 +48,11 @@ type Marble struct {
 	ID                string `json:"marble_id"`
 	OwnerOrg          string `json:"owner_org"`
 	PublicDescription string `json:"public_description"`
+}
+
+type receipt struct {
+	price     int
+	timestamp time.Time
 }
 
 // IssueAsset creates a marble and sets it as owned by the client's org
@@ -94,7 +102,7 @@ func (s *SmartContract) IssueAsset(ctx contractapi.TransactionContextInterface, 
 	}
 
 	// Persist private immutable marble properties to owner's private data collection
-	collection := "_implicit_org_" + clientOrgID
+	collection := buildCollectionName(clientOrgID)
 	err = ctx.GetStub().PutPrivateData(collection, marble.ID, []byte(immutablePropertiesJSON))
 	if err != nil {
 		return fmt.Errorf("failed to put Marble private details: %s", err.Error())
@@ -181,7 +189,7 @@ func agreeToPrice(ctx contractapi.TransactionContextInterface, marbleID string, 
 		return fmt.Errorf("marble_price key not found in the transient map")
 	}
 
-	collection := "_implicit_org_" + clientOrgID
+	collection := buildCollectionName(clientOrgID)
 
 	// Persist the agreed to price in a collection sub-namespace based on priceType key prefix,
 	// to avoid collisions between private marble properties, sell price, and buy price
@@ -198,11 +206,46 @@ func agreeToPrice(ctx contractapi.TransactionContextInterface, marbleID string, 
 	return nil
 }
 
-// TODO implement function to verify marble properties
-// For example, Org1 may tell Org2 about the properties and salt.
-// Org2 would want to verify the properties before agreeing to buy.
-// Org2 would call a verify function on his peer.
-// The properties and salt would passed in, get hashed in the chaincode, and compared with the on-chain hash of the marble properties (queried via GetPrivateDataHash).
+// VerifyAssetProperties implement function to verify marble properties using the hash
+// Allows a buyer to validate the properties of an asset against the owner's implicit private data collection
+func (s *SmartContract) VerifyAssetProperties(ctx contractapi.TransactionContextInterface, marbleID string) (bool, error) {
+	transMap, err := ctx.GetStub().GetTransient()
+	if err != nil {
+		return false, fmt.Errorf("Error getting transient: " + err.Error())
+	}
+
+	// Marble properties are private, therefore they get passed in transient field
+	immutablePropertiesJSON, ok := transMap["marble_properties"]
+	if !ok {
+		return false, fmt.Errorf("marble_properties key not found in the transient map")
+	}
+
+	marble, err := s.GetAsset(ctx, marbleID)
+	if err != nil {
+		return false, fmt.Errorf("failed to get marble: %s", err.Error())
+	}
+
+	collectionOwner := buildCollectionName(marble.OwnerOrg)
+	immutablePropertiesOnChainHash, err := ctx.GetStub().GetPrivateDataHash(collectionOwner, marbleID)
+	if err != nil {
+		return false, fmt.Errorf("failed to read marble private properties hash from seller's collection: %s", err.Error())
+	}
+	if immutablePropertiesOnChainHash == nil {
+		return false, fmt.Errorf("marble private properties hash does not exist: %s", marbleID)
+	}
+
+	// get sha256 hash of passed immutable properties
+	hash := sha256.New()
+	hash.Write(immutablePropertiesJSON)
+	calculatedPropertiesHash := hash.Sum(nil)
+
+	// verify that the hash of the passed immutable properties matches the on-chain hash
+	if !bytes.Equal(immutablePropertiesOnChainHash, calculatedPropertiesHash) {
+		return false, fmt.Errorf("hash %x for passed immutable properties %s does not match on-chain hash %x", calculatedPropertiesHash, immutablePropertiesJSON, immutablePropertiesOnChainHash)
+	}
+
+	return true, nil
+}
 
 // TransferAsset checks transfer conditions and then transfers marble state to buyer.
 // TransferAsset can only be called by current owner
@@ -230,6 +273,12 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 		return fmt.Errorf("marble_price key not found in the transient map")
 	}
 
+	var agreement Agreement
+	err = json.Unmarshal([]byte(priceJSON), &agreement)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal price JSON: %s", err.Error())
+	}
+
 	marble, err := s.GetAsset(ctx, marbleID)
 	if err != nil {
 		return fmt.Errorf("failed to get marble: %s", err.Error())
@@ -240,7 +289,7 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 		return fmt.Errorf("failed transfer verification: %s", err.Error())
 	}
 
-	err = transferMarbleState(ctx, marble, immutablePropertiesJSON, clientOrgID, buyerOrgID)
+	err = transferMarbleState(ctx, marble, immutablePropertiesJSON, clientOrgID, buyerOrgID, agreement.Price)
 	if err != nil {
 		return fmt.Errorf("failed marble transfer: %s", err.Error())
 	}
@@ -261,7 +310,7 @@ func verifyTransferConditions(ctx contractapi.TransactionContextInterface, marbl
 	// CHECK2: verify that the hash of the passed immutable properties matches the on-chain hash
 
 	// get on chain hash
-	collectionSeller := "_implicit_org_" + clientOrgID
+	collectionSeller := buildCollectionName(clientOrgID)
 	immutablePropertiesOnChainHash, err := ctx.GetStub().GetPrivateDataHash(collectionSeller, marble.ID)
 	if err != nil {
 		return fmt.Errorf("failed to read marble private properties hash from seller's collection: %s", err.Error())
@@ -296,7 +345,7 @@ func verifyTransferConditions(ctx contractapi.TransactionContextInterface, marbl
 	}
 
 	// get buyer bid price
-	collectionBuyer := "_implicit_org_" + buyerOrgID
+	collectionBuyer := buildCollectionName(buyerOrgID)
 	marbleBidKey, err := ctx.GetStub().CreateCompositeKey(typeMarbleBid, []string{marble.ID})
 	if err != nil {
 		return fmt.Errorf("failed to create composite key: %s", err.Error())
@@ -329,7 +378,7 @@ func verifyTransferConditions(ctx contractapi.TransactionContextInterface, marbl
 }
 
 // transferMarbleState makes the public and private state updates for the transferred marble
-func transferMarbleState(ctx contractapi.TransactionContextInterface, marble *Marble, immutablePropertiesJSON []byte, clientOrgID string, buyerOrgID string) error {
+func transferMarbleState(ctx contractapi.TransactionContextInterface, marble *Marble, immutablePropertiesJSON []byte, clientOrgID string, buyerOrgID string, price int) error {
 
 	// save the marble with the new owner
 	marble.OwnerOrg = buyerOrgID
@@ -348,22 +397,76 @@ func transferMarbleState(ctx contractapi.TransactionContextInterface, marble *Ma
 	}
 
 	// Transfer the private properties (delete from seller collection, create in buyer collection)
-
-	collectionSeller := "_implicit_org_" + clientOrgID
+	collectionSeller := buildCollectionName(clientOrgID)
 	err = ctx.GetStub().DelPrivateData(collectionSeller, marble.ID)
 	if err != nil {
 		return fmt.Errorf("failed to delete Marble private details from seller: %s", err.Error())
 	}
 
-	collectionBuyer := "_implicit_org_" + buyerOrgID
+	collectionBuyer := buildCollectionName(buyerOrgID)
 	err = ctx.GetStub().PutPrivateData(collectionBuyer, marble.ID, immutablePropertiesJSON)
 	if err != nil {
 		return fmt.Errorf("failed to put Marble private properties for buyer: %s", err.Error())
 	}
 
-	// TODO delete the price records for buyer and seller
+	// Delete the price records for seller
+	marblePriceKey, err := ctx.GetStub().CreateCompositeKey(typeMarbleForSale, []string{marble.ID})
+	if err != nil {
+		return fmt.Errorf("failed to create composite key for seller: %s", err.Error())
+	}
 
-	// TODO add a state record for a 'receipt' in both buyer and seller private data collection to record the sales price and date
+	err = ctx.GetStub().DelPrivateData(collectionSeller, marblePriceKey)
+	if err != nil {
+		return fmt.Errorf("failed to delete marble price from implicit private data collection for seller: %s", err.Error())
+	}
+
+	// Delete the price records for buyer
+	marblePriceKey, err = ctx.GetStub().CreateCompositeKey(typeMarbleBid, []string{marble.ID})
+	if err != nil {
+		return fmt.Errorf("failed to create composite key for buyer: %s", err.Error())
+	}
+
+	err = ctx.GetStub().DelPrivateData(collectionBuyer, marblePriceKey)
+	if err != nil {
+		return fmt.Errorf("failed to delete marble price from implicit private data collection for buyer: %s", err.Error())
+	}
+
+	// Keep record for a 'receipt' in both buyer and seller private data collection to record the sales price and date
+	// Persist the agreed to price in a collection sub-namespace based on receipt key prefix
+	receiptBuyKey, err := ctx.GetStub().CreateCompositeKey(typeMarbleBuyReceipt, []string{marble.ID, ctx.GetStub().GetTxID()})
+	if err != nil {
+		return fmt.Errorf("failed to create composite key for receipt: %s", err.Error())
+	}
+
+	timestmp, err := ctx.GetStub().GetTxTimestamp()
+	if err != nil {
+		return fmt.Errorf("failed to create timestamp for receipt: %s", err.Error())
+	}
+
+	assetReceipt := receipt{
+		price:     price,
+		timestamp: time.Unix(timestmp.Seconds, int64(timestmp.Nanos)),
+	}
+
+	receiptJSON, err := json.Marshal(assetReceipt)
+	if err != nil {
+		return fmt.Errorf("failed to marshal receipt: %s", err.Error())
+	}
+
+	err = ctx.GetStub().PutPrivateData(collectionBuyer, receiptBuyKey, receiptJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put private asset receipt for buyer: %s", err.Error())
+	}
+
+	receiptSaleKey, err := ctx.GetStub().CreateCompositeKey(typeMarbleSaleReceipt, []string{ctx.GetStub().GetTxID(), marble.ID})
+	if err != nil {
+		return fmt.Errorf("failed to create composite key for receipt: %s", err.Error())
+	}
+
+	err = ctx.GetStub().PutPrivateData(collectionSeller, receiptSaleKey, receiptJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put private asset receipt for seller: %s", err.Error())
+	}
 
 	return nil
 }
@@ -423,6 +526,10 @@ func setMarbleStateBasedEndorsement(ctx contractapi.TransactionContextInterface,
 	return nil
 }
 
+func buildCollectionName(clientOrgID string) string {
+	return fmt.Sprintf("_implicit_org_%s", clientOrgID)
+}
+
 func getClientImplicitCollectionName(ctx contractapi.TransactionContextInterface) (string, error) {
 	clientOrgID, err := getClientOrgID(ctx, true)
 	if err != nil {
@@ -434,8 +541,7 @@ func getClientImplicitCollectionName(ctx contractapi.TransactionContextInterface
 		return "", err
 	}
 
-	collection := "_implicit_org_" + clientOrgID
-	return collection, nil
+	return buildCollectionName(clientOrgID), nil
 }
 
 func main() {
