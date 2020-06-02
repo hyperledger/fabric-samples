@@ -30,6 +30,7 @@ function printHelp () {
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
+  echo "    -cai <ca_imagetag> - the image tag to be used for CA (defaults to \"${CA_IMAGETAG}\")"
   echo "    -verbose - verbose mode"
   echo
   echo "Typically, one would first generate the required certificates and "
@@ -84,17 +85,12 @@ function generateOrg3() {
   if [ "$CRYPTO" == "Certificate Authorities" ]; then
 
     fabric-ca-client version > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-      echo "Fabric CA client not found locally, downloading..."
-      cd ../..
-      curl -s -L "https://github.com/hyperledger/fabric-ca/releases/download/v1.4.4/hyperledger-fabric-ca-${OS_ARCH}-1.4.4.tar.gz" | tar xz || rc=$?
-    if [ -n "$rc" ]; then
-        echo "==> There was an error downloading the binary file."
-        echo "fabric-ca-client binary is not available to download"
-    else
-        echo "==> Done."
-      cd test-network/addOrg3/
-    fi
+    if [[ $? -ne 0 ]]; then
+      echo "ERROR! fabric-ca-client binary not found.."
+      echo
+      echo "Follow the instructions in the Fabric docs to install the Fabric Binaries:"
+      echo "https://hyperledger-fabric.readthedocs.io/en/latest/install.html"
+      exit 1
     fi
 
     echo
@@ -102,14 +98,14 @@ function generateOrg3() {
     echo "##### Generate certificates using Fabric CA's ############"
     echo "##########################################################"
 
-    IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE_CA_ORG3 up -d 2>&1
+    IMAGE_TAG=${CA_IMAGETAG} docker-compose -f $COMPOSE_FILE_CA_ORG3 up -d 2>&1
 
     . fabric-ca/registerEnroll.sh
 
     sleep 10
 
     echo "##########################################################"
-    echo "############ Create Org1 Identities ######################"
+    echo "############ Create Org3 Identities ######################"
     echo "##########################################################"
 
     createOrg3
@@ -233,6 +229,8 @@ COMPOSE_FILE_ORG3=docker/docker-compose-org3.yaml
 COMPOSE_FILE_CA_ORG3=docker/docker-compose-ca-org3.yaml
 # default image tag
 IMAGETAG="latest"
+# default ca image tag
+CA_IMAGETAG="latest"
 # database
 DATABASE="leveldb"
 
@@ -277,6 +275,10 @@ while [[ $# -ge 1 ]] ; do
     ;;
   -i )
     IMAGETAG=$(go env GOARCH)"-""$2"
+    shift
+    ;;
+  -cai )
+    CA_IMAGETAG="$2"
     shift
     ;;
   -verbose )
