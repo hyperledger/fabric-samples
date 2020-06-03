@@ -125,6 +125,30 @@ function checkPrereqs() {
       exit 1
     fi
   done
+
+  ## Check for fabric-ca
+  if [ "$CRYPTO" == "Certificate Authorities" ]; then
+
+    fabric-ca-client version > /dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+      echo "ERROR! fabric-ca-client binary not found.."
+      echo
+      echo "Follow the instructions in the Fabric docs to install the Fabric Binaries:"
+      echo "https://hyperledger-fabric.readthedocs.io/en/latest/install.html"
+      exit 1
+    fi
+    CA_LOCAL_VERSION=$(fabric-ca-client version | sed -ne 's/ Version: //p')
+    CA_DOCKER_IMAGE_VERSION=$(docker run --rm hyperledger/fabric-ca:$CA_IMAGETAG fabric-ca-client version | sed -ne 's/ Version: //p' | head -1)
+    echo "CA_LOCAL_VERSION=$CA_LOCAL_VERSION"
+    echo "CA_DOCKER_IMAGE_VERSION=$CA_DOCKER_IMAGE_VERSION"
+
+    if [ "$CA_LOCAL_VERSION" != "$CA_DOCKER_IMAGE_VERSION" ]; then
+      echo "=================== WARNING ======================"
+      echo "  Local fabric-ca binaries and docker images are  "
+      echo "  out of sync. This may cause problems.           "
+      echo "=================================================="
+    fi
+  fi
 }
 
 
@@ -215,20 +239,6 @@ function createOrgs() {
 
   # Create crypto material using Fabric CAs
   if [ "$CRYPTO" == "Certificate Authorities" ]; then
-
-    fabric-ca-client version > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-      echo "Fabric CA client not found locally, downloading..."
-      cd ..
-      curl -s -L "https://github.com/hyperledger/fabric-ca/releases/download/v${CA_IMAGETAG}/hyperledger-fabric-ca-${OS_ARCH}-${CA_IMAGETAG}.tar.gz" | tar xz
-    if [ -n "$rc" ]; then
-        echo "==> There was an error downloading the binary file."
-        echo "fabric-ca-client binary is not available to download"
-    else
-        echo "==> Done."
-      cd test-network
-    fi
-    fi
 
     echo
     echo "##########################################################"
@@ -439,7 +449,7 @@ VERSION=1
 # default image tag
 IMAGETAG="latest"
 # default ca image tag
-CA_IMAGETAG="1.4.6"
+CA_IMAGETAG="latest"
 # default database
 DATABASE="leveldb"
 
