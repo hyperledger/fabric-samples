@@ -98,7 +98,6 @@ queryInstalled() {
   cat log.txt
 	PACKAGE_ID=$(sed -n "/fabcar_${VERSION}/{s/^Package ID: //; s/, Label:.*$//; p;}" log.txt)
   verifyResult $res "Query installed on peer0.org${ORG} has failed"
-  echo PackageID is ${PACKAGE_ID}
   echo "===================== Query installed successful on peer0.org${ORG} on channel ===================== "
   echo
 }
