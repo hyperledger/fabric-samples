@@ -7,16 +7,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"os"
+	"strconv"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
 type ServerConfig struct {
-	CCID     string
-	Address  string
+	CCID    string
+	Address string
 }
 
 // SmartContract provides functions for managing a car
@@ -99,8 +99,8 @@ func (s *SmartContract) QueryCar(ctx contractapi.TransactionContextInterface, ca
 
 // QueryAllCars returns all cars found in world state
 func (s *SmartContract) QueryAllCars(ctx contractapi.TransactionContextInterface) ([]QueryResult, error) {
-	startKey := "CAR0"
-	endKey := "CAR99"
+	startKey := ""
+	endKey := ""
 
 	resultsIterator, err := ctx.GetStub().GetStateByRange(startKey, endKey)
 
@@ -158,13 +158,13 @@ func main() {
 	}
 
 	server := &shim.ChaincodeServer{
-					CCID: config.CCID,
-					Address: config.Address,
-					CC: chaincode,
-					TLSProps: shim.TLSProperties{
-							Disabled: true,
-					},
-			}
+		CCID:    config.CCID,
+		Address: config.Address,
+		CC:      chaincode,
+		TLSProps: shim.TLSProperties{
+			Disabled: true,
+		},
+	}
 
 	if err := server.Start(); err != nil {
 		fmt.Printf("Error starting fabcar chaincode: %s", err.Error())

@@ -92,8 +92,8 @@ func (s *SmartContract) QueryCar(ctx contractapi.TransactionContextInterface, ca
 
 // QueryAllCars returns all cars found in world state
 func (s *SmartContract) QueryAllCars(ctx contractapi.TransactionContextInterface) ([]QueryResult, error) {
-	startKey := "CAR0"
-	endKey := "CAR99"
+	startKey := ""
+	endKey := ""
 
 	resultsIterator, err := ctx.GetStub().GetStateByRange(startKey, endKey)
 

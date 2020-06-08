@@ -108,8 +108,8 @@ class FabCar extends Contract {
     }
 
     async queryAllCars(ctx) {
-        const startKey = 'CAR0';
-        const endKey = 'CAR999';
+        const startKey = '';
+        const endKey = '';
         const allResults = [];
         for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
             const strValue = Buffer.from(value).toString('utf8');
