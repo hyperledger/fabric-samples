@@ -134,7 +134,7 @@ public final class FabCar implements ContractInterface {
     }
 
     /**
-     * Retrieves every car between CAR0 and CAR999 from the ledger.
+     * Retrieves all cars from the ledger.
      *
      * @param ctx the transaction context
      * @return array of Cars found on the ledger
@@ -143,8 +143,8 @@ public final class FabCar implements ContractInterface {
     public CarQueryResult[] queryAllCars(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
 
-        final String startKey = "CAR0";
-        final String endKey = "CAR999";
+        final String startKey = "";
+        final String endKey = "";
         List<CarQueryResult> queryResults = new ArrayList<CarQueryResult>();
 
         QueryResultsIterator<KeyValue> results = stub.getStateByRange(startKey, endKey);

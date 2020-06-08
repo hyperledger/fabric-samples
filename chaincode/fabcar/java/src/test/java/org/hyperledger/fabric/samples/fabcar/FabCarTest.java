@@ -211,7 +211,7 @@ public final class FabCarTest {
         Context ctx = mock(Context.class);
         ChaincodeStub stub = mock(ChaincodeStub.class);
         when(ctx.getStub()).thenReturn(stub);
-        when(stub.getStateByRange("CAR0", "CAR999")).thenReturn(new MockCarResultsIterator());
+        when(stub.getStateByRange("", "")).thenReturn(new MockCarResultsIterator());
 
         CarQueryResult[] cars = contract.queryAllCars(ctx);
 
