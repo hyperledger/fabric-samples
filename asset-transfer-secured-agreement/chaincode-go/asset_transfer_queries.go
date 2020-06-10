@@ -40,8 +40,8 @@ type Agreement struct {
 	TradeID string `json:"trade_id"`
 }
 
-// GetAsset returns the public asset data
-func (s *SmartContract) GetAsset(ctx contractapi.TransactionContextInterface, assetID string) (*Asset, error) {
+// ReadAsset returns the public asset data
+func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, assetID string) (*Asset, error) {
 
 	// since only public data is accessed in this function, no access control is required
 
