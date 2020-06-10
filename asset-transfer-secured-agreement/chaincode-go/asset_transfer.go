@@ -55,8 +55,8 @@ type receipt struct {
 	timestamp time.Time
 }
 
-// IssueAsset creates a asset and sets it as owned by the client's org
-func (s *SmartContract) IssueAsset(ctx contractapi.TransactionContextInterface, assetID string) error {
+// CreateAsset creates a asset and sets it as owned by the client's org
+func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface, assetID, publicDescription string) error {
 
 	transMap, err := ctx.GetStub().GetTransient()
 	if err != nil {
@@ -76,13 +76,12 @@ func (s *SmartContract) IssueAsset(ctx contractapi.TransactionContextInterface, 
 		return fmt.Errorf("failed to get verified OrgID: %s", err.Error())
 	}
 
-	// Create and persit asset
-
+	// Create and persist asset
 	asset := Asset{
 		ObjectType:        "asset",
 		ID:                assetID,
 		OwnerOrg:          clientOrgID,
-		PublicDescription: "A new asset for " + clientOrgID,
+		PublicDescription: publicDescription,
 	}
 
 	assetJSON, err := json.Marshal(asset)
