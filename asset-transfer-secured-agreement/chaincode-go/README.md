@@ -195,7 +195,7 @@ When successful, the command will return the following result:
 
 We can also query the ledger to see the public ownership record:
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n assets_transfer -c '{"function":"GetAsset","Args":["asset1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n assets_transfer -c '{"function":"ReadAsset","Args":["asset1"]}'
 ```
 The command will return the record that the asset1 is owned by Org1:
 ```
@@ -207,7 +207,7 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 ```
 Query the ledger again to see the updated description:
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n assets_transfer -c '{"function":"GetAsset","Args":["asset1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n assets_transfer -c '{"function":"ReadAsset","Args":["asset1"]}'
 ```
 We can now see that the asset is for sale:
 ```
@@ -221,7 +221,7 @@ We can now see that the asset is for sale:
 
 If we operate from the Org2 terminal, we can use the smart contract query the public asset data:
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n assets_transfer -c '{"function":"GetAsset","Args":["asset1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n assets_transfer -c '{"function":"ReadAsset","Args":["asset1"]}'
 ```
 From this query, Org2 learns that asset1 is for sale:
 ```
@@ -305,7 +305,7 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 You can query the asset ownership record to verify that the transfer was successful.
 
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n assets_transfer -c '{"function":"GetAsset","Args":["asset1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n assets_transfer -c '{"function":"ReadAsset","Args":["asset1"]}'
 ```
 
 The record now lists Org2 as the asset owner:
@@ -330,7 +330,7 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 
 Query the ledger to verify that the asset is no longer for sale:
 ```
-peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n assets_transfer -c '{"function":"GetAsset","Args":["asset1"]}'
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n assets_transfer -c '{"function":"ReadAsset","Args":["asset1"]}'
 ```
 
 ## Clean up

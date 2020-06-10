@@ -120,7 +120,7 @@ func (s *SmartContract) ChangePublicDescription(ctx contractapi.TransactionConte
 		return fmt.Errorf("failed to get verified OrgID: %s", err.Error())
 	}
 
-	asset, err := s.GetAsset(ctx, assetID)
+	asset, err := s.ReadAsset(ctx, assetID)
 	if err != nil {
 		return fmt.Errorf("failed to get asset: %s", err.Error())
 	}
@@ -143,7 +143,7 @@ func (s *SmartContract) ChangePublicDescription(ctx contractapi.TransactionConte
 // AgreeToSell adds seller's asking price to seller's implicit private data collection
 func (s *SmartContract) AgreeToSell(ctx contractapi.TransactionContextInterface, assetID string) error {
 	// Query asset and verify that this clientOrgId actually owns the asset.
-	asset, err := s.GetAsset(ctx, assetID)
+	asset, err := s.ReadAsset(ctx, assetID)
 	if err != nil {
 		return err
 	}
@@ -219,7 +219,7 @@ func (s *SmartContract) VerifyAssetProperties(ctx contractapi.TransactionContext
 		return false, fmt.Errorf("asset_properties key not found in the transient map")
 	}
 
-	asset, err := s.GetAsset(ctx, assetID)
+	asset, err := s.ReadAsset(ctx, assetID)
 	if err != nil {
 		return false, fmt.Errorf("failed to get asset: %s", err.Error())
 	}
@@ -278,7 +278,7 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 		return fmt.Errorf("failed to unmarshal price JSON: %s", err.Error())
 	}
 
-	asset, err := s.GetAsset(ctx, assetID)
+	asset, err := s.ReadAsset(ctx, assetID)
 	if err != nil {
 		return fmt.Errorf("failed to get asset: %s", err.Error())
 	}
