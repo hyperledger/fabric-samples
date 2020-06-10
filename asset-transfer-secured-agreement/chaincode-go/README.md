@@ -118,7 +118,7 @@ Now that we can operate as both organizations, we need install the private asset
 
 Open the Org1 terminal. Run the following command to package the private asset transfer chaincode:
 ```
-peer lifecycle chaincode package assets_transfer.tar.gz --path ../asset-transfer-secured-agreement --lang golang --label assets_transfer_1
+peer lifecycle chaincode package assets_transfer.tar.gz --path ../asset-transfer-secured-agreement/chaincode-go --lang golang --label assets_transfer_1
 ```
 
 The command creates a chaincode package named `assets_transfer.tar.gz`. We can now install this package on the Org1 peer:
@@ -180,7 +180,7 @@ export asset_PROPERTIES=$(echo -n "{\"object_type\":\"asset_properties\",\"asset
 ```
 We can now use the following command to create a asset that belongs to Org1:
 ```
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n assets_transfer -c '{"function":"IssueAsset","Args":["asset1"]}' --transient "{\"asset_properties\":\"$asset_PROPERTIES\"}"
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n assets_transfer -c '{"function":"CreateAsset","Args":["asset1", "A new asset for Org1MSP"]}' --transient "{\"asset_properties\":\"$asset_PROPERTIES\"}"
 ```
 
 We can can query the Org1 implicit data collection to see the asset that was created:
