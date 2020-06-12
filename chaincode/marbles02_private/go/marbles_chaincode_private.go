@@ -119,6 +119,9 @@ type SmartContract struct {
 	contractapi.Contract
 }
 
+func (s *SmartContract) Init(ctx contractapi.TransactionContextInterface) error {
+	return nil
+}
 
 // ============================================================
 // initMarble - create a new marble, store into chaincode state
@@ -217,7 +220,7 @@ func (s *SmartContract) InitMarble(ctx contractapi.TransactionContextInterface) 
 	indexName := "color~name"
 	colorNameIndexKey, err := ctx.GetStub().CreateCompositeKey(indexName, []string{marble.Color, marble.Name})
 	if err != nil {
-			return err
+		return err
 	}
 	//  Save index entry to state. Only the key name is needed, no need to store a duplicate copy of the marble.
 	//  Note - passing a 'nil' value will effectively delete the key from state, therefore we pass null character as value
@@ -238,13 +241,13 @@ func (s *SmartContract) ReadMarble(ctx contractapi.TransactionContextInterface, 
 
 	marbleJSON, err := ctx.GetStub().GetPrivateData("collectionMarbles", marbleID) //get the marble from chaincode state
 	if err != nil {
-			return nil, fmt.Errorf("failed to read from marble %s", err.Error())
-		}
-		if marbleJSON == nil {
-			return nil, fmt.Errorf("%s does not exist", marbleID)
-		}
+		return nil, fmt.Errorf("failed to read from marble %s", err.Error())
+	}
+	if marbleJSON == nil {
+		return nil, fmt.Errorf("%s does not exist", marbleID)
+	}
 
-		marble := new(Marble)
+	marble := new(Marble)
 	_ = json.Unmarshal(marbleJSON, marble)
 
 	return marble, nil
@@ -257,14 +260,14 @@ func (s *SmartContract) ReadMarble(ctx contractapi.TransactionContextInterface, 
 func (s *SmartContract) ReadMarblePrivateDetails(ctx contractapi.TransactionContextInterface, marbleID string) (*MarblePrivateDetails, error) {
 
 	marbleDetailsJSON, err := ctx.GetStub().GetPrivateData("collectionMarblePrivateDetails", marbleID) //get the marble from chaincode state
-		if err != nil {
-			return nil, fmt.Errorf("failed to read from marble details %s", err.Error())
-		}
-		if marbleDetailsJSON == nil {
-			return nil, fmt.Errorf("%s does not exist", marbleID)
-		}
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from marble details %s", err.Error())
+	}
+	if marbleDetailsJSON == nil {
+		return nil, fmt.Errorf("%s does not exist", marbleID)
+	}
 
-		marbleDetails := new(MarblePrivateDetails)
+	marbleDetails := new(MarblePrivateDetails)
 	_ = json.Unmarshal(marbleDetailsJSON, marbleDetails)
 
 	return marbleDetails, nil
@@ -276,25 +279,25 @@ func (s *SmartContract) ReadMarblePrivateDetails(ctx contractapi.TransactionCont
 func (s *SmartContract) Delete(ctx contractapi.TransactionContextInterface) error {
 
 	transMap, err := ctx.GetStub().GetTransient()
-		if err != nil {
-			return fmt.Errorf("Error getting transient: " + err.Error())
-		}
+	if err != nil {
+		return fmt.Errorf("Error getting transient: " + err.Error())
+	}
 
 	// Marble properties are private, therefore they get passed in transient field
 	transientDeleteMarbleJSON, ok := transMap["marble_delete"]
-		if !ok {
-			return fmt.Errorf("marble to delete not found in the transient map")
-		}
+	if !ok {
+		return fmt.Errorf("marble to delete not found in the transient map")
+	}
 
 	type marbleDelete struct {
-			Name string `json:"name"`
-		}
+		Name string `json:"name"`
+	}
 
 	var marbleDeleteInput marbleDelete
 	err = json.Unmarshal(transientDeleteMarbleJSON, &marbleDeleteInput)
-		if err != nil {
-			return fmt.Errorf("failed to unmarshal JSON: %s", err.Error())
-		}
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %s", err.Error())
+	}
 
 	if len(marbleDeleteInput.Name) == 0 {
 		return fmt.Errorf("name field must be a non-empty string")
@@ -302,12 +305,12 @@ func (s *SmartContract) Delete(ctx contractapi.TransactionContextInterface) erro
 
 	// to maintain the color~name index, we need to read the marble first and get its color
 	valAsbytes, err := ctx.GetStub().GetPrivateData("collectionMarbles", marbleDeleteInput.Name) //get the marble from chaincode state
-		if err != nil {
-			return fmt.Errorf("failed to read marble: %s", err.Error())
-		}
-		if valAsbytes == nil {
-			return fmt.Errorf("marble private details does not exist: %s",  marbleDeleteInput.Name)
-		}
+	if err != nil {
+		return fmt.Errorf("failed to read marble: %s", err.Error())
+	}
+	if valAsbytes == nil {
+		return fmt.Errorf("marble private details does not exist: %s", marbleDeleteInput.Name)
+	}
 
 	var marbleToDelete Marble
 	err = json.Unmarshal([]byte(valAsbytes), &marbleToDelete)
@@ -325,7 +328,7 @@ func (s *SmartContract) Delete(ctx contractapi.TransactionContextInterface) erro
 	indexName := "color~name"
 	colorNameIndexKey, err := ctx.GetStub().CreateCompositeKey(indexName, []string{marbleToDelete.Color, marbleToDelete.Name})
 	if err != nil {
-			return err
+		return err
 	}
 	err = ctx.GetStub().DelPrivateData("collectionMarbles", colorNameIndexKey)
 	if err != nil {
@@ -335,7 +338,7 @@ func (s *SmartContract) Delete(ctx contractapi.TransactionContextInterface) erro
 	// Finally, delete private details of marble
 	err = ctx.GetStub().DelPrivateData("collectionMarblePrivateDetails", marbleDeleteInput.Name)
 	if err != nil {
-			return err
+		return err
 	}
 
 	return nil
@@ -369,7 +372,6 @@ func (s *SmartContract) TransferMarble(ctx contractapi.TransactionContextInterfa
 		return fmt.Errorf("failed to unmarshal JSON: %s", err.Error())
 	}
 
-
 	if len(marbleTransferInput.Name) == 0 {
 		return fmt.Errorf("name field must be a non-empty string")
 	}
@@ -378,25 +380,25 @@ func (s *SmartContract) TransferMarble(ctx contractapi.TransactionContextInterfa
 	}
 
 	marbleAsBytes, err := ctx.GetStub().GetPrivateData("collectionMarbles", marbleTransferInput.Name)
-		if err != nil {
-			return fmt.Errorf("Failed to get marble:" + err.Error())
-		} else if marbleAsBytes == nil {
-			return fmt.Errorf("Marble does not exist: " + marbleTransferInput.Name)
-		}
+	if err != nil {
+		return fmt.Errorf("Failed to get marble:" + err.Error())
+	} else if marbleAsBytes == nil {
+		return fmt.Errorf("Marble does not exist: " + marbleTransferInput.Name)
+	}
 
 	marbleToTransfer := Marble{}
 	err = json.Unmarshal(marbleAsBytes, &marbleToTransfer) //unmarshal it aka JSON.parse()
-		if err != nil {
-			return fmt.Errorf("failed to unmarshal JSON: %s", err.Error())
-		}
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %s", err.Error())
+	}
 
 	marbleToTransfer.Owner = marbleTransferInput.Owner //change the owner
 
 	marbleJSONasBytes, _ := json.Marshal(marbleToTransfer)
 	err = ctx.GetStub().PutPrivateData("collectionMarbles", marbleToTransfer.Name, marbleJSONasBytes) //rewrite the marble
-		if err != nil {
-				return err
-		}
+	if err != nil {
+		return err
+	}
 
 	return nil
 
@@ -417,7 +419,7 @@ func (s *SmartContract) GetMarblesByRange(ctx contractapi.TransactionContextInte
 
 	resultsIterator, err := ctx.GetStub().GetPrivateDataByRange("collectionMarbles", startKey, endKey)
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
 	defer resultsIterator.Close()
 
@@ -433,7 +435,7 @@ func (s *SmartContract) GetMarblesByRange(ctx contractapi.TransactionContextInte
 
 		err = json.Unmarshal(response.Value, newMarble)
 		if err != nil {
-				return nil, err
+			return nil, err
 		}
 
 		results = append(results, *newMarble)
@@ -442,7 +444,6 @@ func (s *SmartContract) GetMarblesByRange(ctx contractapi.TransactionContextInte
 	return results, nil
 
 }
-
 
 // =======Rich queries =========================================================================
 // Two examples of rich queries are provided below (parameterized query and ad hoc query).
@@ -465,13 +466,13 @@ func (s *SmartContract) GetMarblesByRange(ctx contractapi.TransactionContextInte
 // =========================================================================================
 func (s *SmartContract) QueryMarblesByOwner(ctx contractapi.TransactionContextInterface, owner string) ([]Marble, error) {
 
-	ownerString  := strings.ToLower(owner)
+	ownerString := strings.ToLower(owner)
 
 	queryString := fmt.Sprintf("{\"selector\":{\"docType\":\"marble\",\"owner\":\"%s\"}}", ownerString)
 
 	queryResults, err := s.getQueryResultForQueryString(ctx, queryString)
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
 	return queryResults, nil
 }
@@ -487,7 +488,7 @@ func (s *SmartContract) QueryMarbles(ctx contractapi.TransactionContextInterface
 
 	queryResults, err := s.getQueryResultForQueryString(ctx, queryString)
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
 	return queryResults, nil
 }
@@ -516,7 +517,7 @@ func (s *SmartContract) getQueryResultForQueryString(ctx contractapi.Transaction
 
 		err = json.Unmarshal(response.Value, newMarble)
 		if err != nil {
-				return nil, err
+			return nil, err
 		}
 
 		results = append(results, *newMarble)
@@ -528,7 +529,7 @@ func (s *SmartContract) getQueryResultForQueryString(ctx contractapi.Transaction
 // getMarbleHash - use the public data hash to verify a private marble
 // Result is the hash on the public ledger of a marble stored a private data collection
 // ===============================================
-func (s *SmartContract) GetMarbleHash(ctx contractapi.TransactionContextInterface, collection string, marbleID string,) (string, error) {
+func (s *SmartContract) GetMarbleHash(ctx contractapi.TransactionContextInterface, collection string, marbleID string) (string, error) {
 
 	// GetPrivateDataHash can use any collection deployed with the chaincode as input
 	hashAsbytes, err := ctx.GetStub().GetPrivateDataHash(collection, marbleID)
