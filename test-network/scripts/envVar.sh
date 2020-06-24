@@ -78,7 +78,7 @@ parsePeerConnectionParameters() {
 
 verifyResult() {
   if [ $1 -ne 0 ]; then
-    echo "!!!!!!!!!!!!!!! "$2" !!!!!!!!!!!!!!!!"
+    echo $'\e[1;31m'!!!!!!!!!!!!!!! $2 !!!!!!!!!!!!!!!!$'\e[0m'
     echo
     exit 1
   fi
