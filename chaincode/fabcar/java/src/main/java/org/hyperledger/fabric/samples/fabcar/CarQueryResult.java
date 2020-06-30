@@ -61,7 +61,7 @@ public final class CarQueryResult {
 
     @Override
     public String toString() {
-        return "{\"Key\":\"" + key + "\"" + "\"Record\":{\"" + record + "}\"}";
+        return this.getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + " [key=" + key + ", record="
+                + record + "]";
     }
-
 }

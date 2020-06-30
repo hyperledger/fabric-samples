@@ -213,16 +213,18 @@ public final class FabCarTest {
         when(ctx.getStub()).thenReturn(stub);
         when(stub.getStateByRange("", "")).thenReturn(new MockCarResultsIterator());
 
-        CarQueryResult[] cars = contract.queryAllCars(ctx);
+        String cars = contract.queryAllCars(ctx);
 
-        final List<CarQueryResult> expectedCars = new ArrayList<CarQueryResult>();
-        expectedCars.add(new CarQueryResult("CAR0", new Car("Toyota", "Prius", "blue", "Tomoko")));
-        expectedCars.add(new CarQueryResult("CAR1", new Car("Ford", "Mustang", "red", "Brad")));
-        expectedCars.add(new CarQueryResult("CAR2", new Car("Hyundai", "Tucson", "green", "Jin Soo")));
-        expectedCars.add(new CarQueryResult("CAR7", new Car("Fiat", "Punto", "violet", "Pari")));
-        expectedCars.add(new CarQueryResult("CAR9", new Car("Holden", "Barina", "brown", "Shotaro")));
-
-        assertThat(cars).containsExactlyElementsOf(expectedCars);
+        assertThat(cars).isEqualTo("[{\"key\":\"CAR0\","
+                + "\"record\":{\"color\":\"blue\",\"make\":\"Toyota\",\"model\":\"Prius\",\"owner\":\"Tomoko\"}},"
+                + "{\"key\":\"CAR1\","
+                + "\"record\":{\"color\":\"red\",\"make\":\"Ford\",\"model\":\"Mustang\",\"owner\":\"Brad\"}},"
+                + "{\"key\":\"CAR2\","
+                + "\"record\":{\"color\":\"green\",\"make\":\"Hyundai\",\"model\":\"Tucson\",\"owner\":\"Jin Soo\"}},"
+                + "{\"key\":\"CAR7\","
+                + "\"record\":{\"color\":\"violet\",\"make\":\"Fiat\",\"model\":\"Punto\",\"owner\":\"Pari\"}},"
+                + "{\"key\":\"CAR9\","
+                + "\"record\":{\"color\":\"brown\",\"make\":\"Holden\",\"model\":\"Barina\",\"owner\":\"Shotaro\"}}]");
     }
 
     @Nested
@@ -239,7 +241,7 @@ public final class FabCarTest {
 
             Car car = contract.changeCarOwner(ctx, "CAR0", "Dr Evil");
 
-            assertThat(car).isEqualTo(new CarQueryResult("CAR0", new Car("Toyota", "Prius", "blue", "Dr Evil")));
+            assertThat(car).isEqualTo(new Car("Toyota", "Prius", "blue", "Dr Evil"));
         }
 
         @Test

@@ -140,7 +140,7 @@ public final class FabCar implements ContractInterface {
      * @return array of Cars found on the ledger
      */
     @Transaction()
-    public CarQueryResult[] queryAllCars(final Context ctx) {
+    public String queryAllCars(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
 
         final String startKey = "";
@@ -154,7 +154,7 @@ public final class FabCar implements ContractInterface {
             queryResults.add(new CarQueryResult(result.getKey(), car));
         }
 
-        CarQueryResult[] response = queryResults.toArray(new CarQueryResult[queryResults.size()]);
+        final String response = genson.serialize(queryResults);
 
         return response;
     }
