@@ -88,10 +88,10 @@ BLACKLISTED_VERSIONS="^1\.0\. ^1\.1\. ^1\.2\. ^1\.3\. ^1\.4\."
 # of go or other items could be added.
 function checkPrereqs() {
   ## Check if your have cloned the peer binaries and configuration files.
-  peer version > /dev/null 2>&1
+  which peer
 
-  if [[ $? -ne 0 || ! -d "../config" ]]; then
-    echo "ERROR! Peer binary and configuration files not found.."
+  if [ "$?" -ne 0 ]; then
+    echo "ERROR! Peer binary not found..."
     echo
     echo "Follow the instructions in the Fabric docs to install the Fabric Binaries:"
     echo "https://hyperledger-fabric.readthedocs.io/en/latest/install.html"
