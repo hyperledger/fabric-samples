@@ -7,7 +7,7 @@ trigger:
   - release-1.4
 
 variables:
-  FABRIC_VERSION: 2.0
+  FABRIC_VERSION: 2.2
   NODE_VER: 12.x
   PATH: $(Build.Repository.LocalPath)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
