@@ -3,8 +3,8 @@
  */
 
 plugins {
+    id 'application'
     id 'checkstyle'
-    id 'java-library-distribution'
     id 'jacoco'
 }
 
@@ -30,6 +30,10 @@ repositories {
     }
 }
 
+application {
+    mainClass = 'org.hyperledger.fabric.contract.ContractRouter'
+}
+
 checkstyle {
     toolVersion '8.21'
     configFile file("config/checkstyle/checkstyle.xml")
@@ -43,14 +47,11 @@ checkstyleTest {
     source ='src/test/java'
 }
 
+jacocoTestReport {
+    dependsOn test
+}
+
 jacocoTestCoverageVerification {
-    afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
-            fileTree(dir: it, exclude:  [
-                    'org/hyperledger/fabric/samples/fabcar/Start.*'
-            ])
-        })
-    }
     violationRules {
         rule {
             limit {
@@ -70,3 +71,4 @@ test {
 }
 
 check.dependsOn jacocoTestCoverageVerification
+installDist.dependsOn check
