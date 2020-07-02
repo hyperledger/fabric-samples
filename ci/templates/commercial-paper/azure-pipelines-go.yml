@@ -18,16 +18,16 @@ steps:
     displayName: Vendor DigiBank Dependencies
 
   - script: |
-      ./network.sh up createChannel -s couchdb -i ${FABRIC_VERSION} # FABRIC_VERSION is set in ci/azure-pipelines.yml
+      ./network.sh up createChannel -ca -s couchdb -i ${FABRIC_VERSION} # FABRIC_VERSION is set in ci/azure-pipelines.yml
 
-      # Copy the connection profiles so they are in the correct organizations. 
+      # Copy the connection profiles so they are in the correct organizations.
       cp "./organizations/peerOrganizations/org1.example.com/connection-org1.yaml" "../commercial-paper/organization/digibank/gateway/"
       cp "./organizations/peerOrganizations/org2.example.com/connection-org2.yaml" "../commercial-paper/organization/magnetocorp/gateway/"
     workingDirectory: test-network
     displayName: Start Fabric
   - script: |
       source <(./magnetocorp.sh)
-      peer lifecycle chaincode package cp.tar.gz --lang java --path ./contract-java --label cp_0
+      peer lifecycle chaincode package cp.tar.gz --lang golang --path ./contract-go --label cp_0
       peer lifecycle chaincode install cp.tar.gz
 
       export PACKAGE_ID=$(peer lifecycle chaincode queryinstalled --output json | jq -r '.installed_chaincodes[0].package_id')
@@ -41,13 +41,13 @@ steps:
                                                 --sequence 1  \
                                                 --tls  \
                                                 --cafile $ORDERER_CA
-                                                
+
       peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
     workingDirectory: commercial-paper/organization/magnetocorp
     displayName: Setup Commercial Paper Contract
   - script: |
       source <(./digibank.sh)
-      peer lifecycle chaincode package cp.tar.gz --lang java --path ./contract-java --label cp_0
+      peer lifecycle chaincode package cp.tar.gz --lang golang --path ./contract-go --label cp_0
       peer lifecycle chaincode install cp.tar.gz
 
       export PACKAGE_ID=$(peer lifecycle chaincode queryinstalled --output json | jq -r '.installed_chaincodes[0].package_id')
@@ -61,7 +61,7 @@ steps:
                                                 --sequence 1  \
                                                 --tls  \
                                                 --cafile $ORDERER_CA
-                                                
+
       peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
 
       peer lifecycle chaincode commit -o localhost:7050 \
@@ -70,7 +70,7 @@ steps:
                                 --ordererTLSHostnameOverride orderer.example.com \
                                 --channelID mychannel --name papercontract -v 0 \
                                 --sequence 1 \
-                                --tls --cafile $ORDERER_CA --waitForEvent 
+                                --tls --cafile $ORDERER_CA --waitForEvent
 
     workingDirectory: commercial-paper/organization/digibank
     displayName: Setup Commercial Paper Contract
@@ -80,7 +80,7 @@ steps:
     displayName: Install Magnetocorp Application
   - script: |
       set -ex
-      node addToWallet.js
+      node enrollUser.js
       node issue.js
     workingDirectory: commercial-paper/organization/magnetocorp/application
     displayName: MagnetoCorp Issue Paper
@@ -90,7 +90,7 @@ steps:
     displayName: Install DigiBank Application
   - script: |
       set -ex
-      node addToWallet.js
+      node enrollUser.js
       node buy.js
       node redeem.js
     workingDirectory: commercial-paper/organization/digibank/application
