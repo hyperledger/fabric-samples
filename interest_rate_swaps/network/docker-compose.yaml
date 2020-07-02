@@ -20,8 +20,6 @@ services:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - FABRIC_LOGGING_SPEC=INFO
       - CORE_PEER_TLS_ENABLED=false
-      - CORE_PEER_GOSSIP_USELEADERELECTION=true
-      - CORE_PEER_GOSSIP_ORGLEADER=false
       - CORE_PEER_PROFILE_ENABLED=true
       - CORE_PEER_ADDRESSAUTODETECT=true
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
