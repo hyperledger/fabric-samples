@@ -20,7 +20,6 @@ You can use the following table to learn more about each sample, and find the co
 | [Interest rate swaps](interest_rate_swaps) | Explore state based endorsement using a financial services use case. | [Setting Key level endorsement policies](https://hyperledger-fabric.readthedocs.io/en/master/endorsement-policies.html#setting-key-level-endorsement-policies) |
 | [Off chain data](off_chain_data) | Learn how to use the Peer channel-based event services to build an off chain database for reporting and analytics. | [Peer channel-based event services](https://hyperledger-fabric.readthedocs.io/en/master/peer_event_services.html) |
 | [High throughput](high-throughput) | Learn how you can design your smart contracts to process a large volume of transactions. | |
-| [First network](first-network) | **Deprecated. Use the Fabric test network to get started.** | [Build your first network](https://hyperledger-fabric.readthedocs.io/en/master/build_network.html) |
 | [Chaincode](chaincode) | A set of sample smart contracts used by other samples and the tutorials in the Fabric documentation. | [Fabric tutorials](https://hyperledger-fabric.readthedocs.io/en/master/tutorials.html) |
 
 ## License <a name="license"></a>
