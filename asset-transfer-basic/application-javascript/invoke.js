@@ -48,7 +48,7 @@ async function main() {
         //      ex: ('createAsset', 'asset1', 'yellow', 'Dave', 5, 1300)
         // transferAsset transfers an asset with ID asset1 to new owner Tom - requires 2 arguments.
         //      ex: ('transferAsset', 'asset1', 'Tom')
-        await contract.submitTransaction('createAsset', 'asset13', 'yellow', 'Tom', 5, 1300);
+        await contract.submitTransaction('createAsset', 'asset13', 'yellow', 5, 'Tom', 1300);
         console.log('Transaction has been submitted');
 
         // Disconnect from the gateway.
