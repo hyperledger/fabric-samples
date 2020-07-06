@@ -22,7 +22,7 @@ type Asset struct {
 	Color          string `json:"color"`
 	Size           int    `json:"size"`
 	Owner          string `json:"owner"`
-	AppraisedValue int    `json:"appraisedValue"`
+	AppraisedValue int    `json:"appraised_value"`
 }
 
 // QueryResult structure used for handling result of query

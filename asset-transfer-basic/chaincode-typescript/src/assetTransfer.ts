@@ -61,7 +61,7 @@ export class AssetTransfer extends Contract {
     }
 
     // createAsset issues a new asset to the world state with given details.
-    public async createAsset(ctx: Context, id: string, color: string, size: number, owner: string, appraisedValue: number) {
+    public async createAsset(ctx: Context, id: string, color: string, owner: string, size: number, appraisedValue: number) {
         const asset = {
             ID: id,
             Color: color,
@@ -84,7 +84,7 @@ export class AssetTransfer extends Contract {
     }
 
     // updateAsset updates an existing asset in the world state with provided parameters.
-    public async updateAsset(ctx: Context, id: string, color: string, size: number, owner: string, appraisedValue: number) {
+    public async updateAsset(ctx: Context, id: string, color: string, owner: string, size: number, appraisedValue: number) {
         const exists = await this.assetExists(ctx, id);
         if (!exists) {
             throw new Error(`The asset ${id} does not exist`);
