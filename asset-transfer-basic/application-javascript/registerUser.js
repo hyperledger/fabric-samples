@@ -12,7 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const enrollAdmin = require('./enrollAdmin');
 const caChaincodeUserRole = 'client';
-const applicationUserId = 'appUser'; o 
+const applicationUserId = 'appUser';
 
 async function registerAppUser() {
     try {
