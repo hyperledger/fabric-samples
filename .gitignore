@@ -11,9 +11,6 @@
 .project
 # omit Go vendor directories
 vendor/
-
-# Dependency/Build/IDE directories
-node_modules
 .vscode
 .gradle
 .idea
