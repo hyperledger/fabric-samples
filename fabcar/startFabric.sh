@@ -109,8 +109,25 @@ Go:
   Start by changing into the "go" directory:
     cd go
 
+  Next, set hosts:
+    sudo vim /etc/hosts
+
+  add Under the content into  /etc/hosts
+    ip	peer0.org1.example.com  
+    ip	peer0.org2.example.com  
+    ip	peer0.org2.example.com  
+
+    for example:
+    127.0.0.1       peer0.org1.example.com  peer0.org2.example.com  orderer.example.com
+
+  Next, set environment variable:
+    export DISCOVERY_AS_LOCALHOST=true
+
   Then, install dependencies and run the test using:
-    go run fabcar.go
+    1. export DISCOVERY_AS_LOCALHOST=true
+    2. go run fabcar.go
+  or
+    ./runfabcar.sh
 
   The test will invoke the sample client app which perform the following:
     - Import user credentials into the wallet (if they don't already exist there)
