@@ -293,7 +293,7 @@ func (t *SimpleChaincode) TransferAssetBasedOnColor(ctx contractapi.TransactionC
 			return fmt.Errorf(err.Error())
 		}
 
-		if len(compositeKeyParts) > 2 {
+		if len(compositeKeyParts) > 1 {
 			returnedAssetID := compositeKeyParts[1]
 
 			// Now call the transfer function for the found asset.
