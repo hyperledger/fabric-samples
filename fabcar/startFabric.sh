@@ -109,22 +109,10 @@ Go:
   Start by changing into the "go" directory:
     cd go
 
-  Next, set hosts:
-    sudo vim /etc/hosts
-
-  add Under the content into  /etc/hosts
-    ip	peer0.org1.example.com  
-    ip	peer0.org2.example.com  
-    ip	peer0.org2.example.com  
-
-    for example:
-    127.0.0.1       peer0.org1.example.com  peer0.org2.example.com  orderer.example.com
-
   Set environment variable DISCOVERY_AS_LOCALHOST to true, to indicate to ServiceDiscovery that all hostnames maps to localhost
 
   Then, install dependencies and run the test using:
-    1. export DISCOVERY_AS_LOCALHOST=true
-    2. go run fabcar.go
+    go run fabcar.go
   or
     ./runfabcar.sh
 
