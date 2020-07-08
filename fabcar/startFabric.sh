@@ -120,8 +120,7 @@ Go:
     for example:
     127.0.0.1       peer0.org1.example.com  peer0.org2.example.com  orderer.example.com
 
-  Next, set environment variable:
-    export DISCOVERY_AS_LOCALHOST=true
+  Set environment variable DISCOVERY_AS_LOCALHOST to true, to indicate to ServiceDiscovery that all hostnames maps to localhost
 
   Then, install dependencies and run the test using:
     1. export DISCOVERY_AS_LOCALHOST=true
