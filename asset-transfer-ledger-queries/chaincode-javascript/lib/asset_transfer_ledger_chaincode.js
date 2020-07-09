@@ -208,12 +208,12 @@ class Chaincode extends Contract{
         attributes
       } = await ctx.stub.splitCompositeKey(responseRange.value.key));
 
-      let returnedColor = attributes[0];
+      console.log(objectType)
       let returnedAssetName = attributes[1];
 
       // Now call the transfer function for the found asset.
       // Re-use the same function that is used to transfer individual assets
-      let response = await this.transferAsset(ctx, returnedAssetName, newOwner);
+      await this.transferAsset(ctx, returnedAssetName, newOwner);
     }
   }
 
