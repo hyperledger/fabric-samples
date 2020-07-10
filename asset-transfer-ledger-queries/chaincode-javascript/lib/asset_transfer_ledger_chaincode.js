@@ -75,7 +75,7 @@ class Chaincode extends Contract{
   async createAsset(ctx, assetID, color, owner, size, appraisedValue) {
     const exists = await this.assetExists(ctx, assetID)
     if (exists) {
-      throw new Error('asset exists')
+      throw new Error(`The asset ${assetID} already exists`)
     }
 
     // ==== Create asset object and marshal to JSON ====
@@ -101,7 +101,7 @@ class Chaincode extends Contract{
   async readAsset(ctx, id) {
     const assetJSON = await ctx.stub.getState(id); // get the asset from chaincode state
     if (!assetJSON || assetJSON.length === 0) {
-        throw new Error(`The asset ${id} does not exist`);
+        throw new Error(`Asset ${id} does not exist`);
     }
 
     return assetJSON.toString();
@@ -110,19 +110,19 @@ class Chaincode extends Contract{
   // delete - remove a asset key/value pair from state
   async deleteAsset(ctx, id) {
     if (!id) {
-      throw new Error('asset name must not be empty');
+      throw new Error('Asset name must not be empty');
     }
 
     var exists = await this.assetExists(ctx, id)
     if (!exists) {
-      throw new Error('')
+      throw new Error(`Asset ${id} does not exist`)
     }
 
     // to maintain the color~name index, we need to read the asset first and get its color
     let valAsbytes = await ctx.stub.getState(id); // get the asset from chaincode state
     let jsonResp = {};
     if (!valAsbytes) {
-      jsonResp.error = 'asset does not exist: ' + name;
+      jsonResp.error = 'Asset does not exist: ' + name;
       throw new Error(jsonResp);
     }
     let assetJSON = {};
@@ -150,7 +150,7 @@ class Chaincode extends Contract{
 
     let assetAsBytes = await ctx.stub.getState(assetName);
     if (!assetAsBytes || !assetAsBytes.toString()) {
-      throw new Error('asset does not exist');
+      throw new Error(`Asset ${assetName} does not exist`);
     }
     let assetToTransfer = {};
     try {
