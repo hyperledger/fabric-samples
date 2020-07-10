@@ -109,12 +109,8 @@ Go:
   Start by changing into the "go" directory:
     cd go
 
-  Set environment variable DISCOVERY_AS_LOCALHOST to true, to indicate to ServiceDiscovery that all hostnames maps to localhost
-
   Then, install dependencies and run the test using:
     go run fabcar.go
-  or
-    ./runfabcar.sh
 
   The test will invoke the sample client app which perform the following:
     - Import user credentials into the wallet (if they don't already exist there)
