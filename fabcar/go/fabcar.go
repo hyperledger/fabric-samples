@@ -18,6 +18,7 @@ import (
 )
 
 func main() {
+	os.Setenv("DISCOVERY_AS_LOCALHOST", "true")
 	wallet, err := gateway.NewFileSystemWallet("wallet")
 	if err != nil {
 		fmt.Printf("Failed to create wallet: %s\n", err)
