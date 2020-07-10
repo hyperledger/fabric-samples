@@ -75,7 +75,7 @@ async function main() {
             console.log('\n***********************');
             console.log('Submit Transaction: CreateAsset asset13');
             //CreateAsset creates an asset with ID asset13, color yellow, owner Tom, size 5 and appraizedValue of 1300      
-            await contract.submitTransaction('CreateAsset', 'asset13', 'yellow', 'Tom', 5, 1300);
+            await contract.submitTransaction('CreateAsset', 'asset13', 'yellow', 5, 'Tom', 1300);
             
             console.log('Evaluate Transaction: ReadAsset asset13');
             // ReadAsset returns an asset with given assetID        
@@ -90,12 +90,12 @@ async function main() {
 
             console.log('Submit Transaction: UpdateAsset asset1, new AppraisedValue : 350');
             // UpdateAsset updates an existing asset with new properties. Same args as CreateAsset        
-            await contract.submitTransaction('UpdateAsset', 'asset1', 'blue', 'Tomoko', 5, 350);
+            await contract.submitTransaction('UpdateAsset', 'asset1', 'blue', 5, 'Tomoko', 350);
             
             try {
                 console.log('\nSubmit Transaction: UpdateAsset asset70');
                 //Non existing asset asset70 should throw Error 
-                await contract.submitTransaction('UpdateAsset', 'asset70', 'blue', 'Tomoko', 5, 300);
+                await contract.submitTransaction('UpdateAsset', 'asset70', 'blue', 5, 'Tomoko', 300);
             }
             catch (error) {
                 let errMsg = 'Expected an error on UpdateAsset of non-existing Asset. ';
