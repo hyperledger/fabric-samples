@@ -13,6 +13,7 @@ const path = require('path');
 const enrollAdmin = require('./enrollAdmin');
 const caChaincodeUserRole = 'client';
 const applicationUserId = 'appUser';
+const walletPath = path.join(__dirname, 'wallet');
 
 async function registerAppUser() {
     try {
@@ -28,10 +29,8 @@ async function registerAppUser() {
         const caURL = ccp.certificateAuthorities['ca.org1.example.com'].url;
         const ca = new FabricCAServices(caURL);
 
-        // Create a new file system based wallet for managing identities.
-        const walletPath = path.join(__dirname, 'wallet');
+        // Create a new file system based wallet for managing identities.        ;
         const wallet = await Wallets.newFileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the user.
         const userIdentity = await wallet.get(applicationUserId);
@@ -72,7 +71,7 @@ async function registerAppUser() {
             type: 'X.509',
         };
         await wallet.put(applicationUserId, x509Identity);
-        console.log('Successfully registered and enrolled user '+applicationUserId +'" and imported it into the wallet');
+        console.log('Successfully registered and enrolled user '+applicationUserId +' and imported it into the wallet');
 
     } catch (error) {
         console.error(`Failed to register user : ${error}`);

@@ -12,6 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const adminUserId = 'admin';
 const adminUserPasswd = 'adminpw';
+const walletPath = path.join(__dirname, 'wallet');
 
 async function enrollAdminUser() {
     try {
@@ -28,10 +29,8 @@ async function enrollAdminUser() {
         const caTLSCACerts = caInfo.tlsCACerts.pem;
         const ca = new FabricCAServices(caInfo.url, { trustedRoots: caTLSCACerts, verify: false }, caInfo.caName);
 
-        // Create a new file system based wallet for managing identities.
-        const walletPath = path.join(__dirname, 'wallet');
+        // Create a new  wallet : Note that wallet can be resfor managing identities.
         const wallet = await Wallets.newFileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the admin user.
         const identity = await wallet.get(adminUserId);
