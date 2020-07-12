@@ -1,21 +1,6 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
+ SPDX-License-Identifier: Apache-2.0
+*/
 
 package main
 
@@ -24,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
@@ -42,27 +28,25 @@ type Agreement struct {
 
 // ReadAsset returns the public asset data
 func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, assetID string) (*Asset, error) {
-
-	// since only public data is accessed in this function, no access control is required
-
+	// Since only public data is accessed in this function, no access control is required
 	assetJSON, err := ctx.GetStub().GetState(assetID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read from world state: %s", err.Error())
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
 	}
 	if assetJSON == nil {
 		return nil, fmt.Errorf("%s does not exist", assetID)
 	}
 
-	asset := new(Asset)
-	_ = json.Unmarshal(assetJSON, asset)
-
+	var asset *Asset
+	err = json.Unmarshal(assetJSON, asset)
+	if err != nil {
+		return nil, err
+	}
 	return asset, nil
 }
 
 // GetAssetPrivateProperties returns the immutable asset properties from owner's private data collection
 func (s *SmartContract) GetAssetPrivateProperties(ctx contractapi.TransactionContextInterface, assetID string) (string, error) {
-
-	// Get client org id and verify it matches peer org id.
 	// In this scenario, client is only authorized to read/write private data from its own peer.
 	collection, err := getClientImplicitCollectionName(ctx)
 	if err != nil {
@@ -71,7 +55,7 @@ func (s *SmartContract) GetAssetPrivateProperties(ctx contractapi.TransactionCon
 
 	immutableProperties, err := ctx.GetStub().GetPrivateData(collection, assetID)
 	if err != nil {
-		return "", fmt.Errorf("failed to read asset private properties from client org's collection: %s", err.Error())
+		return "", fmt.Errorf("failed to read asset private properties from client org's collection: %v", err)
 	}
 	if immutableProperties == nil {
 		return "", fmt.Errorf("asset private details does not exist in client org's collection: %s", assetID)
@@ -80,19 +64,18 @@ func (s *SmartContract) GetAssetPrivateProperties(ctx contractapi.TransactionCon
 	return string(immutableProperties), nil
 }
 
-// GetAssetSalesPrice returns the sales price as an integer
+// GetAssetSalesPrice returns the sales price
 func (s *SmartContract) GetAssetSalesPrice(ctx contractapi.TransactionContextInterface, assetID string) (string, error) {
 	return getAssetPrice(ctx, assetID, typeAssetForSale)
 }
 
-// GetAssetBidPrice returns the bid price as an integer
+// GetAssetBidPrice returns the bid price
 func (s *SmartContract) GetAssetBidPrice(ctx contractapi.TransactionContextInterface, assetID string) (string, error) {
 	return getAssetPrice(ctx, assetID, typeAssetBid)
 }
 
 // getAssetPrice gets the bid or ask price from caller's implicit private data collection
 func getAssetPrice(ctx contractapi.TransactionContextInterface, assetID string, priceType string) (string, error) {
-
 	collection, err := getClientImplicitCollectionName(ctx)
 	if err != nil {
 		return "", err
@@ -100,18 +83,18 @@ func getAssetPrice(ctx contractapi.TransactionContextInterface, assetID string, 
 
 	assetPriceKey, err := ctx.GetStub().CreateCompositeKey(priceType, []string{assetID})
 	if err != nil {
-		return "", fmt.Errorf("failed to create composite key: %s", err.Error())
+		return "", fmt.Errorf("failed to create composite key: %v", err)
 	}
 
-	assetPriceJSON, err := ctx.GetStub().GetPrivateData(collection, assetPriceKey)
+	price, err := ctx.GetStub().GetPrivateData(collection, assetPriceKey)
 	if err != nil {
-		return "", fmt.Errorf("failed to read asset price from implicit private data collection: %s", err.Error())
+		return "", fmt.Errorf("failed to read asset price from implicit private data collection: %v", err)
 	}
-	if assetPriceJSON == nil {
+	if price == nil {
 		return "", fmt.Errorf("asset price does not exist: %s", assetID)
 	}
 
-	return string(assetPriceJSON), nil
+	return string(price), nil
 }
 
 // QueryAssetSaleAgreements returns all of an organization's proposed sales
@@ -119,7 +102,7 @@ func (s *SmartContract) QueryAssetSaleAgreements(ctx contractapi.TransactionCont
 	return queryAgreementsByType(ctx, typeAssetForSale)
 }
 
-// QueryAssetBuyAgreements returns all of an organization's proposed buys
+// QueryAssetBuyAgreements returns all of an organization's proposed bids
 func (s *SmartContract) QueryAssetBuyAgreements(ctx contractapi.TransactionContextInterface) ([]Agreement, error) {
 	return queryAgreementsByType(ctx, typeAssetBid)
 }
@@ -133,25 +116,24 @@ func queryAgreementsByType(ctx contractapi.TransactionContextInterface, agreeTyp
 	// Query for any object type starting with `agreeType`
 	agreementsIterator, err := ctx.GetStub().GetPrivateDataByPartialCompositeKey(collection, agreeType, []string{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to read from private data collection: %s", err.Error())
+		return nil, fmt.Errorf("failed to read from private data collection: %v", err)
 	}
 	defer agreementsIterator.Close()
 
-	agreements := []Agreement{}
-
+	var agreements []Agreement
 	for agreementsIterator.HasNext() {
 		resp, err := agreementsIterator.Next()
 		if err != nil {
 			return nil, err
 		}
 
-		newAgree := new(Agreement)
-		err = json.Unmarshal(resp.Value, newAgree)
+		var agreement Agreement
+		err = json.Unmarshal(resp.Value, &agreement)
 		if err != nil {
 			return nil, err
 		}
 
-		agreements = append(agreements, *newAgree)
+		agreements = append(agreements, agreement)
 	}
 
 	return agreements, nil
@@ -165,27 +147,30 @@ func (s *SmartContract) QueryAssetHistory(ctx contractapi.TransactionContextInte
 	}
 	defer resultsIterator.Close()
 
-	records := []QueryResult{}
-
+	var results []QueryResult
 	for resultsIterator.HasNext() {
 		response, err := resultsIterator.Next()
 		if err != nil {
 			return nil, err
 		}
 
-		asset := new(Asset)
-		err = json.Unmarshal(response.Value, asset)
+		var asset *Asset
+		err = json.Unmarshal(response.Value, &asset)
 		if err != nil {
 			return nil, err
 		}
 
+		timestamp, err := ptypes.Timestamp(response.Timestamp)
+		if err != nil {
+			return nil, err
+		}
 		record := QueryResult{
 			TxId:      response.TxId,
-			Timestamp: time.Unix(response.Timestamp.Seconds, int64(response.Timestamp.Nanos)),
+			Timestamp: timestamp,
 			Record:    asset,
 		}
-		records = append(records, record)
+		results = append(results, record)
 	}
 
-	return records, nil
+	return results, nil
 }
