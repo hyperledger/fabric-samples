@@ -5,9 +5,9 @@
 // ====CHAINCODE EXECUTION SAMPLES (CLI) ==================
 
 // ==== Invoke assets ====
-// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["createAsset","asset1","blue","tom","35","100"]}'
-// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["createAsset","asset2","red","tom","50","150"]}'
-// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["createAsset","asset3","blue","tom","70","200"]}'
+// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["createAsset","asset1","blue","35","tom","100"]}'
+// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["createAsset","asset2","red","50","tom","150"]}'
+// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["createAsset","asset3","blue","70","tom","200"]}'
 // peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["transferAsset","asset2","jerry"]}'
 // peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["transferAssetsBasedOnColor","blue","jerry"]}'
 // peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["deleteAsset","asset1"]}'
@@ -72,7 +72,7 @@ const { Contract } = require('fabric-contract-api');
 class Chaincode extends Contract{
 
   // CreateAsset - create a new asset, store into chaincode state
-  async createAsset(ctx, assetID, color, owner, size, appraisedValue) {
+  async createAsset(ctx, assetID, color, size, owner, appraisedValue) {
     const exists = await this.assetExists(ctx, assetID)
     if (exists) {
       throw new Error(`The asset ${assetID} already exists`)
@@ -81,7 +81,7 @@ class Chaincode extends Contract{
     // ==== Create asset object and marshal to JSON ====
     let asset = {};
     asset.docType = 'asset';
-    asset.ID = assetID;
+    asset.assetID = assetID;
     asset.color = color;
     asset.size = size;
     asset.owner = owner;
@@ -90,7 +90,7 @@ class Chaincode extends Contract{
     // === Save asset to state ===
     await ctx.stub.putState(assetID, Buffer.from(JSON.stringify(asset)));
     let indexName = 'color~name'
-    let colorNameIndexKey = await ctx.stub.createCompositeKey(indexName, [asset.color, asset.ID]);
+    let colorNameIndexKey = await ctx.stub.createCompositeKey(indexName, [asset.color, asset.assetID]);
 
     //  Save index entry to state. Only the key name is needed, no need to store a duplicate copy of the marble.
     //  Note - passing a 'nil' value will effectively delete the key from state, therefore we pass null character as value
@@ -137,7 +137,7 @@ class Chaincode extends Contract{
 
     // delete the index
     let indexName = 'color~name';
-    let colorNameIndexKey = ctx.stub.createCompositeKey(indexName, [assetJSON.color, assetJSON.ID]);
+    let colorNameIndexKey = ctx.stub.createCompositeKey(indexName, [assetJSON.color, assetJSON.assetID]);
     if (!colorNameIndexKey) {
       throw new Error(' Failed to create the createCompositeKey');
     }
@@ -189,7 +189,7 @@ class Chaincode extends Contract{
   // committing peers if the result set has changed between endorsement time and commit time.
   // Therefore, range queries are a safe option for performing update transactions based on query results.
   // Example: GetStateByPartialCompositeKey/RangeQuery
-  async transferAssetsBasedOnColor(ctx, color, newOwner) {
+  async transferAssetByColor(ctx, color, newOwner) {
     // Query the color~name index by color
     // This will execute a key range query on all keys starting with 'color'
     let coloredAssetResultsIterator = await ctx.stub.getStateByPartialCompositeKey('color~name', [color]);
@@ -309,24 +309,6 @@ class Chaincode extends Contract{
     return true
   }
 
-  // getAllAssets returns all assets found in the world state.
-  async getAllAssets(ctx) {
-    const allResults = [];
-    // range query with empty string for startKey and endKey does an open-ended query of all assets in the chaincode namespace.
-    for await (const { key, value } of ctx.stub.getStateByRange("", "")) {
-        const strValue = Buffer.from(value).toString('utf8');
-        let record;
-        try {
-            record = JSON.parse(strValue);
-        } catch (err) {
-            console.log(err);
-            record = strValue;
-        }
-        allResults.push({ Key: key, Record: record });
-    }
-    return JSON.stringify(allResults);
-  }
-
   async getAllResults(iterator, isHistory) {
     let allResults = [];
     while (true) {
@@ -366,42 +348,42 @@ class Chaincode extends Contract{
   async initLedger(ctx) {
     const assets = [
         {
-            ID: 'asset1',
+            assetID: 'asset1',
             color: 'blue',
             size: 5,
             owner: 'Tom',
             appraisedValue: 100
         },
         {
-            ID: 'asset2',
+            assetID: 'asset2',
             color: 'red',
             size: 5,
             owner: 'Brad',
             appraisedValue: 100
         },
         {
-            ID: 'asset3',
+            assetID: 'asset3',
             color: 'green',
             size: 10,
             owner: 'Jin Soo',
             appraisedValue: 200
         },
         {
-            ID: 'asset4',
+            assetID: 'asset4',
             color: 'yellow',
             size: 10,
             owner: 'Max',
             appraisedValue: 200
         },
         {
-            ID: 'asset5',
+            assetID: 'asset5',
             color: 'black',
             size: 15,
             owner: 'Adriana',
             appraisedValue: 250
         },
         {
-            ID: 'asset6',
+            assetID: 'asset6',
             color: 'white',
             size: 15,
             owner: 'Michel',
@@ -412,10 +394,10 @@ class Chaincode extends Contract{
     for (let i = 0; i < assets.length; i++) {
         await this.createAsset(
           ctx,
-          assets[i].ID,
+          assets[i].assetID,
           assets[i].color,
-          assets[i].owner,
           assets[i].size,
+          assets[i].owner,
           assets[i].appraisedValue
           );
     }
