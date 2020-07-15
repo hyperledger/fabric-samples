@@ -204,24 +204,23 @@ func (t *SimpleChaincode) TransferAsset(ctx contractapi.TransactionContextInterf
 	return ctx.GetStub().PutState(assetID, assetBytes)
 }
 
-// constructQueryResponseFromIterator constructs a slice of query results from the resultsIterator
-func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorInterface) ([]*QueryResult, error) {
-	var results []*QueryResult
+// constructQueryResponseFromIterator constructs a slice of assets from the resultsIterator
+func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorInterface) ([]*Asset, error) {
+	var assets []*Asset
 	for resultsIterator.HasNext() {
-		queryResponse, err := resultsIterator.Next()
+		queryResult, err := resultsIterator.Next()
 		if err != nil {
 			return nil, err
 		}
-
-		var result *QueryResult
-		err = json.Unmarshal(queryResponse.Value, &result)
+		var asset *Asset
+		err = json.Unmarshal(queryResult.Value, &asset)
 		if err != nil {
 			return nil, err
 		}
-		results = append(results, result)
+		assets = append(assets, asset)
 	}
 
-	return results, nil
+	return assets, nil
 }
 
 // GetAssetsByRange performs a range query based on the start and end keys provided.
@@ -232,7 +231,7 @@ func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorI
 // invalidated by the committing peers if the result set has changed between endorsement
 // time and commit time.
 // Therefore, range queries are a safe option for performing update transactions based on query results.
-func (t *SimpleChaincode) GetAssetsByRange(ctx contractapi.TransactionContextInterface, startKey, endKey string) ([]*QueryResult, error) {
+func (t *SimpleChaincode) GetAssetsByRange(ctx contractapi.TransactionContextInterface, startKey, endKey string) ([]*Asset, error) {
 	resultsIterator, err := ctx.GetStub().GetStateByRange(startKey, endKey)
 	if err != nil {
 		return nil, err
@@ -294,7 +293,7 @@ func (t *SimpleChaincode) TransferAssetByColor(ctx contractapi.TransactionContex
 // and accepting a single query parameter (owner).
 // Only available on state databases that support rich query (e.g. CouchDB)
 // Example: Parameterized rich query
-func (t *SimpleChaincode) QueryAssetsByOwner(ctx contractapi.TransactionContextInterface, owner string) ([]*QueryResult, error) {
+func (t *SimpleChaincode) QueryAssetsByOwner(ctx contractapi.TransactionContextInterface, owner string) ([]*Asset, error) {
 	queryString := fmt.Sprintf(`{"selector":{"docType":"asset","owner":"%s"}}`, owner)
 	return getQueryResultForQueryString(ctx, queryString)
 }
@@ -305,13 +304,13 @@ func (t *SimpleChaincode) QueryAssetsByOwner(ctx contractapi.TransactionContextI
 // If this is not desired, follow the QueryAssetsForOwner example for parameterized queries.
 // Only available on state databases that support rich query (e.g. CouchDB)
 // Example: Ad hoc rich query
-func (t *SimpleChaincode) QueryAssets(ctx contractapi.TransactionContextInterface, queryString string) ([]*QueryResult, error) {
+func (t *SimpleChaincode) QueryAssets(ctx contractapi.TransactionContextInterface, queryString string) ([]*Asset, error) {
 	return getQueryResultForQueryString(ctx, queryString)
 }
 
 // getQueryResultForQueryString executes the passed in query string.
 // The result set is built and returned as a byte array containing the JSON results.
-func getQueryResultForQueryString(ctx contractapi.TransactionContextInterface, queryString string) ([]*QueryResult, error) {
+func getQueryResultForQueryString(ctx contractapi.TransactionContextInterface, queryString string) ([]*Asset, error) {
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
 		return nil, err
@@ -331,7 +330,7 @@ func (t *SimpleChaincode) GetAssetsByRangeWithPagination(
 	startKey,
 	endKey,
 	bookmark string,
-	pageSize int) ([]*QueryResult, error) {
+	pageSize int) ([]*Asset, error) {
 
 	resultsIterator, _, err := ctx.GetStub().GetStateByRangeWithPagination(startKey, endKey, int32(pageSize), bookmark)
 	if err != nil {
@@ -354,7 +353,7 @@ func (t *SimpleChaincode) QueryAssetsWithPagination(
 	ctx contractapi.TransactionContextInterface,
 	queryString,
 	bookmark string,
-	pageSize int) ([]*QueryResult, error) {
+	pageSize int) ([]*Asset, error) {
 
 	return getQueryResultForQueryStringWithPagination(ctx, queryString, int32(pageSize), bookmark)
 }
@@ -365,7 +364,7 @@ func getQueryResultForQueryStringWithPagination(
 	ctx contractapi.TransactionContextInterface,
 	queryString string,
 	pageSize int32,
-	bookmark string) ([]*QueryResult, error) {
+	bookmark string) ([]*Asset, error) {
 
 	resultsIterator, _, err := ctx.GetStub().GetQueryResultWithPagination(queryString, pageSize, bookmark)
 	if err != nil {
@@ -425,12 +424,12 @@ func (t *SimpleChaincode) AssetExists(ctx contractapi.TransactionContextInterfac
 // InitLedger creates the initial set of assets in the ledger.
 func (t *SimpleChaincode) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	assets := []Asset{
-		{ID: "asset1", Color: "blue", Size: 5, Owner: "Tomoko", AppraisedValue: 300},
-		{ID: "asset2", Color: "red", Size: 5, Owner: "Brad", AppraisedValue: 400},
-		{ID: "asset3", Color: "green", Size: 10, Owner: "Jin Soo", AppraisedValue: 500},
-		{ID: "asset4", Color: "yellow", Size: 10, Owner: "Max", AppraisedValue: 600},
-		{ID: "asset5", Color: "black", Size: 15, Owner: "Adriana", AppraisedValue: 700},
-		{ID: "asset6", Color: "white", Size: 15, Owner: "Michel", AppraisedValue: 800},
+		{DocType: "asset", ID: "asset1", Color: "blue", Size: 5, Owner: "Tomoko", AppraisedValue: 300},
+		{DocType: "asset", ID: "asset2", Color: "red", Size: 5, Owner: "Brad", AppraisedValue: 400},
+		{DocType: "asset", ID: "asset3", Color: "green", Size: 10, Owner: "Jin Soo", AppraisedValue: 500},
+		{DocType: "asset", ID: "asset4", Color: "yellow", Size: 10, Owner: "Max", AppraisedValue: 600},
+		{DocType: "asset", ID: "asset5", Color: "black", Size: 15, Owner: "Adriana", AppraisedValue: 700},
+		{DocType: "asset", ID: "asset6", Color: "white", Size: 15, Owner: "Michel", AppraisedValue: 800},
 	}
 
 	for _, asset := range assets {
