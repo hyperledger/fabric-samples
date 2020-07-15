@@ -10,8 +10,11 @@ const FabricCAServices = require('fabric-ca-client');
 const { Wallets } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
+const adminUserId = 'admin';
+const adminUserPasswd = 'adminpw';
+const walletPath = path.join(__dirname, 'wallet');
 
-async function main() {
+async function enrollAdminUser() {
     try {
         // load the network configuration
         const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
@@ -26,20 +29,18 @@ async function main() {
         const caTLSCACerts = caInfo.tlsCACerts.pem;
         const ca = new FabricCAServices(caInfo.url, { trustedRoots: caTLSCACerts, verify: false }, caInfo.caName);
 
-        // Create a new file system based wallet for managing identities.
-        const walletPath = path.join(__dirname, 'wallet');
+        // Create a new  wallet : Note that wallet can be resfor managing identities.
         const wallet = await Wallets.newFileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
 
         // Check to see if we've already enrolled the admin user.
-        const identity = await wallet.get('admin');
+        const identity = await wallet.get(adminUserId);
         if (identity) {
-            console.log('An identity for the admin user "admin" already exists in the wallet');
+            console.log('An identity for the admin user already exists in the wallet');
             return;
         }
 
         // Enroll the admin user, and import the new identity into the wallet.
-        const enrollment = await ca.enroll({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' });
+        const enrollment = await ca.enroll({ enrollmentID: adminUserId, enrollmentSecret: adminUserPasswd });
         const x509Identity = {
             credentials: {
                 certificate: enrollment.certificate,
@@ -48,13 +49,14 @@ async function main() {
             mspId: 'Org1MSP',
             type: 'X.509',
         };
-        await wallet.put('admin', x509Identity);
-        console.log('Successfully enrolled admin user "admin" and imported it into the wallet');
+        await wallet.put(adminUserId, x509Identity);
+        console.log('Successfully enrolled admin user and imported it into the wallet');
 
     } catch (error) {
-        console.error(`Failed to enroll admin user "admin": ${error}`);
+        console.error(`Failed to enroll admin user : ${error}`);
         process.exit(1);
     }
 }
 
-main();
+exports.AdminUserId = adminUserId;
+exports.EnrollAdminUser = enrollAdminUser;
