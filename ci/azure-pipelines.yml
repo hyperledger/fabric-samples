@@ -68,10 +68,68 @@ jobs:
       - template: templates/install-deps.yml
       - template: templates/fabcar/azure-pipelines-typescript.yml
 
-  - job: TestNetwork
+  - job: TestNetworkBasic
     displayName: Test Network
     pool:
       vmImage: ubuntu-18.04
+    strategy:
+      matrix:
+        Basic-Go:
+          CHAINCODE_NAME: basic
+          CHAINCODE_LANGUAGE: go
+        Basic-Javascript:
+          CHAINCODE_NAME: basic
+          CHAINCODE_LANGUAGE: javascript
+        Basic-Typescript:
+          CHAINCODE_NAME: basic
+          CHAINCODE_LANGUAGE: typescript
     steps:
       - template: templates/install-deps.yml
-      - template: templates/test-network/azure-pipelines.yml
+      - script: ../ci/scripts/run-test-network-basic.sh
+        workingDirectory: test-network
+        displayName: Run Test Network Basic Chaincode
+
+  - job: TestNetworkLedger
+    displayName: Test Network
+    pool:
+      vmImage: ubuntu-18.04
+    strategy:
+      matrix:
+        Ledger-Go:
+          CHAINCODE_NAME: ledger
+          CHAINCODE_LANGUAGE: go
+    steps:
+      - template: templates/install-deps.yml
+      - script: ../ci/scripts/run-test-network-ledger.sh
+        workingDirectory: test-network
+        displayName: Run Test Network Ledger Chaincode
+
+  - job: TestNetworkPrivate
+    displayName: Test Network
+    pool:
+      vmImage: ubuntu-18.04
+    strategy:
+      matrix:
+        Private-Go:
+          CHAINCODE_NAME: private
+          CHAINCODE_LANGUAGE: go
+    steps:
+      - template: templates/install-deps.yml
+      - script: ../ci/scripts/run-test-network-private.sh
+        workingDirectory: test-network
+        displayName: Run Test Network Private Chaincode
+
+  - job: TestNetworkSecured
+    displayName: Test Network
+    pool:
+      vmImage: ubuntu-18.04
+    strategy:
+      matrix:
+        Secured-Go:
+          CHAINCODE_NAME: secured
+          CHAINCODE_LANGUAGE: go
+    steps:
+      - template: templates/install-deps.yml
+      - script: ../ci/scripts/run-test-network-secured.sh
+        workingDirectory: test-network
+        displayName: Run Test Network Secured Chaincode
