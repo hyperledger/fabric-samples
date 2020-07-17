@@ -5,9 +5,11 @@ CC_SRC_LANGUAGE=${4:-"go"}
 CC_VERSION=${5:-"1.0"}
 CC_SEQUENCE=${6:-"1"}
 CC_INIT_FCN=${7:-"NA"}
-DELAY=${8:-"3"}
-MAX_RETRY=${9:-"5"}
-VERBOSE=${10:-"false"}
+CC_END_POLICY=${8:-"NA"}
+CC_COLL_CONFIG=${9:-"NA"}
+DELAY=${10:-"3"}
+MAX_RETRY=${11:-"5"}
+VERBOSE=${12:-"false"}
 
 echo --- executing with the following
 echo   - CHANNEL_NAME:$'\e[0;32m'$CHANNEL_NAME$'\e[0m'
@@ -16,6 +18,8 @@ echo   - CC_SRC_PATH:$'\e[0;32m'$CC_SRC_PATH$'\e[0m'
 echo   - CC_SRC_LANGUAGE:$'\e[0;32m'$CC_SRC_LANGUAGE$'\e[0m'
 echo   - CC_VERSION:$'\e[0;32m'$CC_VERSION$'\e[0m'
 echo   - CC_SEQUENCE:$'\e[0;32m'$CC_SEQUENCE$'\e[0m'
+echo   - CC_END_POLICY:$'\e[0;32m'$CC_END_POLICY$'\e[0m'
+echo   - CC_COLL_CONFIG:$'\e[0;32m'$CC_COLL_CONFIG$'\e[0m'
 echo   - CC_INIT_FCN:$'\e[0;32m'$CC_INIT_FCN$'\e[0m'
 echo   - DELAY:$'\e[0;32m'$DELAY$'\e[0m'
 echo   - MAX_RETRY:$'\e[0;32m'$MAX_RETRY$'\e[0m'
@@ -24,6 +28,8 @@ echo   - VERBOSE:$'\e[0;32m'$VERBOSE$'\e[0m'
 CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
 
 FABRIC_CFG_PATH=$PWD/../config/
+
+
 
 # User has not provided a path, therefore the CC_NAME must
 # be the short name of a known chaincode sample
@@ -59,6 +65,17 @@ if [ "$CC_SRC_PATH" = "NA" ]; then
 	elif [ "$CC_SRC_LANGUAGE" = "typescript" ]; then
 		CC_SRC_PATH="$CC_SRC_PATH/chaincode-typescript/"
 	fi
+
+	# check that the language is available for the sample chaincode
+	if [ ! -d "$CC_SRC_PATH" ]; then
+		echo The smart contract language "$CC_SRC_LANGUAGE" is not yet available for
+		echo the "$CC_NAME" sample smart contract
+		exit 1
+	fi
+## Make sure that the path the chaincode exists if provided
+elif [ ! -d "$CC_SRC_PATH" ]; then
+	echo Path to chaincode does not exist. Please provide different path
+	exit 1
 fi
 
 # do some language specific preparation to the chaincode before packaging
@@ -105,6 +122,23 @@ INIT_REQUIRED="--init-required"
 if [ "$CC_INIT_FCN" = "NA" ]; then
 	INIT_REQUIRED=""
 fi
+
+if [ "$CC_END_POLICY" = "NA" ]; then
+	CC_END_POLICY=""
+else
+	CC_END_POLICY="--signature-policy $CC_END_POLICY"
+fi
+
+if [ "$CC_COLL_CONFIG" = "NA" ]; then
+	CC_COLL_CONFIG=""
+else
+	CC_COLL_CONFIG="--collections-config $CC_COLL_CONFIG"
+fi
+
+
+#if [ "$CC_INIT_FCN" = "NA" ]; then
+#	INIT_REQUIRED=""
+#fi
 
 # import utils
 . scripts/envVar.sh
@@ -157,7 +191,7 @@ approveForMyOrg() {
 	ORG=$1
 	setGlobals $ORG
 	set -x
-	peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} >&log.txt
+	peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
 	set +x
 	cat log.txt
 	verifyResult $res "Chaincode definition approved on peer0.org${ORG} on channel '$CHANNEL_NAME' failed"
@@ -179,7 +213,7 @@ checkCommitReadiness() {
 		sleep $DELAY
 		echo "Attempting to check the commit readiness of the chaincode definition on peer0.org${ORG}, Retry after $DELAY seconds."
 		set -x
-		peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} --output json >&log.txt
+		peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} --output json >&log.txt
 		res=$?
 		set +x
 		let rc=0
@@ -209,7 +243,7 @@ commitChaincodeDefinition() {
 	# peer (if join was successful), let's supply it directly as we know
 	# it using the "-o" option
 	set -x
-	peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} $PEER_CONN_PARMS --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} >&log.txt
+	peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} $PEER_CONN_PARMS --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
 	res=$?
 	set +x
 	cat log.txt
