@@ -16,6 +16,9 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
+const assetCollection = "assetCollection"
+const transferAgreementObjectType = "transferAgreement"
+
 // Asset describes main asset details that are visible to all organizations
 type Asset struct {
 	Type  string `json:"objectType"` //Type is used to distinguish the various types of objects in state database
@@ -31,10 +34,13 @@ type AssetPrivateDetails struct {
 	AppraisedValue int    `json:"appraisedValue"`
 }
 
-const assetCollection = "assetCollection"
+// TransferAgreement describes the buyer agreement returned by ReadTransferAgreement
+type TransferAgreement struct {
+	ID      string `json:"assetID"`
+	BuyerID string `json:"buyerID"`
+}
 
-const transferAgreementObjectType = "transferAgreement"
-
+// SmartContract of this fabric sample
 type SmartContract struct {
 	contractapi.Contract
 }
@@ -49,10 +55,11 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 		return fmt.Errorf("error getting transient: %v", err)
 	}
 
-	// Asset properties are private, therefore they get passed in transient field
+	// Asset properties are private, therefore they get passed in transient field, instead of func args
 	transientAssetJSON, ok := transientMap["asset_properties"]
 	if !ok {
-		return fmt.Errorf("asset not found in the transient map")
+		//log error to stdout
+		return fmt.Errorf("asset not found in the transient map input")
 	}
 
 	type assetTransientInput struct {
@@ -90,7 +97,7 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 	if err != nil {
 		return fmt.Errorf("failed to get asset: %v", err)
 	} else if assetAsBytes != nil {
-		fmt.Println("this asset already exists: " + assetInput.ID)
+		fmt.Println("Asset already exists: " + assetInput.ID)
 		return fmt.Errorf("this asset already exists: " + assetInput.ID)
 	}
 
@@ -98,6 +105,14 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 	clientID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
 		return fmt.Errorf("failed to get verified OrgID: %v", err)
+	}
+
+	// Verify that the client is submitting request to peer in their organization
+	// This is to ensure that a client from another org doesn't attempt to read or
+	// write private data from this peer.
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("CreateAsset cannot be performed: Error %v", err)
 	}
 
 	// Make submitting client the owner
@@ -110,13 +125,16 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 	}
 	assetJSONasBytes, err := json.Marshal(asset)
 	if err != nil {
-		return fmt.Errorf("failed to marshal into JSON: %v", err)
+		return fmt.Errorf("failed to marshal asset into JSON: %v", err)
 	}
 
 	// Save asset to private data collection
+	// Typical logger, logs to stdout/file in the fabric managed docker container, running this chaincode
+	// Look for container name like dev-peer0.org1.example.com-{chaincodename_version}-xyz
+	log.Printf("CreateAsset Put: collection %v, ID %v", assetCollection, assetInput.ID)
 	err = ctx.GetStub().PutPrivateData(assetCollection, assetInput.ID, assetJSONasBytes)
 	if err != nil {
-		return fmt.Errorf("failed to put asset into private data collection: %v", err)
+		return fmt.Errorf("failed to put asset into private data collecton: %v", err)
 	}
 
 	// Save asset details to collection visible to owning organization
@@ -130,10 +148,14 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 		return fmt.Errorf("failed to marshal into JSON: %v", err)
 	}
 
-	// Get collection name for this organization. Needs to be read by a member of the organization.
-	orgCollection, err := getCollectionName(ctx, true)
+	// Get collection name for this organization.
+	orgCollection, err := getCollectionName(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+	}
 
 	// Put asset appraised value into owners org specific private data collection
+	log.Printf("Put: collection %v, ID %v", orgCollection, assetInput.ID)
 	err = ctx.GetStub().PutPrivateData(orgCollection, assetInput.ID, assetPrivateDetailsAsBytes)
 	if err != nil {
 		return fmt.Errorf("failed to put asset private details: %v", err)
@@ -180,9 +202,19 @@ func (s *SmartContract) AgreeToTransfer(ctx contractapi.TransactionContextInterf
 		return fmt.Errorf("appraisedValue field must be a positive integer")
 	}
 
-	// Get collection name for this organization. Needs to be read by a member of the organization.
-	orgCollection, err := getCollectionName(ctx, true)
+	// Verify that the client is submitting request to peer in their organization
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("AgreeToTransfer cannot be performed: Error %v", err)
+	}
 
+	// Get collection name for this organization. Needs to be read by a member of the organization.
+	orgCollection, err := getCollectionName(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+	}
+
+	log.Printf("AgreeToTransfer Put: collection %v, ID %v", orgCollection, valueJSON.ID)
 	// Put agreed value in the org specifc private data collection
 	err = ctx.GetStub().PutPrivateData(orgCollection, valueJSON.ID, valueJSONasBytes)
 	if err != nil {
@@ -197,6 +229,7 @@ func (s *SmartContract) AgreeToTransfer(ctx contractapi.TransactionContextInterf
 		return fmt.Errorf("failed to create composite key: %v", err)
 	}
 
+	log.Printf("AgreeToTransfer Put: collection %v, ID %v, Key %v", assetCollection, valueJSON.ID, transferAgreeKey)
 	err = ctx.GetStub().PutPrivateData(assetCollection, transferAgreeKey, []byte(clientID))
 	if err != nil {
 		return fmt.Errorf("failed to put asset bid: %v", err)
@@ -236,11 +269,17 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 	if len(assetTransferInput.BuyerMSP) == 0 {
 		return fmt.Errorf("buyerMSP field must be a non-empty string")
 	}
-
+	log.Printf("TransferAsset: verify asset exists ID %v", assetTransferInput.ID)
 	// Read asset from the private data collection
 	asset, err := s.ReadAsset(ctx, assetTransferInput.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get asset: %v", err)
+	}
+
+	// Verify that the client is submitting request to peer in their organization
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("TransferAsset cannot be performed: Error %v", err)
 	}
 
 	// Verify transfer details and transfer owner
@@ -249,21 +288,35 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 		return fmt.Errorf("failed transfer verification: %v", err)
 	}
 
-	buyerID, err := s.ReadTransferAgreement(ctx, assetTransferInput.ID)
+	transferAgreement, err := s.ReadTransferAgreement(ctx, assetTransferInput.ID)
+	if err != nil {
+		return fmt.Errorf("failed ReadTransferAgreement to find buyerID: %v", err)
+	}
+	if transferAgreement.BuyerID == "" {
+		return fmt.Errorf("BuyerID not found in TransferAgreement for %v", assetTransferInput.ID)
+	}
 
 	// Transfer asset in private data collection to new owner
-	asset.Owner = buyerID
+	asset.Owner = transferAgreement.BuyerID
 
-	assetJSONasBytes, _ := json.Marshal(asset)
+	assetJSONasBytes, err := json.Marshal(asset)
+	if err != nil {
+		return fmt.Errorf("failed marshalling asset %v: %v", assetTransferInput.ID, err)
+	}
+
+	log.Printf("TransferAsset Put: collection %v, ID %v", assetCollection, assetTransferInput.ID)
 	err = ctx.GetStub().PutPrivateData(assetCollection, assetTransferInput.ID, assetJSONasBytes) //rewrite the asset
 	if err != nil {
 		return err
 	}
 
 	// Get collection name for this organization
-	ownersCollection, err := getCollectionName(ctx, false)
+	ownersCollection, err := getCollectionName(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+	}
 
-	// Delete the marble appraised value from this organiztion's private data collection
+	// Delete the asset appraised value from this organization's private data collection
 	err = ctx.GetStub().DelPrivateData(ownersCollection, assetTransferInput.ID)
 	if err != nil {
 		return err
@@ -304,8 +357,10 @@ func (s *SmartContract) verifyAgreement(ctx contractapi.TransactionContextInterf
 	// Check 2: verify that the buyer has agreed to the appraised value
 
 	// Get collection names
-
-	collectionOwner, err := getCollectionName(ctx, false) // get buyers collection
+	collectionOwner, err := getCollectionName(ctx) // get owner collection from caller identity
+	if err != nil {
+		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+	}
 
 	collectionBuyer := buyerMSP + "PrivateCollection" // get buyers collection
 
@@ -324,7 +379,7 @@ func (s *SmartContract) verifyAgreement(ctx contractapi.TransactionContextInterf
 		return fmt.Errorf("failed to get hash of appraised value from buyer collection %v: %v", collectionBuyer, err)
 	}
 	if buyerAppraisedValueHash == nil {
-		return fmt.Errorf("hash of appraised value for %v does not exist in collection %v", assetID, collectionBuyer)
+		return fmt.Errorf("hash of appraised value for %v does not exist in collection %v. AgreeToTransfer must be called by the buyer first", assetID, collectionBuyer)
 	}
 
 	// Verify that the two hashes match
@@ -363,12 +418,19 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface)
 		return fmt.Errorf("assetID field must be a non-empty string")
 	}
 
+	// Verify that the client is submitting request to peer in their organization
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("DeleteAsset cannot be performed: Error %v", err)
+	}
+
+	log.Printf("Deleting Asset: %v", assetDeleteInput.ID)
 	valAsbytes, err := ctx.GetStub().GetPrivateData(assetCollection, assetDeleteInput.ID) //get the asset from chaincode state
 	if err != nil {
 		return fmt.Errorf("failed to read asset: %v", err)
 	}
 	if valAsbytes == nil {
-		return fmt.Errorf("asset private details does not exist: %v", assetDeleteInput.ID)
+		return fmt.Errorf("asset not found: %v", assetDeleteInput.ID)
 	}
 
 	var assetToDelete Asset
@@ -384,8 +446,10 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface)
 	}
 
 	// Finally, delete private details of asset
-
-	ownerCollection, err := getCollectionName(ctx, true) // Get owners collection. Needs to be read by a member of the organization.
+	ownerCollection, err := getCollectionName(ctx) // Get owners collection
+	if err != nil {
+		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+	}
 
 	err = ctx.GetStub().DelPrivateData(ownerCollection, assetDeleteInput.ID) // Delete the asset
 	if err != nil {
@@ -406,7 +470,7 @@ func (s *SmartContract) DeleteTranferAgreement(ctx contractapi.TransactionContex
 	}
 
 	// Asset properties are private, therefore they get passed in transient field
-	transientDeleteJSON, ok := transientMap["agree_delete"]
+	transientDeleteJSON, ok := transientMap["agreement_delete"]
 	if !ok {
 		return fmt.Errorf("asset to delete not found in the transient map")
 	}
@@ -425,23 +489,38 @@ func (s *SmartContract) DeleteTranferAgreement(ctx contractapi.TransactionContex
 		return fmt.Errorf("ID field must be a non-empty string")
 	}
 
+	// Verify that the client is submitting request to peer in their organization
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("DeleteTranferAgreement cannot be performed: Error %v", err)
+	}
 	// Delete private details of agreement
+	orgCollection, err := getCollectionName(ctx) // Get proposers collection.
+	if err != nil {
+		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+	}
+	tranferAgreeKey, err := ctx.GetStub().CreateCompositeKey(transferAgreementObjectType, []string{assetDeleteInput.
+		ID}) // Create composite key
+	if err != nil {
+		return fmt.Errorf("failed to create composite key: %v", err)
+	}
 
-	orgCollection, err := getCollectionName(ctx, true) // Get proposers collection. Needs to be read by a member of the organization.
+	valAsbytes, err := ctx.GetStub().GetPrivateData(assetCollection, tranferAgreeKey) //get the transfer_agreement
+	if err != nil {
+		return fmt.Errorf("failed to read transfer_agreement: %v", err)
+	}
+	if valAsbytes == nil {
+		return fmt.Errorf("asset's transfer_agreement does not exist: %v", assetDeleteInput.ID)
+	}
 
+	log.Printf("Deleting TranferAgreement: %v", assetDeleteInput.ID)
 	err = ctx.GetStub().DelPrivateData(orgCollection, assetDeleteInput.ID) // Delete the asset
 	if err != nil {
 		return err
 	}
 
 	// Delete transfer agreement record
-
-	tranferAgreeKey, err := ctx.GetStub().CreateCompositeKey(transferAgreementObjectType, []string{assetDeleteInput.ID}) // Create composite key
-	if err != nil {
-		return fmt.Errorf("failed to create composite key: %v", err)
-	}
-
-	err = ctx.GetStub().DelState(tranferAgreeKey) // remove agreement from state
+	err = ctx.GetStub().DelPrivateData(assetCollection, tranferAgreeKey) // remove agreement from state
 	if err != nil {
 		return err
 	}
@@ -451,22 +530,12 @@ func (s *SmartContract) DeleteTranferAgreement(ctx contractapi.TransactionContex
 }
 
 // getCollectionName is an internal helper function to get collection of submitting client identity.
-// The collection name can optionally be verified against the peer org ID, to ensure that a
-// client from another org doesn't attempt to read or write private data from this peer.
-func getCollectionName(ctx contractapi.TransactionContextInterface, verifyOrg bool) (string, error) {
+func getCollectionName(ctx contractapi.TransactionContextInterface) (string, error) {
 
 	// Get the MSP ID of submitting client identity
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
-		return "", fmt.Errorf("failed to get verified OrgID: %v", err)
-	}
-
-	// Verify that the client is submitting request to peer in their organization
-	if verifyOrg {
-		err = verifyClientOrgMatchesPeerOrg(clientMSPID)
-		if err != nil {
-			return "", err
-		}
+		return "", fmt.Errorf("failed to get verified MSPID: %v", err)
 	}
 
 	// Create the collection name
@@ -476,10 +545,14 @@ func getCollectionName(ctx contractapi.TransactionContextInterface, verifyOrg bo
 }
 
 // verifyClientOrgMatchesPeerOrg is an internal function used verify client org id and matches peer org id.
-func verifyClientOrgMatchesPeerOrg(clientMSPID string) error {
+func verifyClientOrgMatchesPeerOrg(ctx contractapi.TransactionContextInterface) error {
+	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
+	if err != nil {
+		return fmt.Errorf("failed getting the client's MSPID: %v", err)
+	}
 	peerMSPID, err := shim.GetMSPID()
 	if err != nil {
-		return fmt.Errorf("failed getting peer's orgID: %v", err)
+		return fmt.Errorf("failed getting the peer's MSPID: %v", err)
 	}
 
 	if clientMSPID != peerMSPID {
@@ -494,11 +567,11 @@ func main() {
 	chaincode, err := contractapi.NewChaincode(new(SmartContract))
 
 	if err != nil {
-		log.Panicf("error creating private mables chaincode: %v", err)
+		log.Panicf("error creating the chaincode: %v", err)
 		return
 	}
 
 	if err := chaincode.Start(); err != nil {
-		log.Panicf("error starting private mables chaincode: %v", err)
+		log.Panicf("error starting the chaincode: %v", err)
 	}
 }
