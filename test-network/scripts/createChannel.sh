@@ -13,16 +13,19 @@ VERBOSE="$4"
 # import utils
 . scripts/envVar.sh
 
+# execute - Prints and executes the command
+function execute() {
+  echo -e "\033[0;32mCommand\033[0m: ${*}"
+  "${@}"
+}
+
 if [ ! -d "channel-artifacts" ]; then
 	mkdir channel-artifacts
 fi
 
 createChannelTx() {
-
-	set -x
-	configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/${CHANNEL_NAME}.tx -channelID $CHANNEL_NAME
+	execute configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/${CHANNEL_NAME}.tx -channelID $CHANNEL_NAME
 	res=$?
-	set +x
 	if [ $res -ne 0 ]; then
 		echo "Failed to generate channel configuration transaction..."
 		exit 1
@@ -32,19 +35,15 @@ createChannelTx() {
 }
 
 createAncorPeerTx() {
-
 	for orgmsp in Org1MSP Org2MSP; do
-
-	echo "#######    Generating anchor peer update transaction for ${orgmsp}  ##########"
-	set -x
-	configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/${orgmsp}anchors.tx -channelID $CHANNEL_NAME -asOrg ${orgmsp}
-	res=$?
-	set +x
-	if [ $res -ne 0 ]; then
-		echo "Failed to generate anchor peer update transaction for ${orgmsp}..."
-		exit 1
-	fi
-	echo
+    echo "#######    Generating anchor peer update transaction for ${orgmsp}  ##########"
+    execute configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/${orgmsp}anchors.tx -channelID $CHANNEL_NAME -asOrg ${orgmsp}
+    res=$?
+    if [ $res -ne 0 ]; then
+      echo "Failed to generate anchor peer update transaction for ${orgmsp}..."
+      exit 1
+    fi
+    echo
 	done
 }
 
@@ -55,10 +54,8 @@ createChannel() {
 	local COUNTER=1
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
 		sleep $DELAY
-		set -x
-		peer channel create -o localhost:7050 -c $CHANNEL_NAME --ordererTLSHostnameOverride orderer.example.com -f ./channel-artifacts/${CHANNEL_NAME}.tx --outputBlock ./channel-artifacts/${CHANNEL_NAME}.block --tls --cafile $ORDERER_CA >&log.txt
+		execute peer channel create -o localhost:7050 -c $CHANNEL_NAME --ordererTLSHostnameOverride orderer.example.com -f ./channel-artifacts/${CHANNEL_NAME}.tx --outputBlock ./channel-artifacts/${CHANNEL_NAME}.block --tls --cafile $ORDERER_CA >&log.txt
 		res=$?
-		set +x
 		let rc=$res
 		COUNTER=$(expr $COUNTER + 1)
 	done
@@ -78,10 +75,8 @@ joinChannel() {
 	## Sometimes Join takes time, hence retry
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
     sleep $DELAY
-    set -x
-    peer channel join -b ./channel-artifacts/$CHANNEL_NAME.block >&log.txt
+    execute peer channel join -b ./channel-artifacts/$CHANNEL_NAME.block >&log.txt
     res=$?
-    set +x
 		let rc=$res
 		COUNTER=$(expr $COUNTER + 1)
 	done
@@ -98,10 +93,8 @@ updateAnchorPeers() {
 	## Sometimes Join takes time, hence retry
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
     sleep $DELAY
-    set -x
-		peer channel update -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx --tls --cafile $ORDERER_CA >&log.txt
+		execute peer channel update -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx --tls --cafile $ORDERER_CA >&log.txt
     res=$?
-    set +x
 		let rc=$res
 		COUNTER=$(expr $COUNTER + 1)
 	done

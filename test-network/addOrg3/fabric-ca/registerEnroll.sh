@@ -1,7 +1,10 @@
-
+# execute - Prints and executes the command
+function execute() {
+  echo -e "\033[0;32mCommand\033[0m: ${*}"
+  "${@}"
+}
 
 function createOrg3 {
-
   echo
 	echo "Enroll the CA admin"
   echo
@@ -11,9 +14,7 @@ function createOrg3 {
 #  rm -rf $FABRIC_CA_CLIENT_HOME/fabric-ca-client-config.yaml
 #  rm -rf $FABRIC_CA_CLIENT_HOME/msp
 
-  set -x
-  fabric-ca-client enroll -u https://admin:adminpw@localhost:11054 --caname ca-org3 --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+  execute fabric-ca-client enroll -u https://admin:adminpw@localhost:11054 --caname ca-org3 --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
 
   echo 'NodeOUs:
   Enable: true
@@ -33,23 +34,17 @@ function createOrg3 {
   echo
 	echo "Register peer0"
   echo
-  set -x
-	fabric-ca-client register --caname ca-org3 --id.name peer0 --id.secret peer0pw --id.type peer --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+	execute fabric-ca-client register --caname ca-org3 --id.name peer0 --id.secret peer0pw --id.type peer --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
 
   echo
   echo "Register user"
   echo
-  set -x
-  fabric-ca-client register --caname ca-org3 --id.name user1 --id.secret user1pw --id.type client --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+  execute fabric-ca-client register --caname ca-org3 --id.name user1 --id.secret user1pw --id.type client --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
 
   echo
   echo "Register the org admin"
   echo
-  set -x
-  fabric-ca-client register --caname ca-org3 --id.name org3admin --id.secret org3adminpw --id.type admin --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+  execute fabric-ca-client register --caname ca-org3 --id.name org3admin --id.secret org3adminpw --id.type admin --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
 
 	mkdir -p ../organizations/peerOrganizations/org3.example.com/peers
   mkdir -p ../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com
@@ -57,18 +52,14 @@ function createOrg3 {
   echo
   echo "## Generate the peer0 msp"
   echo
-  set -x
-	fabric-ca-client enroll -u https://peer0:peer0pw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp --csr.hosts peer0.org3.example.com --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+	execute fabric-ca-client enroll -u https://peer0:peer0pw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp --csr.hosts peer0.org3.example.com --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
 
   cp ${PWD}/../organizations/peerOrganizations/org3.example.com/msp/config.yaml ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp/config.yaml
 
   echo
   echo "## Generate the peer0-tls certificates"
   echo
-  set -x
-  fabric-ca-client enroll -u https://peer0:peer0pw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls --enrollment.profile tls --csr.hosts peer0.org3.example.com --csr.hosts localhost --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+  execute fabric-ca-client enroll -u https://peer0:peer0pw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls --enrollment.profile tls --csr.hosts peer0.org3.example.com --csr.hosts localhost --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
 
 
   cp ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/tlscacerts/* ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/ca.crt
@@ -90,9 +81,7 @@ function createOrg3 {
   echo
   echo "## Generate the user msp"
   echo
-  set -x
-	fabric-ca-client enroll -u https://user1:user1pw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/users/User1@org3.example.com/msp --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+	execute fabric-ca-client enroll -u https://user1:user1pw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/users/User1@org3.example.com/msp --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
 
   cp ${PWD}/../organizations/peerOrganizations/org3.example.com/msp/config.yaml ${PWD}/../organizations/peerOrganizations/org3.example.com/users/User1@org3.example.com/msp/config.yaml
 
@@ -101,10 +90,7 @@ function createOrg3 {
   echo
   echo "## Generate the org admin msp"
   echo
-  set -x
-	fabric-ca-client enroll -u https://org3admin:org3adminpw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+	execute fabric-ca-client enroll -u https://org3admin:org3adminpw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
 
   cp ${PWD}/../organizations/peerOrganizations/org3.example.com/msp/config.yaml ${PWD}/../organizations/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp/config.yaml
-
 }

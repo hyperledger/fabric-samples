@@ -15,6 +15,12 @@ export PATH=${PWD}/../../bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=${PWD}
 export VERBOSE=false
 
+# execute - Prints and executes the command
+function execute() {
+  echo -e "\033[0;32mCommand\033[0m: ${*}"
+  "${@}"
+}
+
 # Print the usage message
 function printHelp () {
   echo "Usage: "
@@ -70,10 +76,8 @@ function generateOrg3() {
     echo "############ Create Org1 Identities ######################"
     echo "##########################################################"
 
-    set -x
-    cryptogen generate --config=org3-crypto.yaml --output="../organizations"
+    execute cryptogen generate --config=org3-crypto.yaml --output="../organizations"
     res=$?
-    set +x
     if [ $res -ne 0 ]; then
       echo "Failed to generate certificates..."
       exit 1
@@ -127,15 +131,13 @@ function generateOrg3Definition() {
   echo "##########################################################"
   echo "#######  Generating Org3 organization definition #########"
   echo "##########################################################"
-   export FABRIC_CFG_PATH=$PWD
-   set -x
-   configtxgen -printOrg Org3MSP > ../organizations/peerOrganizations/org3.example.com/org3.json
-   res=$?
-   set +x
-   if [ $res -ne 0 ]; then
-     echo "Failed to generate Org3 config material..."
-     exit 1
-   fi
+ export FABRIC_CFG_PATH=$PWD
+ execute configtxgen -printOrg Org3MSP > ../organizations/peerOrganizations/org3.example.com/org3.json
+ res=$?
+ if [ $res -ne 0 ]; then
+   echo "Failed to generate Org3 config material..."
+   exit 1
+ fi
   echo
 }
 

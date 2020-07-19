@@ -29,7 +29,11 @@ CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
 
 FABRIC_CFG_PATH=$PWD/../config/
 
-
+# execute - Prints and executes the command
+function execute() {
+  echo -e "\033[0;32mCommand\033[0m: ${*}"
+  "${@}"
+}
 
 # User has not provided a path, therefore the CC_NAME must
 # be the short name of a known chaincode sample
@@ -147,10 +151,8 @@ fi
 packageChaincode() {
 	ORG=$1
 	setGlobals $ORG
-	set -x
-	peer lifecycle chaincode package ${CC_NAME}.tar.gz --path ${CC_SRC_PATH} --lang ${CC_RUNTIME_LANGUAGE} --label ${CC_NAME}_${CC_VERSION} >&log.txt
+	execute peer lifecycle chaincode package ${CC_NAME}.tar.gz --path ${CC_SRC_PATH} --lang ${CC_RUNTIME_LANGUAGE} --label ${CC_NAME}_${CC_VERSION} >&log.txt
 	res=$?
-	set +x
 	cat log.txt
 	verifyResult $res "Chaincode packaging on peer0.org${ORG} has failed"
 	echo "===================== Chaincode is packaged on peer0.org${ORG} ===================== "
@@ -161,10 +163,8 @@ packageChaincode() {
 installChaincode() {
 	ORG=$1
 	setGlobals $ORG
-	set -x
-	peer lifecycle chaincode install ${CC_NAME}.tar.gz >&log.txt
+	execute peer lifecycle chaincode install ${CC_NAME}.tar.gz >&log.txt
 	res=$?
-	set +x
 	cat log.txt
 	verifyResult $res "Chaincode installation on peer0.org${ORG} has failed"
 	echo "===================== Chaincode is installed on peer0.org${ORG} ===================== "
@@ -175,10 +175,8 @@ installChaincode() {
 queryInstalled() {
 	ORG=$1
 	setGlobals $ORG
-	set -x
-	peer lifecycle chaincode queryinstalled >&log.txt
+	execute peer lifecycle chaincode queryinstalled >&log.txt
 	res=$?
-	set +x
 	cat log.txt
 	PACKAGE_ID=$(sed -n "/${CC_NAME}_${CC_VERSION}/{s/^Package ID: //; s/, Label:.*$//; p;}" log.txt)
 	verifyResult $res "Query installed on peer0.org${ORG} has failed"
@@ -190,9 +188,7 @@ queryInstalled() {
 approveForMyOrg() {
 	ORG=$1
 	setGlobals $ORG
-	set -x
-	peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
-	set +x
+	execute peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
 	cat log.txt
 	verifyResult $res "Chaincode definition approved on peer0.org${ORG} on channel '$CHANNEL_NAME' failed"
 	echo "===================== Chaincode definition approved on peer0.org${ORG} on channel '$CHANNEL_NAME' ===================== "
@@ -212,10 +208,8 @@ checkCommitReadiness() {
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; do
 		sleep $DELAY
 		echo "Attempting to check the commit readiness of the chaincode definition on peer0.org${ORG}, Retry after $DELAY seconds."
-		set -x
-		peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} --output json >&log.txt
+		execute peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} --output json >&log.txt
 		res=$?
-		set +x
 		let rc=0
 		for var in "$@"; do
 			grep "$var" log.txt &>/dev/null || let rc=1
@@ -242,10 +236,8 @@ commitChaincodeDefinition() {
 	# while 'peer chaincode' command can get the orderer endpoint from the
 	# peer (if join was successful), let's supply it directly as we know
 	# it using the "-o" option
-	set -x
-	peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} $PEER_CONN_PARMS --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
+	execute peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} $PEER_CONN_PARMS --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
 	res=$?
-	set +x
 	cat log.txt
 	verifyResult $res "Chaincode definition commit failed on peer0.org${ORG} on channel '$CHANNEL_NAME' failed"
 	echo "===================== Chaincode definition committed on channel '$CHANNEL_NAME' ===================== "
@@ -265,10 +257,8 @@ queryCommitted() {
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; do
 		sleep $DELAY
 		echo "Attempting to Query committed status on peer0.org${ORG}, Retry after $DELAY seconds."
-		set -x
-		peer lifecycle chaincode querycommitted --channelID $CHANNEL_NAME --name ${CC_NAME} >&log.txt
+		execute peer lifecycle chaincode querycommitted --channelID $CHANNEL_NAME --name ${CC_NAME} >&log.txt
 		res=$?
-		set +x
 		test $res -eq 0 && VALUE=$(cat log.txt | grep -o '^Version: '$CC_VERSION', Sequence: [0-9], Endorsement Plugin: escc, Validation Plugin: vscc')
 		test "$VALUE" = "$EXPECTED_RESULT" && let rc=0
 		COUNTER=$(expr $COUNTER + 1)
@@ -294,12 +284,10 @@ chaincodeInvokeInit() {
 	# while 'peer chaincode' command can get the orderer endpoint from the
 	# peer (if join was successful), let's supply it directly as we know
 	# it using the "-o" option
-	set -x
 	fcn_call='{"function":"'${CC_INIT_FCN}'","Args":[]}'
 	echo invoke fcn call:${fcn_call}
-	peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA -C $CHANNEL_NAME -n ${CC_NAME} $PEER_CONN_PARMS --isInit -c ${fcn_call} >&log.txt
+	execute peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA -C $CHANNEL_NAME -n ${CC_NAME} $PEER_CONN_PARMS --isInit -c ${fcn_call} >&log.txt
 	res=$?
-	set +x
 	cat log.txt
 	verifyResult $res "Invoke execution on $PEERS failed "
 	echo "===================== Invoke transaction successful on $PEERS on channel '$CHANNEL_NAME' ===================== "
@@ -317,10 +305,8 @@ chaincodeQuery() {
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; do
 		sleep $DELAY
 		echo "Attempting to Query peer0.org${ORG}, Retry after $DELAY seconds."
-		set -x
-		peer chaincode query -C $CHANNEL_NAME -n ${CC_NAME} -c '{"Args":["queryAllCars"]}' >&log.txt
+		execute peer chaincode query -C $CHANNEL_NAME -n ${CC_NAME} -c '{"Args":["queryAllCars"]}' >&log.txt
 		res=$?
-		set +x
 		let rc=$res
 		COUNTER=$(expr $COUNTER + 1)
 	done

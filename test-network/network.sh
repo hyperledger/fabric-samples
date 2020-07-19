@@ -67,6 +67,12 @@ function printHelp() {
   echo "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
 }
 
+# execute - Prints and executes the command
+function execute() {
+  echo -e "\033[0;32mCommand\033[0m: ${*}"
+  "${@}"
+}
+
 # Obtain CONTAINER_IDS and remove them
 # TODO Might want to make this optional - could clear other containers
 # This function is called when you bring a network down
@@ -211,10 +217,8 @@ function createOrgs() {
     echo "############ Create Org1 Identities ######################"
     echo "##########################################################"
 
-    set -x
-    cryptogen generate --config=./organizations/cryptogen/crypto-config-org1.yaml --output="organizations"
+    execute cryptogen generate --config=./organizations/cryptogen/crypto-config-org1.yaml --output="organizations"
     res=$?
-    set +x
     if [ $res -ne 0 ]; then
       echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
       exit 1
@@ -224,10 +228,8 @@ function createOrgs() {
     echo "############ Create Org2 Identities ######################"
     echo "##########################################################"
 
-    set -x
-    cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
+    execute cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
     res=$?
-    set +x
     if [ $res -ne 0 ]; then
       echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
       exit 1
@@ -237,10 +239,8 @@ function createOrgs() {
     echo "############ Create Orderer Org Identities ###############"
     echo "##########################################################"
 
-    set -x
-    cryptogen generate --config=./organizations/cryptogen/crypto-config-orderer.yaml --output="organizations"
+    execute cryptogen generate --config=./organizations/cryptogen/crypto-config-orderer.yaml --output="organizations"
     res=$?
-    set +x
     if [ $res -ne 0 ]; then
       echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
       exit 1
@@ -326,10 +326,8 @@ function createConsortium() {
 
   # Note: For some unknown reason (at least for now) the block file can't be
   # named orderer.genesis.block or the orderer will fail to launch!
-  set -x
-  configtxgen -profile TwoOrgsOrdererGenesis -channelID system-channel -outputBlock ./system-genesis-block/genesis.block
+  execute configtxgen -profile TwoOrgsOrdererGenesis -channelID system-channel -outputBlock ./system-genesis-block/genesis.block
   res=$?
-  set +x
   if [ $res -ne 0 ]; then
     echo $'\e[1;32m'"Failed to generate orderer genesis block..."$'\e[0m'
     exit 1
