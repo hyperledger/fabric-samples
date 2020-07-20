@@ -67,17 +67,6 @@ function printHelp() {
   echo "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
 }
 
-# execute - Prints and executes the command
-function execute() {
-  echo -e "\033[0;32mCommand\033[0m: ${*}"
-  echo -e "\033[0;32mOutput\033[0m:"
-  "${@}"
-}
-
-function info() {
-  echo -e "\033[0;33mINFO\033[0m: ${1}"
-}
-
 # Obtain CONTAINER_IDS and remove them
 # TODO Might want to make this optional - could clear other containers
 # This function is called when you bring a network down
@@ -200,6 +189,7 @@ function checkPrereqs() {
 
 # Create Organziation crypto material using cryptogen or CAs
 function createOrgs() {
+
   if [ -d "organizations/peerOrganizations" ]; then
     rm -Rf organizations/peerOrganizations && rm -Rf organizations/ordererOrganizations
   fi
@@ -212,63 +202,89 @@ function createOrgs() {
       exit 1
     fi
     echo
-    info "Generate certificates using cryptogen tool"
-    info "Create Org1 Identities"
+    echo "##########################################################"
+    echo "##### Generate certificates using cryptogen tool #########"
+    echo "##########################################################"
+    echo
 
-    execute cryptogen generate --config=./organizations/cryptogen/crypto-config-org1.yaml --output="organizations"
+    echo "##########################################################"
+    echo "############ Create Org1 Identities ######################"
+    echo "##########################################################"
+
+    set -x
+    cryptogen generate --config=./organizations/cryptogen/crypto-config-org1.yaml --output="organizations"
     res=$?
+    set +x
     if [ $res -ne 0 ]; then
       echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
       exit 1
     fi
-    echo
 
-    info "Create Org2 Identities"
+    echo "##########################################################"
+    echo "############ Create Org2 Identities ######################"
+    echo "##########################################################"
 
-    execute cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
+    set -x
+    cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
     res=$?
+    set +x
     if [ $res -ne 0 ]; then
       echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
       exit 1
     fi
-    echo
 
-    info "Create Orderer Org Identities"
+    echo "##########################################################"
+    echo "############ Create Orderer Org Identities ###############"
+    echo "##########################################################"
 
-    execute cryptogen generate --config=./organizations/cryptogen/crypto-config-orderer.yaml --output="organizations"
+    set -x
+    cryptogen generate --config=./organizations/cryptogen/crypto-config-orderer.yaml --output="organizations"
     res=$?
+    set +x
     if [ $res -ne 0 ]; then
       echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
       exit 1
     fi
-    echo
+
   fi
 
   # Create crypto material using Fabric CAs
   if [ "$CRYPTO" == "Certificate Authorities" ]; then
+
     echo
-    info "Creating Fabric CA's"
-    IMAGE_TAG=${CA_IMAGETAG} docker-compose -f "$COMPOSE_FILE_CA" up -d 2>&1
+    echo "##########################################################"
+    echo "##### Generate certificates using Fabric CA's ############"
+    echo "##########################################################"
+
+    IMAGE_TAG=${CA_IMAGETAG} docker-compose -f $COMPOSE_FILE_CA up -d 2>&1
+
     . organizations/fabric-ca/registerEnroll.sh
 
     sleep 10
 
-    echo
-    info "Generate certificates using Fabric CA's"
+    echo "##########################################################"
+    echo "############ Create Org1 Identities ######################"
+    echo "##########################################################"
 
-    info "Create Org1 Identities"
     createOrg1
 
-    info "Create Org2 Identities"
+    echo "##########################################################"
+    echo "############ Create Org2 Identities ######################"
+    echo "##########################################################"
+
     createOrg2
 
-    info "Create Orderer Org Identities"
+    echo "##########################################################"
+    echo "############ Create Orderer Org Identities ###############"
+    echo "##########################################################"
+
     createOrderer
+
   fi
 
-  info "Generate CCP files for Org1 and Org2"
-  ./organizations/ccp-generate.sh
   echo
+  echo "Generate CCP files for Org1 and Org2"
+  ./organizations/ccp-generate.sh
 }
 
 # Once you create the organization crypto material, you need to create the
@@ -299,23 +315,25 @@ function createOrgs() {
 
 # Generate orderer system channel genesis block.
 function createConsortium() {
+
   which configtxgen
   if [ "$?" -ne 0 ]; then
     echo "configtxgen tool not found. exiting"
     exit 1
   fi
 
-  info "Generating Orderer Genesis block"
+  echo "#########  Generating Orderer Genesis block ##############"
 
   # Note: For some unknown reason (at least for now) the block file can't be
   # named orderer.genesis.block or the orderer will fail to launch!
-  execute configtxgen -profile TwoOrgsOrdererGenesis -channelID system-channel -outputBlock ./system-genesis-block/genesis.block
+  set -x
+  configtxgen -profile TwoOrgsOrdererGenesis -channelID system-channel -outputBlock ./system-genesis-block/genesis.block
   res=$?
+  set +x
   if [ $res -ne 0 ]; then
     echo $'\e[1;32m'"Failed to generate orderer genesis block..."$'\e[0m'
     exit 1
   fi
-  echo
 }
 
 # After we create the org crypto material and the system channel genesis block,
@@ -326,6 +344,7 @@ function createConsortium() {
 
 # Bring up the peer and orderer nodes using docker compose.
 function networkUp() {
+
   checkPrereqs
   # generate artifacts if they don't exist
   if [ ! -d "organizations/peerOrganizations" ]; then
@@ -350,7 +369,9 @@ function networkUp() {
 
 ## call the script to join create the channel and join the peers of org1 and org2
 function createChannel() {
+
 ## Bring up the network if it is not arleady up.
+
   if [ ! -d "organizations/peerOrganizations" ]; then
     echo "Bringing up network"
     networkUp
@@ -365,17 +386,21 @@ function createChannel() {
     echo "Error !!! Create channel failed"
     exit 1
   fi
-  echo
+
 }
 
 
 ## Call the script to isntall and instantiate a chaincode on the channel
 function deployCC() {
+
   scripts/deployCC.sh $CHANNEL_NAME $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION $CC_SEQUENCE $CC_INIT_FCN $CC_END_POLICY $CC_COLL_CONFIG $CLI_DELAY $MAX_RETRY $VERBOSE
+
   if [ $? -ne 0 ]; then
     echo "ERROR !!! Deploying chaincode failed"
     exit 1
   fi
+
+  exit 0
 }
 
 
