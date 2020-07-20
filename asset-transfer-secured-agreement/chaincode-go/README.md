@@ -7,13 +7,13 @@ Each on-chain asset is a non-fungible token (NFT) that represents a specific ass
 
 The private asset transfer scenario is bound by the following requirements:
 
-- A asset may be issued by the first owner's organization (in the real world issuance may be restricted to some authority that certifies a asset's properties).
+- An asset may be issued by the first owner's organization (in the real world issuance may be restricted to some authority that certifies an asset's properties).
 - Ownership is managed at the organization level (the Fabric permissioning scheme would equally support ownership at an individual identity level within an organization).
 - The asset identifier and owner is stored as public channel data for all channel members to see.
 - The asset metadata properties however are private information known only to the asset owner (and prior owners).
-- An interested buyer will want to verify a asset's private properties.
-- An interested buyer will want to verify a asset's provenance, specifically the asset's origin and chain of custody. They will also want to verify that the asset has not changed since issuance, and that all prior transfers have been legitimate.
-- To transfer a asset, a buyer and seller must first agree on a sales price.
+- An interested buyer will want to verify an asset's private properties.
+- An interested buyer will want to verify an asset's provenance, specifically the asset's origin and chain of custody. They will also want to verify that the asset has not changed since issuance, and that all prior transfers have been legitimate.
+- To transfer an asset, the buyer and the seller must first agree on a sales price.
 - Only the current owner may transfer their asset to another organization.
 - The actual private asset transfer must verify that the legitimate asset is being transferred, and verify that the price has been agreed to. Both buyer and seller must endorse the transfer.
 
