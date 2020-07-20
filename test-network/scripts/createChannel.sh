@@ -16,7 +16,12 @@ VERBOSE="$4"
 # execute - Prints and executes the command
 function execute() {
   echo -e "\033[0;32mCommand\033[0m: ${*}"
+  echo -e "\033[0;32mOutput\033[0m:"
   "${@}"
+}
+
+function info() {
+  echo -e "\033[0;33mINFO\033[0m: ${1}"
 }
 
 if [ ! -d "channel-artifacts" ]; then
@@ -31,12 +36,11 @@ createChannelTx() {
 		exit 1
 	fi
 	echo
-
 }
 
 createAncorPeerTx() {
 	for orgmsp in Org1MSP Org2MSP; do
-    echo "#######    Generating anchor peer update transaction for ${orgmsp}  ##########"
+    info "Generating anchor peer update transaction for ${orgmsp}"
     execute configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/${orgmsp}anchors.tx -channelID $CHANNEL_NAME -asOrg ${orgmsp}
     res=$?
     if [ $res -ne 0 ]; then
@@ -61,8 +65,7 @@ createChannel() {
 	done
 	cat log.txt
 	verifyResult $res "Channel creation failed"
-	echo
-	echo "===================== Channel '$CHANNEL_NAME' created ===================== "
+	info "Channel ${CHANNEL_NAME} created"
 	echo
 }
 
@@ -73,16 +76,16 @@ joinChannel() {
 	local rc=1
 	local COUNTER=1
 	## Sometimes Join takes time, hence retry
-	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
+	while [ $rc -ne 0 ] && [ $COUNTER -lt $MAX_RETRY ] ; do
     sleep $DELAY
     execute peer channel join -b ./channel-artifacts/$CHANNEL_NAME.block >&log.txt
     res=$?
 		let rc=$res
-		COUNTER=$(expr $COUNTER + 1)
+		COUNTER=$((COUNTER + 1))
 	done
 	cat log.txt
-	echo
 	verifyResult $res "After $MAX_RETRY attempts, peer0.org${ORG} has failed to join channel '$CHANNEL_NAME' "
+	echo
 }
 
 updateAnchorPeers() {
@@ -100,14 +103,14 @@ updateAnchorPeers() {
 	done
 	cat log.txt
   verifyResult $res "Anchor peer update failed"
-  echo "===================== Anchor peers updated for org '$CORE_PEER_LOCALMSPID' on channel '$CHANNEL_NAME' ===================== "
+  info "Anchor peers updated for org ${CORE_PEER_LOCALMSPID} on channel ${CHANNEL_NAME}"
   sleep $DELAY
   echo
 }
 
 verifyResult() {
   if [ $1 -ne 0 ]; then
-    echo "!!!!!!!!!!!!!!! "$2" !!!!!!!!!!!!!!!!"
+    echo "!!!!!!!!!!!!!!! ${2} !!!!!!!!!!!!!!!!"
     echo
     exit 1
   fi
@@ -116,33 +119,30 @@ verifyResult() {
 FABRIC_CFG_PATH=${PWD}/configtx
 
 ## Create channeltx
-echo "### Generating channel create transaction '${CHANNEL_NAME}.tx' ###"
+echo
+info "Generating channel create transaction ${CHANNEL_NAME}.tx"
 createChannelTx
 
 ## Create anchorpeertx
-echo "### Generating anchor peer update transactions ###"
+info "Generating anchor peer update transactions"
 createAncorPeerTx
 
 FABRIC_CFG_PATH=$PWD/../config/
 
 ## Create channel
-echo "Creating channel "$CHANNEL_NAME
+info "Creating channel ${CHANNEL_NAME}"
 createChannel
 
 ## Join all the peers to the channel
-echo "Join Org1 peers to the channel..."
+info "Join Org1 peers to the channel"
 joinChannel 1
-echo "Join Org2 peers to the channel..."
+info "Join Org2 peers to the channel"
 joinChannel 2
 
 ## Set the anchor peers for each org in the channel
-echo "Updating anchor peers for org1..."
+info "Updating anchor peers for org1"
 updateAnchorPeers 1
-echo "Updating anchor peers for org2..."
+info "Updating anchor peers for org2"
 updateAnchorPeers 2
 
-echo
-echo "========= Channel successfully joined =========== "
-echo
-
-exit 0
+info "Channel successfully joined"
