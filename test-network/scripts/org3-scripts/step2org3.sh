@@ -28,15 +28,19 @@ MAX_RETRY=5
 # import environment variables
 . scripts/org3-scripts/envVarCLI.sh
 
+# execute - Prints and executes the command
+function execute() {
+  echo -e "\033[0;32mCommand\033[0m: ${*}"
+  "${@}"
+}
+
 ## Sometimes Join takes time hence RETRY at least 5 times
 joinChannelWithRetry() {
   ORG=$1
   setGlobals $ORG
 
-  set -x
-  peer channel join -b $CHANNEL_NAME.block >&log.txt
+  execute peer channel join -b $CHANNEL_NAME.block >&log.txt
   res=$?
-  set +x
   cat log.txt
   if [ $res -ne 0 -a $COUNTER -lt $MAX_RETRY ]; then
     COUNTER=$(expr $COUNTER + 1)
@@ -51,10 +55,8 @@ joinChannelWithRetry() {
 
 
 echo "Fetching channel config block from orderer..."
-set -x
-peer channel fetch 0 $CHANNEL_NAME.block -o orderer.example.com:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME --tls --cafile $ORDERER_CA >&log.txt
+execute peer channel fetch 0 $CHANNEL_NAME.block -o orderer.example.com:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME --tls --cafile $ORDERER_CA >&log.txt
 res=$?
-set +x
 cat log.txt
 verifyResult $res "Fetching config block from orderer has Failed"
 
@@ -64,5 +66,3 @@ echo "===================== peer0.org3 joined channel '$CHANNEL_NAME' ==========
 echo
 echo "========= Finished adding Org3 to your test network! ========= "
 echo
-
-exit 0

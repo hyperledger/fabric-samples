@@ -12,6 +12,10 @@ export PEER0_ORG1_CA=${PWD}/organizations/peerOrganizations/org1.example.com/pee
 export PEER0_ORG2_CA=${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
 export PEER0_ORG3_CA=${PWD}/organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/ca.crt
 
+function info() {
+  echo -e "\033[0;33mINFO\033[0m: ${1}"
+}
+
 # Set OrdererOrg.Admin globals
 setOrdererGlobals() {
   export CORE_PEER_LOCALMSPID="OrdererMSP"
@@ -27,7 +31,7 @@ setGlobals() {
   else
     USING_ORG="${OVERRIDE_ORG}"
   fi
-  echo "Using organization ${USING_ORG}"
+  info "Using organization ${USING_ORG}"
   if [ $USING_ORG -eq 1 ]; then
     export CORE_PEER_LOCALMSPID="Org1MSP"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG1_CA
