@@ -5,24 +5,24 @@
 // ====CHAINCODE EXECUTION SAMPLES (CLI) ==================
 
 // ==== Invoke assets ====
-// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["createAsset","asset1","blue","35","tom","100"]}'
-// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["createAsset","asset2","red","50","tom","150"]}'
-// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["createAsset","asset3","blue","70","tom","200"]}'
-// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["transferAsset","asset2","jerry"]}'
-// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["transferAssetsBasedOnColor","blue","jerry"]}'
-// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["deleteAsset","asset1"]}'
+// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["CreateAsset","asset1","blue","35","tom","100"]}'
+// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["CreateAsset","asset2","red","50","tom","150"]}'
+// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["CreateAsset","asset3","blue","70","tom","200"]}'
+// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["TransferAsset","asset2","jerry"]}'
+// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["TransferAssetsBasedOnColor","blue","jerry"]}'
+// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["DeleteAsset","asset1"]}'
 
 // ==== Query assets ====
-// peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["readAsset","asset1"]}'
-// peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["getAssetsByRange","asset1","asset3"]}' output issue go
-// peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["getAssetHistory","asset1"]}'
+// peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["ReadAsset","asset1"]}'
+// peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["GetAssetsByRange","asset1","asset3"]}' output issue go
+// peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["GetAssetHistory","asset1"]}'
 
 // Rich Query (Only supported if CouchDB is used as state database):
-// peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["queryAssetsByOwner","tom"]}' output issue
-// peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["queryAssets","{\"selector\":{\"owner\":\"tom\"}}"]}' output issue go
+// peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["QueryAssetsByOwner","tom"]}' output issue
+// peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["QueryAssets","{\"selector\":{\"owner\":\"tom\"}}"]}' output issue go
 
 // Rich Query with Pagination (Only supported if CouchDB is used as state database):
-// peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["queryAssetsWithPagination","{\"selector\":{\"owner\":\"tom\"}}","3",""]}' //error: invalid bookmark
+// peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["QueryAssetsWithPagination","{\"selector\":{\"owner\":\"tom\"}}","3",""]}' //error: invalid bookmark
 
 // INDEXES TO SUPPORT COUCHDB RICH QUERIES
 //
@@ -60,10 +60,10 @@
 // curl -i -X POST -H "Content-Type: application/json" -d "{\"index\":{\"fields\":[{\"size\":\"desc\"},{\"docType\":\"desc\"},{\"owner\":\"desc\"}]},\"ddoc\":\"indexSizeSortDoc\", \"name\":\"indexSizeSortDesc\",\"type\":\"json\"}" http://hostname:port/myc1_assets/_index
 
 // Rich Query with index design doc and index name specified (Only supported if CouchDB is used as state database):
-//   peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["queryAssets","{\"selector\":{\"docType\":\"asset\",\"owner\":\"tom\"}, \"use_index\":[\"_design/indexOwnerDoc\", \"indexOwner\"]}"]}'
+//   peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["QueryAssets","{\"selector\":{\"docType\":\"asset\",\"owner\":\"tom\"}, \"use_index\":[\"_design/indexOwnerDoc\", \"indexOwner\"]}"]}'
 
 // Rich Query with index design doc specified only (Only supported if CouchDB is used as state database):
-//   peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["queryAssets","{\"selector\":{\"docType\":{\"$eq\":\"asset\"},\"owner\":{\"$eq\":\"tom\"},\"size\":{\"$gt\":0}},\"fields\":[\"docType\",\"owner\",\"size\"],\"sort\":[{\"size\":\"desc\"}],\"use_index\":\"_design/indexSizeSortDoc\"}"]}'
+//   peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["QueryAssets","{\"selector\":{\"docType\":{\"$eq\":\"asset\"},\"owner\":{\"$eq\":\"tom\"},\"size\":{\"$gt\":0}},\"fields\":[\"docType\",\"owner\",\"size\"],\"sort\":[{\"size\":\"desc\"}],\"use_index\":\"_design/indexSizeSortDoc\"}"]}'
 
 'use strict';
 
@@ -72,8 +72,8 @@ const { Contract } = require('fabric-contract-api');
 class Chaincode extends Contract{
 
   // CreateAsset - create a new asset, store into chaincode state
-  async createAsset(ctx, assetID, color, size, owner, appraisedValue) {
-    const exists = await this.assetExists(ctx, assetID)
+  async CreateAsset(ctx, assetID, color, size, owner, appraisedValue) {
+    const exists = await this.AssetExists(ctx, assetID)
     if (exists) {
       throw new Error(`The asset ${assetID} already exists`)
     }
@@ -97,8 +97,8 @@ class Chaincode extends Contract{
     await ctx.stub.putState(colorNameIndexKey, Buffer.from('\u0000'));
   }
 
-  // readAsset returns the asset stored in the world state with given id.
-  async readAsset(ctx, id) {
+  // ReadAsset returns the asset stored in the world state with given id.
+  async ReadAsset(ctx, id) {
     const assetJSON = await ctx.stub.getState(id); // get the asset from chaincode state
     if (!assetJSON || assetJSON.length === 0) {
         throw new Error(`Asset ${id} does not exist`);
@@ -108,12 +108,12 @@ class Chaincode extends Contract{
   }
 
   // delete - remove a asset key/value pair from state
-  async deleteAsset(ctx, id) {
+  async DeleteAsset(ctx, id) {
     if (!id) {
       throw new Error('Asset name must not be empty');
     }
 
-    var exists = await this.assetExists(ctx, id)
+    var exists = await this.AssetExists(ctx, id)
     if (!exists) {
       throw new Error(`Asset ${id} does not exist`)
     }
@@ -146,7 +146,7 @@ class Chaincode extends Contract{
   }
 
   // TransferAsset transfers a asset by setting a new owner name on the asset
-  async transferAsset(ctx, assetName, newOwner) {
+  async TransferAsset(ctx, assetName, newOwner) {
 
     let assetAsBytes = await ctx.stub.getState(assetName);
     if (!assetAsBytes || !assetAsBytes.toString()) {
@@ -174,10 +174,10 @@ class Chaincode extends Contract{
 // invalidated by the committing peers if the result set has changed between endorsement
 // time and commit time.
 // Therefore, range queries are a safe option for performing update transactions based on query results.
-  async getAssetsByRange(ctx, startKey, endKey) {
+  async GetAssetsByRange(ctx, startKey, endKey) {
 
     let resultsIterator = await ctx.stub.getStateByRange(startKey, endKey);
-    let results = await this.getAllResults(resultsIterator, false);
+    let results = await this.GetAllResults(resultsIterator, false);
 
     return JSON.stringify(results);
   }
@@ -189,7 +189,7 @@ class Chaincode extends Contract{
   // committing peers if the result set has changed between endorsement time and commit time.
   // Therefore, range queries are a safe option for performing update transactions based on query results.
   // Example: GetStateByPartialCompositeKey/RangeQuery
-  async transferAssetByColor(ctx, color, newOwner) {
+  async TransferAssetByColor(ctx, color, newOwner) {
     // Query the color~name index by color
     // This will execute a key range query on all keys starting with 'color'
     let coloredAssetResultsIterator = await ctx.stub.getStateByPartialCompositeKey('color~name', [color]);
@@ -213,7 +213,7 @@ class Chaincode extends Contract{
 
       // Now call the transfer function for the found asset.
       // Re-use the same function that is used to transfer individual assets
-      await this.transferAsset(ctx, returnedAssetName, newOwner);
+      await this.TransferAsset(ctx, returnedAssetName, newOwner);
     }
   }
 
@@ -222,32 +222,32 @@ class Chaincode extends Contract{
   // and accepting a single query parameter (owner).
   // Only available on state databases that support rich query (e.g. CouchDB)
   // Example: Parameterized rich query
-  async queryAssetsByOwner(ctx, owner) {
+  async QueryAssetsByOwner(ctx, owner) {
     let queryString = {};
     queryString.selector = {};
     queryString.selector.docType = 'asset';
     queryString.selector.owner = owner;
-    let queryResults = await this.getQueryResultForQueryString(ctx, JSON.stringify(queryString));
+    let queryResults = await this.GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
     return queryResults; //shim.success(queryResults);
   }
 
   // Example: Ad hoc rich query
-  // queryAssets uses a query string to perform a query for assets.
+  // QueryAssets uses a query string to perform a query for assets.
   // Query string matching state database syntax is passed in and executed as is.
   // Supports ad hoc queries that can be defined at runtime by the client.
-  // If this is not desired, follow the queryAssetsForOwner example for parameterized queries.
+  // If this is not desired, follow the QueryAssetsForOwner example for parameterized queries.
   // Only available on state databases that support rich query (e.g. CouchDB)
-  async queryAssets(ctx, queryString) {
-    let queryResults = await this.getQueryResultForQueryString(ctx, queryString);
+  async QueryAssets(ctx, queryString) {
+    let queryResults = await this.GetQueryResultForQueryString(ctx, queryString);
     return queryResults;
   }
 
-  // getQueryResultForQueryString executes the passed in query string.
+  // GetQueryResultForQueryString executes the passed in query string.
   // Result set is built and returned as a byte array containing the JSON results.
-  async getQueryResultForQueryString(ctx, queryString) {
+  async GetQueryResultForQueryString(ctx, queryString) {
     
     let resultsIterator = await ctx.stub.getQueryResult(queryString);
-    let results = await this.getAllResults(resultsIterator, false);
+    let results = await this.GetAllResults(resultsIterator, false);
 
     return JSON.stringify(results);
   }
@@ -257,10 +257,10 @@ class Chaincode extends Contract{
   // page size and a bookmark.
   // The number of fetched records will be equal to or lesser than the page size.
   // Paginated range queries are only valid for read only transactions.
-  async getAssetsByRangeWithPagination(ctx, startKey, endKey, pageSize, bookmark) {
+  async GetAssetsByRangeWithPagination(ctx, startKey, endKey, pageSize, bookmark) {
     
     const { iterator, metadata } = await ctx.stub.getStateByRangeWithPagination(startKey, endKey, pageSize, bookmark);
-    const results = await this.getAllResults(iterator, false);
+    const results = await this.GetAllResults(iterator, false);
 
     results.ResponseMetadata = {
       RecordsCount: metadata.fetched_records_count,
@@ -277,10 +277,10 @@ class Chaincode extends Contract{
   // If this is not desired, follow the QueryAssetsForOwner example for parameterized queries.
   // Only available on state databases that support rich query (e.g. CouchDB)
   // Paginated queries are only valid for read only transactions.
-  async queryAssetsWithPagination(ctx, queryString, pageSize, bookmark) {
+  async QueryAssetsWithPagination(ctx, queryString, pageSize, bookmark) {
 
     const { iterator, metadata } = await ctx.stub.getQueryResultWithPagination(queryString, pageSize, bookmark);
-    const results = await this.getAllResults(iterator, false);
+    const results = await this.GetAllResults(iterator, false);
 
     results.ResponseMetadata = {
       RecordsCount: metadata.fetched_records_count,
@@ -291,16 +291,16 @@ class Chaincode extends Contract{
   }
 
   // GetAssetHistory returns the chain of custody for an asset since issuance.
-  async getAssetHistory(ctx, assetName) {
+  async GetAssetHistory(ctx, assetName) {
 
     let resultsIterator = await ctx.stub.getHistoryForKey(assetName);
-    let results = await this.getAllResults(resultsIterator, true);
+    let results = await this.GetAllResults(resultsIterator, true);
 
     return JSON.stringify(results);
   }
 
   // AssetExists returns true when asset with given ID exists in world state
-  async assetExists(ctx, assetName) {
+  async AssetExists(ctx, assetName) {
     // ==== Check if asset already exists ====
     let assetState = await ctx.stub.getState(assetName);
     if ( !assetState || assetState.length === 0 ) {
@@ -309,7 +309,7 @@ class Chaincode extends Contract{
     return true
   }
 
-  async getAllResults(iterator, isHistory) {
+  async GetAllResults(iterator, isHistory) {
     let allResults = [];
     while (true) {
       let res = await iterator.next();
@@ -345,7 +345,7 @@ class Chaincode extends Contract{
   }
 
   // InitLedger creates sample assets in the ledger
-  async initLedger(ctx) {
+  async InitLedger(ctx) {
     const assets = [
         {
             assetID: 'asset1',
@@ -392,7 +392,7 @@ class Chaincode extends Contract{
     ];
 
     for (let i = 0; i < assets.length; i++) {
-        await this.createAsset(
+        await this.CreateAsset(
           ctx,
           assets[i].assetID,
           assets[i].color,
