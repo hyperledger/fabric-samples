@@ -62,8 +62,6 @@ if [ "$CC_SRC_PATH" = "NA" ]; then
 		CC_SRC_PATH="$CC_SRC_PATH/chaincode-java/"
 	elif [ "$CC_SRC_LANGUAGE" = "javascript" ]; then
 		CC_SRC_PATH="$CC_SRC_PATH/chaincode-javascript/"
-	elif [ "$CC_SRC_LANGUAGE" = "typescript" ]; then
-		CC_SRC_PATH="$CC_SRC_PATH/chaincode-typescript/"
 	fi
 
 	# check that the language is available for the sample chaincode
@@ -101,19 +99,9 @@ elif [ "$CC_SRC_LANGUAGE" = "java" ]; then
 elif [ "$CC_SRC_LANGUAGE" = "javascript" ]; then
 	CC_RUNTIME_LANGUAGE=node
 
-elif [ "$CC_SRC_LANGUAGE" = "typescript" ]; then
-	CC_RUNTIME_LANGUAGE=node
-
-	echo Compiling TypeScript code into JavaScript ...
-	pushd $CC_SRC_PATH
-	npm install
-	npm run build
-	popd
-	echo Finished compiling TypeScript code into JavaScript
-
 else
 	echo The chaincode language ${CC_SRC_LANGUAGE} is not supported by this script
-	echo Supported chaincode languages are: go, java, javascript, and typescript
+	echo Supported chaincode languages are: go, java, and javascript
 	exit 1
 fi
 
