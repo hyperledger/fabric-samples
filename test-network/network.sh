@@ -41,7 +41,7 @@ function printHelp() {
   echo "    Used with "$'\e[0;32m'network.sh deployCC$'\e[0m'
   echo "    -c <channel name> - deploy chaincode to channel"
   echo "    -ccn <name> - the short name of the chaincode to deploy: basic (default),ledger, private, secured"
-  echo "    -ccl <language> - the programming language of the chaincode to deploy: go (default), java, javascript, typescript"
+  echo "    -ccl <language> - the programming language of the chaincode to deploy: go (default), java, and javascript"
   echo "    -ccv <version>  - chaincode version. 1.0 (default)"
   echo "    -ccs <sequence>  - chaincode definition sequence. Must be an integer, 1 (default), 2, 3, etc"
   echo "    -ccp <path>  - Optional, path to the chaincode. When provided the -ccn will be used as the deployed name and not the short name of the known chaincodes."
