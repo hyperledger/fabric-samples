@@ -60,14 +60,6 @@ jobs:
       - template: templates/install-deps.yml
       - template: templates/fabcar/azure-pipelines-javascript.yml
 
-  - job: Fabcar_TypeScript
-    displayName: FabCar (TypeScript)
-    pool:
-      vmImage: ubuntu-18.04
-    steps:
-      - template: templates/install-deps.yml
-      - template: templates/fabcar/azure-pipelines-typescript.yml
-
   - job: TestNetwork
     displayName: Test Network
     pool:
