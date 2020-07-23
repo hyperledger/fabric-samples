@@ -84,6 +84,10 @@ jobs:
           DIRECTORY: asset-transfer-basic
           LANGUAGE: go
           TYPE: chaincode
+        Basic-Chaincode-Java:
+          DIRECTORY: asset-transfer-basic
+          LANGUAGE: java
+          TYPE: chaincode
         Basic-Chaincode-Javascript:
           DIRECTORY: asset-transfer-basic
           LANGUAGE: javascript
@@ -126,6 +130,9 @@ jobs:
         Basic-Go:
           CHAINCODE_NAME: basic
           CHAINCODE_LANGUAGE: go
+        Basic-Java:
+          CHAINCODE_NAME: basic
+          CHAINCODE_LANGUAGE: java
         Basic-Javascript:
           CHAINCODE_NAME: basic
           CHAINCODE_LANGUAGE: javascript
