@@ -76,5 +76,6 @@ typings/
 # Serverless directories
 .serverless
 
-wallet
-!wallet/.gitkeep
+# Compiled TypeScript files
+dist
+
