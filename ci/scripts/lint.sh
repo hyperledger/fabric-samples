@@ -27,6 +27,10 @@ if [[ "${LANGUAGE}" == "go" ]]; then
     print "The following files contain import errors, please run 'goimports -l -w <path>' to fix these issues:"
     echo "${output}"
   fi
+elif [[ "${LANGUAGE}" == "java" ]]; then
+  cd "${DIRECTORY}/${TYPE}-${LANGUAGE}"
+  print "Running Gradle Build"
+  ./gradlew build
 elif [[ "${LANGUAGE}" == "javascript" ]]; then
   npm install -g eslint
   cd "${DIRECTORY}/${TYPE}-${LANGUAGE}"
