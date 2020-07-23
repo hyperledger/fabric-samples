@@ -1,0 +1,59 @@
+{
+    "name": "asset-transfer-basic",
+    "version": "1.0.0",
+    "description": "Asset-Transfer-Basic application implemented in TypeScript",
+    "engines": {
+        "node": ">=8",
+        "npm": ">=5"
+    },
+    "scripts": {
+        "lint": "tslint -c tslint.json 'src/**/*.ts'",
+        "pretest": "npm run lint",
+        "test": "nyc mocha -r ts-node/register src/**/*.spec.ts",
+        "build": "tsc",
+        "build:watch": "tsc -w",
+        "prepublishOnly": "npm run build"
+    },
+    "engineStrict": true,
+    "author": "Hyperledger",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "fabric-ca-client": "^2.1.0",
+        "fabric-network": "^2.1.0"
+    },
+    "devDependencies": {
+        "@types/chai": "^4.1.7",
+        "@types/mocha": "^5.2.5",
+        "@types/node": "^10.12.10",
+        "@types/sinon": "^5.0.7",
+        "@types/sinon-chai": "^3.2.1",
+        "chai": "^4.2.0",
+        "mocha": "^5.2.0",
+        "nyc": "^14.1.1",
+        "sinon": "^7.1.1",
+        "sinon-chai": "^3.3.0",
+        "ts-node": "^7.0.1",
+        "tslint": "^5.11.0",
+        "typescript": "^3.1.6"
+    },
+    "nyc": {
+        "extension": [
+            ".ts",
+            ".tsx"
+        ],
+        "exclude": [
+            "coverage/**",
+            "dist/**"
+        ],
+        "reporter": [
+            "text-summary",
+            "html"
+        ],
+        "all": true,
+        "check-coverage": true,
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+    }
+}
