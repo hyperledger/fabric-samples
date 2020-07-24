@@ -2,13 +2,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {Context, Contract, Returns, Transaction} from 'fabric-contract-api';
+import {Context, Contract, Info, Returns, Transaction} from 'fabric-contract-api';
 import {Asset} from './asset';
 
-export class AssetTransfer extends Contract {
+@Info({title: 'AssetTransfer', description: 'Smart contract for trading assets'})
+export class AssetTransferContract extends Contract {
 
     @Transaction()
-    public async InitLedger(ctx: Context) {
+    public async InitLedger(ctx: Context): Promise<void> {
         const assets: Asset[] = [
             {
                 ID: 'asset1',
@@ -63,7 +64,7 @@ export class AssetTransfer extends Contract {
 
     // CreateAsset issues a new asset to the world state with given details.
     @Transaction()
-    public async CreateAsset(ctx: Context, id: string, color: string, size: number, owner: string, appraisedValue: number) {
+    public async CreateAsset(ctx: Context, id: string, color: string, size: number, owner: string, appraisedValue: number): Promise<void> {
         const asset = {
             ID: id,
             Color: color,
@@ -86,7 +87,7 @@ export class AssetTransfer extends Contract {
 
     // UpdateAsset updates an existing asset in the world state with provided parameters.
     @Transaction()
-    public async UpdateAsset(ctx: Context, id: string, color: string, size: number, owner: string, appraisedValue: number) {
+    public async UpdateAsset(ctx: Context, id: string, color: string, size: number, owner: string, appraisedValue: number): Promise<void> {
         const exists = await this.AssetExists(ctx, id);
         if (!exists) {
             throw new Error(`The asset ${id} does not exist`);
@@ -105,7 +106,7 @@ export class AssetTransfer extends Contract {
 
     // DeleteAsset deletes an given asset from the world state.
     @Transaction()
-    public async DeleteAsset(ctx: Context, id: string) {
+    public async DeleteAsset(ctx: Context, id: string): Promise<void> {
         const exists = await this.AssetExists(ctx, id);
         if (!exists) {
             throw new Error(`The asset ${id} does not exist`);
@@ -123,7 +124,7 @@ export class AssetTransfer extends Contract {
 
     // TransferAsset updates the owner field of asset with given id in the world state.
     @Transaction()
-    public async TransferAsset(ctx: Context, id: string, newOwner: string) {
+    public async TransferAsset(ctx: Context, id: string, newOwner: string): Promise<void> {
         const assetString = await this.ReadAsset(ctx, id);
         const asset = JSON.parse(assetString);
         asset.Owner = newOwner;
@@ -136,8 +137,10 @@ export class AssetTransfer extends Contract {
     public async GetAllAssets(ctx: Context): Promise<string> {
         const allResults = [];
         // range query with empty string for startKey and endKey does an open-ended query of all assets in the chaincode namespace.
-        for await (const {key, value} of ctx.stub.getStateByRange('', '')) {
-            const strValue = Buffer.from(value).toString('utf8');
+        const iterator = await ctx.stub.getStateByRange('', '');
+        let result = await iterator.next();
+        while (!result.done) {
+            const strValue = Buffer.from(result.value.value.toString()).toString('utf8');
             let record;
             try {
                 record = JSON.parse(strValue);
@@ -145,7 +148,8 @@ export class AssetTransfer extends Contract {
                 console.log(err);
                 record = strValue;
             }
-            allResults.push({Key: key, Record: record});
+            allResults.push({Key: result.value.key, Record: record});
+            result = await iterator.next();
         }
         return JSON.stringify(allResults);
     }

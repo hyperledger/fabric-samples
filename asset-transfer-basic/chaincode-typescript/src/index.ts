@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {AssetTransfer} from './assetTransfer';
+import {AssetTransferContract} from './assetTransfer';
 
-export {AssetTransfer} from './assetTransfer';
+export {AssetTransferContract} from './assetTransfer';
 
-export const contracts: any[] = [AssetTransfer];
+export const contracts: any[] = [AssetTransferContract];
