@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "experimentalDecorators": true,
         "outDir": "dist",
         "target": "es2017",
         "moduleResolution": "node",
