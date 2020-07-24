@@ -8,7 +8,7 @@ import {Asset} from './asset';
 export class AssetTransfer extends Contract {
 
     @Transaction()
-    public async initLedger(ctx: Context) {
+    public async InitLedger(ctx: Context) {
         const assets: Asset[] = [
             {
                 ID: 'asset1',
@@ -61,9 +61,9 @@ export class AssetTransfer extends Contract {
         }
     }
 
-    // createAsset issues a new asset to the world state with given details.
+    // CreateAsset issues a new asset to the world state with given details.
     @Transaction()
-    public async createAsset(ctx: Context, id: string, color: string, size: number, owner: string, appraisedValue: number) {
+    public async CreateAsset(ctx: Context, id: string, color: string, size: number, owner: string, appraisedValue: number) {
         const asset = {
             ID: id,
             Color: color,
@@ -74,9 +74,9 @@ export class AssetTransfer extends Contract {
         await ctx.stub.putState(id, Buffer.from(JSON.stringify(asset)));
     }
 
-    // readAsset returns the asset stored in the world state with given id.
+    // ReadAsset returns the asset stored in the world state with given id.
     @Transaction(false)
-    public async readAsset(ctx: Context, id: string): Promise<string> {
+    public async ReadAsset(ctx: Context, id: string): Promise<string> {
         const assetJSON = await ctx.stub.getState(id); // get the asset from chaincode state
         if (!assetJSON || assetJSON.length === 0) {
             throw new Error(`The asset ${id} does not exist`);
@@ -84,10 +84,10 @@ export class AssetTransfer extends Contract {
         return assetJSON.toString();
     }
 
-    // updateAsset updates an existing asset in the world state with provided parameters.
+    // UpdateAsset updates an existing asset in the world state with provided parameters.
     @Transaction()
-    public async updateAsset(ctx: Context, id: string, color: string, size: number, owner: string, appraisedValue: number) {
-        const exists = await this.assetExists(ctx, id);
+    public async UpdateAsset(ctx: Context, id: string, color: string, size: number, owner: string, appraisedValue: number) {
+        const exists = await this.AssetExists(ctx, id);
         if (!exists) {
             throw new Error(`The asset ${id} does not exist`);
         }
@@ -103,37 +103,37 @@ export class AssetTransfer extends Contract {
         return ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedAsset)));
     }
 
-    // deleteAsset deletes an given asset from the world state.
+    // DeleteAsset deletes an given asset from the world state.
     @Transaction()
-    public async deleteAsset(ctx: Context, id: string) {
-        const exists = await this.assetExists(ctx, id);
+    public async DeleteAsset(ctx: Context, id: string) {
+        const exists = await this.AssetExists(ctx, id);
         if (!exists) {
             throw new Error(`The asset ${id} does not exist`);
         }
         return ctx.stub.deleteState(id);
     }
 
-    // assetExists returns true when asset with given ID exists in world state.
+    // AssetExists returns true when asset with given ID exists in world state.
     @Transaction(false)
     @Returns('boolean')
-    public async assetExists(ctx: Context, id: string): Promise<boolean> {
+    public async AssetExists(ctx: Context, id: string): Promise<boolean> {
         const assetJSON = await ctx.stub.getState(id);
         return assetJSON && assetJSON.length > 0;
     }
 
-    // transferAsset updates the owner field of asset with given id in the world state.
+    // TransferAsset updates the owner field of asset with given id in the world state.
     @Transaction()
-    public async transferAsset(ctx: Context, id: string, newOwner: string) {
-        const assetString = await this.readAsset(ctx, id);
+    public async TransferAsset(ctx: Context, id: string, newOwner: string) {
+        const assetString = await this.ReadAsset(ctx, id);
         const asset = JSON.parse(assetString);
         asset.Owner = newOwner;
         await ctx.stub.putState(id, Buffer.from(JSON.stringify(asset)));
     }
 
-    // getAllAssets returns all assets found in the world state.
+    // GetAllAssets returns all assets found in the world state.
     @Transaction(false)
     @Returns('string')
-    public async getAllAssets(ctx: Context): Promise<string> {
+    public async GetAllAssets(ctx: Context): Promise<string> {
         const allResults = [];
         // range query with empty string for startKey and endKey does an open-ended query of all assets in the chaincode namespace.
         for await (const {key, value} of ctx.stub.getStateByRange('', '')) {
