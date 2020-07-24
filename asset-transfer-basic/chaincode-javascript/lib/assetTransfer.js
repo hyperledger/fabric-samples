@@ -57,8 +57,8 @@ class AssetTransfer extends Contract {
         ];
 
         for (const asset of assets) {
-            assets.docType = 'asset';
-            await ctx.stub.putState(assets.ID, Buffer.from(JSON.stringify(assets)));
+            asset.docType = 'asset';
+            await ctx.stub.putState(asset.ID, Buffer.from(JSON.stringify(asset)));
             console.info(`Asset ${asset.ID} initialized`);
         }
     }
@@ -129,8 +129,10 @@ class AssetTransfer extends Contract {
     async GetAllAssets(ctx) {
         const allResults = [];
         // range query with empty string for startKey and endKey does an open-ended query of all assets in the chaincode namespace.
-        for (const { key, value } of ctx.stub.getStateByRange('', '')) {
-            const strValue = Buffer.from(value).toString('utf8');
+        const iterator = await ctx.stub.getStateByRange('', '');
+        let result = await iterator.next();
+        while (!result.done) {
+            const strValue = Buffer.from(result.value.value.toString()).toString('utf8');
             let record;
             try {
                 record = JSON.parse(strValue);
@@ -138,7 +140,8 @@ class AssetTransfer extends Contract {
                 console.log(err);
                 record = strValue;
             }
-            allResults.push({ Key: key, Record: record });
+            allResults.push({ Key: result.value.key, Record: record });
+            result = await iterator.next();
         }
         return JSON.stringify(allResults);
     }
