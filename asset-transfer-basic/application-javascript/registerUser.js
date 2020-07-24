@@ -35,7 +35,7 @@ async function registerAppUser() {
         // Check to see if we've already enrolled the user.
         const userIdentity = await wallet.get(applicationUserId);
         if (userIdentity) {
-            console.log('An identity for the user '+applicationUserId+' already exists in the wallet');
+            console.log(`An identity for the user ${applicationUserId} already exists in the wallet`);
             return;
         }
 
@@ -71,7 +71,7 @@ async function registerAppUser() {
             type: 'X.509',
         };
         await wallet.put(applicationUserId, x509Identity);
-        console.log('Successfully registered and enrolled user '+applicationUserId +' and imported it into the wallet');
+        console.log(`Successfully registered and enrolled user ${applicationUserId} and imported it into the wallet`);
 
     } catch (error) {
         console.error(`Failed to register user : ${error}`);

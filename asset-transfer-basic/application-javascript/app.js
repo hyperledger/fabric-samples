@@ -6,17 +6,17 @@
 
 'use strict';
 
-const { Gateway, Wallets } = require('fabric-network');
+const {Gateway, Wallets} = require('fabric-network');
 const path = require('path');
 const fs = require('fs');
 const registerUser = require('./registerUser');
 const enrollAdmin = require('./enrollAdmin');
 
 const myChannel = 'mychannel';
-const myChaincodeName =  'basic';
+const myChaincodeName = 'basic';
 
 function prettyJSONString(inputString) {
-    return JSON.stringify(JSON.parse(inputString),null,2);
+    return JSON.stringify(JSON.parse(inputString), null, 2);
 }
 
 // pre-requisites:
@@ -41,22 +41,26 @@ async function main() {
         // Steps:
         // Note: Steps 1 & 2 need to done only once in an app-server per blockchain network
         // 1. register & enroll admin user with CA, stores admin identity in local wallet
-        enrollAdmin.EnrollAdminUser();
+        await enrollAdmin.EnrollAdminUser();
 
         // 2. register & enroll application user with CA, which is used as client identify to make chaincode calls, stores app user identity in local wallet
-        registerUser.RegisterAppUser();
+        await registerUser.RegisterAppUser();
 
         // Check to see if app user exist in wallet.
         const identity = await wallet.get(registerUser.ApplicationUserId);
         if (!identity) {
-            console.log('An identity for the user does not exist in the wallet: '+ registerUser.ApplicationUserId);
+            console.log(`An identity for the user does not exist in the wallet: ${registerUser.ApplicationUserId}`);
             return;
         }
 
         //3. Prepare to call chaincode using fabric javascript node sdk
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: registerUser.ApplicationUserId, discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, {
+            wallet,
+            identity: registerUser.ApplicationUserId,
+            discovery: {enabled: true, asLocalhost: true}
+        });
         try {
             // Get the network (channel) our contract is deployed to.
             const network = await gateway.getNetwork(myChannel);
@@ -72,40 +76,38 @@ async function main() {
 
             // GetAllAssets returns all the current assets on the ledger
             let result = await contract.evaluateTransaction('GetAllAssets');
-            console.log('Evaluate Transaction: GetAllAssets, result: ' + prettyJSONString(result.toString()) );
+            console.log(`Evaluate Transaction: GetAllAssets, result: ${prettyJSONString(result.toString())}`);
 
             console.log('\n***********************');
             console.log('Submit Transaction: CreateAsset asset13');
             //CreateAsset creates an asset with ID asset13, color yellow, owner Tom, size 5 and appraizedValue of 1300
-            await contract.submitTransaction('CreateAsset', 'asset13', 'yellow', 5, 'Tom', 1300);
+            await contract.submitTransaction('CreateAsset', 'asset13', 'yellow', '5', 'Tom', '1300');
 
             console.log('Evaluate Transaction: ReadAsset asset13');
             // ReadAsset returns an asset with given assetID
             result = await contract.evaluateTransaction('ReadAsset', 'asset13');
-            console.log('  result: ' + prettyJSONString(result.toString()) );
+            console.log(`  result: ${prettyJSONString(result.toString())}`);
 
             console.log('\n***********************');
             console.log('Evaluate Transaction: AssetExists asset1');
             // AssetExists returns 'true' if an asset with given assetID exist
             result = await contract.evaluateTransaction('AssetExists', 'asset1');
-            console.log('  result: ' + prettyJSONString(result.toString()) );
+            console.log(`  result: ${prettyJSONString(result.toString())}`);
 
             console.log('Submit Transaction: UpdateAsset asset1, new AppraisedValue : 350');
             // UpdateAsset updates an existing asset with new properties. Same args as CreateAsset
-            await contract.submitTransaction('UpdateAsset', 'asset1', 'blue', 5, 'Tomoko', 350);
+            await contract.submitTransaction('UpdateAsset', 'asset1', 'blue', '5', 'Tomoko', '350');
 
             console.log('Evaluate Transaction: ReadAsset asset1');
             result = await contract.evaluateTransaction('ReadAsset', 'asset1');
-            console.log('  result: ' + prettyJSONString(result.toString()) );
+            console.log(`  result: ${prettyJSONString(result.toString())}`);
 
             try {
                 console.log('\nSubmit Transaction: UpdateAsset asset70');
                 //Non existing asset asset70 should throw Error
-                await contract.submitTransaction('UpdateAsset', 'asset70', 'blue', 5, 'Tomoko', 300);
-            }
-            catch (error) {
-                let errMsg = 'Expected an error on UpdateAsset of non-existing Asset. ';
-                console.log(errMsg + error);
+                await contract.submitTransaction('UpdateAsset', 'asset70', 'blue', '5', 'Tomoko', '300');
+            } catch (error) {
+                console.log(`Expected an error on UpdateAsset of non-existing Asset: ${error}`);
             }
             console.log('\n***********************');
 
@@ -115,7 +117,7 @@ async function main() {
 
             console.log('Evaluate Transaction: ReadAsset asset1');
             result = await contract.evaluateTransaction('ReadAsset', 'asset1');
-            console.log('  result: ' + prettyJSONString(result.toString()) );
+            console.log(`  result: ${prettyJSONString(result.toString())}`);
 
         } finally {
             // Disconnect from the gateway peer when all work for this client identity is complete
