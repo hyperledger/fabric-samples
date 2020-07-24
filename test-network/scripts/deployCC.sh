@@ -40,11 +40,11 @@ if [ "$CC_SRC_PATH" = "NA" ]; then
 	if [ "$CC_NAME" = "basic" ]; then
 		echo $'\e[0;32m'asset-transfer-basic$'\e[0m' chaincode
 		CC_SRC_PATH="../asset-transfer-basic"
-	elif [ "$CC_NAME" = "secure" ]; then
+	elif [ "$CC_NAME" = "secured" ]; then
 		echo $'\e[0;32m'asset-transfer-secured-agreeement$'\e[0m' chaincode
 		CC_SRC_PATH="../asset-transfer-secured-agreement"
 	elif [ "$CC_NAME" = "ledger" ]; then
-		echo $'\e[0;32m'asset-transfer-secured-agreeement$'\e[0m' chaincode
+		echo $'\e[0;32m'asset-transfer-ledger-agreeement$'\e[0m' chaincode
 		CC_SRC_PATH="../asset-transfer-ledger-queries"
 	elif [ "$CC_NAME" = "private" ]; then
 		echo $'\e[0;32m'asset-transfer-private-data$'\e[0m' chaincode
