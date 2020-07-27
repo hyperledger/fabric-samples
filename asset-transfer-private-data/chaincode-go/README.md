@@ -16,13 +16,6 @@ These three collections are used to transfer the asset between Org1 and Org2. In
 
 The private data asset transfer enabled by this smart contract is meant to demonstrate the use private data collections. For an example of a more realistic transfer scenario, see the [secure asset transfer smart contract](../../asset-transfer-secured-agreement/chaincode-go).
 
-## Download the smart contract dependencies
-
-Before you install the smart contract on the network, you should download the smart contract dependencies. Run the following command from the `fabric-samples/asset-transfer-private-data/chaincode-go` directory.
-```
-GO111MODULE=on go mod vendor
-```
-
 ## Deploy the smart contract to the test network
 
 You can run the private data transfer scenario using the Fabric test network. Open a command terminal and navigate to test network directory in your local clone of the `fabric-samples`. We will operate from the `test-network` directory for the remainder of the tutorial.
@@ -49,7 +42,7 @@ Note that we are using the `-ccep` flag to deploy the private data smart contrac
 
 ## Register identities
 
-The private data transfer smart contract supports ownership by individual identities that belong to the network. In our scenario, the owner of the asset will be a member of Org1, while the buyer will belong to Org2. To highlight the connection between the `GetClientIdentity().GetID()` API and the information within a users certificate, we will register new two new identities using the Org1 and Org2 CA, and then use the CA's to generate each identities certificate and private key.
+The private data transfer smart contract supports ownership by individual identities that belong to the network. In our scenario, the owner of the asset will be a member of Org1, while the buyer will belong to Org2. To highlight the connection between the `GetClientIdentity().GetID()` API and the information within a user's certificate, we will register two new identities using the Org1 and Org2 Certificate Authorities (CA's), and then use the CA's to generate each identity's certificate and private key.
 
 First, we need to set the following environment variables to use the the Fabric CA client:
 ```
@@ -114,7 +107,7 @@ Run the following command to define the asset properties:
 export ASSET_PROPERTIES=$(echo -n "{\"objectType\":\"asset\",\"assetID\":\"asset1\",\"color\":\"green\",\"size\":20,\"appraisedValue\":100}" | base64 | tr -d \\n)
 ```
 
-We can the invoke the smart contract to create the new asset:
+We can then invoke the smart contract to create the new asset:
 ```
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n private -c '{"function":"CreateAsset","Args":[]}' --transient "{\"asset_properties\":\"$ASSET_PROPERTIES\"}"
 ```
@@ -167,7 +160,7 @@ Now that we are operating as a member of Org2, we can demonstrate that the asset
 ```
 peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n private -c '{"function":"ReadAssetPrivateDetails","Args":["Org2MSPPrivateCollection","asset1"]}'
 ```
-The buyer only finds that asset1 does exist in his collection:
+The buyer only finds that asset1 does exist in the Org1 collection:
 ```
 Error: endorsement failure during invoke. response: status:500 message:"appraisal value for asset1 does not exist in private data collection"
 ```
@@ -176,7 +169,7 @@ Nor is a member of Org2 able to read the Org1 private data collection:
 ```
 peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n private -c '{"function":"ReadAssetPrivateDetails","Args":["Org1MSPPrivateCollection","asset1"]}'
 ```
-By setting `"memberOnlyRead": true` in the collection configuration file, we specify that only members of of Org1 can read data from the collection. A member who tries to read the collection would only get the following response.
+By setting `"memberOnlyRead": true` in the collection configuration file, we specify that only members of Org1 can read data from the collection. A member who tries to read the collection would only get the following response.
 ```
 Error: endorsement failure during query. response: status:500 message:"failed to read from asset details GET_STATE failed: transaction ID: 10d39a7d0b340455a19ca4198146702d68d884d41a0e60936f1599c1ddb9c99d: tx creator does not have read access permission on privatedata in chaincodeName:private collectionName: Org1MSPPrivateCollection"
 ```
