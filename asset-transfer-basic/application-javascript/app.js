@@ -80,7 +80,7 @@ async function main() {
 
             console.log('\n***********************');
             console.log('Submit Transaction: CreateAsset asset13');
-            //CreateAsset creates an asset with ID asset13, color yellow, owner Tom, size 5 and appraizedValue of 1300
+            //CreateAsset creates an asset with ID asset13, color yellow, owner Tom, size 5 and appraisedValue of 1300
             await contract.submitTransaction('CreateAsset', 'asset13', 'yellow', '5', 'Tom', '1300');
 
             console.log('Evaluate Transaction: ReadAsset asset13');
