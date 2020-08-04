@@ -1,0 +1,65 @@
+{
+  "name": "asset-transfer-sbe",
+  "version": "0.0.1",
+  "description": "Asset Transfer contract, using State Based Endorsement(SBE), implemented in TypeScript",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "engines": {
+    "node": ">=8",
+    "npm": ">=5"
+  },
+  "scripts": {
+    "lint": "tslint -c tslint.json 'src/**/*.ts'",
+    "pretest": "npm run lint",
+    "test": "nyc mocha -r ts-node/register src/**/*.spec.ts",
+    "start": "fabric-chaincode-node start",
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "prepublishOnly": "npm run build"
+  },
+  "engineStrict": true,
+  "author": "Hyperledger",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "fabric-contract-api": "^2.0.0",
+    "fabric-shim": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/chai-as-promised": "^7.1.2",
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^13.9.3",
+    "@types/sinon": "^7.5.2",
+    "@types/sinon-chai": "^3.2.3",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^7.1.1",
+    "nyc": "^15.0.0",
+    "sinon": "^9.0.1",
+    "sinon-chai": "^3.5.0",
+    "ts-node": "^8.8.1",
+    "tslint": "^6.1.0",
+    "typescript": "^3.8.3",
+    "winston": "^3.2.1"
+  },
+  "nyc": {
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "exclude": [
+      "coverage/**",
+      "dist/**"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ],
+    "all": true,
+    "check-coverage": true,
+    "statements": 100,
+    "branches": 100,
+    "functions": 100,
+    "lines": 100
+  }
+}
