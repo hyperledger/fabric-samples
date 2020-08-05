@@ -82,13 +82,13 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, i
 		return nil, fmt.Errorf("the asset %s does not exist", id)
 	}
 
-	var asset *Asset
+	var asset Asset
 	err = json.Unmarshal(assetJSON, &asset)
 	if err != nil {
 		return nil, err
 	}
 
-	return asset, nil
+	return &asset, nil
 }
 
 // UpdateAsset updates an existing asset in the world state with provided parameters.
@@ -173,12 +173,12 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 			return nil, err
 		}
 
-		var asset *Asset
+		var asset Asset
 		err = json.Unmarshal(queryResponse.Value, &asset)
 		if err != nil {
 			return nil, err
 		}
-		assets = append(assets, asset)
+		assets = append(assets, &asset)
 	}
 
 	return assets, nil
