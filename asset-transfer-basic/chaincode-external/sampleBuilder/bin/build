@@ -1,6 +1,5 @@
-#!/bin/bash
+#!/bin/sh
 
-echo "!! DL build script invoked"
 set -euo pipefail
 
 SOURCE=$1

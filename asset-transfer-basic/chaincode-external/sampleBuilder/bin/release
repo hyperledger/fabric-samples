@@ -1,6 +1,5 @@
-#!/bin/bash
+#!/bin/sh
 
-echo "!! DL release script invoked"
 set -euo pipefail
 
 BLD="$1"
