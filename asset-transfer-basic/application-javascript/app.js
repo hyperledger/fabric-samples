@@ -7,127 +7,149 @@
 'use strict';
 
 const {Gateway, Wallets} = require('fabric-network');
+const FabricCAServices = require('fabric-ca-client');
 const path = require('path');
-const fs = require('fs');
-const registerUser = require('./registerUser');
-const enrollAdmin = require('./enrollAdmin');
+const {buildCAClient, registerUser, enrollAdmin} = require('../../test-application/javascript/CAUtil.js');
+const {buildCCP, buildWallet} = require('../../test-application/javascript/AppUtil.js');
 
-const myChannel = 'mychannel';
-const myChaincodeName = 'basic';
+const channelName = 'mychannel';
+const chaincodeName = 'basic';
+const walletPath = path.join(__dirname, 'wallet');
+const userId = 'appUser';
 
 function prettyJSONString(inputString) {
-    return JSON.stringify(JSON.parse(inputString), null, 2);
+	return JSON.stringify(JSON.parse(inputString), null, 2);
 }
 
 // pre-requisites:
-// fabric-sample test-network setup with two peers and an ordering service,
-// the companion chaincode is deployed, approved and committed on the channel mychannel
+// - fabric-sample two organization test-network setup with two peers, ordering service, and 2 certificate authorities
+//         ===> from directory /fabric-samples/test-network
+//         network.sh run createChannel -ca
+// - any of the asset-transfer-basic chaincodes deployed on the channel "mychannel" with the chaincodeName of "basic"
+//   This deploy command will package, install, approve, and commit the javascript chaincode, all the actions it takes
+//   to deploy a chaincode to a channel.
+//         ===> from directory /fabric-samples/test-network
+//         network.sh deployCC -ccn basic -ccl javascript
+// - node install
+// - npm installed code dependencies
+//         ===> from directory /fabric-samples/asset-transfer-basic/application-javascript
+//         npm install
+// - to run this test application
+//         ===> from directory /fabric-samples/asset-transfer-basic/application-javascript
+//         node app.js
+//               # this may be run again again
+
+/**
+ *  A test application to show basic operations with any of the asset-transfer-basic chaincodes
+ *   -- How to submit a transaction
+ *   -- How to query and check the results
+ *
+ * To see the SDK workings, try setting the logging to show on the console before running
+ *        export HFC_LOGGING='{"debug":"console"}'
+ */
 async function main() {
-    try {
-        // load the network configuration
-        const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
-        const fileExists = fs.existsSync(ccpPath);
-        if (!fileExists) {
-            throw new Error(`no such file or directory: ${ccpPath}`);
-        }
-        const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+	try {
+		// build an in memory object with the network configuration (also known as a connection profile)
+		const ccp = buildCCP();
 
-        // Create a new file system based wallet for managing identities.
-        const walletPath = path.join(__dirname, 'wallet');
-        const wallet = await Wallets.newFileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
+		// build an instance of the fabric ca services client based on
+		// the information in the network configuration
+		const caClient = buildCAClient(FabricCAServices, ccp);
 
+		// setup the wallet to hold the credentials of the application user
+		const wallet = await buildWallet(Wallets, walletPath);
 
-        // Steps:
-        // Note: Steps 1 & 2 need to done only once in an app-server per blockchain network
-        // 1. register & enroll admin user with CA, stores admin identity in local wallet
-        await enrollAdmin.EnrollAdminUser();
+		// in a real application this would be done on an administrative flow, and only once
+		await enrollAdmin(caClient, wallet);
 
-        // 2. register & enroll application user with CA, which is used as client identify to make chaincode calls, stores app user identity in local wallet
-        await registerUser.RegisterAppUser();
+		// in a real application this would be done only when a new user was required to be added
+		// and would be part of an administrative flow
+		await registerUser(caClient, wallet, userId, 'org1.department1');
 
-        // Check to see if app user exist in wallet.
-        const identity = await wallet.get(registerUser.ApplicationUserId);
-        if (!identity) {
-            console.log(`An identity for the user does not exist in the wallet: ${registerUser.ApplicationUserId}`);
-            return;
-        }
+		// Create a new gateway instance for interacting with the fabric network.
+		// In a real application this would be done as the backend server session is setup for
+		// a user that has been verified.
+		const gateway = new Gateway();
 
-        //3. Prepare to call chaincode using fabric javascript node sdk
-        // Create a new gateway for connecting to our peer node.
-        const gateway = new Gateway();
-        await gateway.connect(ccp, {
-            wallet,
-            identity: registerUser.ApplicationUserId,
-            discovery: {enabled: true, asLocalhost: true}
-        });
-        try {
-            // Get the network (channel) our contract is deployed to.
-            const network = await gateway.getNetwork(myChannel);
+		try {
+			// setup the gateway instance
+			// The user will now be able to create connections to the fabric network and be able to
+			// submit transactions and query. All transactions submitted by this gateway will be
+			// signed by this user using the credentials stored in the wallet.
+			await gateway.connect(ccp, {
+				wallet,
+				identity: userId,
+				discovery: {enabled: true, asLocalhost: true} // using asLocalhost as this gateway is using a fabric network deployed locally
+			});
 
-            // Get the contract from the network.
-            const contract = network.getContract(myChaincodeName);
+			// Build a network instance based on the channel where the smart contract is deployed
+			const network = await gateway.getNetwork(channelName);
 
-            //4. Init a set of asset data on the channel using chaincode 'InitLedger'
-            console.log('Submit Transaction: InitLedger creates the initial set of assets on the ledger.');
-            await contract.submitTransaction('InitLedger');
+			// Get the contract from the network.
+			const contract = network.getContract(chaincodeName);
 
-            //5. *** Some example transactions are listed below ***
+			// Initialize a set of asset data on the channel using the chaincode 'InitLedger' function.
+			// This type of transaction would only be run once by an application the first time it was started after it
+			// deployed the first time. Any updates to the chaincode deployed later would likely not need to run
+			// an "init" type function.
+			console.log('\n--> Submit Transaction: InitLedger, function creates the initial set of assets on the ledger');
+			await contract.submitTransaction('InitLedger');
+			console.log('*** Result: committed');
 
-            // GetAllAssets returns all the current assets on the ledger
-            let result = await contract.evaluateTransaction('GetAllAssets');
-            console.log(`Evaluate Transaction: GetAllAssets, result: ${prettyJSONString(result.toString())}`);
+			// Let's try a query type operation (function).
+			// This will be sent to just one peer and the results will be shown.
+			console.log('\n--> Evaluate Transaction: GetAllAssets, function returns all the current assets on the ledger');
+			let result = await contract.evaluateTransaction('GetAllAssets');
+			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
-            console.log('\n***********************');
-            console.log('Submit Transaction: CreateAsset asset13');
-            //CreateAsset creates an asset with ID asset13, color yellow, owner Tom, size 5 and appraisedValue of 1300
-            await contract.submitTransaction('CreateAsset', 'asset13', 'yellow', '5', 'Tom', '1300');
+			// Now let's try to submit a transaction.
+			// This will be sent to both peers and if both peers endorse the transaction, the endorsed proposal will be sent
+			// to the orderer to be committed by each of the peer's to the channel ledger.
+			console.log('\n--> Submit Transaction: CreateAsset, creates new asset with ID, color, owner, size, and appraisedValue arguments');
+			await contract.submitTransaction('CreateAsset', 'asset13', 'yellow', '5', 'Tom', '1300');
+			console.log('*** Result: committed');
 
-            console.log('Evaluate Transaction: ReadAsset asset13');
-            // ReadAsset returns an asset with given assetID
-            result = await contract.evaluateTransaction('ReadAsset', 'asset13');
-            console.log(`  result: ${prettyJSONString(result.toString())}`);
+			console.log('\n--> Evaluate Transaction: ReadAsset, function returns an asset with a given assetID');
+			result = await contract.evaluateTransaction('ReadAsset', 'asset13');
+			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
-            console.log('\n***********************');
-            console.log('Evaluate Transaction: AssetExists asset1');
-            // AssetExists returns 'true' if an asset with given assetID exist
-            result = await contract.evaluateTransaction('AssetExists', 'asset1');
-            console.log(`  result: ${prettyJSONString(result.toString())}`);
+			console.log('\n--> Evaluate Transaction: AssetExists, function returns "true" if an asset with given assetID exist');
+			result = await contract.evaluateTransaction('AssetExists', 'asset1');
+			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
-            console.log('Submit Transaction: UpdateAsset asset1, new AppraisedValue : 350');
-            // UpdateAsset updates an existing asset with new properties. Same args as CreateAsset
-            await contract.submitTransaction('UpdateAsset', 'asset1', 'blue', '5', 'Tomoko', '350');
+			console.log('\n--> Submit Transaction: UpdateAsset asset1, change the appraisedValue to 350');
+			await contract.submitTransaction('UpdateAsset', 'asset1', 'blue', '5', 'Tomoko', '350');
+			console.log('*** Result: committed');
 
-            console.log('Evaluate Transaction: ReadAsset asset1');
-            result = await contract.evaluateTransaction('ReadAsset', 'asset1');
-            console.log(`  result: ${prettyJSONString(result.toString())}`);
+			console.log('\n--> Evaluate Transaction: ReadAsset, function returns "asset1" attributes');
+			result = await contract.evaluateTransaction('ReadAsset', 'asset1');
+			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
-            try {
-                console.log('\nSubmit Transaction: UpdateAsset asset70');
-                //Non existing asset asset70 should throw Error
-                await contract.submitTransaction('UpdateAsset', 'asset70', 'blue', '5', 'Tomoko', '300');
-            } catch (error) {
-                console.log(`Expected an error on UpdateAsset of non-existing Asset: ${error}`);
-            }
-            console.log('\n***********************');
+			try {
+				// How about we try a transactions where the executing chaincode throws an error
+				// Notice how the submitTransaction will throw an error containing the error thrown by the chaincode
+				console.log('\n--> Submit Transaction: UpdateAsset asset70, asset70 does not exist and should return an error');
+				await contract.submitTransaction('UpdateAsset', 'asset70', 'blue', '5', 'Tomoko', '300');
+				console.log('******** FAILED to return an error');
+			} catch (error) {
+				console.log(`*** Successfully caught the error: \n    ${error}`);
+			}
 
-            console.log('Submit Transaction: TransferAsset asset1 from owner Tomoko > owner Tom');
-            // TransferAsset transfers an asset with given ID to new owner Tom
-            await contract.submitTransaction('TransferAsset', 'asset1', 'Tom');
+			console.log('\n--> Submit Transaction: TransferAsset asset1, transfer to new owner of Tom');
+			await contract.submitTransaction('TransferAsset', 'asset1', 'Tom');
+			console.log('*** Result: committed');
 
-            console.log('Evaluate Transaction: ReadAsset asset1');
-            result = await contract.evaluateTransaction('ReadAsset', 'asset1');
-            console.log(`  result: ${prettyJSONString(result.toString())}`);
-
-        } finally {
-            // Disconnect from the gateway peer when all work for this client identity is complete
-            gateway.disconnect();
-        }
-    } catch (error) {
-        console.error(`Failed to evaluate transaction: ${error}`);
-        process.exit(1);
-    }
+			console.log('\n--> Evaluate Transaction: ReadAsset, function returns "asset1" attributes');
+			result = await contract.evaluateTransaction('ReadAsset', 'asset1');
+			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
+		} finally {
+			// Disconnect from the gateway when the application is closing
+			// This will close all connections to the network
+			gateway.disconnect();
+		}
+	} catch (error) {
+		console.error(`******** FAILED to run the application: ${error}`);
+	}
 }
-
 
 main();
