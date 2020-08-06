@@ -169,7 +169,7 @@ func TestGetAllAssets(t *testing.T) {
 	assetTransfer := &chaincode.SmartContract{}
 	assets, err := assetTransfer.GetAllAssets(transactionContext)
 	require.NoError(t, err)
-	require.Equal(t, []chaincode.QueryResult{{Record: asset}}, assets)
+	require.Equal(t, []*chaincode.Asset{asset}, assets)
 
 	iterator.HasNextReturns(true)
 	iterator.NextReturns(nil, fmt.Errorf("failed retrieving next item"))

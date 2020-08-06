@@ -1,0 +1,19 @@
+{
+	"name": "asset-transfer-ledger-queries",
+	"version": "1.0.0",
+	"description": "asset chaincode implemented in node.js",
+	"main": "index.js",
+	"engines": {
+		"node": ">=12",
+		"npm": ">=5.3.0"
+	},
+	"scripts": {
+		"start": "fabric-chaincode-node start"
+	},
+	"engine-strict": true,
+	"license": "Apache-2.0",
+	"dependencies": {
+		"fabric-contract-api": "^2.0.0",
+		"fabric-shim": "^2.0.0"
+	}
+}

@@ -20,40 +20,51 @@ export VERBOSE=false
 function printHelp() {
   echo "Usage: "
   echo "  network.sh <Mode> [Flags]"
-  echo "    <Mode>"
-  echo "      - 'up' - bring up fabric orderer and peer nodes. No channel is created"
-  echo "      - 'up createChannel' - bring up fabric network with one channel"
-  echo "      - 'createChannel' - create and join a channel after the network is created"
-  echo "      - 'deployCC' - deploy the fabcar chaincode on the channel"
-  echo "      - 'down' - clear the network with docker-compose down"
-  echo "      - 'restart' - restart the network"
+  echo "    Modes:"
+  echo "      "$'\e[0;32m'up$'\e[0m' - bring up fabric orderer and peer nodes. No channel is created
+  echo "      "$'\e[0;32m'up createChannel$'\e[0m' - bring up fabric network with one channel
+  echo "      "$'\e[0;32m'createChannel$'\e[0m' - create and join a channel after the network is created
+  echo "      "$'\e[0;32m'deployCC$'\e[0m' - deploy the asset transfer basic chaincode on the channel or specify
+  echo "      "$'\e[0;32m'down$'\e[0m' - clear the network with docker-compose down
+  echo "      "$'\e[0;32m'restart$'\e[0m' - restart the network
   echo
   echo "    Flags:"
+  echo "    Used with "$'\e[0;32m'network.sh up$'\e[0m', $'\e[0;32m'network.sh createChannel$'\e[0m':
   echo "    -ca <use CAs> -  create Certificate Authorities to generate the crypto material"
   echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
   echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
   echo "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
   echo "    -d <delay> - delay duration in seconds (defaults to 3)"
-  echo "    -l <language> - the programming language of the chaincode to deploy: go (default), java, javascript, typescript"
-  echo "    -v <version>  - chaincode version. Must be a round number, 1, 2, 3, etc"
   echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
   echo "    -cai <ca_imagetag> - the image tag to be used for CA (defaults to \"${CA_IMAGETAG}\")"
   echo "    -verbose - verbose mode"
-  echo "  network.sh -h (print this message)"
+  echo "    Used with "$'\e[0;32m'network.sh deployCC$'\e[0m'
+  echo "    -c <channel name> - deploy chaincode to channel"
+  echo "    -ccn <name> - the short name of the chaincode to deploy: basic (default),ledger, private, secured"
+  echo "    -ccl <language> - the programming language of the chaincode to deploy: go (default), java, javascript, typescript"
+  echo "    -ccv <version>  - chaincode version. 1.0 (default)"
+  echo "    -ccs <sequence>  - chaincode definition sequence. Must be an integer, 1 (default), 2, 3, etc"
+  echo "    -ccp <path>  - Optional, path to the chaincode. When provided the -ccn will be used as the deployed name and not the short name of the known chaincodes."
+  echo "    -ccep <policy>  - Optional, chaincode endorsement policy, using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
+  echo "    -cccg <collection-config>  - Optional, path to a private data collections configuration file"
+  echo "    -cci <fcn name>  - Optional, chaincode init required function to invoke. When provided this function will be invoked after deployment of the chaincode and will define the chaincode as initialization required."
   echo
-  echo " Possible Mode and flags"
-  echo "  network.sh up -ca -c -r -d -s -i -verbose"
-  echo "  network.sh up createChannel -ca -c -r -d -s -i -verbose"
-  echo "  network.sh createChannel -c -r -d -verbose"
-  echo "  network.sh deployCC -l -v -r -d -verbose"
+  echo "    -h - print this message"
+  echo
+  echo " Possible Mode and flag combinations"
+  echo "   "$'\e[0;32m'up$'\e[0m' -ca -c -r -d -s -i -verbose
+  echo "   "$'\e[0;32m'up createChannel$'\e[0m' -ca -c -r -d -s -i -verbose
+  echo "   "$'\e[0;32m'createChannel$'\e[0m' -c -r -d -verbose
+  echo "   "$'\e[0;32m'deployCC$'\e[0m' -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose
   echo
   echo " Taking all defaults:"
-  echo "	network.sh up"
+  echo "   network.sh up"
   echo
   echo " Examples:"
-  echo "  network.sh up createChannel -ca -c mychannel -s couchdb -i 2.0.0"
-  echo "  network.sh createChannel -c channelName"
-  echo "  network.sh deployCC -l javascript"
+  echo "   network.sh up createChannel -ca -c mychannel -s couchdb -i 2.0.0"
+  echo "   network.sh createChannel -c channelName"
+  echo "   network.sh deployCC -ccn basic -ccl javascript"
+  echo "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
 }
 
 # Obtain CONTAINER_IDS and remove them
@@ -81,7 +92,7 @@ function removeUnwantedImages() {
 }
 
 # Versions of fabric known not to work with the test network
-BLACKLISTED_VERSIONS="^1\.0\. ^1\.1\. ^1\.2\. ^1\.3\. ^1\.4\."
+NONWORKING_VERSIONS="^1\.0\. ^1\.1\. ^1\.2\. ^1\.3\. ^1\.4\."
 
 # Do some basic sanity checking to make sure that the appropriate versions of fabric
 # binaries/images are available. In the future, additional checking for the presence
@@ -112,7 +123,7 @@ function checkPrereqs() {
     echo "==============================================="
   fi
 
-  for UNSUPPORTED_VERSION in $BLACKLISTED_VERSIONS; do
+  for UNSUPPORTED_VERSION in $NONWORKING_VERSIONS; do
     echo "$LOCAL_VERSION" | grep -q $UNSUPPORTED_VERSION
     if [ $? -eq 0 ]; then
       echo "ERROR! Local Fabric binary version of $LOCAL_VERSION does not match the versions supported by the test network."
@@ -205,7 +216,7 @@ function createOrgs() {
     res=$?
     set +x
     if [ $res -ne 0 ]; then
-      echo "Failed to generate certificates..."
+      echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
       exit 1
     fi
 
@@ -218,7 +229,7 @@ function createOrgs() {
     res=$?
     set +x
     if [ $res -ne 0 ]; then
-      echo "Failed to generate certificates..."
+      echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
       exit 1
     fi
 
@@ -231,7 +242,7 @@ function createOrgs() {
     res=$?
     set +x
     if [ $res -ne 0 ]; then
-      echo "Failed to generate certificates..."
+      echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
       exit 1
     fi
 
@@ -320,7 +331,7 @@ function createConsortium() {
   res=$?
   set +x
   if [ $res -ne 0 ]; then
-    echo "Failed to generate orderer genesis block..."
+    echo $'\e[1;32m'"Failed to generate orderer genesis block..."$'\e[0m'
     exit 1
   fi
 }
@@ -378,10 +389,11 @@ function createChannel() {
 
 }
 
+
 ## Call the script to isntall and instantiate a chaincode on the channel
 function deployCC() {
 
-  scripts/deployCC.sh $CHANNEL_NAME $CC_SRC_LANGUAGE $VERSION $CLI_DELAY $MAX_RETRY $VERBOSE
+  scripts/deployCC.sh $CHANNEL_NAME $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION $CC_SEQUENCE $CC_INIT_FCN $CC_END_POLICY $CC_COLL_CONFIG $CLI_DELAY $MAX_RETRY $VERBOSE
 
   if [ $? -ne 0 ]; then
     echo "ERROR !!! Deploying chaincode failed"
@@ -405,16 +417,14 @@ function networkDown() {
     #Cleanup images
     removeUnwantedImages
     # remove orderer block and other channel configuration transactions and certs
-    rm -rf system-genesis-block/*.block organizations/peerOrganizations organizations/ordererOrganizations
+    docker run --rm -v $(pwd):/data busybox sh -c 'cd /data && rm -rf system-genesis-block/*.block organizations/peerOrganizations organizations/ordererOrganizations'
     ## remove fabric ca artifacts
-    rm -rf organizations/fabric-ca/org1/msp organizations/fabric-ca/org1/tls-cert.pem organizations/fabric-ca/org1/ca-cert.pem organizations/fabric-ca/org1/IssuerPublicKey organizations/fabric-ca/org1/IssuerRevocationPublicKey organizations/fabric-ca/org1/fabric-ca-server.db
-    rm -rf organizations/fabric-ca/org2/msp organizations/fabric-ca/org2/tls-cert.pem organizations/fabric-ca/org2/ca-cert.pem organizations/fabric-ca/org2/IssuerPublicKey organizations/fabric-ca/org2/IssuerRevocationPublicKey organizations/fabric-ca/org2/fabric-ca-server.db
-    rm -rf organizations/fabric-ca/ordererOrg/msp organizations/fabric-ca/ordererOrg/tls-cert.pem organizations/fabric-ca/ordererOrg/ca-cert.pem organizations/fabric-ca/ordererOrg/IssuerPublicKey organizations/fabric-ca/ordererOrg/IssuerRevocationPublicKey organizations/fabric-ca/ordererOrg/fabric-ca-server.db
-    rm -rf addOrg3/fabric-ca/org3/msp addOrg3/fabric-ca/org3/tls-cert.pem addOrg3/fabric-ca/org3/ca-cert.pem addOrg3/fabric-ca/org3/IssuerPublicKey addOrg3/fabric-ca/org3/IssuerRevocationPublicKey addOrg3/fabric-ca/org3/fabric-ca-server.db
-
-
+    docker run --rm -v $(pwd):/data busybox sh -c 'cd /data && rm -rf organizations/fabric-ca/org1/msp organizations/fabric-ca/org1/tls-cert.pem organizations/fabric-ca/org1/ca-cert.pem organizations/fabric-ca/org1/IssuerPublicKey organizations/fabric-ca/org1/IssuerRevocationPublicKey organizations/fabric-ca/org1/fabric-ca-server.db'
+    docker run --rm -v $(pwd):/data busybox sh -c 'cd /data && rm -rf organizations/fabric-ca/org2/msp organizations/fabric-ca/org2/tls-cert.pem organizations/fabric-ca/org2/ca-cert.pem organizations/fabric-ca/org2/IssuerPublicKey organizations/fabric-ca/org2/IssuerRevocationPublicKey organizations/fabric-ca/org2/fabric-ca-server.db'
+    docker run --rm -v $(pwd):/data busybox sh -c 'cd /data && rm -rf organizations/fabric-ca/ordererOrg/msp organizations/fabric-ca/ordererOrg/tls-cert.pem organizations/fabric-ca/ordererOrg/ca-cert.pem organizations/fabric-ca/ordererOrg/IssuerPublicKey organizations/fabric-ca/ordererOrg/IssuerRevocationPublicKey organizations/fabric-ca/ordererOrg/fabric-ca-server.db'
+    docker run --rm -v $(pwd):/data busybox sh -c 'cd /data && rm -rf addOrg3/fabric-ca/org3/msp addOrg3/fabric-ca/org3/tls-cert.pem addOrg3/fabric-ca/org3/ca-cert.pem addOrg3/fabric-ca/org3/IssuerPublicKey addOrg3/fabric-ca/org3/IssuerRevocationPublicKey addOrg3/fabric-ca/org3/fabric-ca-server.db'
     # remove channel and script artifacts
-    rm -rf channel-artifacts log.txt fabcar.tar.gz fabcar
+    docker run --rm -v $(pwd):/data busybox sh -c 'cd /data && rm -rf channel-artifacts log.txt fabcar.tar.gz fabcar'
 
   fi
 }
@@ -431,6 +441,16 @@ MAX_RETRY=5
 CLI_DELAY=3
 # channel name defaults to "mychannel"
 CHANNEL_NAME="mychannel"
+# chaincode name defaults to "basic"
+CC_NAME="basic"
+# chaincode path defaults to "NA"
+CC_SRC_PATH="NA"
+# endorsement policy defaults to "NA". This would allow chaincodes to use the majority default policy.
+CC_END_POLICY="NA"
+# collection configuration defaults to "NA"
+CC_COLL_CONFIG="NA"
+# chaincode init function defaults to "NA"
+CC_INIT_FCN="NA"
 # use this as the default docker-compose yaml definition
 COMPOSE_FILE_BASE=docker/docker-compose-test-net.yaml
 # docker-compose.yaml file if you are using couchdb
@@ -442,10 +462,12 @@ COMPOSE_FILE_COUCH_ORG3=addOrg3/docker/docker-compose-couch-org3.yaml
 # use this as the default docker-compose yaml definition for org3
 COMPOSE_FILE_ORG3=addOrg3/docker/docker-compose-org3.yaml
 #
-# use golang as the default language for chaincode
-CC_SRC_LANGUAGE=golang
+# use go as the default language for chaincode
+CC_SRC_LANGUAGE="go"
 # Chaincode version
-VERSION=1
+CC_VERSION="1.0"
+# Chaincode definition sequence
+CC_SEQUENCE=1
 # default image tag
 IMAGETAG="latest"
 # default ca image tag
@@ -501,12 +523,36 @@ while [[ $# -ge 1 ]] ; do
     DATABASE="$2"
     shift
     ;;
-  -l )
+  -ccl )
     CC_SRC_LANGUAGE="$2"
     shift
     ;;
-  -v )
-    VERSION="$2"
+  -ccn )
+    CC_NAME="$2"
+    shift
+    ;;
+  -ccv )
+    CC_VERSION="$2"
+    shift
+    ;;
+  -ccs )
+    CC_SEQUENCE="$2"
+    shift
+    ;;
+  -ccp )
+    CC_SRC_PATH="$2"
+    shift
+    ;;
+  -ccep )
+    CC_END_POLICY="$2"
+    shift
+    ;;
+  -cccg )
+    CC_COLL_CONFIG="$2"
+    shift
+    ;;
+  -cci )
+    CC_INIT_FCN="$2"
     shift
     ;;
   -i )

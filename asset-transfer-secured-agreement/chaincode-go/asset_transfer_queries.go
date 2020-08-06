@@ -38,7 +38,7 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, a
 	}
 
 	var asset *Asset
-	err = json.Unmarshal(assetJSON, asset)
+	err = json.Unmarshal(assetJSON, &asset)
 	if err != nil {
 		return nil, err
 	}
