@@ -99,11 +99,15 @@ jobs:
         Ledger-Chaincode-Go:
           DIRECTORY: asset-transfer-ledger-queries
           LANGUAGE: go
-          TYPE: chaincode
-        Private-Chaincode-Go:
+          TYPE: chaincode                                
+        PrivateData-Chaincode-Go:
           DIRECTORY: asset-transfer-private-data
           LANGUAGE: go
           TYPE: chaincode
+        PrivateData-Application-Javascript:
+          DIRECTORY: asset-transfer-private-data
+          LANGUAGE: javascript
+          TYPE: application          
         Secured-Chaincode-Go:
           DIRECTORY: asset-transfer-secured-agreement
           LANGUAGE: go
