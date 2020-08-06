@@ -1,0 +1,13 @@
+#!/bin/bash
+
+echo "!! DL detect script invoked"
+
+set -euo pipefail
+
+METADIR=$2
+#check if the "type" field is set to "external"
+if [ "$(jq -r .type "$METADIR/metadata.json")" == "external" ]; then
+    exit 0
+fi
+
+exit 1
