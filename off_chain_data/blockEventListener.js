@@ -16,7 +16,7 @@ Configuration is stored in config.json:
    "peer_name": "peer0.org1.example.com",
    "channelid": "mychannel",
    "use_couchdb":false,
-   "couchdb_address": "http://localhost:5990"
+   "couchdb_address": "http://admin:adminpw@localhost:5990"
 }
 
 peer_name:  target peer for the listener
@@ -117,14 +117,12 @@ async function main() {
         const network = await gateway.getNetwork('mychannel');
 
         const listener = await network.addBlockListener(
-            async (err, blockNum, block) => {
-                if (err) {
-                    console.error(err);
-                    return;
-                }
+            async (event) => {
                 // Add the block to the processing map by block number
+                const blockNum = event.blockNumber.low;
+                const block = event.blockData;
                 await ProcessingMap.set(block.header.number, block);
-
+                
                 console.log(`Added block ${blockNum} to ProcessingMap`)
             },
             // set the starting block for the listener
@@ -144,7 +142,6 @@ async function main() {
 
 // listener function to check for blocks in the ProcessingMap
 async function processPendingBlocks(ProcessingMap) {
-
     setTimeout(async () => {
 
         // get the next block number from nextblock.txt
@@ -155,11 +152,11 @@ async function processPendingBlocks(ProcessingMap) {
 
             // get the next block to process from the ProcessingMap
             processBlock = ProcessingMap.get(nextBlockNumber)
-
             if (processBlock == undefined) {
                 break;
             }
 
+            console.log("call block processing event")
             try {
                 await blockProcessing.processBlockEvent(channelid, processBlock, use_couchdb, nano)
             } catch (error) {
