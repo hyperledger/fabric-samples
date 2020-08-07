@@ -37,7 +37,7 @@ The configuration for the listener is stored in the `config.json` file:
     "channelid": "mychannel",
     "use_couchdb":true,
     "create_history_log":true,
-    "couchdb_address": "http://localhost:5990"
+    "couchdb_address": "http://admin:adminpw@localhost:5990"
 }
 ```
 
@@ -55,13 +55,12 @@ If you set the "use_couchdb" option to true in `config.json`, you can run the
 following command start a local instance of CouchDB using docker:
 
 ```
-docker run --publish 5990:5984 --detach --name offchaindb couchdb
-docker start offchaindb
+docker run --publish 5990:5984 --detach -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=adminpw --name offchaindb couchdb
 ```
 
 ### Install dependencies
 
-You need to install Node.js version 8.9.x to use the sample application code.
+You need to install Node.js version 8.17.x to use the sample application code.
 Execute the following commands to install the required dependencies:
 
 ```
@@ -217,13 +216,13 @@ the blocks. If the listener is running, this table should be the same as the
 latest values in the state database running on your peer. The table is named
 after the channelid and chaincodeid, and is named mychannel_marbles in this
 example. You can navigate to this table using your browser:
-http://127.0.0.1:5990/mychannel_marbles/_all_docs
+http://admin:adminpw@127.0.0.1:5990/mychannel_marbles/_all_docs
 
 A second table records each block as a historical record entry, and was created
 using the block data that was recorded in the log file. The table name appends
 history to the name of the first table, and is named mychannel_marbles_history
 in this example. You can also navigate to this table using your browser:
-http://127.0.0.1:5990/mychannel_marbles_history/_all_docs
+http://admin:adminpw@127.0.0.1:5990/mychannel_marbles_history/_all_docs
 
 ### Configure a map/reduce view for summarizing counts of marbles by color:
 
@@ -236,13 +235,13 @@ created when events are received.
 Open a new terminal window and execute the following:
 
 ```
-curl -X PUT http://127.0.0.1:5990/mychannel_marbles/_design/colorviewdesign -d '{"views":{"colorview":{"map":"function (doc) { emit(doc.color, 1);}","reduce":"function ( keys , values , combine ) {return sum( values )}"}}}' -H 'Content-Type:application/json'
+curl -X PUT http://admin:adminpw@127.0.0.1:5990/mychannel_marbles/_design/colorviewdesign -d '{"views":{"colorview":{"map":"function (doc) { emit(doc.color, 1);}","reduce":"function ( keys , values , combine ) {return sum( values )}"}}}' -H 'Content-Type:application/json'
 ```
 
 Execute a query to retrieve the total number of marbles (reduce function):
 
 ```
-curl -X GET http://127.0.0.1:5990/mychannel_marbles/_design/colorviewdesign/_view/colorview?reduce=true
+curl -X GET http://admin:adminpw@127.0.0.1:5990/mychannel_marbles/_design/colorviewdesign/_view/colorview?reduce=true
 ```
 
 If successful, this command will return the number of marbles in the blockchain
@@ -257,7 +256,7 @@ world state, without having to query the blockchain ledger:
 Execute a new query to retrieve the number of marbles by color (map function):
 
 ```
-curl -X GET http://127.0.0.1:5990/mychannel_marbles/_design/colorviewdesign/_view/colorview?group=true
+curl -X GET http://admin:adminpw@127.0.0.1:5990/mychannel_marbles/_design/colorviewdesign/_view/colorview?group=true
 ```
 
 The command will return a list of marbles by color from the CouchDB database.
@@ -279,14 +278,14 @@ will support a query that traces the history of each marble. Execute the
 following command to create the index:
 
 ```
-curl -X POST http://127.0.0.1:5990/mychannel_marbles_history/_index -d '{"index":{"fields":["blocknumber", "sequence", "key"]},"name":"marble_history"}'  -H 'Content-Type:application/json'
+curl -X POST http://admin:adminpw@127.0.0.1:5990/mychannel_marbles_history/_index -d '{"index":{"fields":["blocknumber", "sequence", "key"]},"name":"marble_history"}'  -H 'Content-Type:application/json'
 ```
 
 Now execute a query to retrieve the history for the marble we transferred and
 then deleted:
 
 ```
-curl -X POST http://127.0.0.1:5990/mychannel_marbles_history/_find -d '{"selector":{"key":{"$eq":"marble110"}}, "fields":["blocknumber","is_delete","value"],"sort":[{"blocknumber":"asc"}, {"sequence":"asc"}]}'  -H 'Content-Type:application/json'
+curl -X POST http://admin:adminpw@127.0.0.1:5990/mychannel_marbles_history/_find -d '{"selector":{"key":{"$eq":"marble110"}}, "fields":["blocknumber","is_delete","value"],"sort":[{"blocknumber":"asc"}, {"sequence":"asc"}]}'  -H 'Content-Type:application/json'
 ```
 
 You should see the transaction history of the marble that was created,
@@ -321,7 +320,7 @@ If you check the current state table using the reduce command, you will only
 be able to see the original marbles in your database.
 
 ```
-curl -X GET http://127.0.0.1:5990/mychannel_marbles/_design/colorviewdesign/_view/colorview?reduce=true
+curl -X GET http://admin:adminpw@127.0.0.1:5990/mychannel_marbles/_design/colorviewdesign/_view/colorview?reduce=true
 ```
 
 To add the new data to your off-chain database, remove the `nextblock.txt`
@@ -342,7 +341,7 @@ added to the ledger. If you run the reduce command against your database one
 more time,
 
 ```
-curl -X GET http://127.0.0.1:5990/mychannel_marbles/_design/colorviewdesign/_view/colorview?reduce=true
+curl -X GET http://admin:adminpw@127.0.0.1:5990/mychannel_marbles/_design/colorviewdesign/_view/colorview?reduce=true
 ```
 
 you will be able to see that all of the marbles have been added to your
