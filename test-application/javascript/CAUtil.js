@@ -6,9 +6,6 @@
 
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
-
 const adminUserId = 'admin';
 const adminUserPasswd = 'adminpw';
 
@@ -53,7 +50,7 @@ exports.enrollAdmin = async (caClient, wallet) => {
 	}
 };
 
-exports.registerUser =  async (caClient, wallet, userId, affiliation) => {
+exports.registerAndEnrollUser =  async (caClient, wallet, userId, affiliation) => {
 	try {
 		// Check to see if we've already enrolled the user
 		const userIdentity = await wallet.get(userId);
