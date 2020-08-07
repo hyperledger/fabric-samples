@@ -81,7 +81,7 @@ class Chaincode extends Contract{
     // ==== Create asset object and marshal to JSON ====
     let asset = {};
     asset.docType = 'asset';
-    asset.assetID = assetID;
+    asset.ID = assetID;
     asset.color = color;
     asset.size = size;
     asset.owner = owner;
@@ -90,7 +90,7 @@ class Chaincode extends Contract{
     // === Save asset to state ===
     await ctx.stub.putState(assetID, Buffer.from(JSON.stringify(asset)));
     let indexName = 'color~name'
-    let colorNameIndexKey = await ctx.stub.createCompositeKey(indexName, [asset.color, asset.assetID]);
+    let colorNameIndexKey = await ctx.stub.createCompositeKey(indexName, [asset.color, asset.ID]);
 
     //  Save index entry to state. Only the key name is needed, no need to store a duplicate copy of the marble.
     //  Note - passing a 'nil' value will effectively delete the key from state, therefore we pass null character as value
@@ -137,7 +137,7 @@ class Chaincode extends Contract{
 
     // delete the index
     let indexName = 'color~name';
-    let colorNameIndexKey = ctx.stub.createCompositeKey(indexName, [assetJSON.color, assetJSON.assetID]);
+    let colorNameIndexKey = ctx.stub.createCompositeKey(indexName, [assetJSON.color, assetJSON.ID]);
     if (!colorNameIndexKey) {
       throw new Error(' Failed to create the createCompositeKey');
     }
@@ -145,7 +145,7 @@ class Chaincode extends Contract{
     await ctx.stub.deleteState(colorNameIndexKey);
   }
 
-  // TransferAsset transfers a asset by setting a new owner name on the asset
+  // TransferAsset transfers an asset by setting a new owner name on the asset
   async TransferAsset(ctx, assetName, newOwner) {
 
     let assetAsBytes = await ctx.stub.getState(assetName);
@@ -245,7 +245,7 @@ class Chaincode extends Contract{
   // GetQueryResultForQueryString executes the passed in query string.
   // Result set is built and returned as a byte array containing the JSON results.
   async GetQueryResultForQueryString(ctx, queryString) {
-    
+
     let resultsIterator = await ctx.stub.getQueryResult(queryString);
     let results = await this.GetAllResults(resultsIterator, false);
 
@@ -258,7 +258,7 @@ class Chaincode extends Contract{
   // The number of fetched records will be equal to or lesser than the page size.
   // Paginated range queries are only valid for read only transactions.
   async GetAssetsByRangeWithPagination(ctx, startKey, endKey, pageSize, bookmark) {
-    
+
     const { iterator, metadata } = await ctx.stub.getStateByRangeWithPagination(startKey, endKey, pageSize, bookmark);
     const results = await this.GetAllResults(iterator, false);
 
@@ -293,8 +293,8 @@ class Chaincode extends Contract{
   // GetAssetHistory returns the chain of custody for an asset since issuance.
   async GetAssetHistory(ctx, assetName) {
 
-    let resultsIterator = await ctx.stub.getHistoryForKey(assetName);
-    let results = await this.GetAllResults(resultsIterator, true);
+    const resultsIterator = await ctx.stub.getHistoryForKey(assetName);
+    const results = await this.GetAllResults(resultsIterator, true);
 
     return JSON.stringify(results);
   }
@@ -302,7 +302,7 @@ class Chaincode extends Contract{
   // AssetExists returns true when asset with given ID exists in world state
   async AssetExists(ctx, assetName) {
     // ==== Check if asset already exists ====
-    let assetState = await ctx.stub.getState(assetName);
+    const assetState = await ctx.stub.getState(assetName);
     if ( !assetState || assetState.length === 0 ) {
       return false;
     }
@@ -310,80 +310,74 @@ class Chaincode extends Contract{
   }
 
   async GetAllResults(iterator, isHistory) {
-    let allResults = [];
-    while (true) {
-      let res = await iterator.next();
+    const allResults = [];
+    let res = await iterator.next();
+    while (!res.done) {
+      const jsonRes = {};
 
-      if (res.value && res.value.value.toString()) {
-        let jsonRes = {};
-        console.log(res.value.value.toString('utf8'));
-        if (isHistory && isHistory === true) {
-          jsonRes.TxId = res.value.tx_id;
-          jsonRes.Timestamp = res.value.timestamp;
-          try {
-            jsonRes.Value = JSON.parse(res.value.value.toString('utf8'));
-          } catch (err) {
-            console.log(err);
-            jsonRes.Value = res.value.value.toString('utf8');
-          }
-        } else {
-          jsonRes.Key = res.value.key;
-          try {
-            jsonRes.Record = JSON.parse(res.value.value.toString('utf8'));
-          } catch (err) {
-            console.log(err);
-            jsonRes.Record = res.value.value.toString('utf8');
-          }
-        }
-        allResults.push(jsonRes);
+      if (isHistory) {
+         jsonRes.TxId = res.value.txId;
+         jsonRes.Timestamp = res.value.timestamp;
+         jsonRes.IsDelete = res.value.isDelete;
       }
-      if (res.done) {
-        await iterator.close();
-        return allResults;
+
+      if (res.value.value.length > 0) {
+         jsonRes.Record = JSON.parse(res.value.value.toString('utf8'));
+      } else {
+         jsonRes.Record = {ID: res.value.key};
       }
+
+      jsonRes.Key = res.value.key;
+
+      console.log('Result: ' + JSON.stringify(jsonRes));
+      allResults.push(jsonRes);
+      res = await iterator.next();
     }
+
+    await iterator.close();
+    return allResults;
   }
 
   // InitLedger creates sample assets in the ledger
   async InitLedger(ctx) {
     const assets = [
         {
-            assetID: 'asset1',
+            ID: 'asset1',
             color: 'blue',
             size: 5,
             owner: 'Tom',
             appraisedValue: 100
         },
         {
-            assetID: 'asset2',
+            ID: 'asset2',
             color: 'red',
             size: 5,
             owner: 'Brad',
             appraisedValue: 100
         },
         {
-            assetID: 'asset3',
+            ID: 'asset3',
             color: 'green',
             size: 10,
             owner: 'Jin Soo',
             appraisedValue: 200
         },
         {
-            assetID: 'asset4',
+            ID: 'asset4',
             color: 'yellow',
             size: 10,
             owner: 'Max',
             appraisedValue: 200
         },
         {
-            assetID: 'asset5',
+            ID: 'asset5',
             color: 'black',
             size: 15,
             owner: 'Adriana',
             appraisedValue: 250
         },
         {
-            assetID: 'asset6',
+            ID: 'asset6',
             color: 'white',
             size: 15,
             owner: 'Michel',
@@ -394,7 +388,7 @@ class Chaincode extends Contract{
     for (let i = 0; i < assets.length; i++) {
         await this.CreateAsset(
           ctx,
-          assets[i].assetID,
+          assets[i].ID,
           assets[i].color,
           assets[i].size,
           assets[i].owner,

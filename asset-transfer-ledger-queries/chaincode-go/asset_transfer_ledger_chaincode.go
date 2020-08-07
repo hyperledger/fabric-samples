@@ -99,7 +99,7 @@ type Asset struct {
 // HistoryQueryResult structure used for returning result of history query
 type HistoryQueryResult struct {
 	Record    *Asset    `json:"record"`
-	TxID      string    `json:"txID"`
+	TxId     string    `json:"txId"`
 	Timestamp time.Time `json:"timestamp"`
 	IsDelete  bool      `json:"isDelete"`
 }
@@ -379,6 +379,8 @@ func getQueryResultForQueryStringWithPagination(ctx contractapi.TransactionConte
 
 // GetAssetHistory returns the chain of custody for an asset since issuance.
 func (t *SimpleChaincode) GetAssetHistory(ctx contractapi.TransactionContextInterface, assetID string) ([]HistoryQueryResult, error) {
+	log.Printf("GetAssetHistory: ID %v", assetID)
+
 	resultsIterator, err := ctx.GetStub().GetHistoryForKey(assetID)
 	if err != nil {
 		return nil, err
@@ -393,17 +395,24 @@ func (t *SimpleChaincode) GetAssetHistory(ctx contractapi.TransactionContextInte
 		}
 
 		var asset Asset
-		err = json.Unmarshal(response.Value, &asset)
-		if err != nil {
-			return nil, err
+		if len(response.Value) > 0 {
+			err = json.Unmarshal(response.Value, &asset)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			asset = Asset{
+				ID: assetID,
+			}
 		}
 
 		timestamp, err := ptypes.Timestamp(response.Timestamp)
 		if err != nil {
 			return nil, err
 		}
+
 		record := HistoryQueryResult{
-			TxID:      response.TxId,
+			TxId:      response.TxId,
 			Timestamp: timestamp,
 			Record:    &asset,
 			IsDelete:  response.IsDelete,

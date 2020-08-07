@@ -27,3 +27,4 @@ popd
 
 print "Stopping network"
 ./network.sh down
+rm -R ../asset-transfer-basic/application-javascript/wallet
