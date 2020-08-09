@@ -6,35 +6,45 @@ You can use Fabric samples to get started working with Hyperledger Fabric, explo
 
 ## Getting started with the Fabric samples
 
-To use the Fabric samples, you need to download the Fabric Docker images and the Fabric CLI tools. First, make sure that you have installed all of the [Fabric prerequisites](https://hyperledger-fabric.readthedocs.io/en/master/prereqs.html). You can then follow the instructions to [Install the Fabric Samples, Binaries, and Docker Images](https://hyperledger-fabric.readthedocs.io/en/master/install.html) in the Fabric documentation. In addition to downloading the Fabric images and tool binaries, the instructions will make you clone the Fabric samples on your local machine.
+To use the Fabric samples, you need to download the Fabric Docker images and the Fabric CLI tools. First, make sure that you have installed all of the [Fabric prerequisites](https://hyperledger-fabric.readthedocs.io/en/master/prereqs.html). You can then follow the instructions to [Install the Fabric Samples, Binaries, and Docker Images](https://hyperledger-fabric.readthedocs.io/en/master/install.html) in the Fabric documentation. In addition to downloading the Fabric images and tool binaries, the Fabric samples will also be cloned to your local machine.
 
-## Guide to the Fabric samples
+## Test network
 
-You can use the following table to learn more about each sample, and find the corresponding tutorial or documentation.
+The [Fabric test network](test-network) in the samples repository provides a Docker Compose based test network with two
+Organization peers and an ordering service node. You can use it on your local machine to run the samples listed below.
+You can also use it to deploy and test your own Fabric chaincodes and applications. To get started, see
+the [test network tutorial](https://hyperledger-fabric.readthedocs.io/en/master/test_network.html).
 
-|  **Sample** | **Description** | **Documentation** |
-| -------------|------------------------------|------------------|
-| [Fabric test network](test-network) | Get started by deploying a basic Fabric network on your local machine. | [Using the Fabric test network](https://hyperledger-fabric.readthedocs.io/en/master/test_network.html) |
-| [Commercial paper](commercial-paper) | Explore a use case in which two organizations use a blockchain network to trade commercial paper. | [Commercial paper tutorial](https://hyperledger-fabric.readthedocs.io/en/master/tutorial/commercial_paper.html) |
-| [Interest rate swaps](interest_rate_swaps) | Explore state based endorsement using a financial services use case. | [Setting Key level endorsement policies](https://hyperledger-fabric.readthedocs.io/en/master/endorsement-policies.html#setting-key-level-endorsement-policies) |
-| [Off chain data](off_chain_data) | Learn how to use the Peer channel-based event services to build an off chain database for reporting and analytics. | [Peer channel-based event services](https://hyperledger-fabric.readthedocs.io/en/master/peer_event_services.html) |
-| [High throughput](high-throughput) | Learn how you can design your smart contracts to process a large volume of transactions. | |
-| [Chaincode](chaincode) | A set of sample smart contracts used by other samples and the tutorials in the Fabric documentation. | [Fabric tutorials](https://hyperledger-fabric.readthedocs.io/en/master/tutorials.html) |
-| [Fabcar](fabcar) | **Deprecated in favor of basic asset transfer sample** |  |
+## Asset transfer samples and tutorials
 
-### Asset transfer smart contract series
-
-The asset transfer series provides a series of smart contracts and applications that you can use to create and transfer a generic asset using Hyperledger Fabric. However, each sample is built with different smart contract and application APIs in order to demonstrate different Fabric features. The **Basic** sample provides an introduction on how to write smart contracts and how to interact with a Fabric network using the Fabric SDKs. The **Secured agreement** sample demonstrates how to use more advanced capabilities to develop a more realistic transfer scenario.
+The asset transfer series provides a series of sample smart contracts and applications to demonstrate how to store and transfer assets using Hyperledger Fabric.
+Each sample and associated tutorial in the series demonstrates a different core capability in Hyperledger Fabric. The **Basic** sample provides an introduction on how
+to write smart contracts and how to interact with a Fabric network using the Fabric SDKs. The **Ledger queries**, **Private data**, and **State-based endorsement**
+samples demonstrate these additional capabilities. Finally, the **Secured agreement** sample demonstrates how to bring all the capabilities together to securely
+transfer an asset in a more realistic transfer scenario.
 
 |  **Smart Contract** | **Description** | **Tutorial** | **Smart contract languages** | **Application languages** |
 | -----------|------------------------------|----------|---------|---------|
-| [Basic](asset-transfer-basic) | The Basic sample smart contract that allows you to create and transfer an asset by putting data on the ledger and retrieving it. This sample is recommended for new Fabric users. | [Writing your first application](https://hyperledger-fabric.readthedocs.io/en/master/write_first_app.html) | Go, JavaScript, Typescript, Java | JavaScript, Java |
-| [Ledger queries](asset-transfer-ledger-queries) | The ledger queries sample demonstrates how to deploy an index with your chaincode and issue rich queries when you are using CouchDB as your state database. | **Coming soon** | Go, JavaScript | Java |
-| [Private data](asset-transfer-private-data) | This sample demonstrates the use of private data collections and how the private data hash can be used to verify an agreement before executing a transfer | **Coming soon** | Go | JavaScript |
-| [State-Based Endorsement](asset-transfer-sbe) | This sample demonstrates the use of state-based endorsements and how the default chaincode endorsement policy can be modified for a specified Key | **Coming soon** | Go, JavaScript, Java | **Coming soon** |
-| [Secured agreement](asset-transfer-secured-agreement) | Smart contract that uses private data, state based endorsement, and access control to establish the ownership of an asset, guarantee immutability, and securely transfer an asset with the consent of both the buyer and the owner, while keeping the asset details private. | [Secured asset transfer in Fabric](https://hyperledger-fabric.readthedocs.io/en/master/secured_private_asset_transfer_tutorial.html)  | Go | **Coming soon** |
+| [Basic](asset-transfer-basic) | The Basic sample smart contract that allows you to create and transfer an asset by putting data on the ledger and retrieving it. This sample is recommended for new Fabric users. | [Writing your first application](https://hyperledger-fabric.readthedocs.io/en/master/write_first_app.html) | Go, JavaScript, TypeScript, Java | JavaScript, Java |
+| [Ledger queries](asset-transfer-ledger-queries) | The ledger queries sample demonstrates range queries and transaction updates using range queries (applicable for both LevelDB and CouchDB state databases), and how to deploy an index with your chaincode to support JSON queries (applicable for CouchDB state database only). | [Using CouchDB](https://hyperledger-fabric.readthedocs.io/en/master/couchdb_tutorial.html) | Go, JavaScript | Java |
+| [Private data](asset-transfer-private-data) | This sample demonstrates the use of private data collections, how to manage private data collections with the chaincode lifecycle, and how the private data hash can be used to verify private data on the ledger. It also demonstrates how to control asset updates and transfers using client-based ownership and access control. | [Using Private Data](https://github.com/hyperledger/fabric-samples/tree/master/asset-transfer-private-data/chaincode-go) | Go | JavaScript |
+| [State-Based Endorsement](asset-transfer-sbe) | This sample demonstrates how to override the chaincode-level endorsement policy to set endorsement policies at the key-level (data/asset level). | [Using State-based endorsement](https://github.com/hyperledger/fabric-samples/tree/master/asset-transfer-sbe) | TypeScript | **Coming soon** |
+| [Secured agreement](asset-transfer-secured-agreement) | Smart contract that uses implicit private data collections, state-based endorsement, and organization-based ownership and access control to keep data private and securely transfer an asset with the consent of both the current owner and buyer. | [Secured asset transfer](https://hyperledger-fabric.readthedocs.io/en/master/secured_private_asset_transfer_tutorial.html)  | Go | **Coming soon** |
 
-The asset transfer series is still a work in progress. Additional smart contract and application languages are being developed. The series will also be integrated with other Fabric samples and the documentation in the near future. For more information, see the public plan for [Fabric samples improvements](https://docs.google.com/presentation/d/1UxK2HH8SrQyZU58MnuDb9hr1nmekst8b/edit#slide=id.g776cdbfb06_0_51).
+Additional smart contract and application languages are still being developed. The series will also be integrated with other Fabric tutorials in the near future. For more information, see the public plan for [Fabric samples improvements](https://docs.google.com/presentation/d/1UxK2HH8SrQyZU58MnuDb9hr1nmekst8b/edit#slide=id.g776cdbfb06_0_51).
+
+## Additional samples
+
+Additional samples demonstrate various Fabric use cases and application patterns.
+
+|  **Sample** | **Description** | **Documentation** |
+| -------------|------------------------------|------------------|
+| [Commercial paper](commercial-paper) | Explore a use case and detailed application development tutorial in which two organizations use a blockchain network to trade commercial paper. | [Commercial paper tutorial](https://hyperledger-fabric.readthedocs.io/en/master/tutorial/commercial_paper.html) |
+| [Interest rate swaps](interest_rate_swaps) | Explore state based endorsement using a financial services use case. | [Setting Key level endorsement policies](https://hyperledger-fabric.readthedocs.io/en/master/endorsement-policies.html#setting-key-level-endorsement-policies) |
+| [Off chain data](off_chain_data) | Learn how to use the Peer channel-based event services to build an off-chain database for reporting and analytics. | [Peer channel-based event services](https://hyperledger-fabric.readthedocs.io/en/master/peer_event_services.html) |
+| [High throughput](high-throughput) | Learn how you can design your smart contract to avoid transaction collisions in high volume environments. | |
+| [Chaincode](chaincode) | A set of other sample smart contracts, many of which were used in tutorials prior to the asset transfer sample series. | |
+| [Fabcar](fabcar) | **Deprecated in favor of basic asset transfer sample** |  |
 
 ## License <a name="license"></a>
 
