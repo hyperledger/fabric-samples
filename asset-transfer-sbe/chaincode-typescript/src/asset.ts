@@ -11,7 +11,7 @@ export class Asset {
     public ID: string;
     
     @Property()
-    public Value: string;
+    public Value: number;
 
     @Property()
     public Owner: string;

@@ -12,7 +12,7 @@ export class AssetContract extends Contract {
     // CreateAsset creates a new asset
     // CreateAsset sets the endorsement policy of the assetId Key, such that current owner Org Peer is required to endorse future updates
     @Transaction()
-    public async CreateAsset(ctx: Context, assetId: string, value: string, owner: string): Promise<void> {
+    public async CreateAsset(ctx: Context, assetId: string, value: number, owner: string): Promise<void> {
         const exists = await this.AssetExists(ctx, assetId);
         if (exists) {
             throw new Error(`The asset ${assetId} already exists`);
@@ -45,7 +45,7 @@ export class AssetContract extends Contract {
     // UpdateAsset updates an existing asset
     // UpdateAsset needs an endorsement of current owner Org Peer
     @Transaction()
-    public async UpdateAsset(ctx: Context, assetId: string, newValue: string): Promise<void> {
+    public async UpdateAsset(ctx: Context, assetId: string, newValue: number): Promise<void> {
         const assetString = await this.ReadAsset(ctx, assetId);
         const asset = JSON.parse(assetString) as Asset;
         asset.Value = newValue;

@@ -49,6 +49,9 @@ if [ "$CC_SRC_PATH" = "NA" ]; then
 	elif [ "$CC_NAME" = "private" ]; then
 		echo $'\e[0;32m'asset-transfer-private-data$'\e[0m' chaincode
 		CC_SRC_PATH="../asset-transfer-private-data"
+	elif [ "$CC_NAME" = "sbe" ]; then
+		echo $'\e[0;32m'asset-transfer-sbe$'\e[0m' chaincode
+		CC_SRC_PATH="../asset-transfer-sbe"
 	else
 		echo The chaincode name ${CC_NAME} is not supported by this script
 		echo Supported chaincode names are: basic, secured, and private
