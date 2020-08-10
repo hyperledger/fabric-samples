@@ -54,7 +54,7 @@ if [ "$CC_SRC_PATH" = "NA" ]; then
 		CC_SRC_PATH="../asset-transfer-sbe"
 	else
 		echo The chaincode name ${CC_NAME} is not supported by this script
-		echo Supported chaincode names are: basic, secured, and private
+		echo Supported chaincode names are: basic, ledger, private, sbe, secured
 		exit 1
 	fi
 
