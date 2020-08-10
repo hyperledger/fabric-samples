@@ -96,13 +96,19 @@ type Asset struct {
 	AppraisedValue int    `json:"appraisedValue"`
 }
 
-// QueryResult structure used for handling result of query
-type QueryResult struct {
-	Record              *Asset
-	TxId                string    `json:"txID"`
-	Timestamp           time.Time `json:"timestamp"`
-	FetchedRecordsCount int       `json:"fetchedRecordsCount"`
-	Bookmark            string    `json:"bookmark"`
+// HistoryQueryResult structure used for returning result of history query
+type HistoryQueryResult struct {
+	Record    *Asset    `json:"record"`
+	TxID      string    `json:"txID"`
+	Timestamp time.Time `json:"timestamp"`
+	IsDelete  bool      `json:"isDelete"`
+}
+
+// PaginatedQueryResult structure used for returning paginated query results and metadata
+type PaginatedQueryResult struct {
+	Records             []*Asset `json:"records"`
+	FetchedRecordsCount int32    `json:"fetchedRecordsCount"`
+	Bookmark            string   `json:"bookmark"`
 }
 
 // CreateAsset initializes a new asset in the ledger
@@ -158,13 +164,13 @@ func (t *SimpleChaincode) ReadAsset(ctx contractapi.TransactionContextInterface,
 		return nil, fmt.Errorf("asset %s does not exist", assetID)
 	}
 
-	var asset *Asset
+	var asset Asset
 	err = json.Unmarshal(assetBytes, &asset)
 	if err != nil {
 		return nil, err
 	}
 
-	return asset, nil
+	return &asset, nil
 }
 
 // DeleteAsset removes an asset key-value pair from the ledger
@@ -212,12 +218,12 @@ func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorI
 		if err != nil {
 			return nil, err
 		}
-		var asset *Asset
+		var asset Asset
 		err = json.Unmarshal(queryResult.Value, &asset)
 		if err != nil {
 			return nil, err
 		}
-		assets = append(assets, asset)
+		assets = append(assets, &asset)
 	}
 
 	return assets, nil
@@ -325,12 +331,7 @@ func getQueryResultForQueryString(ctx contractapi.TransactionContextInterface, q
 // The number of fetched records will be equal to or lesser than the page size.
 // Paginated range queries are only valid for read only transactions.
 // Example: Pagination with Range Query
-func (t *SimpleChaincode) GetAssetsByRangeWithPagination(
-	ctx contractapi.TransactionContextInterface,
-	startKey,
-	endKey,
-	bookmark string,
-	pageSize int) ([]*Asset, error) {
+func (t *SimpleChaincode) GetAssetsByRangeWithPagination(ctx contractapi.TransactionContextInterface, startKey string, endKey string, pageSize int, bookmark string) ([]*Asset, error) {
 
 	resultsIterator, _, err := ctx.GetStub().GetStateByRangeWithPagination(startKey, endKey, int32(pageSize), bookmark)
 	if err != nil {
@@ -349,48 +350,49 @@ func (t *SimpleChaincode) GetAssetsByRangeWithPagination(
 // Only available on state databases that support rich query (e.g. CouchDB)
 // Paginated queries are only valid for read only transactions.
 // Example: Pagination with Ad hoc Rich Query
-func (t *SimpleChaincode) QueryAssetsWithPagination(
-	ctx contractapi.TransactionContextInterface,
-	queryString,
-	bookmark string,
-	pageSize int) ([]*Asset, error) {
+func (t *SimpleChaincode) QueryAssetsWithPagination(ctx contractapi.TransactionContextInterface, queryString string, pageSize int, bookmark string) (*PaginatedQueryResult, error) {
 
 	return getQueryResultForQueryStringWithPagination(ctx, queryString, int32(pageSize), bookmark)
 }
 
 // getQueryResultForQueryStringWithPagination executes the passed in query string with
 // pagination info. The result set is built and returned as a byte array containing the JSON results.
-func getQueryResultForQueryStringWithPagination(
-	ctx contractapi.TransactionContextInterface,
-	queryString string,
-	pageSize int32,
-	bookmark string) ([]*Asset, error) {
+func getQueryResultForQueryStringWithPagination(ctx contractapi.TransactionContextInterface, queryString string, pageSize int32, bookmark string) (*PaginatedQueryResult, error) {
 
-	resultsIterator, _, err := ctx.GetStub().GetQueryResultWithPagination(queryString, pageSize, bookmark)
+	resultsIterator, responseMetadata, err := ctx.GetStub().GetQueryResultWithPagination(queryString, pageSize, bookmark)
 	if err != nil {
 		return nil, err
 	}
 	defer resultsIterator.Close()
 
-	return constructQueryResponseFromIterator(resultsIterator)
+	assets, err := constructQueryResponseFromIterator(resultsIterator)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PaginatedQueryResult{
+		Records:             assets,
+		FetchedRecordsCount: responseMetadata.FetchedRecordsCount,
+		Bookmark:            responseMetadata.Bookmark,
+	}, nil
 }
 
 // GetAssetHistory returns the chain of custody for an asset since issuance.
-func (t *SimpleChaincode) GetAssetHistory(ctx contractapi.TransactionContextInterface, assetID string) ([]QueryResult, error) {
+func (t *SimpleChaincode) GetAssetHistory(ctx contractapi.TransactionContextInterface, assetID string) ([]HistoryQueryResult, error) {
 	resultsIterator, err := ctx.GetStub().GetHistoryForKey(assetID)
 	if err != nil {
 		return nil, err
 	}
 	defer resultsIterator.Close()
 
-	var records []QueryResult
+	var records []HistoryQueryResult
 	for resultsIterator.HasNext() {
 		response, err := resultsIterator.Next()
 		if err != nil {
 			return nil, err
 		}
 
-		var asset *Asset
+		var asset Asset
 		err = json.Unmarshal(response.Value, &asset)
 		if err != nil {
 			return nil, err
@@ -400,10 +402,11 @@ func (t *SimpleChaincode) GetAssetHistory(ctx contractapi.TransactionContextInte
 		if err != nil {
 			return nil, err
 		}
-		record := QueryResult{
-			TxId:      response.TxId,
+		record := HistoryQueryResult{
+			TxID:      response.TxId,
 			Timestamp: timestamp,
-			Record:    asset,
+			Record:    &asset,
+			IsDelete:  response.IsDelete,
 		}
 		records = append(records, record)
 	}
