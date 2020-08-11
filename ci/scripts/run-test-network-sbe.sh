@@ -1,8 +1,8 @@
 set -euo pipefail
 
 FABRIC_VERSION=${FABRIC_VERSION:-2.2}
-CHAINCODE_LANGUAGE=${CHAINCODE_LANGUAGE:-go}
-CHAINCODE_NAME=${CHAINCODE_NAME:-private}
+CHAINCODE_LANGUAGE=${CHAINCODE_LANGUAGE:-typescript}
+CHAINCODE_NAME=${CHAINCODE_NAME:-sbe}
 
 function print() {
 	GREEN='\033[0;32m'
@@ -25,10 +25,4 @@ function stopNetwork() {
 
 # Run Javascript application
 createNetwork
-#print "Initializing Javascript application"
-#pushd ../asset-transfer-private-data/application-javascript
-#npm install
-#print "Executing app.js"
-#node app.js
-#popd
 stopNetwork

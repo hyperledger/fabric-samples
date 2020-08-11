@@ -67,335 +67,336 @@
 
 'use strict';
 
-const { Contract } = require('fabric-contract-api');
+const {Contract} = require('fabric-contract-api');
 
-class Chaincode extends Contract{
+class Chaincode extends Contract {
 
-  // CreateAsset - create a new asset, store into chaincode state
-  async CreateAsset(ctx, assetID, color, size, owner, appraisedValue) {
-    const exists = await this.AssetExists(ctx, assetID)
-    if (exists) {
-      throw new Error(`The asset ${assetID} already exists`)
-    }
+	// CreateAsset - create a new asset, store into chaincode state
+	async CreateAsset(ctx, assetID, color, size, owner, appraisedValue) {
+		const exists = await this.AssetExists(ctx, assetID);
+		if (exists) {
+			throw new Error(`The asset ${assetID} already exists`);
+		}
 
-    // ==== Create asset object and marshal to JSON ====
-    let asset = {};
-    asset.docType = 'asset';
-    asset.ID = assetID;
-    asset.color = color;
-    asset.size = size;
-    asset.owner = owner;
-    asset.appraisedValue = appraisedValue;
+		// ==== Create asset object and marshal to JSON ====
+		let asset = {
+			docType: 'asset',
+			assetID: assetID,
+			color: color,
+			size: size,
+			owner: owner,
+			appraisedValue: appraisedValue
+		};
 
-    // === Save asset to state ===
-    await ctx.stub.putState(assetID, Buffer.from(JSON.stringify(asset)));
-    let indexName = 'color~name'
-    let colorNameIndexKey = await ctx.stub.createCompositeKey(indexName, [asset.color, asset.ID]);
 
-    //  Save index entry to state. Only the key name is needed, no need to store a duplicate copy of the marble.
-    //  Note - passing a 'nil' value will effectively delete the key from state, therefore we pass null character as value
-    await ctx.stub.putState(colorNameIndexKey, Buffer.from('\u0000'));
-  }
+		// === Save asset to state ===
+		await ctx.stub.putState(assetID, Buffer.from(JSON.stringify(asset)));
+		let indexName = 'color~name';
+		let colorNameIndexKey = await ctx.stub.createCompositeKey(indexName, [asset.color, asset.assetID]);
 
-  // ReadAsset returns the asset stored in the world state with given id.
-  async ReadAsset(ctx, id) {
-    const assetJSON = await ctx.stub.getState(id); // get the asset from chaincode state
-    if (!assetJSON || assetJSON.length === 0) {
-        throw new Error(`Asset ${id} does not exist`);
-    }
+		//  Save index entry to state. Only the key name is needed, no need to store a duplicate copy of the marble.
+		//  Note - passing a 'nil' value will effectively delete the key from state, therefore we pass null character as value
+		await ctx.stub.putState(colorNameIndexKey, Buffer.from('\u0000'));
+	}
 
-    return assetJSON.toString();
-  }
+	// ReadAsset returns the asset stored in the world state with given id.
+	async ReadAsset(ctx, id) {
+		const assetJSON = await ctx.stub.getState(id); // get the asset from chaincode state
+		if (!assetJSON || assetJSON.length === 0) {
+			throw new Error(`Asset ${id} does not exist`);
+		}
 
-  // delete - remove a asset key/value pair from state
-  async DeleteAsset(ctx, id) {
-    if (!id) {
-      throw new Error('Asset name must not be empty');
-    }
+		return assetJSON.toString();
+	}
 
-    var exists = await this.AssetExists(ctx, id)
-    if (!exists) {
-      throw new Error(`Asset ${id} does not exist`)
-    }
+	// delete - remove a asset key/value pair from state
+	async DeleteAsset(ctx, id) {
+		if (!id) {
+			throw new Error('Asset name must not be empty');
+		}
 
-    // to maintain the color~name index, we need to read the asset first and get its color
-    let valAsbytes = await ctx.stub.getState(id); // get the asset from chaincode state
-    let jsonResp = {};
-    if (!valAsbytes) {
-      jsonResp.error = 'Asset does not exist: ' + name;
-      throw new Error(jsonResp);
-    }
-    let assetJSON = {};
-    try {
-      assetJSON = JSON.parse(valAsbytes.toString());
-    } catch (err) {
-      jsonResp = {};
-      jsonResp.error = 'Failed to decode JSON of: ' + id;
-      throw new Error(jsonResp);
-    }
-    await ctx.stub.deleteState(id); //remove the asset from chaincode state
+		let exists = await this.AssetExists(ctx, id);
+		if (!exists) {
+			throw new Error(`Asset ${id} does not exist`);
+		}
 
-    // delete the index
-    let indexName = 'color~name';
-    let colorNameIndexKey = ctx.stub.createCompositeKey(indexName, [assetJSON.color, assetJSON.ID]);
-    if (!colorNameIndexKey) {
-      throw new Error(' Failed to create the createCompositeKey');
-    }
-    //  Delete index entry to state.
-    await ctx.stub.deleteState(colorNameIndexKey);
-  }
+		// to maintain the color~name index, we need to read the asset first and get its color
+		let valAsbytes = await ctx.stub.getState(id); // get the asset from chaincode state
+		let jsonResp = {};
+		if (!valAsbytes) {
+			jsonResp.error = `Asset does not exist: ${id}`;
+			throw new Error(jsonResp);
+		}
+		let assetJSON;
+		try {
+			assetJSON = JSON.parse(valAsbytes.toString());
+		} catch (err) {
+			jsonResp = {};
+			jsonResp.error = `Failed to decode JSON of: ${id}`;
+			throw new Error(jsonResp);
+		}
+		await ctx.stub.deleteState(id); //remove the asset from chaincode state
 
-  // TransferAsset transfers an asset by setting a new owner name on the asset
-  async TransferAsset(ctx, assetName, newOwner) {
+		// delete the index
+		let indexName = 'color~name';
+		let colorNameIndexKey = ctx.stub.createCompositeKey(indexName, [assetJSON.color, assetJSON.assetID]);
+		if (!colorNameIndexKey) {
+			throw new Error(' Failed to create the createCompositeKey');
+		}
+		//  Delete index entry to state.
+		await ctx.stub.deleteState(colorNameIndexKey);
+	}
 
-    let assetAsBytes = await ctx.stub.getState(assetName);
-    if (!assetAsBytes || !assetAsBytes.toString()) {
-      throw new Error(`Asset ${assetName} does not exist`);
-    }
-    let assetToTransfer = {};
-    try {
-      assetToTransfer = JSON.parse(assetAsBytes.toString()); //unmarshal
-    } catch (err) {
-      let jsonResp = {};
-      jsonResp.error = 'Failed to decode JSON of: ' + assetName;
-      throw new Error(jsonResp);
-    }
-    assetToTransfer.owner = newOwner; //change the owner
+	// TransferAsset transfers a asset by setting a new owner name on the asset
+	async TransferAsset(ctx, assetName, newOwner) {
 
-    let assetJSONasBytes = Buffer.from(JSON.stringify(assetToTransfer));
-    await ctx.stub.putState(assetName, assetJSONasBytes); //rewrite the asset
-  }
+		let assetAsBytes = await ctx.stub.getState(assetName);
+		if (!assetAsBytes || !assetAsBytes.toString()) {
+			throw new Error(`Asset ${assetName} does not exist`);
+		}
+		let assetToTransfer = {};
+		try {
+			assetToTransfer = JSON.parse(assetAsBytes.toString()); //unmarshal
+		} catch (err) {
+			let jsonResp = {};
+			jsonResp.error = 'Failed to decode JSON of: ' + assetName;
+			throw new Error(jsonResp);
+		}
+		assetToTransfer.owner = newOwner; //change the owner
 
-// GetAssetsByRange performs a range query based on the start and end keys provided.
-// Read-only function results are not typically submitted to ordering. If the read-only
-// results are submitted to ordering, or if the query is used in an update transaction
-// and submitted to ordering, then the committing peers will re-execute to guarantee that
-// result sets are stable between endorsement time and commit time. The transaction is
-// invalidated by the committing peers if the result set has changed between endorsement
-// time and commit time.
-// Therefore, range queries are a safe option for performing update transactions based on query results.
-  async GetAssetsByRange(ctx, startKey, endKey) {
+		let assetJSONasBytes = Buffer.from(JSON.stringify(assetToTransfer));
+		await ctx.stub.putState(assetName, assetJSONasBytes); //rewrite the asset
+	}
 
-    let resultsIterator = await ctx.stub.getStateByRange(startKey, endKey);
-    let results = await this.GetAllResults(resultsIterator, false);
+	// GetAssetsByRange performs a range query based on the start and end keys provided.
+	// Read-only function results are not typically submitted to ordering. If the read-only
+	// results are submitted to ordering, or if the query is used in an update transaction
+	// and submitted to ordering, then the committing peers will re-execute to guarantee that
+	// result sets are stable between endorsement time and commit time. The transaction is
+	// invalidated by the committing peers if the result set has changed between endorsement
+	// time and commit time.
+	// Therefore, range queries are a safe option for performing update transactions based on query results.
+	async GetAssetsByRange(ctx, startKey, endKey) {
 
-    return JSON.stringify(results);
-  }
+		let resultsIterator = await ctx.stub.getStateByRange(startKey, endKey);
+		let results = await this.GetAllResults(resultsIterator, false);
 
-  // TransferAssetBasedOnColor will transfer assets of a given color to a certain new owner.
-  // Uses a GetStateByPartialCompositeKey (range query) against color~name 'index'.
-  // Committing peers will re-execute range queries to guarantee that result sets are stable
-  // between endorsement time and commit time. The transaction is invalidated by the
-  // committing peers if the result set has changed between endorsement time and commit time.
-  // Therefore, range queries are a safe option for performing update transactions based on query results.
-  // Example: GetStateByPartialCompositeKey/RangeQuery
-  async TransferAssetByColor(ctx, color, newOwner) {
-    // Query the color~name index by color
-    // This will execute a key range query on all keys starting with 'color'
-    let coloredAssetResultsIterator = await ctx.stub.getStateByPartialCompositeKey('color~name', [color]);
+		return JSON.stringify(results);
+	}
 
-    // Iterate through result set and for each asset found, transfer to newOwner
-    while (true) {
-      let responseRange = await coloredAssetResultsIterator.next();
-      if (!responseRange || !responseRange.value || !responseRange.value.key) {
-        return;
-      }
+	// TransferAssetBasedOnColor will transfer assets of a given color to a certain new owner.
+	// Uses a GetStateByPartialCompositeKey (range query) against color~name 'index'.
+	// Committing peers will re-execute range queries to guarantee that result sets are stable
+	// between endorsement time and commit time. The transaction is invalidated by the
+	// committing peers if the result set has changed between endorsement time and commit time.
+	// Therefore, range queries are a safe option for performing update transactions based on query results.
+	// Example: GetStateByPartialCompositeKey/RangeQuery
+	async TransferAssetByColor(ctx, color, newOwner) {
+		// Query the color~name index by color
+		// This will execute a key range query on all keys starting with 'color'
+		let coloredAssetResultsIterator = await ctx.stub.getStateByPartialCompositeKey('color~name', [color]);
 
-      let objectType;
-      let attributes;
-      ({
-        objectType,
-        attributes
-      } = await ctx.stub.splitCompositeKey(responseRange.value.key));
+		// Iterate through result set and for each asset found, transfer to newOwner
+		let responseRange = await coloredAssetResultsIterator.next();
+		while (!responseRange.done) {
+			if (!responseRange || !responseRange.value || !responseRange.value.key) {
+				return;
+			}
 
-      console.log(objectType)
-      let returnedAssetName = attributes[1];
+			let objectType;
+			let attributes;
+			(
+				{objectType, attributes} = await ctx.stub.splitCompositeKey(responseRange.value.key)
+			);
 
-      // Now call the transfer function for the found asset.
-      // Re-use the same function that is used to transfer individual assets
-      await this.TransferAsset(ctx, returnedAssetName, newOwner);
-    }
-  }
+			console.log(objectType);
+			let returnedAssetName = attributes[1];
 
-  // QueryAssetsByOwner queries for assets based on a passed in owner.
-  // This is an example of a parameterized query where the query logic is baked into the chaincode,
-  // and accepting a single query parameter (owner).
-  // Only available on state databases that support rich query (e.g. CouchDB)
-  // Example: Parameterized rich query
-  async QueryAssetsByOwner(ctx, owner) {
-    let queryString = {};
-    queryString.selector = {};
-    queryString.selector.docType = 'asset';
-    queryString.selector.owner = owner;
-    let queryResults = await this.GetQueryResultForQueryString(ctx, JSON.stringify(queryString));
-    return queryResults; //shim.success(queryResults);
-  }
+			// Now call the transfer function for the found asset.
+			// Re-use the same function that is used to transfer individual assets
+			await this.TransferAsset(ctx, returnedAssetName, newOwner);
+			responseRange = await coloredAssetResultsIterator.next();
+		}
+	}
 
-  // Example: Ad hoc rich query
-  // QueryAssets uses a query string to perform a query for assets.
-  // Query string matching state database syntax is passed in and executed as is.
-  // Supports ad hoc queries that can be defined at runtime by the client.
-  // If this is not desired, follow the QueryAssetsForOwner example for parameterized queries.
-  // Only available on state databases that support rich query (e.g. CouchDB)
-  async QueryAssets(ctx, queryString) {
-    let queryResults = await this.GetQueryResultForQueryString(ctx, queryString);
-    return queryResults;
-  }
+	// QueryAssetsByOwner queries for assets based on a passed in owner.
+	// This is an example of a parameterized query where the query logic is baked into the chaincode,
+	// and accepting a single query parameter (owner).
+	// Only available on state databases that support rich query (e.g. CouchDB)
+	// Example: Parameterized rich query
+	async QueryAssetsByOwner(ctx, owner) {
+		let queryString = {};
+		queryString.selector = {};
+		queryString.selector.docType = 'asset';
+		queryString.selector.owner = owner;
+		return await this.GetQueryResultForQueryString(ctx, JSON.stringify(queryString)); //shim.success(queryResults);
+	}
 
-  // GetQueryResultForQueryString executes the passed in query string.
-  // Result set is built and returned as a byte array containing the JSON results.
-  async GetQueryResultForQueryString(ctx, queryString) {
+	// Example: Ad hoc rich query
+	// QueryAssets uses a query string to perform a query for assets.
+	// Query string matching state database syntax is passed in and executed as is.
+	// Supports ad hoc queries that can be defined at runtime by the client.
+	// If this is not desired, follow the QueryAssetsForOwner example for parameterized queries.
+	// Only available on state databases that support rich query (e.g. CouchDB)
+	async QueryAssets(ctx, queryString) {
+		return await this.GetQueryResultForQueryString(ctx, queryString);
+	}
 
-    let resultsIterator = await ctx.stub.getQueryResult(queryString);
-    let results = await this.GetAllResults(resultsIterator, false);
+	// GetQueryResultForQueryString executes the passed in query string.
+	// Result set is built and returned as a byte array containing the JSON results.
+	async GetQueryResultForQueryString(ctx, queryString) {
 
-    return JSON.stringify(results);
-  }
+		let resultsIterator = await ctx.stub.getQueryResult(queryString);
+		let results = await this.GetAllResults(resultsIterator, false);
 
-  // Example: Pagination with Range Query
-  // GetAssetsByRangeWithPagination performs a range query based on the start & end key,
-  // page size and a bookmark.
-  // The number of fetched records will be equal to or lesser than the page size.
-  // Paginated range queries are only valid for read only transactions.
-  async GetAssetsByRangeWithPagination(ctx, startKey, endKey, pageSize, bookmark) {
+		return JSON.stringify(results);
+	}
 
-    const { iterator, metadata } = await ctx.stub.getStateByRangeWithPagination(startKey, endKey, pageSize, bookmark);
-    const results = await this.GetAllResults(iterator, false);
+	// Example: Pagination with Range Query
+	// GetAssetsByRangeWithPagination performs a range query based on the start & end key,
+	// page size and a bookmark.
+	// The number of fetched records will be equal to or lesser than the page size.
+	// Paginated range queries are only valid for read only transactions.
+	async GetAssetsByRangeWithPagination(ctx, startKey, endKey, pageSize, bookmark) {
 
-    results.ResponseMetadata = {
-      RecordsCount: metadata.fetched_records_count,
-      Bookmark: metadata.bookmark,
-    };
-    return JSON.stringify(results);
-  }
+		const {iterator, metadata} = await ctx.stub.getStateByRangeWithPagination(startKey, endKey, pageSize, bookmark);
+		const results = await this.GetAllResults(iterator, false);
 
-  // Example: Pagination with Ad hoc Rich Query
-  // QueryAssetsWithPagination uses a query string, page size and a bookmark to perform a query
-  // for assets. Query string matching state database syntax is passed in and executed as is.
-  // The number of fetched records would be equal to or lesser than the specified page size.
-  // Supports ad hoc queries that can be defined at runtime by the client.
-  // If this is not desired, follow the QueryAssetsForOwner example for parameterized queries.
-  // Only available on state databases that support rich query (e.g. CouchDB)
-  // Paginated queries are only valid for read only transactions.
-  async QueryAssetsWithPagination(ctx, queryString, pageSize, bookmark) {
+		results.ResponseMetadata = {
+			RecordsCount: metadata.fetched_records_count,
+			Bookmark: metadata.bookmark,
+		};
+		return JSON.stringify(results);
+	}
 
-    const { iterator, metadata } = await ctx.stub.getQueryResultWithPagination(queryString, pageSize, bookmark);
-    const results = await this.GetAllResults(iterator, false);
+	// Example: Pagination with Ad hoc Rich Query
+	// QueryAssetsWithPagination uses a query string, page size and a bookmark to perform a query
+	// for assets. Query string matching state database syntax is passed in and executed as is.
+	// The number of fetched records would be equal to or lesser than the specified page size.
+	// Supports ad hoc queries that can be defined at runtime by the client.
+	// If this is not desired, follow the QueryAssetsForOwner example for parameterized queries.
+	// Only available on state databases that support rich query (e.g. CouchDB)
+	// Paginated queries are only valid for read only transactions.
+	async QueryAssetsWithPagination(ctx, queryString, pageSize, bookmark) {
 
-    results.ResponseMetadata = {
-      RecordsCount: metadata.fetched_records_count,
-      Bookmark: metadata.bookmark,
-    };
+		const {iterator, metadata} = await ctx.stub.getQueryResultWithPagination(queryString, pageSize, bookmark);
+		const results = await this.GetAllResults(iterator, false);
 
-    return JSON.stringify(results);
-  }
+		results.ResponseMetadata = {
+			RecordsCount: metadata.fetched_records_count,
+			Bookmark: metadata.bookmark,
+		};
 
-  // GetAssetHistory returns the chain of custody for an asset since issuance.
-  async GetAssetHistory(ctx, assetName) {
+		return JSON.stringify(results);
+	}
 
-    const resultsIterator = await ctx.stub.getHistoryForKey(assetName);
-    const results = await this.GetAllResults(resultsIterator, true);
+	// GetAssetHistory returns the chain of custody for an asset since issuance.
+	async GetAssetHistory(ctx, assetName) {
 
-    return JSON.stringify(results);
-  }
+		let resultsIterator = await ctx.stub.getHistoryForKey(assetName);
+		let results = await this.GetAllResults(resultsIterator, true);
 
-  // AssetExists returns true when asset with given ID exists in world state
-  async AssetExists(ctx, assetName) {
-    // ==== Check if asset already exists ====
-    const assetState = await ctx.stub.getState(assetName);
-    if ( !assetState || assetState.length === 0 ) {
-      return false;
-    }
-    return true
-  }
+		return JSON.stringify(results);
+	}
 
-  async GetAllResults(iterator, isHistory) {
-    const allResults = [];
-    let res = await iterator.next();
-    while (!res.done) {
-      const jsonRes = {};
+	// AssetExists returns true when asset with given ID exists in world state
+	async AssetExists(ctx, assetName) {
+		// ==== Check if asset already exists ====
+		let assetState = await ctx.stub.getState(assetName);
+		return assetState && assetState.length > 0;
+	}
 
-      if (isHistory) {
-         jsonRes.TxId = res.value.txId;
-         jsonRes.Timestamp = res.value.timestamp;
-         jsonRes.IsDelete = res.value.isDelete;
-      }
+	async GetAllResults(iterator, isHistory) {
+		let allResults = [];
+		let res = await iterator.next();
+		while (!res.done) {
+			if (res.value && res.value.value.toString()) {
+				let jsonRes = {};
+				console.log(res.value.value.toString('utf8'));
+				if (isHistory && isHistory === true) {
+					jsonRes.TxId = res.value.tx_id;
+					jsonRes.Timestamp = res.value.timestamp;
+					try {
+						jsonRes.Value = JSON.parse(res.value.value.toString('utf8'));
+					} catch (err) {
+						console.log(err);
+						jsonRes.Value = res.value.value.toString('utf8');
+					}
+				} else {
+					jsonRes.Key = res.value.key;
+					try {
+						jsonRes.Record = JSON.parse(res.value.value.toString('utf8'));
+					} catch (err) {
+						console.log(err);
+						jsonRes.Record = res.value.value.toString('utf8');
+					}
+				}
+				allResults.push(jsonRes);
+			}
+			res = await iterator.next();
+		}
+		iterator.close();
+		return allResults;
+	}
 
-      if (res.value.value.length > 0) {
-         jsonRes.Record = JSON.parse(res.value.value.toString('utf8'));
-      } else {
-         jsonRes.Record = {ID: res.value.key};
-      }
+	// InitLedger creates sample assets in the ledger
+	async InitLedger(ctx) {
+		const assets = [
+			{
+				assetID: 'asset1',
+				color: 'blue',
+				size: 5,
+				owner: 'Tom',
+				appraisedValue: 100
+			},
+			{
+				assetID: 'asset2',
+				color: 'red',
+				size: 5,
+				owner: 'Brad',
+				appraisedValue: 100
+			},
+			{
+				assetID: 'asset3',
+				color: 'green',
+				size: 10,
+				owner: 'Jin Soo',
+				appraisedValue: 200
+			},
+			{
+				assetID: 'asset4',
+				color: 'yellow',
+				size: 10,
+				owner: 'Max',
+				appraisedValue: 200
+			},
+			{
+				assetID: 'asset5',
+				color: 'black',
+				size: 15,
+				owner: 'Adriana',
+				appraisedValue: 250
+			},
+			{
+				assetID: 'asset6',
+				color: 'white',
+				size: 15,
+				owner: 'Michel',
+				appraisedValue: 250
+			},
+		];
 
-      jsonRes.Key = res.value.key;
-
-      console.log('Result: ' + JSON.stringify(jsonRes));
-      allResults.push(jsonRes);
-      res = await iterator.next();
-    }
-
-    await iterator.close();
-    return allResults;
-  }
-
-  // InitLedger creates sample assets in the ledger
-  async InitLedger(ctx) {
-    const assets = [
-        {
-            ID: 'asset1',
-            color: 'blue',
-            size: 5,
-            owner: 'Tom',
-            appraisedValue: 100
-        },
-        {
-            ID: 'asset2',
-            color: 'red',
-            size: 5,
-            owner: 'Brad',
-            appraisedValue: 100
-        },
-        {
-            ID: 'asset3',
-            color: 'green',
-            size: 10,
-            owner: 'Jin Soo',
-            appraisedValue: 200
-        },
-        {
-            ID: 'asset4',
-            color: 'yellow',
-            size: 10,
-            owner: 'Max',
-            appraisedValue: 200
-        },
-        {
-            ID: 'asset5',
-            color: 'black',
-            size: 15,
-            owner: 'Adriana',
-            appraisedValue: 250
-        },
-        {
-            ID: 'asset6',
-            color: 'white',
-            size: 15,
-            owner: 'Michel',
-            appraisedValue: 250
-        },
-    ];
-
-    for (let i = 0; i < assets.length; i++) {
-        await this.CreateAsset(
-          ctx,
-          assets[i].ID,
-          assets[i].color,
-          assets[i].size,
-          assets[i].owner,
-          assets[i].appraisedValue
-          );
-    }
-  }
+		for (let asset in assets) {
+			await this.CreateAsset(
+				ctx,
+				asset.assetID,
+				asset.color,
+				asset.size,
+				asset.owner,
+				asset.appraisedValue
+			);
+		}
+	}
 }
 
 module.exports = Chaincode;

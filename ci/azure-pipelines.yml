@@ -76,6 +76,14 @@ jobs:
       vmImage: ubuntu-18.04
     strategy:
       matrix:
+        Basic-Application-Go:
+          DIRECTORY: asset-transfer-basic
+          LANGUAGE: go
+          TYPE: application
+        Basic-Application-Java:
+          DIRECTORY: asset-transfer-basic
+          LANGUAGE: java
+          TYPE: application
         Basic-Application-Javascript:
           DIRECTORY: asset-transfer-basic
           LANGUAGE: javascript
@@ -96,18 +104,30 @@ jobs:
           DIRECTORY: asset-transfer-basic
           LANGUAGE: typescript
           TYPE: chaincode
+        Ledger-Application-Java:
+          DIRECTORY: asset-transfer-ledger-queries
+          LANGUAGE: java
+          TYPE: application
         Ledger-Chaincode-Go:
           DIRECTORY: asset-transfer-ledger-queries
           LANGUAGE: go
-          TYPE: chaincode                                
-        PrivateData-Chaincode-Go:
-          DIRECTORY: asset-transfer-private-data
-          LANGUAGE: go
+          TYPE: chaincode
+        Ledger-Chaincode-Javascript:
+          DIRECTORY: asset-transfer-ledger-queries
+          LANGUAGE: javascript
           TYPE: chaincode
         PrivateData-Application-Javascript:
           DIRECTORY: asset-transfer-private-data
           LANGUAGE: javascript
-          TYPE: application          
+          TYPE: application
+        PrivateData-Chaincode-Go:
+          DIRECTORY: asset-transfer-private-data
+          LANGUAGE: go
+          TYPE: chaincode
+        SBE-Chaincode-Typescript:
+          DIRECTORY: asset-transfer-sbe
+          LANGUAGE: typescript
+          TYPE: chaincode
         Secured-Chaincode-Go:
           DIRECTORY: asset-transfer-secured-agreement
           LANGUAGE: go
@@ -158,6 +178,9 @@ jobs:
         Ledger-Go:
           CHAINCODE_NAME: ledger
           CHAINCODE_LANGUAGE: go
+        Ledger-Javascript:
+          CHAINCODE_NAME: ledger
+          CHAINCODE_LANGUAGE: javascript
     steps:
       - template: templates/install-deps.yml
       - script: ../ci/scripts/run-test-network-ledger.sh
@@ -176,6 +199,21 @@ jobs:
     steps:
       - template: templates/install-deps.yml
       - script: ../ci/scripts/run-test-network-private.sh
+        workingDirectory: test-network
+        displayName: Run Test Network Private Chaincode
+
+  - job: TestNetworkSBE
+    displayName: Test Network
+    pool:
+      vmImage: ubuntu-18.04
+    strategy:
+      matrix:
+        SBE-Typescript:
+          CHAINCODE_NAME: sbe
+          CHAINCODE_LANGUAGE: typescript
+    steps:
+      - template: templates/install-deps.yml
+      - script: ../ci/scripts/run-test-network-sbe.sh
         workingDirectory: test-network
         displayName: Run Test Network Private Chaincode
 
