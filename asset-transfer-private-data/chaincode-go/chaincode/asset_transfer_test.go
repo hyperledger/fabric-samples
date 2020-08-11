@@ -1,8 +1,12 @@
+/*
+Copyright IBM Corp. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
 package chaincode_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 
@@ -139,36 +143,102 @@ func TestCreateAssetSuccessful(t *testing.T) {
 	require.Equal(t, assetBytes, calledAssetBytes)
 }
 
-func TestReadAsset(t *testing.T) {
+func TestAgreeToTransferBadInput(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
 	assetTransferCC := chaincode.SmartContract{}
 
-	assetBytes, err := assetTransferCC.ReadAsset(transactionContext, "id1")
-	require.NoError(t, err)
-	require.Nil(t, assetBytes)
-
-	chaincodeStub.GetPrivateDataReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	assetBytes, err = assetTransferCC.ReadAsset(transactionContext, "id1")
-	require.EqualError(t, err, "failed to read asset: unable to retrieve asset")
-
-	testAsset := &chaincode.Asset{
+	assetPrivDetail := &chaincode.AssetPrivateDetails{
+		ID: "id1",
+		//no AppraisedValue
+	}
+	setReturnAssetPrivateDetailsInTransientMap(t, chaincodeStub, assetPrivDetail)
+	origAsset := chaincode.Asset{
 		ID:    "id1",
 		Type:  "testfulasset",
 		Color: "gray",
 		Size:  7,
 		Owner: myOrg1Clientid,
 	}
-	setReturnPrivateDataInStub(t, chaincodeStub, testAsset)
-	assetRead, err := assetTransferCC.ReadAsset(transactionContext, "id1")
-	require.NoError(t, err)
-	require.Equal(t, testAsset, assetRead)
+	setReturnPrivateDataInStub(t, chaincodeStub, &origAsset)
+
+	err := assetTransferCC.AgreeToTransfer(transactionContext)
+	require.EqualError(t, err, "appraisedValue field must be a positive integer")
+
+	assetPrivDetail = &chaincode.AssetPrivateDetails{
+		//no ID
+		AppraisedValue: 500,
+	}
+	setReturnAssetPrivateDetailsInTransientMap(t, chaincodeStub, assetPrivDetail)
+	err = assetTransferCC.AgreeToTransfer(transactionContext)
+	require.EqualError(t, err, "assetID field must be a non-empty string")
+
+	assetPrivDetail = &chaincode.AssetPrivateDetails{
+		ID:             "id1",
+		AppraisedValue: 500,
+	}
+	setReturnAssetPrivateDetailsInTransientMap(t, chaincodeStub, assetPrivDetail)
+	//asset does not exist
+	setReturnPrivateDataInStub(t, chaincodeStub, nil)
+	err = assetTransferCC.AgreeToTransfer(transactionContext)
+	require.EqualError(t, err, "id1 does not exist")
 }
 
-//todo
-// ReadAssetPrivateDetails
-// AgreeToTransfer
+func TestAgreeToTransferSuccessful(t *testing.T) {
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	assetTransferCC := chaincode.SmartContract{}
+	assetPrivDetail := &chaincode.AssetPrivateDetails{
+		ID:             "id1",
+		AppraisedValue: 500,
+	}
+	setReturnAssetPrivateDetailsInTransientMap(t, chaincodeStub, assetPrivDetail)
+	origAsset := chaincode.Asset{
+		ID:    "id1",
+		Type:  "testfulasset",
+		Color: "gray",
+		Size:  7,
+		Owner: myOrg1Clientid,
+	}
+	setReturnPrivateDataInStub(t, chaincodeStub, &origAsset)
+	chaincodeStub.CreateCompositeKeyReturns(transferAgreementObjectType+"id1", nil)
+	err := assetTransferCC.AgreeToTransfer(transactionContext)
+	require.NoError(t, err)
 
-func TestTransferAsset(t *testing.T) {
+	expectedDataBytes, err := json.Marshal(assetPrivDetail)
+	calledCollection, calledId, calledWithDataBytes := chaincodeStub.PutPrivateDataArgsForCall(0)
+	require.Equal(t, myOrg1PrivCollection, calledCollection)
+	require.Equal(t, "id1", calledId)
+	require.Equal(t, expectedDataBytes, calledWithDataBytes)
+
+	calledCollection, calledId, calledWithDataBytes = chaincodeStub.PutPrivateDataArgsForCall(1)
+	require.Equal(t, assetCollectionName, calledCollection)
+	require.Equal(t, transferAgreementObjectType+"id1", calledId)
+	require.Equal(t, []byte(myOrg1Clientid), calledWithDataBytes)
+}
+func TestTransferAssetBadInput(t *testing.T) {
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	assetTransferCC := chaincode.SmartContract{}
+
+	assetNewOwner := &assetTransferTransientInput{
+		ID:       "id1",
+		BuyerMSP: "",
+	}
+	setReturnAssetOwnerInTransientMap(t, chaincodeStub, assetNewOwner)
+	setReturnPrivateDataInStub(t, chaincodeStub, &chaincode.Asset{})
+	err := assetTransferCC.TransferAsset(transactionContext)
+	require.EqualError(t, err, "buyerMSP field must be a non-empty string")
+
+	assetNewOwner = &assetTransferTransientInput{
+		ID:       "id1",
+		BuyerMSP: myOrg2Msp,
+	}
+	setReturnAssetOwnerInTransientMap(t, chaincodeStub, assetNewOwner)
+	//asset does not exist
+	setReturnPrivateDataInStub(t, chaincodeStub, nil)
+	err = assetTransferCC.TransferAsset(transactionContext)
+	require.EqualError(t, err, "id1 does not exist")
+}
+
+func TestTransferAssetSuccessful(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
 	assetTransferCC := chaincode.SmartContract{}
 	assetNewOwner := &assetTransferTransientInput{
@@ -258,30 +328,6 @@ func TestTransferAssetWithoutAnAgreement(t *testing.T) {
 	require.EqualError(t, err, "BuyerID not found in TransferAgreement for id1")
 }
 
-func TestTransferAssetBadInput(t *testing.T) {
-	transactionContext, chaincodeStub := prepMocksAsOrg1()
-	assetTransferCC := chaincode.SmartContract{}
-
-	assetNewOwner := &assetTransferTransientInput{
-		ID:       "id1",
-		BuyerMSP: "",
-	}
-	setReturnAssetOwnerInTransientMap(t, chaincodeStub, assetNewOwner)
-	setReturnPrivateDataInStub(t, chaincodeStub, &chaincode.Asset{})
-	err := assetTransferCC.TransferAsset(transactionContext)
-	require.EqualError(t, err, "buyerMSP field must be a non-empty string")
-
-	assetNewOwner = &assetTransferTransientInput{
-		ID:       "id1",
-		BuyerMSP: myOrg2Msp,
-	}
-	setReturnAssetOwnerInTransientMap(t, chaincodeStub, assetNewOwner)
-	//asset does not exist
-	setReturnPrivateDataInStub(t, chaincodeStub, nil)
-	err = assetTransferCC.TransferAsset(transactionContext)
-	require.EqualError(t, err, "id1 does not exist")
-}
-
 func TestTransferAssetNonMatchingAppraisalValue(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
 	assetTransferCC := chaincode.SmartContract{}
@@ -329,6 +375,20 @@ func prepMocks(orgMSP, clientId string) (*mocks.TransactionContext, *mocks.Chain
 	return transactionContext, chaincodeStub
 }
 
+func setReturnAssetPrivateDetailsInTransientMap(t *testing.T, chaincodeStub *mocks.ChaincodeStub, assetPrivDetail *chaincode.AssetPrivateDetails) []byte {
+	assetOwnerBytes := []byte{}
+	if assetPrivDetail != nil {
+		var err error
+		assetOwnerBytes, err = json.Marshal(assetPrivDetail)
+		require.NoError(t, err)
+	}
+	assetPropMap := map[string][]byte{
+		"asset_value": assetOwnerBytes,
+	}
+	chaincodeStub.GetTransientReturns(assetPropMap, nil)
+	return assetOwnerBytes
+}
+
 func setReturnAssetOwnerInTransientMap(t *testing.T, chaincodeStub *mocks.ChaincodeStub, assetOwner *assetTransferTransientInput) []byte {
 	assetOwnerBytes := []byte{}
 	if assetOwner != nil {
@@ -358,136 +418,27 @@ func setReturnAssetPropsInTransientMap(t *testing.T, chaincodeStub *mocks.Chainc
 }
 
 func setReturnPrivateDataInStub(t *testing.T, chaincodeStub *mocks.ChaincodeStub, testAsset *chaincode.Asset) []byte {
-	assetBytes := []byte{}
-	if testAsset != nil {
+	if testAsset == nil {
+		chaincodeStub.GetPrivateDataReturns(nil, nil)
+		return nil
+	} else {
 		var err error
-		assetBytes, err = json.Marshal(testAsset)
+		assetBytes, err := json.Marshal(testAsset)
 		require.NoError(t, err)
+		chaincodeStub.GetPrivateDataReturns(assetBytes, nil)
+		return assetBytes
 	}
-	chaincodeStub.GetPrivateDataReturns(assetBytes, nil)
-	return assetBytes
 }
 
-/*
-func TestReadAsset(t *testing.T) {
-	chaincodeStub := &mocks.ChaincodeStub{}
-	transactionContext := &mocks.TransactionContext{}
-	transactionContext.GetStubReturns(chaincodeStub)
-
-	expectedAsset := &chaincode.Asset{ID: "asset1"}
-	bytes, err := json.Marshal(expectedAsset)
-	require.NoError(t, err)
-
-	chaincodeStub.GetStateReturns(bytes, nil)
-	assetTransferCC := chaincode.SmartContract{}
-	asset, err := assetTransferCC.ReadAsset(transactionContext, "")
-	require.NoError(t, err)
-	require.Equal(t, expectedAsset, asset)
-
-	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	_, err = assetTransferCC.ReadAsset(transactionContext, "")
-	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
-
-	chaincodeStub.GetStateReturns(nil, nil)
-	asset, err = assetTransferCC.ReadAsset(transactionContext, "asset1")
-	require.EqualError(t, err, "the asset asset1 does not exist")
-	require.Nil(t, asset)
+func setReturnAssetPrivateDetailsInStub(t *testing.T, chaincodeStub *mocks.ChaincodeStub, testAsset *chaincode.AssetPrivateDetails) []byte {
+	if testAsset == nil {
+		chaincodeStub.GetPrivateDataReturns(nil, nil)
+		return nil
+	} else {
+		var err error
+		assetBytes, err := json.Marshal(testAsset)
+		require.NoError(t, err)
+		chaincodeStub.GetPrivateDataReturns(assetBytes, nil)
+		return assetBytes
+	}
 }
-
-func TestUpdateAsset(t *testing.T) {
-	chaincodeStub := &mocks.ChaincodeStub{}
-	transactionContext := &mocks.TransactionContext{}
-	transactionContext.GetStubReturns(chaincodeStub)
-
-	expectedAsset := &chaincode.Asset{ID: "asset1"}
-	bytes, err := json.Marshal(expectedAsset)
-	require.NoError(t, err)
-
-	chaincodeStub.GetStateReturns(bytes, nil)
-	assetTransferCC := chaincode.SmartContract{}
-	err = assetTransferCC.UpdateAsset(transactionContext, "", "", 0, "", 0)
-	require.NoError(t, err)
-
-	chaincodeStub.GetStateReturns(nil, nil)
-	err = assetTransferCC.UpdateAsset(transactionContext, "asset1", "", 0, "", 0)
-	require.EqualError(t, err, "the asset asset1 does not exist")
-
-	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = assetTransferCC.UpdateAsset(transactionContext, "asset1", "", 0, "", 0)
-	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
-}
-
-func TestDeleteAsset(t *testing.T) {
-	chaincodeStub := &mocks.ChaincodeStub{}
-	transactionContext := &mocks.TransactionContext{}
-	transactionContext.GetStubReturns(chaincodeStub)
-
-	asset := &chaincode.Asset{ID: "asset1"}
-	bytes, err := json.Marshal(asset)
-	require.NoError(t, err)
-
-	chaincodeStub.GetStateReturns(bytes, nil)
-	chaincodeStub.DelStateReturns(nil)
-	assetTransferCC := chaincode.SmartContract{}
-	err = assetTransferCC.DeleteAsset(transactionContext, "")
-	require.NoError(t, err)
-
-	chaincodeStub.GetStateReturns(nil, nil)
-	err = assetTransferCC.DeleteAsset(transactionContext, "asset1")
-	require.EqualError(t, err, "the asset asset1 does not exist")
-
-	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = assetTransferCC.DeleteAsset(transactionContext, "")
-	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
-}
-
-func TestTransferAsset(t *testing.T) {
-	chaincodeStub := &mocks.ChaincodeStub{}
-	transactionContext := &mocks.TransactionContext{}
-	transactionContext.GetStubReturns(chaincodeStub)
-
-	asset := &chaincode.Asset{ID: "asset1"}
-	bytes, err := json.Marshal(asset)
-	require.NoError(t, err)
-
-	chaincodeStub.GetStateReturns(bytes, nil)
-	assetTransferCC := chaincode.SmartContract{}
-	err = assetTransferCC.TransferAsset(transactionContext, "", "")
-	require.NoError(t, err)
-
-	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = assetTransferCC.TransferAsset(transactionContext, "", "")
-	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
-}
-
-func TestGetAllAssets(t *testing.T) {
-	asset := &chaincode.Asset{ID: "asset1"}
-	bytes, err := json.Marshal(asset)
-	require.NoError(t, err)
-
-	iterator := &mocks.StateQueryIterator{}
-	iterator.HasNextReturnsOnCall(0, true)
-	iterator.HasNextReturnsOnCall(1, false)
-	iterator.NextReturns(&queryresult.KV{Value: bytes}, nil)
-
-	chaincodeStub := &mocks.ChaincodeStub{}
-	transactionContext := &mocks.TransactionContext{}
-	transactionContext.GetStubReturns(chaincodeStub)
-
-	chaincodeStub.GetStateByRangeReturns(iterator, nil)
-	assetTransferCC := &chaincode.SmartContract{}
-	assets, err := assetTransferCC.GetAllAssets(transactionContext)
-	require.NoError(t, err)
-	require.Equal(t, []*chaincode.Asset{asset}, assets)
-
-	iterator.HasNextReturns(true)
-	iterator.NextReturns(nil, fmt.Errorf("failed retrieving next item"))
-	assets, err = assetTransferCC.GetAllAssets(transactionContext)
-	require.EqualError(t, err, "failed retrieving next item")
-	require.Nil(t, assets)
-
-	chaincodeStub.GetStateByRangeReturns(nil, fmt.Errorf("failed retrieving all assets"))
-	assets, err = assetTransferCC.GetAllAssets(transactionContext)
-	require.EqualError(t, err, "failed retrieving all assets")
-	require.Nil(t, assets)
-}*/

@@ -116,14 +116,14 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 	}
 
 	// Make submitting client the owner
-	asset := &Asset{
+	asset := Asset{
 		Type:  assetInput.Type,
 		ID:    assetInput.ID,
 		Color: assetInput.Color,
 		Size:  assetInput.Size,
 		Owner: clientID,
 	}
-	assetJSONasBytes, err := json.Marshal(asset)
+	assetJSONasBytes, err := json.Marshal(&asset)
 	if err != nil {
 		return fmt.Errorf("failed to marshal asset into JSON: %v", err)
 	}
@@ -138,12 +138,12 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 	}
 
 	// Save asset details to collection visible to owning organization
-	assetPrivateDetails := &AssetPrivateDetails{
+	assetPrivateDetails := AssetPrivateDetails{
 		ID:             assetInput.ID,
 		AppraisedValue: assetInput.AppraisedValue,
 	}
 
-	assetPrivateDetailsAsBytes, err := json.Marshal(assetPrivateDetails) // marshal asset details to JSON
+	assetPrivateDetailsAsBytes, err := json.Marshal(&assetPrivateDetails) // marshal asset details to JSON
 	if err != nil {
 		return fmt.Errorf("failed to marshal into JSON: %v", err)
 	}
@@ -202,6 +202,14 @@ func (s *SmartContract) AgreeToTransfer(ctx contractapi.TransactionContextInterf
 		return fmt.Errorf("appraisedValue field must be a positive integer")
 	}
 
+	// Read asset from the private data collection
+	asset, err := s.ReadAsset(ctx, valueJSON.ID)
+	if err != nil {
+		return fmt.Errorf("error reading asset: %v", err)
+	}
+	if asset == nil {
+		return fmt.Errorf("%v does not exist", valueJSON.ID)
+	}
 	// Verify that the client is submitting request to peer in their organization
 	err = verifyClientOrgMatchesPeerOrg(ctx)
 	if err != nil {
@@ -488,7 +496,7 @@ func (s *SmartContract) DeleteTranferAgreement(ctx contractapi.TransactionContex
 	}
 
 	if len(assetDeleteInput.ID) == 0 {
-		return fmt.Errorf("ID field must be a non-empty string")
+		return fmt.Errorf("transient input ID field must be a non-empty string")
 	}
 
 	// Verify that the client is submitting request to peer in their organization
