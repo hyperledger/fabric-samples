@@ -7,9 +7,9 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -18,20 +18,22 @@ import (
 )
 
 func main() {
-	fmt.Println("============ application-golang starts ============")
+	log.Println("============ application-golang starts ============")
 
-	os.Setenv("DISCOVERY_AS_LOCALHOST", "true")
+	err := os.Setenv("DISCOVERY_AS_LOCALHOST", "true")
+	if err != nil {
+		log.Fatalf("Error setting DISCOVERY_AS_LOCALHOST environemnt variable: %v", err)
+	}
+
 	wallet, err := gateway.NewFileSystemWallet("wallet")
 	if err != nil {
-		fmt.Printf("failed to create wallet: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Failed to create wallet: %v", err)
 	}
 
 	if !wallet.Exists("appUser") {
 		err = populateWallet(wallet)
 		if err != nil {
-			fmt.Printf("failed to populate wallet contents: %v\n", err)
-			os.Exit(1)
+			log.Fatalf("Failed to populate wallet contents: %v", err)
 		}
 	}
 
@@ -50,57 +52,56 @@ func main() {
 		gateway.WithIdentity(wallet, "appUser"),
 	)
 	if err != nil {
-		fmt.Printf("failed to connect to gateway: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Failed to connect to gateway: %v", err)
 	}
 	defer gw.Close()
 
 	network, err := gw.GetNetwork("mychannel")
 	if err != nil {
-		fmt.Printf("failed to get network: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Failed to get network: %v", err)
 	}
 
 	contract := network.GetContract("basic")
 
-	result, err := contract.EvaluateTransaction("GetAllAssets")
+	result, err := contract.SubmitTransaction("InitLedger")
 	if err != nil {
-		fmt.Printf("failed to evaluate transaction: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("failed to evaluate transaction: %v", err)
 	}
-	fmt.Println(string(result))
+	log.Println(string(result))
 
-	result, err = contract.SubmitTransaction("CreateAsset", "asset13", "yellow", "Tom", "5", "1300")
+	result, err = contract.EvaluateTransaction("GetAllAssets")
 	if err != nil {
-		fmt.Printf("failed to submit transaction: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Failed to evaluate transaction: %v", err)
 	}
-	fmt.Println(string(result))
+	log.Println(string(result))
+
+	result, err = contract.SubmitTransaction("CreateAsset", "asset13", "yellow", "5", "Tom", "1300")
+	if err != nil {
+		log.Fatalf("Failed to submit transaction: %v", err)
+	}
+	log.Println(string(result))
 
 	result, err = contract.EvaluateTransaction("ReadAsset", "asset4")
 	if err != nil {
-		fmt.Printf("failed to evaluate transaction: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Failed to evaluate transaction: %v", err)
 	}
-	fmt.Println(string(result))
+	log.Println(string(result))
 
 	_, err = contract.SubmitTransaction("TransferAsset", "asset1", "Tom")
 	if err != nil {
-		fmt.Printf("Failed to submit transaction: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Failed to submit transaction: %v", err)
 	}
 
 	result, err = contract.EvaluateTransaction("ReadAsset", "asset1")
 	if err != nil {
-		fmt.Printf("failed to evaluate transaction: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Failed to evaluate transaction: %v", err)
 	}
-	fmt.Println(string(result))
-	fmt.Println("============ application-golang ends ============")
+	log.Println(string(result))
+	log.Println("============ application-golang ends ============")
 }
 
 func populateWallet(wallet *gateway.Wallet) error {
-	fmt.Println("============ populate wallet starts ============")
+	log.Println("============ Populating wallet ============")
 	credPath := filepath.Join(
 		"..",
 		"..",
@@ -127,7 +128,7 @@ func populateWallet(wallet *gateway.Wallet) error {
 		return err
 	}
 	if len(files) != 1 {
-		return errors.New("keystore folder should have contain one file")
+		return fmt.Errorf("keystore folder should have contain one file")
 	}
 	keyPath := filepath.Join(keyDir, files[0].Name())
 	key, err := ioutil.ReadFile(filepath.Clean(keyPath))
@@ -137,10 +138,5 @@ func populateWallet(wallet *gateway.Wallet) error {
 
 	identity := gateway.NewX509Identity("Org1MSP", string(cert), string(key))
 
-	err = wallet.Put("appUser", identity)
-	if err != nil {
-		return err
-	}
-	fmt.Println("============ populate wallet ends ============")
-	return nil
+	return wallet.Put("appUser", identity)
 }

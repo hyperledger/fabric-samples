@@ -11,20 +11,42 @@ function print() {
 	echo -e "${GREEN}${1}${NC}"
 }
 
-print "Creating network"
-./network.sh up createChannel -ca -s couchdb -i "${FABRIC_VERSION}"
-print "Deploying ${CHAINCODE_NAME} chaincode"
-./network.sh deployCC -ccn "${CHAINCODE_NAME}" -ccv 1 -ccs 1 -ccl "${CHAINCODE_LANGUAGE}"
+function createNetwork() {
+  print "Creating network"
+  ./network.sh up createChannel -ca -s couchdb -i "${FABRIC_VERSION}"
+  print "Deploying ${CHAINCODE_NAME} chaincode"
+  ./network.sh deployCC -ccn "${CHAINCODE_NAME}" -ccv 1 -ccs 1 -ccl "${CHAINCODE_LANGUAGE}"
+}
 
+function stopNetwork() {
+  print "Stopping network"
+  ./network.sh down
+}
+
+# Run Go application
+#createNetwork
+#print "Initializing Go application"
+#pushd ../asset-transfer-basic/application-go
+#print "Executing AssetTransfer.go"
+#go run .
+#popd
+#stopNetwork
+
+# Run Java application
+createNetwork
+print "Initializing Java application"
+pushd ../asset-transfer-basic/application-java
+print "Executing Gradle Run"
+gradle run
+popd
+stopNetwork
 
 # Run Javascript application
+createNetwork
 print "Initializing Javascript application"
 pushd ../asset-transfer-basic/application-javascript
 npm install
 print "Executing app.js"
 node app.js
 popd
-
-print "Stopping network"
-./network.sh down
-rm -R ../asset-transfer-basic/application-javascript/wallet
+stopNetwork

@@ -17,7 +17,7 @@ export class AssetContract extends Contract {
         if (exists) {
             throw new Error(`The asset ${assetId} already exists`);
         }
-        const ownerOrg = this.getClientOrgId(ctx);
+        const ownerOrg = AssetContract.getClientOrgId(ctx);
         const asset = new Asset();
         asset.ID = assetId;
         asset.Value = value;
@@ -27,7 +27,7 @@ export class AssetContract extends Contract {
         // Create the asset
         await ctx.stub.putState(assetId, buffer);
         // Set the endorsement policy of the assetId Key, such that current owner Org Peer is required to endorse future updates
-        await this.setAssetStateBasedEndorsement(ctx, asset.ID, [ownerOrg]);
+        await AssetContract.setAssetStateBasedEndorsement(ctx, asset.ID, [ownerOrg]);
     }
 
     // ReadAsset returns asset with given assetId
@@ -78,7 +78,7 @@ export class AssetContract extends Contract {
         // Update the asset
         await ctx.stub.putState(assetId, Buffer.from(JSON.stringify(asset)));
         // Re-Set the endorsement policy of the assetId Key, such that a new owner Org Peer is required to endorse future updates
-        await this.setAssetStateBasedEndorsement(ctx, asset.ID, [newOwnerOrg]);
+        await AssetContract.setAssetStateBasedEndorsement(ctx, asset.ID, [newOwnerOrg]);
     }
 
     // AssetExists returns true when asset with given ID exists
@@ -89,14 +89,14 @@ export class AssetContract extends Contract {
 
     // setAssetStateBasedEndorsement sets an endorsement policy to the assetId Key
     // setAssetStateBasedEndorsement enforces that the owner Org Peers must endorse future update transactions for the specified assetId Key
-    private async setAssetStateBasedEndorsement(ctx: Context, assetId: string, ownerOrgs: string[]): Promise<void> {
-        let ep = new KeyEndorsementPolicy();
-        ep.addOrgs("MEMBER", ...ownerOrgs);
+    private static async setAssetStateBasedEndorsement(ctx: Context, assetId: string, ownerOrgs: string[]): Promise<void> {
+        const ep = new KeyEndorsementPolicy();
+        ep.addOrgs('MEMBER', ...ownerOrgs);
         await ctx.stub.setStateValidationParameter(assetId, ep.getPolicy());
     }
 
     // getClientOrgId gets the client's OrgId (MSPID)
-    private getClientOrgId(ctx: Context): string {
+    private static getClientOrgId(ctx: Context): string {
         return ctx.clientIdentity.getMSPID();
     }
 }
