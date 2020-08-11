@@ -436,14 +436,9 @@ func (t *SimpleChaincode) InitLedger(ctx contractapi.TransactionContextInterface
 	}
 
 	for _, asset := range assets {
-		assetBytes, err := json.Marshal(asset)
+		err := t.CreateAsset(ctx, asset.ID, asset.Color, asset.Size, asset.Owner, asset.AppraisedValue)
 		if err != nil {
 			return err
-		}
-
-		err = ctx.GetStub().PutState(asset.ID, assetBytes)
-		if err != nil {
-			return fmt.Errorf("failed to put to world state. %v", err)
 		}
 	}
 
