@@ -1,7 +1,7 @@
 {
-    "name": "asset-transfer-basic",
+    "name": "asset-transfer-ledger-queries",
     "version": "1.0.0",
-    "description": "Asset-transfer-basic application implemented in JavaScript",
+    "description": "Asset transfer ledger queries application implemented in JavaScript",
     "engines": {
         "node": ">=12",
         "npm": ">=5"
