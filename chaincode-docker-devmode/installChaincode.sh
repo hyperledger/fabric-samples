@@ -8,7 +8,7 @@ set -e
 
 echo "========= Installing the newest version of chaincode ================"
 echo "Chaincode name: $CHAINCODE_NAME"
-peer lifecycle chaincode package "chaincode/$CHAINCODE_NAME/go/$CHAINCODE_PACKAGE_NAME" -p "chaincode/$CHAINCODE_NAME/go" --label $CHAINCODE_NAME -l node
+peer lifecycle chaincode package "chaincode/$CHAINCODE_NAME/go/$CHAINCODE_PACKAGE_NAME" -p "chaincode/$CHAINCODE_NAME/go" --label $CHAINCODE_NAME
 peer lifecycle chaincode install "chaincode/$CHAINCODE_NAME/go/$CHAINCODE_PACKAGE_NAME"
 CC_PACKAGE_ID=$(peer lifecycle chaincode queryinstalled | tail -n 1 |awk '{print $3}' | tr -d ",")
 
