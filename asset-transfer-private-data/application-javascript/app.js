@@ -8,10 +8,9 @@
 
 const { Gateway, Wallets } = require('fabric-network');
 const FabricCAServices = require('fabric-ca-client');
-
 const path = require('path');
-const fs = require('fs');
-const caUtils = require('./caUtils');
+const { buildCAClient, registerAndEnrollUser, enrollAdmin } = require('../../test-application/javascript/CAUtil.js');
+const { buildCCPOrg1, buildCCPOrg2, buildWallet } = require('../../test-application/javascript/AppUtil.js');
 
 const myChannel = 'mychannel';
 const myChaincodeName = 'private';
@@ -19,8 +18,11 @@ const myChaincodeName = 'private';
 const memberAssetCollectionName = 'assetCollection';
 const org1PrivateCollectionName = 'Org1MSPPrivateCollection';
 const org2PrivateCollectionName = 'Org2MSPPrivateCollection';
-const mspOrg2 = 'Org2MSP';
 const mspOrg1 = 'Org1MSP';
+const mspOrg2 = 'Org2MSP';
+const Org1UserId = 'appUser1';
+const Org2UserId = 'appUser2';
+
 function prettyJSONString(inputString) {
     if (inputString) {
         return JSON.stringify(JSON.parse(inputString), null, 2);
@@ -31,36 +33,33 @@ function prettyJSONString(inputString) {
 }
 
 async function initContractFromOrg1Identity() {
-    console.log('\nFabric client user & Gateway init: Using Org1 identity to Org1 Peer');
-    // load the network configuration
-    let ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
-    let fileExists = fs.existsSync(ccpPath);
-    if (!fileExists) {
-        throw new Error(`no such file or directory: ${ccpPath}`);
-    }
-    let ccpOrg1 = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
-    // Create a new file system based wallet for managing identities.
+    console.log('\n--> Fabric client user & Gateway init: Using Org1 identity to Org1 Peer');
+    // build an in memory object with the network configuration (also known as a connection profile)
+    const ccpOrg1 = buildCCPOrg1();
+
+    // build an instance of the fabric ca services client based on
+    // the information in the network configuration
+    const caOrg1Client = buildCAClient(FabricCAServices, ccpOrg1, 'ca.org1.example.com');
+
+    // setup the wallet to cache the credentials of the application user, on the app server locally
     const walletPathOrg1 = path.join(__dirname, 'wallet/org1');
-    const walletOrg1 = await Wallets.newFileSystemWallet(walletPathOrg1);
-    console.log(`Org1 wallet path: ${walletPathOrg1}`);
+    const walletOrg1 = await buildWallet(Wallets, walletPathOrg1);
 
-    // Create a new CA client for interacting with this Orgs CA.
-    const caInfo = ccpOrg1.certificateAuthorities['ca.org1.example.com'];
-    const caTLSCACerts = caInfo.tlsCACerts.pem;
-    const caService = new FabricCAServices(caInfo.url, { trustedRoots: caTLSCACerts, verify: false }, caInfo.caName);
-
-    // register & enroll admin user with CA, stores admin identity in local wallet
-    await caUtils.EnrollOrgAdminUser(mspOrg1, walletOrg1, caService);
-
-    // register & enroll application user with CA, which is used as client identify to make chaincode calls, stores app user identity in local wallet
-    await caUtils.RegisterOrgUser(caUtils.Org1UserId, mspOrg1, walletOrg1, caService);
+    // in a real application this would be done on an administrative flow, and only once
+    // stores admin identity in local wallet, if needed
+    await enrollAdmin(caOrg1Client, walletOrg1, mspOrg1);
+    // register & enroll application user with CA, which is used as client identify to make chaincode calls
+    // and stores app user identity in local wallet
+    // In a real application this would be done only when a new user was required to be added
+    // and would be part of an administrative flow
+    await registerAndEnrollUser(caOrg1Client, walletOrg1, mspOrg1, Org1UserId, 'org1.department1');
 
     try {
         // Create a new gateway for connecting to Org's peer node.
         const gatewayOrg1 = new Gateway();
         //connect using Discovery enabled
         await gatewayOrg1.connect(ccpOrg1,
-            { wallet: walletOrg1, identity: caUtils.Org1UserId, discovery: { enabled: true, asLocalhost: true } });
+            { wallet: walletOrg1, identity: Org1UserId, discovery: { enabled: true, asLocalhost: true } });
 
         return gatewayOrg1;
     } catch (error) {
@@ -70,35 +69,21 @@ async function initContractFromOrg1Identity() {
 }
 
 async function initContractFromOrg2Identity() {
-    console.log('\nFabric client user & Gateway init: Using Org2 identity to Org2 Peer');
-    // load the network configuration
-    let ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org2.example.com', 'connection-org2.json');
-    let fileExists = fs.existsSync(ccpPath);
-    if (!fileExists) {
-        throw new Error(`no such file or directory: ${ccpPath}`);
-    }
-    const ccpOrg2 = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+    console.log('\n--> Fabric client user & Gateway init: Using Org2 identity to Org2 Peer');
+    const ccpOrg2 = buildCCPOrg2();
+    const caOrg2Client = buildCAClient(FabricCAServices, ccpOrg2, 'ca.org2.example.com');
 
-    // Create a new file system based wallet for managing identities.
     const walletPathOrg2 = path.join(__dirname, 'wallet/org2');
-    const walletOrg2 = await Wallets.newFileSystemWallet(walletPathOrg2);
-    console.log(`Org2 wallet path: ${walletPathOrg2}`);
+    const walletOrg2 = await buildWallet(Wallets, walletPathOrg2);
 
-    // Create a new CA client for interacting with this Orgs CA.
-    const caInfo = ccpOrg2.certificateAuthorities['ca.org2.example.com'];
-    const caTLSCACerts = caInfo.tlsCACerts.pem;
-    const caService = new FabricCAServices(caInfo.url, { trustedRoots: caTLSCACerts, verify: false }, caInfo.caName);
-
-    await caUtils.EnrollOrgAdminUser(mspOrg2, walletOrg2, caService);
-
-    // register & enroll application user with CA, which is used as client identify to make chaincode calls, stores app user identity in local wallet
-    await caUtils.RegisterOrgUser(caUtils.Org2UserId, mspOrg2, walletOrg2, caService);
+    await enrollAdmin(caOrg2Client, walletOrg2, mspOrg2);
+    await registerAndEnrollUser(caOrg2Client, walletOrg2, mspOrg2, Org2UserId, 'org2.department1');
 
     try {
         // Create a new gateway for connecting to Org's peer node.
         const gatewayOrg2 = new Gateway();
         await gatewayOrg2.connect(ccpOrg2,
-            { wallet: walletOrg2, identity: caUtils.Org2UserId, discovery: { enabled: true, asLocalhost: true } });
+            { wallet: walletOrg2, identity: Org2UserId, discovery: { enabled: true, asLocalhost: true } });
 
         return gatewayOrg2;
     } catch (error) {
@@ -149,7 +134,7 @@ async function main() {
             result = await statefulTxn.submit();
 
             //Add asset2
-            console.log('Submit Transaction: CreateAsset ' + assetID2);
+            console.log('\n--> Submit Transaction: CreateAsset ' + assetID2);
             statefulTxn = contractOrg1.createTransaction('CreateAsset');
             tmapData = Buffer.from(JSON.stringify(asset2Data));
             statefulTxn.setTransient({
@@ -157,21 +142,20 @@ async function main() {
             });
             result = await statefulTxn.submit();
 
-            console.log('\n***********************');
-            console.log('Evaluate Transaction: GetAssetByRange asset0-asset9');
+
+            console.log('\n--> Evaluate Transaction: GetAssetByRange asset0-asset9');
             // GetAssetByRange returns assets on the ledger with ID in the range of startKey (inclusive) and endKey (exclusive)
             result = await contractOrg1.evaluateTransaction('GetAssetByRange', 'asset0', 'asset9');
             console.log('  result: ' + prettyJSONString(result.toString()));
 
-            console.log('\n***********************');
-            console.log('Evaluate Transaction: ReadAssetPrivateDetails from ' + org1PrivateCollectionName);
+            console.log('\n--> Evaluate Transaction: ReadAssetPrivateDetails from ' + org1PrivateCollectionName);
             // ReadAssetPrivateDetails reads data from Org's private collection. Args: collectionName, assetID
             result = await contractOrg1.evaluateTransaction('ReadAssetPrivateDetails', org1PrivateCollectionName, assetID1);
             console.log('  result: ' + prettyJSONString(result.toString()));
 
 
             console.log('\n~~~~~~~~~~~~~~~~ As Org2 Client ~~~~~~~~~~~~~~~~');
-            console.log('Evaluate Transaction: ReadAsset ' + assetID1);
+            console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID1);
             result = await contractOrg2.evaluateTransaction('ReadAsset', assetID1);
             console.log('  result: ' + prettyJSONString(result.toString()));
             let assetOwner = JSON.parse(result.toString()).owner;
@@ -183,7 +167,7 @@ async function main() {
             // Buyer from Org2 agrees to buy the asset assetID1 //
             // To purchase the asset, the buyer needs to agree to the same value as the asset owner
             let dataForAgreement = { assetID: assetID1, appraisedValue: 100 };
-            console.log('\nSubmit Transaction: AgreeToTransfer payload ' + JSON.stringify(dataForAgreement));
+            console.log('\n--> Submit Transaction: AgreeToTransfer payload ' + JSON.stringify(dataForAgreement));
             statefulTxn = contractOrg2.createTransaction('AgreeToTransfer');
             tmapData = Buffer.from(JSON.stringify(dataForAgreement));
             statefulTxn.setTransient({
@@ -203,13 +187,13 @@ async function main() {
 
             console.log('\n**************** As Org1 Client ****************');
             // All members can send txn ReadTransferAgreement, set by Org2 above
-            console.log('Evaluate Transaction: ReadTransferAgreement ' + assetID1);
+            console.log('\n--> Evaluate Transaction: ReadTransferAgreement ' + assetID1);
             result = await contractOrg1.evaluateTransaction('ReadTransferAgreement', assetID1);
             console.log('  result: ' + prettyJSONString(result.toString()));
 
             // Transfer the asset to Org2 //
             // To transfer the asset, the owner needs to pass the MSP ID of new asset owner, and initiate the transfer
-            console.log('Submit Transaction: TransferAsset ' + assetID1);
+            console.log('\n--> Submit Transaction: TransferAsset ' + assetID1);
             let buyerDetails = { assetID: assetID1, buyerMSP: mspOrg2 };
             statefulTxn = contractOrg1.createTransaction('TransferAsset');
             tmapData = Buffer.from(JSON.stringify(buyerDetails));
@@ -218,27 +202,27 @@ async function main() {
             });
             result = await statefulTxn.submit();
 
-            console.log('\n***********************');
+
             //Again ReadAsset : results will show that the buyer identity now owns the asset:
-            console.log('Evaluate Transaction: ReadAsset ' + assetID1);
+            console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID1);
             result = await contractOrg1.evaluateTransaction('ReadAsset', assetID1);
             console.log('  result: ' + prettyJSONString(result.toString()));
             assetOwner = JSON.parse(result.toString()).owner;
             console.log('  Asset owner: ' + Buffer.from(assetOwner, 'base64').toString());
 
             //Confirm that transfer removed the private details from the Org1 collection:
-            console.log('Evaluate Transaction: ReadAssetPrivateDetails');
+            console.log('\n--> Evaluate Transaction: ReadAssetPrivateDetails');
             // ReadAssetPrivateDetails reads data from Org's private collection: Should return empty
             result = await contractOrg1.evaluateTransaction('ReadAssetPrivateDetails', org1PrivateCollectionName, assetID1);
             console.log('  result: ' + prettyJSONString(result.toString()));
 
-            console.log('Evaluate Transaction: ReadAsset ' + assetID2);
+            console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID2);
             result = await contractOrg1.evaluateTransaction('ReadAsset', assetID2);
             console.log('  result: ' + prettyJSONString(result.toString()));
 
-            console.log('\n***********************');
+            console.log('\n********* Demo deleting asset **************');
             // Delete Asset2
-            console.log('Deleting Asset ' + assetID2);
+            console.log('--> Submit Transaction: DeleteAsset ' + assetID2);
             statefulTxn = contractOrg1.createTransaction('DeleteAsset');
 
             let dataForDelete = { assetID: assetID2 };
@@ -247,13 +231,14 @@ async function main() {
                 asset_delete: tmapData
             });
             result = await statefulTxn.submit();
-            console.log('Evaluate Transaction: ReadAsset ' + assetID2);
+
+            console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID2);
             result = await contractOrg1.evaluateTransaction('ReadAsset', assetID2);
             console.log('  result: ' + prettyJSONString(result.toString()));
 
             console.log('\n~~~~~~~~~~~~~~~~ As Org2 Client ~~~~~~~~~~~~~~~~');
             // Org2 can ReadAssetPrivateDetails: Org2 is owner, and private details exist in new owner's Collection
-            console.log('Evaluate Transaction as Org2: ReadAssetPrivateDetails ' + assetID1 + ' from ' + org2PrivateCollectionName);
+            console.log('\n--> Evaluate Transaction as Org2: ReadAssetPrivateDetails ' + assetID1 + ' from ' + org2PrivateCollectionName);
             result = await contractOrg2.evaluateTransaction('ReadAssetPrivateDetails', org2PrivateCollectionName, assetID1);
             console.log('  result: ' + prettyJSONString(result.toString()));
         } finally {
