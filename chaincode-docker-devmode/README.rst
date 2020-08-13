@@ -120,7 +120,7 @@ Now, compile your chaincode:
     cd abstore/go
     go build -o abstore
 
-Now run the chaincode with the chaincode id previosly given:
+Now run the chaincode with the chaincode id previously given:
 
 .. code:: sh
 
