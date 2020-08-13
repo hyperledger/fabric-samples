@@ -9,7 +9,7 @@
 const { Gateway, Wallets } = require('fabric-network');
 const FabricCAServices = require('fabric-ca-client');
 const path = require('path');
-const { buildCAClient, registerUser, enrollAdmin } = require('../../test-application/javascript/CAUtil.js');
+const { buildCAClient, registerAndEnrollUser, enrollAdmin } = require('../../test-application/javascript/CAUtil.js');
 const { buildCCPOrg1, buildCCPOrg2, buildWallet } = require('../../test-application/javascript/AppUtil.js');
 
 const myChannel = 'mychannel';
@@ -52,7 +52,7 @@ async function initContractFromOrg1Identity() {
     // and stores app user identity in local wallet
     // In a real application this would be done only when a new user was required to be added
     // and would be part of an administrative flow
-    await registerUser(caOrg1Client, walletOrg1, mspOrg1, Org1UserId, 'org1.department1');
+    await registerAndEnrollUser(caOrg1Client, walletOrg1, mspOrg1, Org1UserId, 'org1.department1');
 
     try {
         // Create a new gateway for connecting to Org's peer node.
@@ -77,7 +77,7 @@ async function initContractFromOrg2Identity() {
     const walletOrg2 = await buildWallet(Wallets, walletPathOrg2);
 
     await enrollAdmin(caOrg2Client, walletOrg2, mspOrg2);
-    await registerUser(caOrg2Client, walletOrg2, mspOrg2, Org2UserId, 'org2.department1');
+    await registerAndEnrollUser(caOrg2Client, walletOrg2, mspOrg2, Org2UserId, 'org2.department1');
 
     try {
         // Create a new gateway for connecting to Org's peer node.
