@@ -71,38 +71,8 @@ can jump immediately to the chaincode calls.
 
 .. note:: TLS is not enabled as it is not supported when running chaincode in dev mode.
 
-Terminal 2 - Build & start the chaincode
+Terminal 2 - Install the chaincode
 ----------------------------------------
-
-.. code:: bash
-
-  docker exec -it chaincode sh
-
-You should see the following:
-
-.. code:: sh
-
-  /opt/gopath/src/chaincode $
-
-Now, compile your chaincode:
-
-.. code:: sh
-
-  cd abstore/go
-  go build -o abstore
-
-Now run the chaincode:
-
-.. code:: sh
-
-  CORE_CHAINCODE_ID_NAME=mycc:0 CORE_PEER_TLS_ENABLED=false ./abstore -peer.address peer:7052
-
-The chaincode is started with peer and chaincode logs indicating successful registration with the peer.
-Note that at this stage the chaincode is not associated with any channel. This is done in subsequent steps
-using the ``instantiate`` command.
-
-Terminal 3 - Use the chaincode
-------------------------------
 
 Even though you are in ``--peer-chaincodedev`` mode, you still have to install the
 chaincode so the life-cycle system chaincode can go through its checks normally.
@@ -112,24 +82,71 @@ We'll leverage the CLI container to drive these calls.
 
 .. code:: bash
 
-  docker exec -it cli bash
+    docker exec -it cli bash
 
 .. code:: bash
 
-  peer chaincode install -p chaincodedev/chaincode/abstore/go -n mycc -v 0
-  peer chaincode instantiate -n mycc -v 0 -c '{"Args":["init","a","100","b","200"]}' -C myc
+    ./installChaincode.sh abstore.tar.gz abstore 1 0
+
+This will package the chaincode to ``abstore.tar.gz`` in the chaincode directory plus
+approve and commit the chaincode definition for you.
+
+.. code:: bash
+  
+    ========= CHAINCODE ID ===================================
+    abstore:377daf05b5f66815cc0bce7fd285dd9812c06243a2242c745c02e8962c1dcc6d
+    Use this chaincode id to start chaincode container
+
+After the new chaincode has installed you will then see the output of chaincode id.
+
+
+Terminal 3 - Build & start the chaincode
+------------------------------
+
+.. code:: bash
+
+    docker exec -it chaincode sh
+
+You should see the following:
+
+.. code:: sh
+
+    /opt/gopath/src/chaincode $
+
+Now, compile your chaincode:
+
+.. code:: sh
+
+    cd abstore/go
+    go build -o abstore
+
+Now run the chaincode with the chaincode id previosly given:
+
+.. code:: sh
+
+    CORE_CHAINCODE_ID_NAME=abstore:377daf05b5f66815cc0bce7fd285dd9812c06243a2242c745c02e8962c1dcc6d CORE_PEER_TLS_ENABLED=false ./abstore -peer.address peer:7052
+
+The chaincode is started with peer and chaincode logs indicating successful registration with the peer.
+
+Back to Terminal 2 - Invoke the chaincode
+----------------------------------------
+
+.. code:: bash
+
+    peer chaincode invoke -o orderer:7050 -C myc -n abstore -c '{"Args":["init","a","100","b","200"]}'
 
 Now issue an invoke to move ``10`` from ``a`` to ``b``.
 
 .. code:: bash
 
-  peer chaincode invoke -n mycc -c '{"Args":["invoke","a","b","10"]}' -C myc
+    peer chaincode invoke -o orderer:7050 -n abstore -c '{"Args":["invoke","a","b","10"]}' -C myc
 
 Finally, query ``a``.  We should see a value of ``90``.
 
 .. code:: bash
 
-  peer chaincode query -n mycc -c '{"Args":["query","a"]}' -C myc
+    peer chaincode query -n abstore -c '{"Args":["query","a"]}' -C myc
+
 
 Testing new chaincode
 ---------------------

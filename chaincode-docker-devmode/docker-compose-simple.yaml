@@ -67,7 +67,7 @@ services:
 
   chaincode:
     container_name: chaincode
-    image: hyperledger/fabric-ccenv
+    image: hyperledger/fabric-ccenv:2.2
     tty: true
     environment:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
