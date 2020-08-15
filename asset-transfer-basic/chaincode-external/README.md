@@ -1,7 +1,8 @@
 # Asset-Transfer-Basic as an external service
 
 See the "Chaincode as an external service" documentation for an introduction on how to run chaincode as an external service.
-This sample includes the external builder and launcher scripts which the peers in your Fabric network will require.
+This sample includes the external builder and launcher scripts which the peers in your Fabric network will require
+in order to run an asset transfer chaincode as an external service.
 
 **Note:** each organization in a real network would need to setup and host their own instance of the external service. For simplification purpose, in this sample we use the same instance for both organizations.
 
@@ -15,18 +16,20 @@ Modify the field `externalBuilders` as the following:
 ```
 externalBuilders:
     - path: /opt/gopath/src/github.com/hyperledger/fabric-samples/asset-transfer-basic/chaincode-external/sampleBuilder
-      name: external-sample-builder 
+      name: external-sample-builder
 ```
-This configuration sets the name of the external builder as `externa-sample-builder`, and the path of the builder to the scripts provided in this sample. Note that this is the path within the peer container, not your local machine. To make it so you will need to modify the container compose file to mount a couple of additional volumes.
+This configuration sets the name of the external builder as `external-sample-builder`, and the path of the builder to the scripts provided in this sample. Note that this is the path within the peer container, not your local machine.
 
-To do so, open the file `test-network/docker/docker-compose-test-net.yaml`, and add to the `volumes` section of both `peer0.org1.example.com` and `peer0.org2.example.com` the following two lines:
+To set the path within the peer container, you will need to modify the container compose file to mount a couple of additional volumes.
+Open the file `test-network/docker/docker-compose-test-net.yaml`, and add to the `volumes` section of both `peer0.org1.example.com` and `peer0.org2.example.com` the following two lines:
 
 ```
         - ../..:/opt/gopath/src/github.com/hyperledger/fabric-samples
         - ../../config/core.yaml:/etc/hyperledger/fabric/core.yaml
 ```
 
-This will mount the fabric-sample builder into the peer container so that it can be found at the location specified in the config file and override the default config file so that the config file modified above is used.
+This will mount the fabric-sample builder into the peer container so that it can be found at the location specified in the config file,
+and override the peer's core.yaml config file within the fabric-peer image so that the config file modified above is used.
 
 ## Packaging and installing Chaincode
 
@@ -36,13 +39,17 @@ The peer needs a corresponding `connection.json` configuration file so that it c
 
 The address specified in the `connection.json` must correspond to the `CHAINCODE_SERVER_ADDRESS` value in `chaincode.env`, which is `asset-transfer-basic.org1.example.com:9999` in our example.
 
-Create a `code.tar.gz` archive containing that one file and have it ready for adding to an Asset-Transfer-Basic external service package:
+Because we will run our chaincode as an external service, the chaincode itself does not need to be included in the chaincode
+package that gets installed to each peer. Only the configuration and metadata information needs to be included
+in the package. Since the packaging is trivial, we can manually create the chaincode package.
+
+First, create a `code.tar.gz` archive containing the `connection.json` file:
 
 ```
 tar cfz code.tar.gz connection.json
 ```
 
-Package the Asset-Transfer-Basic external service using the supplied `metadata.json` file:
+Then, create the chaincode package, including the `code.tar.gz` file and the supplied `metadata.json` file:
 
 ```
 tar cfz asset-transfer-basic-external.tgz metadata.json code.tar.gz
@@ -58,7 +65,7 @@ In a different terminal, from the `test-network` sample directory starts the net
 ./network.sh up createChannel -c mychannel -ca
 ```
 
-This starts the test network and create the channel. We will now proceed to installing our external chaincode.
+This starts the test network and creates the channel. We will now proceed to installing our external chaincode package.
 
 ## Installing the external chaincode
 
@@ -88,10 +95,10 @@ setGlobals 2
 
 This will output the chaincode pakage identifier such as `basic_1.0:0262396ccaffaa2174bc09f750f742319c4f14d60b16334d2c8921b6842c090c` that you will need to use in the following commands.
 
-For convenience it is best to store it in an environment variable so it can be referenced in other commands:
+For convenience it is best to store your package id value in an environment variable so that it can be referenced in later commands:
 
 ```
-set PKGID=basic_1.0:0262396ccaffaa2174bc09f750f742319c4f14d60b16334d2c8921b6842c090
+export PKGID=basic_1.0:0262396ccaffaa2174bc09f750f742319c4f14d60b16334d2c8921b6842c090
 ```
 
 If needed, you can query the installed chaincode to get its package-id:
@@ -120,9 +127,9 @@ docker run -it --rm --name asset-transfer-basic.org1.example.com --hostname asse
 
 This will start the container and start the external chaincode service within it.
 
-## Finish installing the Asset-Transfer-Basic external chaincode
+## Finish deploying the Asset-Transfer-Basic external chaincode
 
-Finishing the installation of the chaincode on the test network can be done from the terminal you started the network from with the following commands (make sure the package-id is set to the right one):
+Finishing the deployment of the chaincode on the test network can be done from the terminal you started the network from with the following commands (make sure the package-id is set to the value you received above):
 
 ```
 setGlobals 2
@@ -134,14 +141,14 @@ setGlobals 1
 ../bin/peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $PWD/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --channelID mychannel --name basic --peerAddresses localhost:7051 --tlsRootCertFiles $PWD/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt --version 1.0 --sequence 1
 ```
 
-This effectively approves the chaincode definition for both orgs and commit it using org1. This should end with an output similar to:
+This approves the chaincode definition for both orgs and commits it using org1. This should result in an output similar to:
 
 ```
 2020-08-05 15:41:44.982 PDT [chaincodeCmd] ClientWait -> INFO 001 txid [6bdbe040b99a45cc90a23ec21f02ea5da7be8b70590eb04ff3323ef77fdedfc7] committed with status (VALID) at localhost:7051
 2020-08-05 15:41:44.983 PDT [chaincodeCmd] ClientWait -> INFO 002 txid [6bdbe040b99a45cc90a23ec21f02ea5da7be8b70590eb04ff3323ef77fdedfc7] committed with status (VALID) at localhost:9051
 ```
 
-The chaincode is now operational and can be used as normal.
+Now that the chaincode is deployed to the channel, and started as an external service, it can be used as normal.
 
 ## Using the Asset-Transfer-Basic external chaincode
 
