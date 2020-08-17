@@ -123,7 +123,7 @@ async function main() {
             let asset2Data = { objectType: assetType, assetID: assetID2, color: 'blue', size: 35, appraisedValue: 727 };
 
             console.log('\n**************** As Org1 Client ****************');
-            console.log('Adding Assets to work with: Submit Transaction: CreateAsset ' + assetID1);
+            console.log('Adding Assets to work with:\n--> Submit Transaction: CreateAsset ' + assetID1);
             let statefulTxn = contractOrg1.createTransaction('CreateAsset');
             //if you need to customize endorsement to specific set of Orgs, use setEndorsingOrganizations
             //statefulTxn.setEndorsingOrganizations(mspOrg1);
