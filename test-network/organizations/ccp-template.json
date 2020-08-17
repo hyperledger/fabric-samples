@@ -22,6 +22,20 @@
             ]
         }
     },
+    "channels": {
+        "mychannel": {
+            "orderers": ["orderer.example.com"],
+            "peers": {
+                "peer0.org${ORG}.example.com": {
+                    "endorsingPeer": true,
+                    "chaincodeQuery": true,
+                    "ledgerQuery": true,
+                    "eventSource": true,
+                    "discover": true
+                }
+            }
+        }
+    },
     "peers": {
         "peer0.org${ORG}.example.com": {
             "url": "grpcs://localhost:${P0PORT}",
@@ -31,6 +45,18 @@
             "grpcOptions": {
                 "ssl-target-name-override": "peer0.org${ORG}.example.com",
                 "hostnameOverride": "peer0.org${ORG}.example.com"
+            }
+        }
+    },
+    "orderers": {
+        "orderer.example.com": {
+            "url": "grpcs://localhost:${ORDERERPORT}",
+            "tlsCACerts": {
+                "pem": "${ORDERERPEM}"
+            },
+            "grpcOptions": {
+                "ssl-target-name-override": "orderer.example.com",
+                "hostnameOverride": "orderer.example.com"
             }
         }
     },
