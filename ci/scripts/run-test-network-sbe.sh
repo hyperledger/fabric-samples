@@ -25,4 +25,10 @@ function stopNetwork() {
 
 # Run Javascript application
 createNetwork
+print "Initializing Javascript application"
+pushd ../asset-transfer-sbe/application-javascript
+npm install
+print "Executing app.js"
+node app.js
+popd
 stopNetwork
