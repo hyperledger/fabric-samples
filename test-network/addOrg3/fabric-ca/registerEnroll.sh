@@ -13,7 +13,7 @@ function createOrg3 {
 
   set -x
   fabric-ca-client enroll -u https://admin:adminpw@localhost:11054 --caname ca-org3 --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+  { set +x; } 2>/dev/null
 
   echo 'NodeOUs:
   Enable: true
@@ -35,21 +35,21 @@ function createOrg3 {
   echo
   set -x
 	fabric-ca-client register --caname ca-org3 --id.name peer0 --id.secret peer0pw --id.type peer --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+  { set +x; } 2>/dev/null
 
   echo
   echo "Register user"
   echo
   set -x
   fabric-ca-client register --caname ca-org3 --id.name user1 --id.secret user1pw --id.type client --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+  { set +x; } 2>/dev/null
 
   echo
   echo "Register the org admin"
   echo
   set -x
   fabric-ca-client register --caname ca-org3 --id.name org3admin --id.secret org3adminpw --id.type admin --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+  { set +x; } 2>/dev/null
 
 	mkdir -p ../organizations/peerOrganizations/org3.example.com/peers
   mkdir -p ../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com
@@ -59,7 +59,7 @@ function createOrg3 {
   echo
   set -x
 	fabric-ca-client enroll -u https://peer0:peer0pw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp --csr.hosts peer0.org3.example.com --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+  { set +x; } 2>/dev/null
 
   cp ${PWD}/../organizations/peerOrganizations/org3.example.com/msp/config.yaml ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp/config.yaml
 
@@ -68,7 +68,7 @@ function createOrg3 {
   echo
   set -x
   fabric-ca-client enroll -u https://peer0:peer0pw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls --enrollment.profile tls --csr.hosts peer0.org3.example.com --csr.hosts localhost --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+  { set +x; } 2>/dev/null
 
 
   cp ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/tlscacerts/* ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/ca.crt
@@ -92,7 +92,7 @@ function createOrg3 {
   echo
   set -x
 	fabric-ca-client enroll -u https://user1:user1pw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/users/User1@org3.example.com/msp --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+  { set +x; } 2>/dev/null
 
   cp ${PWD}/../organizations/peerOrganizations/org3.example.com/msp/config.yaml ${PWD}/../organizations/peerOrganizations/org3.example.com/users/User1@org3.example.com/msp/config.yaml
 
@@ -103,7 +103,7 @@ function createOrg3 {
   echo
   set -x
 	fabric-ca-client enroll -u https://org3admin:org3adminpw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
-  set +x
+  { set +x; } 2>/dev/null
 
   cp ${PWD}/../organizations/peerOrganizations/org3.example.com/msp/config.yaml ${PWD}/../organizations/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp/config.yaml
 
