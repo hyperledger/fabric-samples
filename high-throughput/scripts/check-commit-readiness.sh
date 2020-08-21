@@ -43,7 +43,7 @@ checkCommitReadiness() {
     set -x
     peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name bigdatacc --signature-policy "OR('Org1MSP.peer', 'Org2MSP.peer')" --version 0 --init-required --sequence 1 >&log.txt
     res=$?
-    set +x
+    { set +x; } 2>/dev/null
     test $res -eq 0 || continue
     let rc=0
     for var in "$@"

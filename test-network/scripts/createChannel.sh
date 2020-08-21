@@ -22,7 +22,7 @@ createChannelTx() {
 	set -x
 	configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/${CHANNEL_NAME}.tx -channelID $CHANNEL_NAME
 	res=$?
-	set +x
+	{ set +x; } 2>/dev/null
 	if [ $res -ne 0 ]; then
 		echo "Failed to generate channel configuration transaction..."
 		exit 1
@@ -39,7 +39,7 @@ createAncorPeerTx() {
 	set -x
 	configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/${orgmsp}anchors.tx -channelID $CHANNEL_NAME -asOrg ${orgmsp}
 	res=$?
-	set +x
+	{ set +x; } 2>/dev/null
 	if [ $res -ne 0 ]; then
 		echo "Failed to generate anchor peer update transaction for ${orgmsp}..."
 		exit 1
@@ -58,7 +58,7 @@ createChannel() {
 		set -x
 		peer channel create -o localhost:7050 -c $CHANNEL_NAME --ordererTLSHostnameOverride orderer.example.com -f ./channel-artifacts/${CHANNEL_NAME}.tx --outputBlock ./channel-artifacts/${CHANNEL_NAME}.block --tls --cafile $ORDERER_CA >&log.txt
 		res=$?
-		set +x
+		{ set +x; } 2>/dev/null
 		let rc=$res
 		COUNTER=$(expr $COUNTER + 1)
 	done
@@ -81,7 +81,7 @@ joinChannel() {
     set -x
     peer channel join -b ./channel-artifacts/$CHANNEL_NAME.block >&log.txt
     res=$?
-    set +x
+    { set +x; } 2>/dev/null
 		let rc=$res
 		COUNTER=$(expr $COUNTER + 1)
 	done
@@ -101,7 +101,7 @@ updateAnchorPeers() {
     set -x
 		peer channel update -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx --tls --cafile $ORDERER_CA >&log.txt
     res=$?
-    set +x
+    { set +x; } 2>/dev/null
 		let rc=$res
 		COUNTER=$(expr $COUNTER + 1)
 	done

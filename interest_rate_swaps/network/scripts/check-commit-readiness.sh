@@ -17,7 +17,7 @@ checkCommitReadiness() {
     set -x
     peer lifecycle chaincode checkcommitreadiness -o irs-orderer:7050 --channelID irs --signature-policy "AND(OR('partya.peer','partyb.peer','partyc.peer'), 'auditor.peer')" --name irscc --version 1 --init-required --sequence 1 >&log.txt
     res=$?
-    set +x
+    { set +x; } 2>/dev/null
     test $res -eq 0 || continue
     let rc=0
     for var in "$@"
