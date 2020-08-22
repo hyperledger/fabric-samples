@@ -153,7 +153,21 @@ async function main() {
             result = await contractOrg1.evaluateTransaction('ReadAssetPrivateDetails', org1PrivateCollectionName, assetID1);
             console.log('  result: ' + prettyJSONString(result.toString()));
 
-
+            // Attempt Transfer the asset to Org2 , without Org2 adding AgreeToTransfer //
+            // Transaction should return an error: "failed transfer verification ..."
+            let buyerDetails = { assetID: assetID1, buyerMSP: mspOrg2 };
+            try {
+                console.log('\n--> Attempt Submit Transaction: TransferAsset ' + assetID1);
+                statefulTxn = contractOrg1.createTransaction('TransferAsset');
+                tmapData = Buffer.from(JSON.stringify(buyerDetails));
+                statefulTxn.setTransient({
+                    asset_owner: tmapData
+                });
+                result = await statefulTxn.submit();
+                console.log('******** FAILED: above operation expected to return an error');
+            } catch (error) {
+                console.log(`   Successfully caught the error: \n    ${error}`);
+            }
             console.log('\n~~~~~~~~~~~~~~~~ As Org2 Client ~~~~~~~~~~~~~~~~');
             console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID1);
             result = await contractOrg2.evaluateTransaction('ReadAsset', assetID1);
@@ -194,14 +208,13 @@ async function main() {
             // Transfer the asset to Org2 //
             // To transfer the asset, the owner needs to pass the MSP ID of new asset owner, and initiate the transfer
             console.log('\n--> Submit Transaction: TransferAsset ' + assetID1);
-            let buyerDetails = { assetID: assetID1, buyerMSP: mspOrg2 };
+
             statefulTxn = contractOrg1.createTransaction('TransferAsset');
             tmapData = Buffer.from(JSON.stringify(buyerDetails));
             statefulTxn.setTransient({
                 asset_owner: tmapData
             });
             result = await statefulTxn.submit();
-
 
             //Again ReadAsset : results will show that the buyer identity now owns the asset:
             console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID1);
@@ -221,11 +234,23 @@ async function main() {
             console.log('  result: ' + prettyJSONString(result.toString()));
 
             console.log('\n********* Demo deleting asset **************');
-            // Delete Asset2
-            console.log('--> Submit Transaction: DeleteAsset ' + assetID2);
-            statefulTxn = contractOrg1.createTransaction('DeleteAsset');
-
             let dataForDelete = { assetID: assetID2 };
+            try {
+                //Non-owner Org2 should not be able to DeleteAsset. Expect an error from DeleteAsset
+                console.log('--> Attempt Transaction: as Org2 DeleteAsset ' + assetID2);
+                statefulTxn = contractOrg2.createTransaction('DeleteAsset');
+                tmapData = Buffer.from(JSON.stringify(dataForDelete));
+                statefulTxn.setTransient({
+                    asset_delete: tmapData
+                });
+                result = await statefulTxn.submit();
+                console.log('******** FAILED : expected to return an error');
+            } catch (error) {
+                console.log(`  Successfully caught the error: \n    ${error}`);
+            }
+            // Delete Asset2 as Org1
+            console.log('--> Submit Transaction: as Org1 DeleteAsset ' + assetID2);
+            statefulTxn = contractOrg1.createTransaction('DeleteAsset');
             tmapData = Buffer.from(JSON.stringify(dataForDelete));
             statefulTxn.setTransient({
                 asset_delete: tmapData
