@@ -235,19 +235,6 @@ async function main() {
 
             console.log('\n********* Demo deleting asset **************');
             let dataForDelete = { assetID: assetID2 };
-            try {
-                //Non-owner Org2 should not be able to DeleteAsset. Expect an error from DeleteAsset
-                console.log('--> Attempt Transaction: as Org2 DeleteAsset ' + assetID2);
-                statefulTxn = contractOrg2.createTransaction('DeleteAsset');
-                tmapData = Buffer.from(JSON.stringify(dataForDelete));
-                statefulTxn.setTransient({
-                    asset_delete: tmapData
-                });
-                result = await statefulTxn.submit();
-                console.log('******** FAILED : expected to return an error');
-            } catch (error) {
-                console.log(`  Successfully caught the error: \n    ${error}`);
-            }
             // Delete Asset2 as Org1
             console.log('--> Submit Transaction: as Org1 DeleteAsset ' + assetID2);
             statefulTxn = contractOrg1.createTransaction('DeleteAsset');
