@@ -100,6 +100,14 @@ jobs:
           DIRECTORY: asset-transfer-ledger-queries
           LANGUAGE: go
           TYPE: chaincode                                
+        SBE-Chaincode-Typescript:
+          DIRECTORY: asset-transfer-sbe
+          LANGUAGE: typescript
+          TYPE: chaincode
+        SBE-Chaincode-Java:
+          DIRECTORY: asset-transfer-sbe
+          LANGUAGE: java
+          TYPE: chaincode
         PrivateData-Chaincode-Go:
           DIRECTORY: asset-transfer-private-data
           LANGUAGE: go
@@ -178,6 +186,24 @@ jobs:
       - script: ../ci/scripts/run-test-network-private.sh
         workingDirectory: test-network
         displayName: Run Test Network Private Chaincode
+
+  - job: TestNetworkSBE
+    displayName: Test Network
+    pool:
+      vmImage: ubuntu-18.04
+    strategy:
+      matrix:
+        Basic-Java:
+          CHAINCODE_NAME: sbe
+          CHAINCODE_LANGUAGE: java
+        Basic-Typescript:
+          CHAINCODE_NAME: sbe
+          CHAINCODE_LANGUAGE: typescript
+    steps:
+      - template: templates/install-deps.yml
+      - script: ../ci/scripts/run-test-network-sbe.sh
+        workingDirectory: test-network
+        displayName: Run Test Network SBE Chaincode
 
   - job: TestNetworkSecured
     displayName: Test Network
