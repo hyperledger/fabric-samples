@@ -147,7 +147,6 @@ func (s *SmartContract) QueryAssetByOwner(ctx contractapi.TransactionContextInte
 	return queryResults, nil
 }
 
-
 // QueryAssets uses a query string to perform a query for assets.
 // Query string matching state database syntax is passed in and executed as is.
 // Supports ad hoc queries that can be defined at runtime by the client.

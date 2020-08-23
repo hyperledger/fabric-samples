@@ -31,7 +31,9 @@
     "nyc": {
         "exclude": [
             "coverage/**",
-            "test/**"
+            "test/**",
+            "index.js",
+            ".eslintrc.js"
         ],
         "reporter": [
             "text-summary",

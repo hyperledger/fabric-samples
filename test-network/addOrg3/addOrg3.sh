@@ -73,7 +73,7 @@ function generateOrg3() {
     set -x
     cryptogen generate --config=org3-crypto.yaml --output="../organizations"
     res=$?
-    set +x
+    { set +x; } 2>/dev/null
     if [ $res -ne 0 ]; then
       echo "Failed to generate certificates..."
       exit 1
@@ -131,7 +131,7 @@ function generateOrg3Definition() {
    set -x
    configtxgen -printOrg Org3MSP > ../organizations/peerOrganizations/org3.example.com/org3.json
    res=$?
-   set +x
+   { set +x; } 2>/dev/null
    if [ $res -ne 0 ]; then
      echo "Failed to generate Org3 config material..."
      exit 1

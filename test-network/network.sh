@@ -214,7 +214,7 @@ function createOrgs() {
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-org1.yaml --output="organizations"
     res=$?
-    set +x
+    { set +x; } 2>/dev/null
     if [ $res -ne 0 ]; then
       echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
       exit 1
@@ -227,7 +227,7 @@ function createOrgs() {
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
     res=$?
-    set +x
+    { set +x; } 2>/dev/null
     if [ $res -ne 0 ]; then
       echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
       exit 1
@@ -240,7 +240,7 @@ function createOrgs() {
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-orderer.yaml --output="organizations"
     res=$?
-    set +x
+    { set +x; } 2>/dev/null
     if [ $res -ne 0 ]; then
       echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
       exit 1
@@ -329,7 +329,7 @@ function createConsortium() {
   set -x
   configtxgen -profile TwoOrgsOrdererGenesis -channelID system-channel -outputBlock ./system-genesis-block/genesis.block
   res=$?
-  set +x
+  { set +x; } 2>/dev/null
   if [ $res -ne 0 ]; then
     echo $'\e[1;32m'"Failed to generate orderer genesis block..."$'\e[0m'
     exit 1
