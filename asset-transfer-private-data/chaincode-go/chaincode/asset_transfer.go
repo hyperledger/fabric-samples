@@ -123,7 +123,7 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 		Size:  assetInput.Size,
 		Owner: clientID,
 	}
-	assetJSONasBytes, err := json.Marshal(&asset)
+	assetJSONasBytes, err := json.Marshal(asset)
 	if err != nil {
 		return fmt.Errorf("failed to marshal asset into JSON: %v", err)
 	}
@@ -143,7 +143,7 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 		AppraisedValue: assetInput.AppraisedValue,
 	}
 
-	assetPrivateDetailsAsBytes, err := json.Marshal(&assetPrivateDetails) // marshal asset details to JSON
+	assetPrivateDetailsAsBytes, err := json.Marshal(assetPrivateDetails) // marshal asset details to JSON
 	if err != nil {
 		return fmt.Errorf("failed to marshal into JSON: %v", err)
 	}
@@ -443,10 +443,18 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface)
 		return fmt.Errorf("asset not found: %v", assetDeleteInput.ID)
 	}
 
-	var assetToDelete Asset
-	err = json.Unmarshal([]byte(valAsbytes), &assetToDelete)
+	ownerCollection, err := getCollectionName(ctx) // Get owners collection
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal JSON: %v", err)
+		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+	}
+
+	//check the asset is in the caller org's private collection
+	valAsbytes, err = ctx.GetStub().GetPrivateData(ownerCollection, assetDeleteInput.ID)
+	if err != nil {
+		return fmt.Errorf("failed to read asset from owner's Collection: %v", err)
+	}
+	if valAsbytes == nil {
+		return fmt.Errorf("asset not found in owner's private Collection %v: %v", ownerCollection, assetDeleteInput.ID)
 	}
 
 	// delete the asset from state
@@ -456,12 +464,7 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface)
 	}
 
 	// Finally, delete private details of asset
-	ownerCollection, err := getCollectionName(ctx) // Get owners collection
-	if err != nil {
-		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
-	}
-
-	err = ctx.GetStub().DelPrivateData(ownerCollection, assetDeleteInput.ID) // Delete the asset
+	err = ctx.GetStub().DelPrivateData(ownerCollection, assetDeleteInput.ID)
 	if err != nil {
 		return err
 	}
