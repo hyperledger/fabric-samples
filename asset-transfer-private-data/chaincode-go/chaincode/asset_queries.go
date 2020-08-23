@@ -4,7 +4,7 @@ Copyright IBM Corp. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package main
+package chaincode
 
 import (
 	"encoding/json"
@@ -20,7 +20,7 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, a
 	log.Printf("ReadAsset: collection %v, ID %v", assetCollection, assetID)
 	assetJSON, err := ctx.GetStub().GetPrivateData(assetCollection, assetID) //get the asset from chaincode state
 	if err != nil {
-		return nil, fmt.Errorf("failed to read from asset %v", err)
+		return nil, fmt.Errorf("failed to read asset: %v", err)
 	}
 
 	//No Asset found, return empty response
@@ -44,7 +44,7 @@ func (s *SmartContract) ReadAssetPrivateDetails(ctx contractapi.TransactionConte
 	log.Printf("ReadAssetPrivateDetails: collection %v, ID %v", collection, assetID)
 	assetDetailsJSON, err := ctx.GetStub().GetPrivateData(collection, assetID) // Get the asset from chaincode state
 	if err != nil {
-		return nil, fmt.Errorf("failed to read from asset details %v", err)
+		return nil, fmt.Errorf("failed to read asset details: %v", err)
 	}
 	if assetDetailsJSON == nil {
 		log.Printf("AssetPrivateDetails for %v does not exist in collection %v", assetID, collection)

@@ -4,7 +4,7 @@ Copyright IBM Corp. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package main
+package chaincode
 
 import (
 	"bytes"
@@ -18,6 +18,11 @@ import (
 
 const assetCollection = "assetCollection"
 const transferAgreementObjectType = "transferAgreement"
+
+// SmartContract of this fabric sample
+type SmartContract struct {
+	contractapi.Contract
+}
 
 // Asset describes main asset details that are visible to all organizations
 type Asset struct {
@@ -38,11 +43,6 @@ type AssetPrivateDetails struct {
 type TransferAgreement struct {
 	ID      string `json:"assetID"`
 	BuyerID string `json:"buyerID"`
-}
-
-// SmartContract of this fabric sample
-type SmartContract struct {
-	contractapi.Contract
 }
 
 // CreateAsset creates a new asset by placing the main asset details in the assetCollection
@@ -281,9 +281,11 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 	// Read asset from the private data collection
 	asset, err := s.ReadAsset(ctx, assetTransferInput.ID)
 	if err != nil {
-		return fmt.Errorf("failed to get asset: %v", err)
+		return fmt.Errorf("error reading asset: %v", err)
 	}
-
+	if asset == nil {
+		return fmt.Errorf("%v does not exist", assetTransferInput.ID)
+	}
 	// Verify that the client is submitting request to peer in their organization
 	err = verifyClientOrgMatchesPeerOrg(ctx)
 	if err != nil {
@@ -568,18 +570,4 @@ func verifyClientOrgMatchesPeerOrg(ctx contractapi.TransactionContextInterface) 
 	}
 
 	return nil
-}
-
-func main() {
-
-	chaincode, err := contractapi.NewChaincode(new(SmartContract))
-
-	if err != nil {
-		log.Panicf("error creating the chaincode: %v", err)
-		return
-	}
-
-	if err := chaincode.Start(); err != nil {
-		log.Panicf("error starting the chaincode: %v", err)
-	}
 }
