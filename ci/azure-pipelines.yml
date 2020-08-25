@@ -128,6 +128,10 @@ jobs:
           DIRECTORY: asset-transfer-sbe
           LANGUAGE: typescript
           TYPE: chaincode
+        SBE-Chaincode-Java:
+          DIRECTORY: asset-transfer-sbe
+          LANGUAGE: java
+          TYPE: chaincode
         Secured-Chaincode-Go:
           DIRECTORY: asset-transfer-secured-agreement
           LANGUAGE: go
@@ -211,11 +215,14 @@ jobs:
         SBE-Typescript:
           CHAINCODE_NAME: sbe
           CHAINCODE_LANGUAGE: typescript
+        SBE-Java:
+          CHAINCODE_NAME: sbe
+          CHAINCODE_LANGUAGE: java
     steps:
       - template: templates/install-deps.yml
       - script: ../ci/scripts/run-test-network-sbe.sh
         workingDirectory: test-network
-        displayName: Run Test Network Private Chaincode
+        displayName: Run Test Network SBE Chaincode
 
   - job: TestNetworkSecured
     displayName: Test Network
