@@ -38,7 +38,11 @@ You can use the test network script to deploy the private data smart contract to
 ./network.sh deployCC -ccn private -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cccg ../asset-transfer-private-data/chaincode-go/collections_config.json
 ```
 
-Note that we are using the `-ccep` flag to deploy the private data smart contract with a chaincode endorsement policy of `"OR('Org1MSP.peer','Org2MSP.peer')"`. This allows Org1 and Org2 to create an asset without receiving an endorsement from the other organization. The command also uses the `-cccg` flag to provide the path to the collection configuration file.
+The above command deploys the go chaincode with short name `private`, and specifies the private data collection configuration from file `collections_config.json` using `-cccg` flag.
+Note that we are using the `-ccep` flag to deploy the private data smart contract with a chaincode endorsement policy of `"OR('Org1MSP.peer','Org2MSP.peer')"`. This allows Org1 and Org2 to create an asset without receiving an endorsement from the other organization. 
+
+Now you are ready to call the deployed smart contract.
+Note that this sample workflow steps below, can also be executed via the application at `asset-transfer-private-data/application-javascript` folder, in fewer steps. To execute the workflow via CLI, read on.
 
 ## Register identities
 
@@ -147,7 +151,7 @@ The query will return the value of the asset:
 
 ### Buyer from Org2 agrees to buy the asset
 
-The buyer identity from Org2 is interested in buying the asset. Set the following environment variables to operate as the buyer:
+The buyer identity from Org2 is interested in buying the asset. In a new terminal, set the following environment variables to operate as the buyer:
 
 ```
 export CORE_PEER_LOCALMSPID="Org2MSP"
@@ -156,20 +160,17 @@ export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org2.e
 export CORE_PEER_ADDRESS=localhost:9051
 ```
 
-Now that we are operating as a member of Org2, we can demonstrate that the asset appraisal is not stored on the Org2 peer:
+Now that we are operating as a member of Org2, we can demonstrate that the asset appraisal is not stored in Org2MSPPrivateCollection, on the Org2 peer:
 ```
 peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n private -c '{"function":"ReadAssetPrivateDetails","Args":["Org2MSPPrivateCollection","asset1"]}'
 ```
-The buyer only finds that asset1 does exist in the Org1 collection:
-```
-Error: endorsement failure during invoke. response: status:500 message:"appraisal value for asset1 does not exist in private data collection"
-```
+The empty response shows that, the asset1 private details, does not exist in buyer private collection.
 
-Nor is a member of Org2 able to read the Org1 private data collection:
+Nor can a member of Org2, able to read the Org1 private data collection:
 ```
 peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n private -c '{"function":"ReadAssetPrivateDetails","Args":["Org1MSPPrivateCollection","asset1"]}'
 ```
-By setting `"memberOnlyRead": true` in the collection configuration file, we specify that only members of Org1 can read data from the collection. A member who tries to read the collection would only get the following response.
+By setting `"memberOnlyRead": true` in the collection configuration file, we specify that only members of Org1 can read data from the collection. A Org2 member who tries to read the collection would only get the following response.
 ```
 Error: endorsement failure during query. response: status:500 message:"failed to read from asset details GET_STATE failed: transaction ID: 10d39a7d0b340455a19ca4198146702d68d884d41a0e60936f1599c1ddb9c99d: tx creator does not have read access permission on privatedata in chaincodeName:private collectionName: Org1MSPPrivateCollection"
 ```
@@ -189,9 +190,9 @@ The invoke will return the following value:
 {"assetID":"asset1","appraisedValue":100}
 ```
 
-## Transfer the asset to Org2
+## Org1 member transfers the asset to Org2
 
-Now that buyer has agreed to buy the asset for appraised value, the owner from Org1 can transfer the asset to Org2. Set the following environment variables to operate as Org1:
+Now that buyer has agreed to buy the asset for appraised value, the owner from Org1 can transfer the asset to Org2. In the first terminal (with the following environment variables to operate as Org1):
 ```
 export CORE_PEER_LOCALMSPID="Org1MSP"
 export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/owner@org1.example.com/msp
@@ -199,7 +200,12 @@ export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.e
 export CORE_PEER_ADDRESS=localhost:7051
 ```
 
-To transfer the asset, the owner needs to pass the MSP ID of new asset owner. The transfer function will read the client ID of the interested buyer from the transfer agreement.
+Now that buyer has agreed to buy the asset for appraised value, the owner from Org1 can read the data added by `AgreeToTransfer` to see buyer identity.
+```
+peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n private -c '{"function":"ReadTransferAgreement","Args":["asset1"]}'
+```
+
+The owner from Org1 can now transfer the asset to Org2. To transfer the asset, the owner needs to pass the MSP ID of new asset owner Org. The transfer function will read the client ID of the interested buyer user from the transfer agreement.
 ```
 export ASSET_OWNER=$(echo -n "{\"assetID\":\"asset1\",\"buyerMSP\":\"Org2MSP\"}" | base64 | tr -d \\n)
 ```
@@ -209,7 +215,7 @@ The owner of the asset needs to initiate the transfer.
 ```
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n private -c '{"function":"TransferAsset","Args":[]}' --transient "{\"asset_owner\":\"$ASSET_OWNER\"}" --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
 ```
-You can query `asset1` to see the results of the transfer.
+You can ReadAsset `asset1` to see the results of the transfer.
 ```
 peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n private -c '{"function":"ReadAsset","Args":["asset1"]}'
 ```
@@ -229,10 +235,7 @@ You can also confirm that transfer removed the private details from the Org1 col
 ```
 peer chaincode query -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n private -c '{"function":"ReadAssetPrivateDetails","Args":["Org1MSPPrivateCollection","asset1"]}'
 ```
-Your query will return the following result:
-```
-Error: endorsement failure during query. response: status:500 message:"appraisal value for asset1 does not exist in private data collection"
-```
+Your query will return empty result, since the asset private data is removed from the Org1 private data collection.
 
 ## Clean up
 
