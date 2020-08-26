@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source utils.sh
+source scriptUtils.sh
 
 CHANNEL_NAME="$1"
 DELAY="$2"
