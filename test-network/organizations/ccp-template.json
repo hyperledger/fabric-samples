@@ -45,5 +45,31 @@
                 "verify": false
             }
         }
+    },
+    "channels": {
+        "mychannel": {
+            "orderers": ["orderer.example.com"],
+            "peers": {
+                "peer0.org${ORG}.example.com": {
+                    "endorsingPeer": true,
+                    "chaincodeQuery": true,
+                    "ledgerQuery": true,
+                    "eventSource": true,
+                    "discover": true
+                }
+            }
+        }
+    },
+    "orderers": {
+        "orderer.example.com": {
+            "url": "grpcs://localhost:${ORDERERPORT}",
+            "tlsCACerts": {
+                "pem": "${ORDERERPEM}"
+            },
+            "grpcOptions": {
+                "ssl-target-name-override": "orderer.example.com",
+                "hostnameOverride":  "orderer.example.com"
+            }
+        }
     }
 }
