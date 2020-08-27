@@ -6,6 +6,8 @@
 
 # This is a collection of bash functions used by different scripts
 
+source scriptUtils.sh
+
 export CORE_PEER_TLS_ENABLED=true
 export ORDERER_CA=${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 export PEER0_ORG1_CA=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
@@ -27,7 +29,7 @@ setGlobals() {
   else
     USING_ORG="${OVERRIDE_ORG}"
   fi
-  echo "Using organization ${USING_ORG}"
+  infoln "Using organization ${USING_ORG}"
   if [ $USING_ORG -eq 1 ]; then
     export CORE_PEER_LOCALMSPID="Org1MSP"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG1_CA
@@ -45,7 +47,7 @@ setGlobals() {
     export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp
     export CORE_PEER_ADDRESS=localhost:11051
   else
-    echo "================== ERROR !!! ORG Unknown =================="
+    errorln "ORG Unknown"
   fi
 
   if [ "$VERBOSE" == "true" ]; then
@@ -63,7 +65,7 @@ parsePeerConnectionParameters() {
   while [ "$#" -gt 0 ]; do
     setGlobals $1
     PEER="peer0.org$1"
-    ## Set peer adresses
+    ## Set peer addresses
     PEERS="$PEERS $PEER"
     PEER_CONN_PARMS="$PEER_CONN_PARMS --peerAddresses $CORE_PEER_ADDRESS"
     ## Set path to TLS certificate
@@ -78,8 +80,6 @@ parsePeerConnectionParameters() {
 
 verifyResult() {
   if [ $1 -ne 0 ]; then
-    echo $'\e[1;31m'!!!!!!!!!!!!!!! $2 !!!!!!!!!!!!!!!!$'\e[0m'
-    echo
-    exit 1
+    fatalln "$2"
   fi
 }

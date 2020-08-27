@@ -16,55 +16,57 @@ export PATH=${PWD}/../bin:$PATH
 export FABRIC_CFG_PATH=${PWD}/configtx
 export VERBOSE=false
 
+source scriptUtils.sh
+
 # Print the usage message
 function printHelp() {
-  echo "Usage: "
-  echo "  network.sh <Mode> [Flags]"
-  echo "    Modes:"
-  echo "      "$'\e[0;32m'up$'\e[0m' - bring up fabric orderer and peer nodes. No channel is created
-  echo "      "$'\e[0;32m'up createChannel$'\e[0m' - bring up fabric network with one channel
-  echo "      "$'\e[0;32m'createChannel$'\e[0m' - create and join a channel after the network is created
-  echo "      "$'\e[0;32m'deployCC$'\e[0m' - deploy the asset transfer basic chaincode on the channel or specify
-  echo "      "$'\e[0;32m'down$'\e[0m' - clear the network with docker-compose down
-  echo "      "$'\e[0;32m'restart$'\e[0m' - restart the network
-  echo
-  echo "    Flags:"
-  echo "    Used with "$'\e[0;32m'network.sh up$'\e[0m', $'\e[0;32m'network.sh createChannel$'\e[0m':
-  echo "    -ca <use CAs> -  create Certificate Authorities to generate the crypto material"
-  echo "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
-  echo "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
-  echo "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
-  echo "    -d <delay> - delay duration in seconds (defaults to 3)"
-  echo "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
-  echo "    -cai <ca_imagetag> - the image tag to be used for CA (defaults to \"${CA_IMAGETAG}\")"
-  echo "    -verbose - verbose mode"
-  echo "    Used with "$'\e[0;32m'network.sh deployCC$'\e[0m'
-  echo "    -c <channel name> - deploy chaincode to channel"
-  echo "    -ccn <name> - the short name of the chaincode to deploy: basic (default),ledger, private, sbe, secured"
-  echo "    -ccl <language> - the programming language of the chaincode to deploy: go (default), java, javascript, typescript"
-  echo "    -ccv <version>  - chaincode version. 1.0 (default)"
-  echo "    -ccs <sequence>  - chaincode definition sequence. Must be an integer, 1 (default), 2, 3, etc"
-  echo "    -ccp <path>  - Optional, path to the chaincode. When provided the -ccn will be used as the deployed name and not the short name of the known chaincodes."
-  echo "    -ccep <policy>  - Optional, chaincode endorsement policy, using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
-  echo "    -cccg <collection-config>  - Optional, path to a private data collections configuration file"
-  echo "    -cci <fcn name>  - Optional, chaincode init required function to invoke. When provided this function will be invoked after deployment of the chaincode and will define the chaincode as initialization required."
-  echo
-  echo "    -h - print this message"
-  echo
-  echo " Possible Mode and flag combinations"
-  echo "   "$'\e[0;32m'up$'\e[0m' -ca -c -r -d -s -i -verbose
-  echo "   "$'\e[0;32m'up createChannel$'\e[0m' -ca -c -r -d -s -i -verbose
-  echo "   "$'\e[0;32m'createChannel$'\e[0m' -c -r -d -verbose
-  echo "   "$'\e[0;32m'deployCC$'\e[0m' -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose
-  echo
-  echo " Taking all defaults:"
-  echo "   network.sh up"
-  echo
-  echo " Examples:"
-  echo "   network.sh up createChannel -ca -c mychannel -s couchdb -i 2.0.0"
-  echo "   network.sh createChannel -c channelName"
-  echo "   network.sh deployCC -ccn basic -ccl javascript"
-  echo "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
+  println "Usage: "
+  println "  network.sh <Mode> [Flags]"
+  println "    Modes:"
+  println "      "$'\e[0;32m'up$'\e[0m' - bring up fabric orderer and peer nodes. No channel is created
+  println "      "$'\e[0;32m'up createChannel$'\e[0m' - bring up fabric network with one channel
+  println "      "$'\e[0;32m'createChannel$'\e[0m' - create and join a channel after the network is created
+  println "      "$'\e[0;32m'deployCC$'\e[0m' - deploy the asset transfer basic chaincode on the channel or specify
+  println "      "$'\e[0;32m'down$'\e[0m' - clear the network with docker-compose down
+  println "      "$'\e[0;32m'restart$'\e[0m' - restart the network
+  println
+  println "    Flags:"
+  println "    Used with "$'\e[0;32m'network.sh up$'\e[0m', $'\e[0;32m'network.sh createChannel$'\e[0m':
+  println "    -ca <use CAs> -  create Certificate Authorities to generate the crypto material"
+  println "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
+  println "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
+  println "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
+  println "    -d <delay> - delay duration in seconds (defaults to 3)"
+  println "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
+  println "    -cai <ca_imagetag> - the image tag to be used for CA (defaults to \"${CA_IMAGETAG}\")"
+  println "    -verbose - verbose mode"
+  println "    Used with "$'\e[0;32m'network.sh deployCC$'\e[0m'
+  println "    -c <channel name> - deploy chaincode to channel"
+  println "    -ccn <name> - the short name of the chaincode to deploy: basic (default),ledger, private, sbe, secured"
+  println "    -ccl <language> - the programming language of the chaincode to deploy: go (default), java, javascript, typescript"
+  println "    -ccv <version>  - chaincode version. 1.0 (default)"
+  println "    -ccs <sequence>  - chaincode definition sequence. Must be an integer, 1 (default), 2, 3, etc"
+  println "    -ccp <path>  - Optional, path to the chaincode. When provided the -ccn will be used as the deployed name and not the short name of the known chaincodes."
+  println "    -ccep <policy>  - Optional, chaincode endorsement policy, using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
+  println "    -cccg <collection-config>  - Optional, path to a private data collections configuration file"
+  println "    -cci <fcn name>  - Optional, chaincode init required function to invoke. When provided this function will be invoked after deployment of the chaincode and will define the chaincode as initialization required."
+  println
+  println "    -h - print this message"
+  println
+  println " Possible Mode and flag combinations"
+  println "   "$'\e[0;32m'up$'\e[0m' -ca -c -r -d -s -i -verbose
+  println "   "$'\e[0;32m'up createChannel$'\e[0m' -ca -c -r -d -s -i -verbose
+  println "   "$'\e[0;32m'createChannel$'\e[0m' -c -r -d -verbose
+  println "   "$'\e[0;32m'deployCC$'\e[0m' -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose
+  println
+  println " Taking all defaults:"
+  println "   network.sh up"
+  println
+  println " Examples:"
+  println "   network.sh up createChannel -ca -c mychannel -s couchdb -i 2.0.0"
+  println "   network.sh createChannel -c channelName"
+  println "   network.sh deployCC -ccn basic -ccl javascript"
+  println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
 }
 
 # Obtain CONTAINER_IDS and remove them
@@ -73,7 +75,7 @@ function printHelp() {
 function clearContainers() {
   CONTAINER_IDS=$(docker ps -a | awk '($2 ~ /dev-peer.*/) {print $1}')
   if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" == " " ]; then
-    echo "---- No containers available for deletion ----"
+    infoln "No containers available for deletion"
   else
     docker rm -f $CONTAINER_IDS
   fi
@@ -85,7 +87,7 @@ function clearContainers() {
 function removeUnwantedImages() {
   DOCKER_IMAGE_IDS=$(docker images | awk '($1 ~ /dev-peer.*/) {print $3}')
   if [ -z "$DOCKER_IMAGE_IDS" -o "$DOCKER_IMAGE_IDS" == " " ]; then
-    echo "---- No images available for deletion ----"
+    infoln "No images available for deletion"
   else
     docker rmi -f $DOCKER_IMAGE_IDS
   fi
@@ -102,10 +104,10 @@ function checkPrereqs() {
   peer version > /dev/null 2>&1
 
   if [[ $? -ne 0 || ! -d "../config" ]]; then
-    echo "ERROR! Peer binary and configuration files not found.."
-    echo
-    echo "Follow the instructions in the Fabric docs to install the Fabric Binaries:"
-    echo "https://hyperledger-fabric.readthedocs.io/en/latest/install.html"
+    errorln "Peer binary and configuration files not found.."
+    errorln
+    errorln "Follow the instructions in the Fabric docs to install the Fabric Binaries:"
+    errorln "https://hyperledger-fabric.readthedocs.io/en/latest/install.html"
     exit 1
   fi
   # use the fabric tools container to see if the samples and binaries match your
@@ -113,27 +115,22 @@ function checkPrereqs() {
   LOCAL_VERSION=$(peer version | sed -ne 's/ Version: //p')
   DOCKER_IMAGE_VERSION=$(docker run --rm hyperledger/fabric-tools:$IMAGETAG peer version | sed -ne 's/ Version: //p' | head -1)
 
-  echo "LOCAL_VERSION=$LOCAL_VERSION"
-  echo "DOCKER_IMAGE_VERSION=$DOCKER_IMAGE_VERSION"
+  infoln "LOCAL_VERSION=$LOCAL_VERSION"
+  infoln "DOCKER_IMAGE_VERSION=$DOCKER_IMAGE_VERSION"
 
   if [ "$LOCAL_VERSION" != "$DOCKER_IMAGE_VERSION" ]; then
-    echo "=================== WARNING ==================="
-    echo "  Local fabric binaries and docker images are  "
-    echo "  out of  sync. This may cause problems.       "
-    echo "==============================================="
+    warnln "Local fabric binaries and docker images are out of  sync. This may cause problems."
   fi
 
   for UNSUPPORTED_VERSION in $NONWORKING_VERSIONS; do
-    echo "$LOCAL_VERSION" | grep -q $UNSUPPORTED_VERSION
+    infoln "$LOCAL_VERSION" | grep -q $UNSUPPORTED_VERSION
     if [ $? -eq 0 ]; then
-      echo "ERROR! Local Fabric binary version of $LOCAL_VERSION does not match the versions supported by the test network."
-      exit 1
+      fatalln "Local Fabric binary version of $LOCAL_VERSION does not match the versions supported by the test network."
     fi
 
-    echo "$DOCKER_IMAGE_VERSION" | grep -q $UNSUPPORTED_VERSION
+    infoln "$DOCKER_IMAGE_VERSION" | grep -q $UNSUPPORTED_VERSION
     if [ $? -eq 0 ]; then
-      echo "ERROR! Fabric Docker image version of $DOCKER_IMAGE_VERSION does not match the versions supported by the test network."
-      exit 1
+      fatalln "Fabric Docker image version of $DOCKER_IMAGE_VERSION does not match the versions supported by the test network."
     fi
   done
 
@@ -142,26 +139,22 @@ function checkPrereqs() {
 
     fabric-ca-client version > /dev/null 2>&1
     if [[ $? -ne 0 ]]; then
-      echo "ERROR! fabric-ca-client binary not found.."
-      echo
-      echo "Follow the instructions in the Fabric docs to install the Fabric Binaries:"
-      echo "https://hyperledger-fabric.readthedocs.io/en/latest/install.html"
+      errorln "fabric-ca-client binary not found.."
+      errorln
+      errorln "Follow the instructions in the Fabric docs to install the Fabric Binaries:"
+      errorln "https://hyperledger-fabric.readthedocs.io/en/latest/install.html"
       exit 1
     fi
     CA_LOCAL_VERSION=$(fabric-ca-client version | sed -ne 's/ Version: //p')
     CA_DOCKER_IMAGE_VERSION=$(docker run --rm hyperledger/fabric-ca:$CA_IMAGETAG fabric-ca-client version | sed -ne 's/ Version: //p' | head -1)
-    echo "CA_LOCAL_VERSION=$CA_LOCAL_VERSION"
-    echo "CA_DOCKER_IMAGE_VERSION=$CA_DOCKER_IMAGE_VERSION"
+    infoln "CA_LOCAL_VERSION=$CA_LOCAL_VERSION"
+    infoln "CA_DOCKER_IMAGE_VERSION=$CA_DOCKER_IMAGE_VERSION"
 
     if [ "$CA_LOCAL_VERSION" != "$CA_DOCKER_IMAGE_VERSION" ]; then
-      echo "=================== WARNING ======================"
-      echo "  Local fabric-ca binaries and docker images are  "
-      echo "  out of sync. This may cause problems.           "
-      echo "=================================================="
+      warnln "Local fabric-ca binaries and docker images are out of sync. This may cause problems."
     fi
   fi
 }
-
 
 # Before you can bring up a network, each organization needs to generate the crypto
 # material that will define that organization on the network. Because Hyperledger
@@ -172,7 +165,7 @@ function checkPrereqs() {
 # material.
 
 # By default, the sample network uses cryptogen. Cryptogen is a tool that is
-# meant for development and testing that can quicky create the certificates and keys
+# meant for development and testing that can quickly create the certificates and keys
 # that can be consumed by a Fabric network. The cryptogen tool consumes a series
 # of configuration files for each organization in the "organizations/cryptogen"
 # directory. Cryptogen uses the files to generate the crypto  material for each
@@ -182,12 +175,12 @@ function checkPrereqs() {
 # and keys that they generate to create a valid root of trust for each organization.
 # The script uses Docker Compose to bring up three CAs, one for each peer organization
 # and the ordering organization. The configuration file for creating the Fabric CA
-# servers are in the "organizations/fabric-ca" directory. Within the same diectory,
-# the "registerEnroll.sh" script uses the Fabric CA client to create the identites,
+# servers are in the "organizations/fabric-ca" directory. Within the same directory,
+# the "registerEnroll.sh" script uses the Fabric CA client to create the identities,
 # certificates, and MSP folders that are needed to create the test network in the
 # "organizations/ordererOrganizations" directory.
 
-# Create Organziation crypto material using cryptogen or CAs
+# Create Organization crypto material using cryptogen or CAs
 function createOrgs() {
 
   if [ -d "organizations/peerOrganizations" ]; then
@@ -198,52 +191,38 @@ function createOrgs() {
   if [ "$CRYPTO" == "cryptogen" ]; then
     which cryptogen
     if [ "$?" -ne 0 ]; then
-      echo "cryptogen tool not found. exiting"
-      exit 1
+      fatalln "cryptogen tool not found. exiting"
     fi
-    echo
-    echo "##########################################################"
-    echo "##### Generate certificates using cryptogen tool #########"
-    echo "##########################################################"
-    echo
+    infoln "Generate certificates using cryptogen tool"
 
-    echo "##########################################################"
-    echo "############ Create Org1 Identities ######################"
-    echo "##########################################################"
+    infoln "Create Org1 Identities"
 
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-org1.yaml --output="organizations"
     res=$?
     { set +x; } 2>/dev/null
     if [ $res -ne 0 ]; then
-      echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
-      exit 1
+      fatalln "Failed to generate certificates..."
     fi
 
-    echo "##########################################################"
-    echo "############ Create Org2 Identities ######################"
-    echo "##########################################################"
+    infoln "Create Org2 Identities"
 
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
     res=$?
     { set +x; } 2>/dev/null
     if [ $res -ne 0 ]; then
-      echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
-      exit 1
+      fatalln "Failed to generate certificates..."
     fi
 
-    echo "##########################################################"
-    echo "############ Create Orderer Org Identities ###############"
-    echo "##########################################################"
+    infoln "Create Orderer Org Identities"
 
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-orderer.yaml --output="organizations"
     res=$?
     { set +x; } 2>/dev/null
     if [ $res -ne 0 ]; then
-      echo $'\e[1;32m'"Failed to generate certificates..."$'\e[0m'
-      exit 1
+      fatalln "Failed to generate certificates..."
     fi
 
   fi
@@ -251,10 +230,7 @@ function createOrgs() {
   # Create crypto material using Fabric CAs
   if [ "$CRYPTO" == "Certificate Authorities" ]; then
 
-    echo
-    echo "##########################################################"
-    echo "##### Generate certificates using Fabric CA's ############"
-    echo "##########################################################"
+    infoln "Generate certificates using Fabric CA's"
 
     IMAGE_TAG=${CA_IMAGETAG} docker-compose -f $COMPOSE_FILE_CA up -d 2>&1
 
@@ -262,28 +238,21 @@ function createOrgs() {
 
     sleep 10
 
-    echo "##########################################################"
-    echo "############ Create Org1 Identities ######################"
-    echo "##########################################################"
+    infoln "Create Org1 Identities"
 
     createOrg1
 
-    echo "##########################################################"
-    echo "############ Create Org2 Identities ######################"
-    echo "##########################################################"
+    infoln "Create Org2 Identities"
 
     createOrg2
 
-    echo "##########################################################"
-    echo "############ Create Orderer Org Identities ###############"
-    echo "##########################################################"
+    infoln "Create Orderer Org Identities"
 
     createOrderer
 
   fi
 
-  echo
-  echo "Generate CCP files for Org1 and Org2"
+  infoln "Generate CCP files for Org1 and Org2"
   ./organizations/ccp-generate.sh
 }
 
@@ -293,14 +262,14 @@ function createOrgs() {
 
 # The configtxgen tool is used to create the genesis block. Configtxgen consumes a
 # "configtx.yaml" file that contains the definitions for the sample network. The
-# genesis block is defiend using the "TwoOrgsOrdererGenesis" profile at the bottom
+# genesis block is defined using the "TwoOrgsOrdererGenesis" profile at the bottom
 # of the file. This profile defines a sample consortium, "SampleConsortium",
 # consisting of our two Peer Orgs. This consortium defines which organizations are
 # recognized as members of the network. The peer and ordering organizations are defined
 # in the "Profiles" section at the top of the file. As part of each organization
 # profile, the file points to a the location of the MSP directory for each member.
 # This MSP is used to create the channel MSP that defines the root of trust for
-# each organization. In essense, the channel MSP allows the nodes and users to be
+# each organization. In essence, the channel MSP allows the nodes and users to be
 # recognized as network members. The file also specifies the anchor peers for each
 # peer org. In future steps, this same file is used to create the channel creation
 # transaction and the anchor peer updates.
@@ -318,11 +287,10 @@ function createConsortium() {
 
   which configtxgen
   if [ "$?" -ne 0 ]; then
-    echo "configtxgen tool not found. exiting"
-    exit 1
+    fatalln "configtxgen tool not found."
   fi
 
-  echo "#########  Generating Orderer Genesis block ##############"
+  infoln "Generating Orderer Genesis block"
 
   # Note: For some unknown reason (at least for now) the block file can't be
   # named orderer.genesis.block or the orderer will fail to launch!
@@ -331,13 +299,12 @@ function createConsortium() {
   res=$?
   { set +x; } 2>/dev/null
   if [ $res -ne 0 ]; then
-    echo $'\e[1;32m'"Failed to generate orderer genesis block..."$'\e[0m'
-    exit 1
+    fatalln "Failed to generate orderer genesis block..."
   fi
 }
 
 # After we create the org crypto material and the system channel genesis block,
-# we can now bring up the peers and orderering service. By default, the base
+# we can now bring up the peers and ordering service. By default, the base
 # file for creating the network is "docker-compose-test-net.yaml" in the ``docker``
 # folder. This file defines the environment variables and file mounts that
 # point the crypto material and genesis block that were created in earlier.
@@ -362,18 +329,17 @@ function networkUp() {
 
   docker ps -a
   if [ $? -ne 0 ]; then
-    echo "ERROR !!!! Unable to start network"
-    exit 1
+    fatalln "Unable to start network"
   fi
 }
 
 ## call the script to join create the channel and join the peers of org1 and org2
 function createChannel() {
 
-## Bring up the network if it is not arleady up.
+## Bring up the network if it is not already up.
 
   if [ ! -d "organizations/peerOrganizations" ]; then
-    echo "Bringing up network"
+    infoln "Bringing up network"
     networkUp
   fi
 
@@ -383,21 +349,19 @@ function createChannel() {
   # create the channel artifacts
  scripts/createChannel.sh $CHANNEL_NAME $CLI_DELAY $MAX_RETRY $VERBOSE
   if [ $? -ne 0 ]; then
-    echo "Error !!! Create channel failed"
-    exit 1
+    fatalln "Create channel failed"
   fi
 
 }
 
 
-## Call the script to isntall and instantiate a chaincode on the channel
+## Call the script to install and instantiate a chaincode on the channel
 function deployCC() {
 
   scripts/deployCC.sh $CHANNEL_NAME $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION $CC_SEQUENCE $CC_INIT_FCN $CC_END_POLICY $CC_COLL_CONFIG $CLI_DELAY $MAX_RETRY $VERBOSE
 
   if [ $? -ne 0 ]; then
-    echo "ERROR !!! Deploying chaincode failed"
-    exit 1
+    fatalln "Deploying chaincode failed"
   fi
 
   exit 0
@@ -568,9 +532,7 @@ while [[ $# -ge 1 ]] ; do
     shift
     ;;
   * )
-    echo
-    echo "Unknown flag: $key"
-    echo
+    errorln "Unknown flag: $key"
     printHelp
     exit 1
     ;;
@@ -587,22 +549,16 @@ fi
 
 # Determine mode of operation and printing out what we asked for
 if [ "$MODE" == "up" ]; then
-  echo "Starting nodes with CLI timeout of '${MAX_RETRY}' tries and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE}' ${CRYPTO_MODE}"
-  echo
+  infoln "Starting nodes with CLI timeout of '${MAX_RETRY}' tries and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE}' ${CRYPTO_MODE}"
 elif [ "$MODE" == "createChannel" ]; then
-  echo "Creating channel '${CHANNEL_NAME}'."
-  echo
-  echo "If network is not up, starting nodes with CLI timeout of '${MAX_RETRY}' tries and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE} ${CRYPTO_MODE}"
-  echo
+  infoln "Creating channel '${CHANNEL_NAME}'."
+  infoln "If network is not up, starting nodes with CLI timeout of '${MAX_RETRY}' tries and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE} ${CRYPTO_MODE}"
 elif [ "$MODE" == "down" ]; then
-  echo "Stopping network"
-  echo
+  infoln "Stopping network"
 elif [ "$MODE" == "restart" ]; then
-  echo "Restarting network"
-  echo
+  infoln "Restarting network"
 elif [ "$MODE" == "deployCC" ]; then
-  echo "deploying chaincode on channel '${CHANNEL_NAME}'"
-  echo
+  infoln "deploying chaincode on channel '${CHANNEL_NAME}'"
 else
   printHelp
   exit 1
