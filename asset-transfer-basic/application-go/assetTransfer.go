@@ -75,12 +75,6 @@ func main() {
 	}
 	log.Println(string(result))
 
-	result, err = contract.SubmitTransaction("CreateAsset", "asset13", "yellow", "5", "Tom", "1300")
-	if err != nil {
-		log.Fatalf("Failed to submit transaction: %v", err)
-	}
-	log.Println(string(result))
-
 	log.Println("--> Submit Transaction: CreateAsset, creates new asset with ID, color, owner, size, and appraisedValue arguments")
 	result, err = contract.SubmitTransaction("CreateAsset", "asset13", "yellow", "5", "Tom", "1300")
 	if err != nil {
