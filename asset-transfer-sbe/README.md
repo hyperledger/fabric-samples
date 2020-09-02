@@ -4,6 +4,8 @@ Transactions that are submitted to Hyperledger Fabric networks need to be endors
 
 Each chaincode that is deployed to a channel has an endorsement policy that governs the assets managed by the chaincode smart contracts. However, you can override the chaincode level endorsement policy to create an endorsement policy for a specific key, either on the public channel ledger or in a private collection. State-based endorsement policies, also known as key-level endorsement policies, allow channel members use different endorsement policies for assets that are managed by the same smart contract. For more information about endorsement policies and state-based endorsement, visit the [Endorsement Policies](https://hyperledger-fabric.readthedocs.io/en/master/endorsement-policies.html) topic in the Fabric documentation.
 
+The implementation provided by State Based interface creates a policy which requires signatures from all the Org principals added, and hence is equivalent to an AND policy. For other advanced State Based policy implementations which are not supported by State Based interface directly like OR or NOutOf policies, please refer to method implementations setAssetStateBasedEndorsementWithNOutOfPolicy(), which can be used as an alternative for setAssetStateBasedEndorsement() inside asset-transfer-sbe smart contracts.
+
 ## About the Sample
 
 The state-based endorsement (SBE) asset transfer sample demonstrates how to use key-level endorsement policies to ensure that an asset only needs to be endorsed by an asset owner. In the course of the tutorial, you will use the smart contract to complete the following transfer scenario:

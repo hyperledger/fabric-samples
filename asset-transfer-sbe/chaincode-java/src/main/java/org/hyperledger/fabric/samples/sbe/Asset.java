@@ -15,51 +15,55 @@ import com.owlike.genson.annotation.JsonProperty;
 public final class Asset {
 
     @Property()
-    private final String id;
+    private final String ID;
 
     @Property()
-    private int value;
+    private int Value;
 
     @Property()
-    private String owner;
+    private String Owner;
 
     @Property()
-    private String ownerOrg;
+    private String OwnerOrg;
 
-    public String getId() {
-        return id;
+    @JsonProperty("ID")
+    public String getID() {
+        return ID;
     }
 
+    @JsonProperty("Value")
     public int getValue() {
-        return value;
+        return Value;
     }
 
+    public void setValue(final int Value) {
+        this.Value = Value;
+    }
+
+    @JsonProperty("Owner")
     public String getOwner() {
-        return owner;
+        return Owner;
     }
 
+    public void setOwner(final String Owner) {
+        this.Owner = Owner;
+    }
+
+    @JsonProperty("OwnerOrg")
     public String getOwnerOrg() {
-        return ownerOrg;
+        return OwnerOrg;
     }
 
-    public void setValue(final int value) {
-        this.value = value;
+    public void setOwnerOrg(final String OwnerOrg) {
+        this.OwnerOrg = OwnerOrg;
     }
 
-    public void setOwner(final String owner) {
-        this.owner = owner;
-    }
-
-    public void setOwnerOrg(final String ownerOrg) {
-        this.ownerOrg = ownerOrg;
-    }
-
-    public Asset(@JsonProperty("id") final String id, @JsonProperty("value") final int value,
-                 @JsonProperty("owner") final String owner, @JsonProperty("ownerOrg") final String ownerOrg) {
-        this.id = id;
-        this.value = value;
-        this.owner = owner;
-        this.ownerOrg = ownerOrg;
+    public Asset(@JsonProperty("ID") final String ID, @JsonProperty("Value") final int Value,
+                 @JsonProperty("Owner") final String Owner, @JsonProperty("OwnerOrg") final String OwnerOrg) {
+        this.ID = ID;
+        this.Value = Value;
+        this.Owner = Owner;
+        this.OwnerOrg = OwnerOrg;
     }
 
     @Override
@@ -73,7 +77,7 @@ public final class Asset {
         Asset asset = (Asset) o;
         return getValue() == asset.getValue()
                 &&
-                getId().equals(asset.getId())
+                getID().equals(asset.getID())
                 &&
                 getOwner().equals(asset.getOwner())
                 &&
@@ -82,12 +86,12 @@ public final class Asset {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getValue(), getOwner(), getOwnerOrg());
+        return Objects.hash(getID(), getValue(), getOwner(), getOwnerOrg());
     }
 
     @Override
     public String toString() {
-        return "Asset{" + "id='" + id + '\'' + ", value=" + value + ", owner='"
-                + owner + '\'' + ", ownerOrg='" + ownerOrg + '\'' + '}';
+        return "Asset{" + "ID='" + ID + '\'' + ", Value=" + Value + ", Owner='"
+                + Owner + '\'' + ", OwnerOrg='" + OwnerOrg + '\'' + '}';
     }
 }
