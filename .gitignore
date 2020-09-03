@@ -20,5 +20,5 @@ node_modules/
 build
 
 # Customized by Chhaileng
-wallet
+wallet/
 off_chain_data/listener/files/*.json
