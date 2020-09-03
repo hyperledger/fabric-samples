@@ -25,6 +25,36 @@ pushd ../test-network
 ./network.sh down
 ./network.sh up createChannel -ca -s couchdb
 
+# COPY CPP to my working dir
+cp organizations/peerOrganizations/org1.example.com/connection-org1.json ../off_chain_data/listener/files/
+cp organizations/peerOrganizations/org2.example.com/connection-org2.json ../off_chain_data/listener/files/
+cp organizations/peerOrganizations/org1.example.com/connection-org1-for-docker.json ../off_chain_data/listener/files/
+cp organizations/peerOrganizations/org2.example.com/connection-org2-for-docker.json ../off_chain_data/listener/files/
+
+#echo Starting offchain database
+#docker run --publish 5990:5984 --detach -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=adminpw --name offchaindb couchdb
+
+popd
+pushd listener
+node enrollAdmin.js
+node registerUser.js
+
+mv files/connection-org1.json files/connection-org1-for-localhost.json
+mv files/connection-org2.json files/connection-org2-for-localhost.json
+
+mv files/connection-org1-for-docker.json files/connection-org1.json
+mv files/connection-org2-for-docker.json files/connection-org2.json
+
+docker-compose up -d --build
+popd
+pushd ../test-network
+
+#echo Creating admin and user wallet
+#popd
+#node enrollAdmin.js
+#node registerUser.js
+#pushd ../test-network
+
 export PATH=${PWD}/../bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=${PWD}/../config
 

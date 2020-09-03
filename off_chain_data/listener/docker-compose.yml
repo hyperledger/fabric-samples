@@ -1,0 +1,26 @@
+version: '2'
+
+networks:
+  net_test:
+    external: true
+
+services:
+  offchaindb:
+    container_name: offchaindb
+    image: couchdb:3.1
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=adminpw
+    ports:
+      - "5990:5984"
+    networks:
+      - net_test
+
+  offchainlistener:
+    container_name: block-listener
+    restart: always
+    build: .
+    networks:
+      - net_test
+    depends_on:
+      - offchaindb
