@@ -23,5 +23,7 @@ rm -rf mychannel_marbles.log mychannel__lifecycle.log nextblock.txt
 rm files/*
 popd
 
-docker stop offchaindb
-docker rm offchaindb
+docker network rm net_test
+
+#docker stop offchaindb
+#docker rm offchaindb
