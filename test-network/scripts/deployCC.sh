@@ -42,6 +42,9 @@ if [ "$CC_SRC_PATH" = "NA" ]; then
   if [ "$CC_NAME" = "basic" ]; then
     println $'\e[0;32m'asset-transfer-basic$'\e[0m' chaincode
     CC_SRC_PATH="../asset-transfer-basic"
+  elif [ "$CC_NAME" = "events" ]; then
+    println $'\e[0;32m'asset-transfer-events$'\e[0m' chaincode
+    CC_SRC_PATH="../asset-transfer-events"
   elif [ "$CC_NAME" = "secured" ]; then
     println $'\e[0;32m'asset-transfer-secured-agreeement$'\e[0m' chaincode
     CC_SRC_PATH="../asset-transfer-secured-agreement"
@@ -55,7 +58,7 @@ if [ "$CC_SRC_PATH" = "NA" ]; then
     println $'\e[0;32m'asset-transfer-sbe$'\e[0m' chaincode
     CC_SRC_PATH="../asset-transfer-sbe"
   else
-    fatalln "The chaincode name ${CC_NAME} is not supported by this script. Supported chaincode names are: basic, ledger, private, sbe, secured"
+    fatalln "The chaincode name ${CC_NAME} is not supported by this script. Supported chaincode names are: basic, events, ledger, private, sbe, secured"
   fi
 
   # now see what language it is written in

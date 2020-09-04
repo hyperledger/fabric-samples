@@ -238,3 +238,18 @@ jobs:
       - script: ../ci/scripts/run-test-network-secured.sh
         workingDirectory: test-network
         displayName: Run Test Network Secured Chaincode
+
+  - job: TestNetworkEvents
+    displayName: Test Network
+    pool:
+      vmImage: ubuntu-18.04
+    strategy:
+      matrix:
+        Events-Javascript:
+          CHAINCODE_NAME: events
+          CHAINCODE_LANGUAGE: javascript
+    steps:
+      - template: templates/install-deps.yml
+      - script: ../ci/scripts/run-test-network-events.sh
+        workingDirectory: test-network
+        displayName: Run Test Network Events Chaincode
