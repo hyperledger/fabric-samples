@@ -30,8 +30,15 @@ The -ca flag is used to deploy the network using certificate authorities. This a
 ## Deploy the smart contract to the channel
 
 You can use the test network script to deploy the account-based token contract to the channel that was just created. Deploy the smart contract to `mychannel` using the following command:
+
+**For a Go Contract:**
 ```
 ./network.sh deployCC -ccn token_account -ccp ../token-account-based/chaincode-go/
+```
+
+**For a JavaScript Contract:**
+```
+./network.sh deployCC -ccn token_account -ccp ../token-account-based/chaincode-javascript/ -ccl javascript
 ```
 
 The above command deploys the go chaincode with short name `token_account`. The smart contract will use the default endorsement policy of majority of channel members.
@@ -140,6 +147,8 @@ Using the Org2 terminal, the Org2 recipient user can retrieve their own account 
 peer chaincode query -C mychannel -n token_account -c '{"function":"ClientAccountID","Args":[]}'
 ```
 
+**For a Go Contract:**
+
 The function returns of recipient's account ID:
 ```
 eDUwOTo6Q049cmVjaXBpZW50LE9VPWNsaWVudCxPPUh5cGVybGVkZ2VyLFNUPU5vcnRoIENhcm9saW5hLEM9VVM6OkNOPWNhLm9yZzIuZXhhbXBsZS5jb20sTz1vcmcyLmV4YW1wbGUuY29tLEw9SHVyc2xleSxTVD1IYW1wc2hpcmUsQz1VSw==
@@ -155,10 +164,26 @@ The result shows that the subject and issuer is indeed the recipient user from O
 x509::CN=recipient,OU=client,O=Hyperledger,ST=North Carolina,C=US::CN=ca.org2.example.com,O=org2.example.com,L=Hursley,ST=Hampshire,C=UK
 ```
 
+**For a JavaScript Contract:**
+
+The function returns of recipient's client ID.
+The result shows that the subject and issuer is indeed the recipient user from Org2:
+```
+x509::/C=US/ST=North Carolina/O=Hyperledger/OU=client/CN=recipient::/C=UK/ST=Hampshire/L=Hursley/O=org2.example.com/CN=ca.org2.example.com
+```
+
 After the Org2 recipient provides their account ID to the minter, the minter can initiate a transfer from their account to the recipient's account.
 Back in the Org1 terminal, request the transfer of 100 tokens to the recipient account:
+
+**For a Go Contract:**
 ```
 peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n token_account -c '{"function":"Transfer","Args":[ "eDUwOTo6Q049cmVjaXBpZW50LE9VPWNsaWVudCxPPUh5cGVybGVkZ2VyLFNUPU5vcnRoIENhcm9saW5hLEM9VVM6OkNOPWNhLm9yZzIuZXhhbXBsZS5jb20sTz1vcmcyLmV4YW1wbGUuY29tLEw9SHVyc2xleSxTVD1IYW1wc2hpcmUsQz1VSw==","100"]}'
+```
+
+**For a JavaScript Contract:**
+```
+export RECIPIENT="x509::/C=US/ST=North Carolina/O=Hyperledger/OU=client/CN=recipient::/C=UK/ST=Hampshire/L=Hursley/O=org2.example.com/CN=ca.org2.example.com"
+peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n token_account -c '{"function":"Transfer","Args":[ "'"$RECIPIENT"'","100"]}'
 ```
 
 The `Transfer` function validates that the account associated with the calling client ID has sufficient funds for the transfer.
@@ -182,6 +207,131 @@ peer chaincode query -C mychannel -n token_account -c '{"function":"ClientAccoun
 The function queries the balance of the account associated with the recipient client ID and returns:
 ```
 100
+```
+
+Congratulations, you've transferred 100 tokens! The Org2 recipient can now transfer tokens to other registered users in the same manner.
+
+## Another scenario (for JavaScript contract only)
+
+This sample has another transfer method called `transferFrom`, which allows an approved spender to transfer fungible tokens on behalf of the account owner. The second scenario demonstrates how to approve the spender and transfer fungible tokens.
+
+In this tutorial, you will approve the spender and transfer tokens as follows:
+
+- A minter has already created tokens according to the scenario above.
+- The same minter client uses the `approve` function to set the allowance of tokens a spender client can transfer on behalf of the minter. It is assumed that the spender has provided their client ID to the `approve` caller out of band.
+- The spender client will then use the `transferFrom` function to transfer the requested number of tokens to the recipient's account on behalf of the minter. It is assumed that the recipient has provided their client ID to the `transferFrom` caller out of band.
+
+## Register identities
+
+You have already brought up the network and deployed the smart contract to the channel. We will use the same network and smart contract.
+
+We will use the Org1 CA to create the spender identity.
+Back in the Org1 terminal, you can register a new spender client identity using the `fabric-ca-client` tool:
+```
+fabric-ca-client register --caname ca-org1 --id.name spender --id.secret spenderpw --id.type client --tls.certfiles ${PWD}/organizations/fabric-ca/org1/tls-cert.pem
+```
+
+You can now generate the identity certificates and MSP folder by providing the enroll name and secret to the enroll command:
+```
+fabric-ca-client enroll -u https://spender:spenderpw@localhost:7054 --caname ca-org1 -M ${PWD}/organizations/peerOrganizations/org1.example.com/users/spender@org1.example.com/msp --tls.certfiles ${PWD}/organizations/fabric-ca/org1/tls-cert.pem
+```
+
+Run the command below to copy the Node OU configuration file into the spender identity MSP folder.
+```
+cp ${PWD}/organizations/peerOrganizations/org1.example.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/org1.example.com/users/spender@org1.example.com/msp/config.yaml
+```
+
+## Approve a spender
+
+The minter intends to approve 500 tokens to be transferred by the spender, but first the spender needs to provide their own client ID as the payment address.
+
+Open a 3rd terminal to represent the spender in Org1 and navigate to fabric-samples/test-network. Set the the environment variables for the Org1 spender user.
+
+```
+export PATH=${PWD}/../bin:${PWD}:$PATH
+export FABRIC_CFG_PATH=$PWD/../config/
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/spender@org1.example.com/msp
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+export CORE_PEER_ADDRESS=localhost:7051
+export TARGET_TLS_OPTIONS="-o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
+```
+
+Now the Org1 spender can retrieve their own client ID:
+```
+peer chaincode query -C mychannel -n token_account -c '{"function":"ClientAccountID","Args":[]}'
+```
+
+The function returns of spender's client ID.
+The result shows that the subject and issuer is indeed the recipient user from Org2:
+```
+x509::/C=US/ST=North Carolina/O=Hyperledger/OU=client/CN=spender::/C=US/ST=North Carolina/L=Durham/O=org1.example.com/CN=ca.org1.example.com
+```
+
+After the Org1 spender provides their client ID to the minter, the minter can approve a spender.
+Back in the Org1 terminal, request the approval of 100 tokens to be withdrew by the spender.:
+```
+export SPENDER="x509::/C=US/ST=North Carolina/O=Hyperledger/OU=client/CN=spender::/C=US/ST=North Carolina/L=Durham/O=org1.example.com/CN=ca.org1.example.com"
+peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n token_account -c '{"function":"Approve","Args":["'"$SPENDER"'", "500"]}'
+```
+
+The approve function added that the spender client can consume 500 tokens on behalf of the minter. We can check the spender client's allowance from the minter by calling the `allowance` function.
+
+Let's request the spender's allowance from the minter:
+```
+export MINTER="x509::/C=US/ST=North Carolina/O=Hyperledger/OU=client/CN=minter::/C=US/ST=North Carolina/L=Durham/O=org1.example.com/CN=ca.org1.example.com"
+peer chaincode query -C mychannel -n token_account -c '{"function":"Allowance","Args":["'"$MINTER"'", "'"$SPENDER"'"]}'
+```
+
+The function queries the allowance associated with the spender client ID and returns:
+```
+500
+```
+
+## TransferFrom tokens
+
+The spender intends to transfer 100 tokens to the Org2 recipient on behalf of the minter. The spender has already got the minter client Id and the recipient client ID.
+
+Back in the 3rd terminal, request the transfer of 100 tokens to the recipient account:
+```
+export MINTER="x509::/C=US/ST=North Carolina/O=Hyperledger/OU=client/CN=minter::/C=US/ST=North Carolina/L=Durham/O=org1.example.com/CN=ca.org1.example.com"
+export RECIPIENT="x509::/C=US/ST=North Carolina/O=Hyperledger/OU=client/CN=recipient::/C=UK/ST=Hampshire/L=Hursley/O=org2.example.com/CN=ca.org2.example.com"
+peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n token_account -c '{"function":"TransferFrom","Args":[ "'"$MINTER"'", "'"$RECIPIENT"'", "100"]}'
+```
+
+The `TransferFrom` function has three args: sender, recipient, amount. The function validates that the account associated with the sender has sufficient funds for the transfer. The function also validates if the allowance associated with the calling client ID exceeds funds to be transferred.
+It will then debit the sender's account and credit the recipient's account. It will also decrease the spender's allowance approved by the minter. Note that the sample contract will automatically create an account with zero balance for the recipient, if one does not yet exist.
+
+While still in the 3rd terminal, let's request the minter's account balance again:
+```
+peer chaincode query -C mychannel -n token_account -c '{"function":"BalanceOf","Args":["'"$MINTER"'"]}'
+```
+
+The function queries the balance of the account associated with the minter client ID and returns:
+```
+4800
+```
+
+While still in the 3rd terminal, let's request the spender's allowance from the minter again:
+```
+export SPENDER="x509::/C=US/ST=North Carolina/O=Hyperledger/OU=client/CN=spender::/C=US/ST=North Carolina/L=Durham/O=org1.example.com/CN=ca.org1.example.com"
+peer chaincode query -C mychannel -n token_account -c '{"function":"Allowance","Args":["'"$MINTER"'", "'"$SPENDER"'"]}'
+```
+
+The function queries the allowance associated with the spender client ID and returns:
+```
+400
+```
+
+And then using the Org2 terminal, let's request the recipient's balance:
+```
+peer chaincode query -C mychannel -n token_account -c '{"function":"ClientAccountBalance","Args":[]}'
+```
+
+The function queries the balance of the account associated with the recipient client ID and returns:
+```
+200
 ```
 
 Congratulations, you've transferred 100 tokens! The Org2 recipient can now transfer tokens to other registered users in the same manner.
