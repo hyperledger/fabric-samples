@@ -70,11 +70,11 @@ public final class AssetContract implements ContractInterface {
         String assetJSON = genson.serialize(asset);
         stub.putStringState(assetId, assetJSON);
 
-        // Set the endorsement policy of the assetId Key, such that current owner Org Peer is required to endorse future updates
-        setAssetStateBasedEndorsement(ctx, assetId, new String[]{ownerOrg});
+        // Set the endorsement policy of the assetId Key, such that current owner Org is required to endorse future updates
+        setStateBasedEndorsement(ctx, assetId, new String[]{ownerOrg});
 
-        // Optionally, set the endorsement policy of the assetId Key, such that any 1(N) out of the Org's specified can endorse future updates
-        // setAssetStateBasedEndorsementWithNOutOfPolicy(ctx, assetId, 1, new String[]{"Org1MSP", "Org2MSP"});
+        // Optionally, set the endorsement policy of the assetId Key, such that any 1 Org (N) out of the specified Orgs can endorse future updates
+        // setStateBasedEndorsementNOutOf(ctx, assetId, 1, new String[]{"Org1MSP", "Org2MSP"});
 
         return asset;
     }
@@ -164,7 +164,11 @@ public final class AssetContract implements ContractInterface {
         String updatedAssetJSON = genson.serialize(asset);
         stub.putStringState(assetId, updatedAssetJSON);
 
-        setAssetStateBasedEndorsement(ctx, assetId, new String[]{newOwnerOrg});
+        // Re-Set the endorsement policy of the assetId Key, such that a new owner Org Peer is required to endorse future updates
+        setStateBasedEndorsement(ctx, assetId, new String[]{newOwnerOrg});
+
+        // Optionally, set the endorsement policy of the assetId Key, such that any 1 Org (N) out of the specified Orgs can endorse future updates
+        // setStateBasedEndorsementNOutOf(ctx, assetId, 1, new String[]{"Org1MSP", "Org2MSP"});
 
         return asset;
     }
@@ -195,13 +199,13 @@ public final class AssetContract implements ContractInterface {
 
     /**
      * Sets an endorsement policy to the assetId Key.
-     * Enforces that the owner Org Peers must endorse future update transactions for the specified assetId Key.
+     * Enforces that the owner Org must endorse future update transactions for the specified assetId Key.
      *
      * @param ctx the transaction context
      * @param assetId the id of the asset
      * @param ownerOrgs the list of Owner Org MSPID's
      */
-    private static void setAssetStateBasedEndorsement(final Context ctx, final String assetId, final String[] ownerOrgs) {
+    private static void setStateBasedEndorsement(final Context ctx, final String assetId, final String[] ownerOrgs) {
         StateBasedEndorsement stateBasedEndorsement = StateBasedEndorsementFactory.getInstance().newStateBasedEndorsement(null);
         stateBasedEndorsement.addOrgs(StateBasedEndorsement.RoleType.RoleTypeMember, ownerOrgs);
         ctx.getStub().setStateValidationParameter(assetId, stateBasedEndorsement.policy());
@@ -209,21 +213,21 @@ public final class AssetContract implements ContractInterface {
 
     /**
      * Sets an endorsement policy to the assetId Key.
-     * Enforces that any N out of the Org's Peers specified must endorse future update transactions for the specified assetId Key.
+     * Enforces that a given number of Orgs (N) out of the specified Orgs must endorse future update transactions for the specified assetId Key.
      *
      * @param ctx the transaction context
      * @param assetId the id of the asset
      * @param nOrgs the number of N Orgs to endorse out of the list of Orgs provided
      * @param ownerOrgs the list of Owner Org MSPID's
      */
-    private static void setAssetStateBasedEndorsementWithNOutOfPolicy(final Context ctx, final String assetId, final int nOrgs, final String[] ownerOrgs) {
+    private static void setStateBasedEndorsementNOutOf(final Context ctx, final String assetId, final int nOrgs, final String[] ownerOrgs) {
         ctx.getStub().setStateValidationParameter(assetId, policy(nOrgs, Arrays.asList(ownerOrgs)));
     }
 
     /**
-     * Create the policy such that it requires any N signature's from all of the principals provided
+     * Create a policy that requires a given number (N) of Org principals signatures out of the provided list of Orgs
      *
-     * @param nOrgs the number of N Org signature's to endorse out of the list of Orgs provided
+     * @param nOrgs the number of Org principals signatures required to endorse (out of the provided list of Orgs)
      * @param mspids the list of Owner Org MSPID's
      */
     private static byte[] policy(final int nOrgs, final List<String> mspids) {
