@@ -236,7 +236,14 @@ function createOrgs() {
 
     . organizations/fabric-ca/registerEnroll.sh
 
-    sleep 10
+  while :
+    do
+      if [ ! -f "organizations/fabric-ca/org1/tls-cert.pem" ]; then
+        sleep 1
+      else
+        break
+      fi
+    done
 
     infoln "Create Org1 Identities"
 
