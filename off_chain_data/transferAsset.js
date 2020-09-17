@@ -6,9 +6,9 @@
  */
 
 /*
- * tranferMarble.js will transfer ownership a specified marble to a new ownder. Example:
+ * tranferAsset.js will transfer ownership a specified asset to a new ownder. Example:
  *
- *   $ node transferMarble.js marble102 jimmy
+ *   $ node transferAsset.js asset102 jimmy
  *
  * The utility is meant to demonstrate update block events.
  */
@@ -25,7 +25,7 @@ const channelid = config.channelid;
 async function main() {
 
     if (process.argv[2] == undefined && process.argv[3] == undefined) {
-        console.log("Usage: node changeMarbleOwner.js marbleId owner");
+        console.log("Usage: node transferAsset.js assetId owner");
         process.exit(1);
     }
 
@@ -34,8 +34,7 @@ async function main() {
 
     try {
 
-        // Parse the connection profile. This would be the path to the file downloaded
-        // from the IBM Blockchain Platform operational console.
+        // Parse the connection profile.
         const ccpPath = path.resolve(__dirname, '..', 'test-network','organizations','peerOrganizations','org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
@@ -53,10 +52,10 @@ async function main() {
         const network = await gateway.getNetwork(channelid);
 
         // Get the smart contract from the network channel.
-        const contract = network.getContract('marbles');
+        const contract = network.getContract('basic');
 
-        await contract.submitTransaction('transferMarble', updatekey, newowner);
-        console.log("Transferred marble " + updatekey + " to " + newowner);
+        await contract.submitTransaction('TransferAsset', updatekey, newowner);
+        console.log("Transferred asset " + updatekey + " to " + newowner);
 
         await gateway.disconnect();
 
