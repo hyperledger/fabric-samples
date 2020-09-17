@@ -14,7 +14,7 @@ popd
 
 # clean out any old identites in the wallets
 rm -rf wallet
-rm -rf addMarbles.json mychannel_marbles.log mychannel__lifecycle.log nextblock.txt
+rm -rf addAssets.json mychannel_basic.log mychannel__lifecycle.log nextblock.txt
 
 docker stop offchaindb
 docker rm offchaindb

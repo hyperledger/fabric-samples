@@ -7,9 +7,9 @@
 
 /*
  *
- * deleteMarble.js will delete a specified marble. Example:
+ * deleteAsset.js will delete a specified asset. Example:
  *
- *    $ node deleteMarble.js marble100
+ *    $ node deleteAsset.js asset100
  *
  *  The utility is meant to demonstrate delete block events.
  */
@@ -26,7 +26,7 @@ const channelid = config.channelid;
 async function main() {
 
     if (process.argv[2] == undefined) {
-        console.log("Usage: node deleteMarble marbleId");
+        console.log("Usage: node deleteAsset AssetId");
         process.exit(1);
     }
 
@@ -34,8 +34,7 @@ async function main() {
 
     try {
 
-        // Parse the connection profile. This would be the path to the file downloaded
-        // from the IBM Blockchain Platform operational console.
+        // Parse the connection profile.
         const ccpPath = path.resolve(__dirname, '..', 'test-network','organizations','peerOrganizations','org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
@@ -53,10 +52,10 @@ async function main() {
         const network = await gateway.getNetwork(channelid);
 
         // Get the smart contract from the network channel.
-        const contract = network.getContract('marbles');
+        const contract = network.getContract('basic');
 
-        await contract.submitTransaction('delete', deletekey);
-        console.log("Deleted marble: " + deletekey);
+        await contract.submitTransaction('DeleteAsset', deletekey);
+        console.log("Deleted asset: " + deletekey);
 
         await gateway.disconnect();
 
