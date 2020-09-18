@@ -50,3 +50,15 @@ print "Executing app.js"
 node app.js
 popd
 stopNetwork
+
+# Run typescript application
+createNetwork
+print "Initializing Typescript application"
+pushd ../asset-transfer-basic/application-typescript
+npm install
+print "Building app.ts"
+npm run build
+print "Running the output app"
+node dist/app.js
+popd
+stopNetwork
