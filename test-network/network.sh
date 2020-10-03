@@ -362,7 +362,7 @@ function createChannel() {
 }
 
 
-## Call the script to install and instantiate a chaincode on the channel
+## Call the script to deploy a chaincode to the channel
 function deployCC() {
 
   scripts/deployCC.sh $CHANNEL_NAME $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION $CC_SEQUENCE $CC_INIT_FCN $CC_END_POLICY $CC_COLL_CONFIG $CLI_DELAY $MAX_RETRY $VERBOSE
