@@ -134,10 +134,6 @@ else
   CC_COLL_CONFIG="--collections-config $CC_COLL_CONFIG"
 fi
 
-#if [ "$CC_INIT_FCN" = "NA" ]; then
-#	INIT_REQUIRED=""
-#fi
-
 # import utils
 . scripts/envVar.sh
 
