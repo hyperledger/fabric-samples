@@ -6,6 +6,119 @@ C_GREEN='\033[0;32m'
 C_BLUE='\033[0;34m'
 C_YELLOW='\033[1;33m'
 
+# Print the usage message
+function printHelp() {
+  USAGE="$1"
+  if [ "$USAGE" == "up" ]; then
+    println "Usage: "
+    println "  network.sh \033[0;32mup\033[0m [Flags]"
+    println
+    println "    Flags:"
+    println "    -ca <use CAs> -  Use Certificate Authorities to generate network crypto material"
+    println "    -c <channel name> - Name of channel to create (defaults to \"mychannel\")"
+    println "    -s <dbtype> - Peer state database to deploy: goleveldb (default) or couchdb"
+    println "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
+    println "    -d <delay> - CLI delays for a certain number of seconds (defaults to 3)"
+    println "    -i <imagetag> - Docker image tag of Fabric to deploy (defaults to \"latest\")"
+    println "    -cai <ca_imagetag> - Docker image tag of Fabric CA to deploy (defaults to \"${CA_IMAGETAG}\")"
+    println "    -verbose - Verbose mode"
+    println
+    println "    -h - Print this message"
+    println
+    println " Possible Mode and flag combinations"
+    println "   \033[0;32mup\033[0m -ca -r -d -s -i -cai -verbose"
+    println "   \033[0;32mup createChannel\033[0m -ca -c -r -d -s -i -cai -verbose"
+    println
+    println " Examples:"
+    println "   network.sh up createChannel -ca -c mychannel -s couchdb -i 2.0.0"
+  elif [ "$USAGE" == "createChannel" ]; then
+    println "Usage: "
+    println "  network.sh \033[0;32mcreateChannel\033[0m [Flags]"
+    println
+    println "    Flags:"
+    println "    -c <channel name> - Name of channel to create (defaults to \"mychannel\")"
+    println "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
+    println "    -d <delay> - CLI delays for a certain number of seconds (defaults to 3)"
+    println "    -verbose - Verbose mode"
+    println
+    println "    -h - Print this message"
+    println
+    println " Possible Mode and flag combinations"
+    println "   \033[0;32mcreateChannel\033[0m -c -r -d -verbose"
+    println
+    println " Examples:"
+    println "   network.sh createChannel -c channelName"
+  elif [ "$USAGE" == "deployCC" ]; then
+    println "Usage: "
+    println "  network.sh \033[0;32mdeployCC\033[0m [Flags]"
+    println
+    println "    Flags:"
+    println "    -c <channel name> - Name of channel to deploy chaincode to"
+    println "    -ccn <name> - Chaincode name. This flag can be used to deploy one of the asset transfer samples to a channel. Sample options: basic (default),ledger, private, sbe, secured"
+    println "    -ccl <language> - Programming language of chaincode to deploy: go (default), java, javascript, typescript"
+    println "    -ccv <version>  - Chaincode version. 1.0 (default), v2, version3.x, etc"
+    println "    -ccs <sequence>  - Chaincode definition sequence. Must be an integer, 1 (default), 2, 3, etc"
+    println "    -ccp <path>  - (Optional) File path to the chaincode. When provided, the -ccn flag will be used only for the chaincode name."
+    println "    -ccep <policy>  - (Optional) Chaincode endorsement policy using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
+    println "    -cccg <collection-config>  - (Optional) File path to private data collections configuration file"
+    println "    -cci <fcn name>  - (Optional) Name of chaincode initialization function. When a function is provided, the execution of init will be requested and the function will be invoked."
+    println
+    println "    -h - Print this message"
+    println
+    println " Possible Mode and flag combinations"
+    println "   \033[0;32mdeployCC\033[0m -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose"
+    println
+    println " Examples:"
+    println "   network.sh deployCC -ccn basic -ccl javascript"
+    println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
+  else
+    println "Usage: "
+    println "  network.sh <Mode> [Flags]"
+    println "    Modes:"
+    println "      \033[0;32mup\033[0m - Bring up Fabric orderer and peer nodes. No channel is created"
+    println "      \033[0;32mup createChannel\033[0m - Bring up fabric network with one channel"
+    println "      \033[0;32mcreateChannel\033[0m - Create and join a channel after the network is created"
+    println "      \033[0;32mdeployCC\033[0m - Deploy a chaincode to a channel (defaults to asset-transfer-basic)"
+    println "      \033[0;32mdown\033[0m - Bring down the network"
+    println
+    println "    Flags:"
+    println "    Used with \033[0;32mnetwork.sh up\033[0m, \033[0;32mnetwork.sh createChannel\033[0m:"
+    println "    -ca <use CAs> -  Use Certificate Authorities to generate network crypto material"
+    println "    -c <channel name> - Name of channel to create (defaults to \"mychannel\")"
+    println "    -s <dbtype> - Peer state database to deploy: goleveldb (default) or couchdb"
+    println "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
+    println "    -d <delay> - CLI delays for a certain number of seconds (defaults to 3)"
+    println "    -i <imagetag> - Docker image tag of Fabric to deploy (defaults to \"latest\")"
+    println "    -cai <ca_imagetag> - Docker image tag of Fabric CA to deploy (defaults to \"${CA_IMAGETAG}\")"
+    println "    -verbose - Verbose mode"
+    println
+    println "    Used with \033[0;32mnetwork.sh deployCC\033[0m"
+    println "    -c <channel name> - Name of channel to deploy chaincode to"
+    println "    -ccn <name> - Chaincode name. This flag can be used to deploy one of the asset transfer samples to a channel. Sample options: basic (default),ledger, private, sbe, secured"
+    println "    -ccl <language> - Programming language of the chaincode to deploy: go (default), java, javascript, typescript"
+    println "    -ccv <version>  - Chaincode version. 1.0 (default), v2, version3.x, etc"
+    println "    -ccs <sequence>  - Chaincode definition sequence. Must be an integer, 1 (default), 2, 3, etc"
+    println "    -ccp <path>  - (Optional) File path to the chaincode. When provided, the -ccn flag will be used only for the chaincode name."
+    println "    -ccep <policy>  - (Optional) Chaincode endorsement policy using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
+    println "    -cccg <collection-config>  - (Optional) File path to private data collections configuration file"
+    println "    -cci <fcn name>  - (Optional) Name of chaincode initialization function. When a function is provided, the execution of init will be requested and the function will be invoked."
+    println
+    println "    -h - Print this message"
+    println
+    println " Possible Mode and flag combinations"
+    println "   \033[0;32mup\033[0m -ca -r -d -s -i -cai -verbose"
+    println "   \033[0;32mup createChannel\033[0m -ca -c -r -d -s -i -cai -verbose"
+    println "   \033[0;32mcreateChannel\033[0m -c -r -d -verbose"
+    println "   \033[0;32mdeployCC\033[0m -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose"
+    println
+    println " Examples:"
+    println "   network.sh up createChannel -ca -c mychannel -s couchdb -i 2.0.0"
+    println "   network.sh createChannel -c channelName"
+    println "   network.sh deployCC -ccn basic -ccl javascript"
+    println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
+  fi
+}
+
 # println echos string
 function println() {
   echo -e "$1"
