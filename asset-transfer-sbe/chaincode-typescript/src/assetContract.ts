@@ -5,6 +5,7 @@
 import { Context, Contract, Info, Transaction } from 'fabric-contract-api';
 import { Asset } from './asset';
 import { KeyEndorsementPolicy } from 'fabric-shim';
+import * as fabprotos from 'fabric-shim/bundle';
 
 @Info({title: 'AssetContract', description: 'Asset Transfer Smart Contract, using State Based Endorsement(SBE), implemented in TypeScript' })
 export class AssetContract extends Contract {
@@ -26,8 +27,12 @@ export class AssetContract extends Contract {
         const buffer = Buffer.from(JSON.stringify(asset));
         // Create the asset
         await ctx.stub.putState(assetId, buffer);
-        // Set the endorsement policy of the assetId Key, such that current owner Org Peer is required to endorse future updates
-        await AssetContract.setAssetStateBasedEndorsement(ctx, asset.ID, [ownerOrg]);
+
+        // Set the endorsement policy of the assetId Key, such that current owner Org is required to endorse future updates
+        await AssetContract.setStateBasedEndorsement(ctx, assetId, [ownerOrg]);
+
+        // Optionally, set the endorsement policy of the assetId Key, such that any 1 Org (N) out of the specified Orgs can endorse future updates
+        // await AssetContract.setStateBasedEndorsementNOutOf(ctx, assetId, 1, ["Org1MSP", "Org2MSP"]);
     }
 
     // ReadAsset returns asset with given assetId
@@ -78,7 +83,10 @@ export class AssetContract extends Contract {
         // Update the asset
         await ctx.stub.putState(assetId, Buffer.from(JSON.stringify(asset)));
         // Re-Set the endorsement policy of the assetId Key, such that a new owner Org Peer is required to endorse future updates
-        await AssetContract.setAssetStateBasedEndorsement(ctx, asset.ID, [newOwnerOrg]);
+        await AssetContract.setStateBasedEndorsement(ctx, asset.ID, [newOwnerOrg]);
+
+        // Optionally, set the endorsement policy of the assetId Key, such that any 1 Org (N) out of the specified Orgs can endorse future updates
+        // await AssetContract.setStateBasedEndorsementNOutOf(ctx, assetId, 1, ["Org1MSP", "Org2MSP"]);
     }
 
     // AssetExists returns true when asset with given ID exists
@@ -87,16 +95,58 @@ export class AssetContract extends Contract {
         return (!!buffer && buffer.length > 0);
     }
 
-    // setAssetStateBasedEndorsement sets an endorsement policy to the assetId Key
-    // setAssetStateBasedEndorsement enforces that the owner Org Peers must endorse future update transactions for the specified assetId Key
-    private static async setAssetStateBasedEndorsement(ctx: Context, assetId: string, ownerOrgs: string[]): Promise<void> {
+    // getClientOrgId gets the client's OrgId (MSPID)
+    private static getClientOrgId(ctx: Context): string {
+        return ctx.clientIdentity.getMSPID();
+    }
+
+    // setStateBasedEndorsement sets an endorsement policy to the assetId Key
+    // setStateBasedEndorsement enforces that the owner Org must endorse future update transactions for the specified assetId Key
+    private static async setStateBasedEndorsement(ctx: Context, assetId: string, ownerOrgs: string[]): Promise<void> {
         const ep = new KeyEndorsementPolicy();
         ep.addOrgs('MEMBER', ...ownerOrgs);
         await ctx.stub.setStateValidationParameter(assetId, ep.getPolicy());
     }
 
-    // getClientOrgId gets the client's OrgId (MSPID)
-    private static getClientOrgId(ctx: Context): string {
-        return ctx.clientIdentity.getMSPID();
+    // setStateBasedEndorsementNOutOf sets an endorsement policy to the assetId Key
+    // setStateBasedEndorsementNOutOf enforces that a given number of Orgs (N) out of the specified Orgs must endorse future update transactions for the specified assetId Key.
+    private static async setStateBasedEndorsementNOutOf(ctx: Context, assetId: string, nOrgs:number, ownerOrgs: string[]): Promise<void> {
+        await ctx.stub.setStateValidationParameter(assetId, AssetContract.policy(nOrgs, ownerOrgs));
+    }
+
+    // Create a policy that requires a given number (N) of Org principals signatures out of the provided list of Orgs
+    private static policy(nOrgs: number, mspIds: string[]): Uint8Array {
+        const principals = [];
+        const sigsPolicies = [];
+        mspIds.forEach((mspId, i) => {
+            const mspRole = {
+                role: fabprotos.common.MSPRole.MSPRoleType.MEMBER,
+                mspIdentifier: mspId
+            };
+            const principal = {
+                principalClassification: fabprotos.common.MSPPrincipal.Classification.ROLE,
+                principal: fabprotos.common.MSPRole.encode(mspRole).finish()
+            };
+            principals.push(principal);
+            const signedBy = {
+                signedBy: i,
+            };
+            sigsPolicies.push(signedBy);
+        });
+
+        // create the policy such that it requires any N signature's from all of the principals provided
+        const allOf = {
+            n: nOrgs,
+            rules: sigsPolicies
+        };
+        const noutof = {
+            nOutOf: allOf
+        };
+        const spe = {
+            version: 0,
+            rule: noutof,
+            identities: principals
+        };
+        return fabprotos.common.SignaturePolicyEnvelope.encode(spe).finish();
     }
 }
