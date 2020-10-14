@@ -69,9 +69,10 @@ Run the command below to copy the Node OU configuration file into the minter ide
 cp ${PWD}/organizations/peerOrganizations/org1.example.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/org1.example.com/users/minter@org1.example.com/msp/config.yaml
 ```
 
-Open a new terminal to represent Org2 and navigate to /fabric-samples/test-network. We'll use the Org2 CA to create the Org2 recipient identity. Set the Fabric CA client home to the MSP of the Org2 CA admin:
+Open a new terminal to represent Org2 and navigate to fabric-samples/test-network. We'll use the Org2 CA to create the Org2 recipient identity. Set the Fabric CA client home to the MSP of the Org2 CA admin:
 ```
 cd fabric-samples/test-network
+export PATH=${PWD}/../bin:${PWD}:$PATH
 export FABRIC_CA_CLIENT_HOME=${PWD}/organizations/peerOrganizations/org2.example.com/
 ```
 
@@ -126,7 +127,6 @@ The minter intends to transfer 100 tokens to the Org2 recipient, but first the O
 A client can derive their account ID from their own public certificate, but to be sure the account ID is accurate, the contract has a `ClientAccountID` utility function that simply looks at the callers certificate and returns the calling client's ID, which will be used as the account ID.
 Let's prepare the Org2 terminal by setting the environment variables for the Org2 recipient user.
 ```
-export PATH=${PWD}/../bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=$PWD/../config/
 export CORE_PEER_TLS_ENABLED=true
 export CORE_PEER_LOCALMSPID="Org2MSP"
