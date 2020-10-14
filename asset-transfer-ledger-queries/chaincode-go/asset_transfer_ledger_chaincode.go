@@ -112,7 +112,7 @@ type PaginatedQueryResult struct {
 }
 
 // CreateAsset initializes a new asset in the ledger
-func (t *SimpleChaincode) CreateAsset(ctx contractapi.TransactionContextInterface, assetID, color string, size int, owner string, appraisedValue int) error {
+func (t *SimpleChaincode) CreateAsset(ctx contractapi.TransactionContextInterface, assetID string, color string, size int, owner string, appraisedValue int) error {
 	exists, err := t.AssetExists(ctx, assetID)
 	if err != nil {
 		return fmt.Errorf("failed to get asset: %v", err)
@@ -195,7 +195,7 @@ func (t *SimpleChaincode) DeleteAsset(ctx contractapi.TransactionContextInterfac
 }
 
 // TransferAsset transfers an asset by setting a new owner name on the asset
-func (t *SimpleChaincode) TransferAsset(ctx contractapi.TransactionContextInterface, assetID, newOwner string) error {
+func (t *SimpleChaincode) TransferAsset(ctx contractapi.TransactionContextInterface, assetID string, newOwner string) error {
 	asset, err := t.ReadAsset(ctx, assetID)
 	if err != nil {
 		return err
@@ -237,7 +237,7 @@ func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorI
 // invalidated by the committing peers if the result set has changed between endorsement
 // time and commit time.
 // Therefore, range queries are a safe option for performing update transactions based on query results.
-func (t *SimpleChaincode) GetAssetsByRange(ctx contractapi.TransactionContextInterface, startKey, endKey string) ([]*Asset, error) {
+func (t *SimpleChaincode) GetAssetsByRange(ctx contractapi.TransactionContextInterface, startKey string, endKey string) ([]*Asset, error) {
 	resultsIterator, err := ctx.GetStub().GetStateByRange(startKey, endKey)
 	if err != nil {
 		return nil, err
@@ -254,7 +254,7 @@ func (t *SimpleChaincode) GetAssetsByRange(ctx contractapi.TransactionContextInt
 // committing peers if the result set has changed between endorsement time and commit time.
 // Therefore, range queries are a safe option for performing update transactions based on query results.
 // Example: GetStateByPartialCompositeKey/RangeQuery
-func (t *SimpleChaincode) TransferAssetByColor(ctx contractapi.TransactionContextInterface, color, newOwner string) error {
+func (t *SimpleChaincode) TransferAssetByColor(ctx contractapi.TransactionContextInterface, color string, newOwner string) error {
 	// Execute a key range query on all keys starting with 'color'
 	coloredAssetResultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey(index, []string{color})
 	if err != nil {
