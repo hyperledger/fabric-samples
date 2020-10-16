@@ -96,11 +96,6 @@ must be verified before approval and admittance to the chain.
 ## How
 This sample provides the chaincode and scripts required to run a high-throughput application on the Fabric test network.
 
-### Vendor the chaincode dependencies
-1. Change into the chaincode directory, e.g. `cd ~/fabric-samples/high-throughput/chaincode`
-2. Vendor the Go dependencies by running the following command: `GO111MODULE=on go mod vendor`
-3. The chaincode directory will now contain a `vendor` directory.
-
 ### Start the network
 
 You can use the `startFabric.sh` script to create an instance of the Fabric test network with a single channel named `mychannel`. The script then deploys the `high-throughput` chaincode to the channel by installing it on the test network peers and committing the chaincode definition to the channel.
