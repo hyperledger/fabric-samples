@@ -24,13 +24,13 @@ function stopNetwork() {
 }
 
 # Run Go application
-#createNetwork
-#print "Initializing Go application"
-#pushd ../asset-transfer-basic/application-go
-#print "Executing AssetTransfer.go"
-#go run .
-#popd
-#stopNetwork
+createNetwork
+print "Initializing Go application"
+pushd ../asset-transfer-basic/application-go
+print "Executing AssetTransfer.go"
+go run .
+popd
+stopNetwork
 
 # Run Java application
 createNetwork
