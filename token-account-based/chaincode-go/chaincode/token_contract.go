@@ -8,6 +8,9 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
+// Define key names for options
+const totalSupplyKey = "totalSupply"
+
 // SmartContract provides functions for transferring tokens between accounts
 type SmartContract struct {
 	contractapi.Contract
@@ -58,6 +61,25 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 
 	log.Printf("minter account %s balance updated from %d to %d", minter, currentBalance, updatedBalance)
 
+	// Update the totalSupply
+	totalSupplyBytes, err := ctx.GetStub().GetState(totalSupplyKey)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve total token supply: %v", err)
+	}
+
+	var totalSupply int
+
+	// If no tokens have been minted, initialize the totalSupply
+	if totalSupplyBytes == nil {
+		totalSupply = 0
+	} else {
+		totalSupply, _ = strconv.Atoi(string(totalSupplyBytes)) // Error handling not needed since Itoa() was used when setting the totalSupply, guaranteeing it was an integer.
+	}
+
+	// Add the mint amount to the total supply and update the state
+	totalSupply += amount
+	ctx.GetStub().PutState(totalSupplyKey, []byte(strconv.Itoa(totalSupply)))
+
 	return nil
 }
 
@@ -92,7 +114,7 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, re
 
 	recipientCurrentBalanceBytes, err := ctx.GetStub().GetState(recipient)
 	if err != nil {
-		fmt.Errorf("failed to read recipient account %s from world state: %v", recipient, err)
+		return fmt.Errorf("failed to read recipient account %s from world state: %v", recipient, err)
 	}
 
 	var recipientCurrentBalance int
@@ -171,4 +193,27 @@ func (s *SmartContract) ClientAccountID(ctx contractapi.TransactionContextInterf
 	}
 
 	return clientAccountID, nil
+}
+
+// TotalSupply returns the total token supply
+func (s *SmartContract) TotalSupply(ctx contractapi.TransactionContextInterface) (int, error) {
+
+	// Retrieve total supply of tokens from state of smart contract
+	totalSupplyBytes, err := ctx.GetStub().GetState(totalSupplyKey)
+	if err != nil {
+		return 0, fmt.Errorf("failed to retrieve total token supply: %v", err)
+	}
+
+	var totalSupply int
+
+	// If no tokens have been minted, return 0
+	if totalSupplyBytes == nil {
+		totalSupply = 0
+	} else {
+		totalSupply, _ = strconv.Atoi(string(totalSupplyBytes)) // Error handling not needed since Itoa() was used when setting the totalSupply, guaranteeing it was an integer.
+	}
+
+	log.Printf("The totalSupply was queried: %d total tokens", totalSupply)
+	return totalSupply, nil
+
 }
