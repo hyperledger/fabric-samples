@@ -1,8 +1,6 @@
 # Asset-Transfer-Basic as an external service
 
-See the "Chaincode as an external service" documentation for an introduction on how to run chaincode as an external service.
-This sample includes the external builder and launcher scripts which the peers in your Fabric network will require
-in order to run an asset transfer chaincode as an external service.
+This sample provides an introduction to how to use external builder and launcher scripts to run chaincode as an external service to your peer. For more information, see the [Chaincode as an external service](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html) topic in the Fabric documentation.
 
 **Note:** each organization in a real network would need to setup and host their own instance of the external service. For simplification purpose, in this sample we use the same instance for both organizations.
 
