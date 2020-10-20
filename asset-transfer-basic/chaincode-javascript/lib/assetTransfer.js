@@ -72,7 +72,8 @@ class AssetTransfer extends Contract {
             Owner: owner,
             AppraisedValue: appraisedValue,
         };
-        return ctx.stub.putState(id, Buffer.from(JSON.stringify(asset)));
+        ctx.stub.putState(id, Buffer.from(JSON.stringify(asset)));
+        return JSON.stringify(asset);
     }
 
     // ReadAsset returns the asset stored in the world state with given id.
