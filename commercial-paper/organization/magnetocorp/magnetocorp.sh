@@ -15,7 +15,7 @@ function _exit(){
 : ${VERBOSE:="false"}
 
 # Where am I?
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR=${PWD}
 
 # Locate the test-network 
 cd "${DIR}/../../../test-network"
