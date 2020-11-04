@@ -70,9 +70,13 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, ut
 	}
 
 	// Validate and summarize utxo inputs
-	var utxoInputs []*UTXO
+	utxoInputs := make(map[string]*UTXO)
 	var totalInputAmount int
 	for _, utxoInputKey := range utxoInputKeys {
+		if utxoInputs[utxoInputKey] != nil {
+			return nil, fmt.Errorf("the same utxo input can not be spend twice")
+		}
+
 		utxoInputCompositeKey, err := ctx.GetStub().CreateCompositeKey("utxo", []string{clientID, utxoInputKey})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create composite key: %v", err)
@@ -97,7 +101,7 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, ut
 		}
 
 		totalInputAmount += amount
-		utxoInputs = append(utxoInputs, utxoInput)
+		utxoInputs[utxoInputKey] = utxoInput
 	}
 
 	// Validate and summarize utxo outputs
