@@ -23,7 +23,7 @@ function prettyJSONString(inputString) {
     }
 }
 
-async function bid(ccp,wallet,user,orgMSP,auctionID,quantity,price) {
+async function bid(ccp,wallet,user,orgMSP,auctionID,price) {
     try {
 
         const gateway = new Gateway();
@@ -36,10 +36,10 @@ async function bid(ccp,wallet,user,orgMSP,auctionID,quantity,price) {
         const contract = network.getContract(myChaincodeName);
 
         console.log('\n--> Evaluate Transaction: get your client ID');
-        let buyer = await contract.evaluateTransaction('GetID');
-        console.log('*** Result:  Buyer ID is ' + buyer.toString());
+        let bidder = await contract.evaluateTransaction('GetID');
+        console.log('*** Result:  Bidder ID is ' + bidder.toString());
 
-        let bidData = { objectType: 'bid', quantity: parseInt(quantity) , price: parseInt(price), org: orgMSP, buyer: buyer.toString()};
+        let bidData = { objectType: 'bid', price: parseInt(price), org: orgMSP, bidder: bidder.toString()};
 
         let statefulTxn = contract.createTransaction('Bid');
         statefulTxn.setEndorsingOrganizations(orgMSP);
@@ -50,7 +50,7 @@ async function bid(ccp,wallet,user,orgMSP,auctionID,quantity,price) {
 
         let bidID = statefulTxn.getTransactionId();
 
-        console.log('\n--> Submit Transaction: Create the bid that is stored in your private data collection of your organization');
+        console.log('\n--> Submit Transaction: Create the bid that is stored in your organization\'s private data collection');
         await statefulTxn.submit(auctionID);
         console.log('*** Result: committed');
         console.log('*** Result ***SAVE THIS VALUE*** BidID: ' + bidID.toString());
@@ -73,17 +73,15 @@ async function main() {
     try {
 
         if (process.argv[2] == undefined || process.argv[3] == undefined
-            || process.argv[4] == undefined || process.argv[5] == undefined
-            || process.argv[6] == undefined) {
-            console.log("Usage: node bid.js org userID auctionID quantity price");
+            || process.argv[4] == undefined || process.argv[5] == undefined) {
+            console.log("Usage: node bid.js org userID auctionID price");
             process.exit(1);
         }
 
         const org = process.argv[2]
         const user = process.argv[3];
         const auctionID = process.argv[4];
-        const quantity = process.argv[5];
-        const price = process.argv[6];
+        const price = process.argv[5];
 
         if (org == 'Org1' || org == 'org1') {
 
@@ -91,7 +89,7 @@ async function main() {
             const ccp = buildCCPOrg1();
             const walletPath = path.join(__dirname, 'wallet/org1');
             const wallet = await buildWallet(Wallets, walletPath);
-            await bid(ccp,wallet,user,orgMSP,auctionID,quantity,price);
+            await bid(ccp,wallet,user,orgMSP,auctionID,price);
         }
         else if (org == 'Org2' || org == 'org2') {
 
@@ -99,9 +97,9 @@ async function main() {
             const ccp = buildCCPOrg2();
             const walletPath = path.join(__dirname, 'wallet/org2');
             const wallet = await buildWallet(Wallets, walletPath);
-            await bid(ccp,wallet,user,orgMSP,auctionID,quantity,price);
+            await bid(ccp,wallet,user,orgMSP,auctionID,price);
         }  else {
-            console.log("Usage: node bid.js org userID auctionID  quantity price");
+            console.log("Usage: node bid.js org userID auctionID price");
             console.log("Org must be Org1 or Org2");
           }
     } catch (error) {

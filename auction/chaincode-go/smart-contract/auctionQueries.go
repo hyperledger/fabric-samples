@@ -70,7 +70,7 @@ func (s *SmartContract) QueryBid(ctx contractapi.TransactionContextInterface, au
 	}
 
 	// check that the client querying the bid is the bid owner
-	if bid.Buyer != clientID {
+	if bid.Bidder != clientID {
 		return nil, fmt.Errorf("Permission denied, client id %v is not the owner of the bid", clientID)
 	}
 
