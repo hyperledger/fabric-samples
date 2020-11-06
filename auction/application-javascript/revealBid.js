@@ -44,7 +44,7 @@ async function addBid(ccp,wallet,user,auctionID,bidID) {
        // console.log('*** Result:  Bid: ' + prettyJSONString(auctionString.toString()));
         var auctionJSON = JSON.parse(auctionString);
 
-        let bidData = { objectType: 'bid', quantity: parseInt(bidJSON.quantity) , price: parseInt(bidJSON.price), org: bidJSON.org, buyer: bidJSON.buyer};
+        let bidData = { objectType: 'bid', price: parseInt(bidJSON.price), org: bidJSON.org, bidder: bidJSON.bidder};
         console.log('*** Result:  Bid: ' + JSON.stringify(bidData,null,2));
 
         let statefulTxn = contract.createTransaction('RevealBid');
