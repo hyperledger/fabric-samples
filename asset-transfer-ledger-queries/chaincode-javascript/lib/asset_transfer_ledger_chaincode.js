@@ -386,7 +386,7 @@ class Chaincode extends Contract {
 			},
 		];
 
-		for (let asset in assets) {
+		for (const asset of assets) {
 			await this.CreateAsset(
 				ctx,
 				asset.assetID,
