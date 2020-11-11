@@ -1,6 +1,7 @@
 package chaincode
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -101,6 +102,17 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, re
 		return fmt.Errorf("failed to transfer: %v", err)
 	}
 
+	// Emit the Transfer event
+	transferEvent := map[string]string{"from": clientID, "to": recipient, "value": strconv.Itoa(amount)}
+	transferEventJSON, err := json.Marshal(transferEvent)
+	if err != nil {
+		return fmt.Errorf("failed to obtain JSON encoding: %v", err)
+	}
+	err = ctx.GetStub().SetEvent("Transfer", transferEventJSON)
+	if err != nil {
+		return fmt.Errorf("event failed to register: %v", err)
+	}
+
 	return nil
 }
 
@@ -198,6 +210,17 @@ func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, spe
 	err = ctx.GetStub().PutState(allowanceKey, []byte(strconv.Itoa(value)))
 	if err != nil {
 		return fmt.Errorf("failed to update state of smart contract for key %s: %v", allowanceKey, err)
+	}
+
+	// Emit the Approval event
+	approvalEvent := map[string]string{"owner": owner, "spender": spender, "value": strconv.Itoa(value)}
+	approvalEventJSON, err := json.Marshal(approvalEvent)
+	if err != nil {
+		return fmt.Errorf("failed to obtain JSON encoding: %v", err)
+	}
+	err = ctx.GetStub().SetEvent("Approval", approvalEventJSON)
+	if err != nil {
+		return fmt.Errorf("event failed to register: %v", err)
 	}
 
 	log.Printf("client %s approved a withdrawal allowance of %d for spender %s", owner, value, spender)
