@@ -9,20 +9,11 @@
 const { Wallets } = require('fabric-network');
 const FabricCAServices = require('fabric-ca-client');
 const path = require('path');
-const { buildCAClient, registerAndEnrollUser } = require('../../test-application/javascript/CAUtil.js');
-const { buildCCPOrg1, buildCCPOrg2, buildWallet } = require('../../test-application/javascript/AppUtil.js');
+const { buildCAClient, registerAndEnrollUser } = require('../../../test-application/javascript/CAUtil.js');
+const { buildCCPOrg1, buildCCPOrg2, buildWallet } = require('../../../test-application/javascript/AppUtil.js');
 
 const mspOrg1 = 'Org1MSP';
 const mspOrg2 = 'Org2MSP';
-
-function prettyJSONString(inputString) {
-    if (inputString) {
-        return JSON.stringify(JSON.parse(inputString), null, 2);
-    }
-    else {
-        return inputString;
-    }
-}
 
 async function connectToOrg1CA(UserID) {
     console.log('\n--> Register and enrolling new user');
