@@ -33,12 +33,12 @@ You can use the test network script to deploy the account-based token contract t
 
 **For a Go Contract:**
 ```
-./network.sh deployCC -ccn token_account -ccp ../token-account-based/chaincode-go/
+./network.sh deployCC -ccn token_account -ccp ../token-erc-20/chaincode-go/
 ```
 
 **For a JavaScript Contract:**
 ```
-./network.sh deployCC -ccn token_account -ccp ../token-account-based/chaincode-javascript/ -ccl javascript
+./network.sh deployCC -ccn token_account -ccp ../token-erc-20/chaincode-javascript/ -ccl javascript
 ```
 
 The above command deploys the go chaincode with short name `token_account`. The smart contract will use the default endorsement policy of majority of channel members.
