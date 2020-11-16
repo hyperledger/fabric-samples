@@ -311,7 +311,7 @@ func (s *SmartContract) TransferFrom(ctx contractapi.TransactionContextInterface
 // Dependant functions include Transfer and TransferFrom.
 func transferHelper(ctx contractapi.TransactionContextInterface, from string, to string, value int) error {
 
-	if value < 0 { // transfer of 0 is allowed in ERC20, so just validate against negative amounts
+	if value < 0 { // transfer of 0 is allowed in ERC-20, so just validate against negative amounts
 		return fmt.Errorf("transfer amount cannot be negative")
 	}
 
