@@ -31,7 +31,6 @@ transfer an asset in a more realistic transfer scenario.
 | [State-Based Endorsement](asset-transfer-sbe) | This sample demonstrates how to override the chaincode-level endorsement policy to set endorsement policies at the key-level (data/asset level). | [Using State-based endorsement](https://github.com/hyperledger/fabric-samples/tree/master/asset-transfer-sbe) | Java, TypeScript | JavaScript |
 | [Secured agreement](asset-transfer-secured-agreement) | Smart contract that uses implicit private data collections, state-based endorsement, and organization-based ownership and access control to keep data private and securely transfer an asset with the consent of both the current owner and buyer. | [Secured asset transfer](https://hyperledger-fabric.readthedocs.io/en/latest/secured_asset_transfer/secured_private_asset_transfer_tutorial.html)  | Go | JavaScript |
 
-Additional smart contract and application languages are still being developed. The series will also be integrated with other Fabric tutorials in the near future. For more information, see the public plan for [Fabric samples improvements](https://docs.google.com/presentation/d/1UxK2HH8SrQyZU58MnuDb9hr1nmekst8b/edit#slide=id.g776cdbfb06_0_51).
 
 ## Additional samples
 
@@ -44,6 +43,7 @@ Additional samples demonstrate various Fabric use cases and application patterns
 | [Token ERC-20](token-erc-20) | Smart contract demonstrating how to create and transfer fungible tokens using an account-based model. | [README](token-erc-20/README.md) |
 | [Token UTXO](token-utxo) | Smart contract demonstrating how to create and transfer fungible tokens using a UTXO (unspent transaction output) model. | [README](token-utxo/README.md) |
 | [High throughput](high-throughput) | Learn how you can design your smart contract to avoid transaction collisions in high volume environments. | [README](high-throughput/README.md) |
+| [Auction](auction) | Run an auction where bids are kept private until the auction is closed, after which users can reveal their bid | [README](auction/README.md) |
 | [Chaincode](chaincode) | A set of other sample smart contracts, many of which were used in tutorials prior to the asset transfer sample series. | |
 | [Interest rate swaps](interest_rate_swaps) | **Deprecated in favor of state based endorsement asset transfer sample** | |
 | [Fabcar](fabcar) | **Deprecated in favor of basic asset transfer sample** |  |
