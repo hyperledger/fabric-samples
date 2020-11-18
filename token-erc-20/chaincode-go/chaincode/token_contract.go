@@ -2,6 +2,7 @@ package chaincode
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -20,7 +21,15 @@ type SmartContract struct {
 	contractapi.Contract
 }
 
+// event provides an organized struct for emitting events
+type event struct {
+	from  string
+	to    string
+	value int
+}
+
 // Mint creates new tokens and adds them to minter's account balance
+// This function triggers a Transfer event
 func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount int) error {
 
 	// Check minter authorization - this sample assumes Org1 is the central banker with privilege to mint new tokens
@@ -63,8 +72,6 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 		return err
 	}
 
-	log.Printf("minter account %s balance updated from %d to %d", minter, currentBalance, updatedBalance)
-
 	// Update the totalSupply
 	totalSupplyBytes, err := ctx.GetStub().GetState(totalSupplyKey)
 	if err != nil {
@@ -82,13 +89,110 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 
 	// Add the mint amount to the total supply and update the state
 	totalSupply += amount
-	ctx.GetStub().PutState(totalSupplyKey, []byte(strconv.Itoa(totalSupply)))
+	err = ctx.GetStub().PutState(totalSupplyKey, []byte(strconv.Itoa(totalSupply)))
+	if err != nil {
+		return err
+	}
+
+	// Emit the Transfer event
+	transferEvent := event{"0x0", minter, amount}
+	transferEventJSON, err := json.Marshal(transferEvent)
+	if err != nil {
+		return fmt.Errorf("failed to obtain JSON encoding: %v", err)
+	}
+	err = ctx.GetStub().SetEvent("Transfer", transferEventJSON)
+	if err != nil {
+		return fmt.Errorf("failed to set event: %v", err)
+	}
+
+	log.Printf("minter account %s balance updated from %d to %d", minter, currentBalance, updatedBalance)
 
 	return nil
 }
 
-// Transfer transfers tokens from client account to recipient account.
-// recipient account must be a valid clientID as returned by the ClientID() function.
+// Burn redeems tokens the minter's account balance
+// This function triggers a Transfer event
+func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount int) error {
+
+	// Check minter authorization - this sample assumes Org1 is the central banker with privilege to burn new tokens
+	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
+	if err != nil {
+		return fmt.Errorf("failed to get MSPID: %v", err)
+	}
+	if clientMSPID != "Org1MSP" {
+		return fmt.Errorf("client is not authorized to mint new tokens")
+	}
+
+	// Get ID of submitting client identity
+	minter, err := ctx.GetClientIdentity().GetID()
+	if err != nil {
+		return fmt.Errorf("failed to get client id: %v", err)
+	}
+
+	if amount <= 0 {
+		return errors.New("burn amount must be a positive integer")
+	}
+
+	currentBalanceBytes, err := ctx.GetStub().GetState(minter)
+	if err != nil {
+		return fmt.Errorf("failed to read minter account %s from world state: %v", minter, err)
+	}
+
+	var currentBalance int
+
+	// Check if minter current balance exists
+	if currentBalanceBytes == nil {
+		return errors.New("The balance does not exist")
+	}
+
+	currentBalance, _ = strconv.Atoi(string(currentBalanceBytes)) // Error handling not needed since Itoa() was used when setting the account balance, guaranteeing it was an integer.
+
+	updatedBalance := currentBalance - amount
+
+	err = ctx.GetStub().PutState(minter, []byte(strconv.Itoa(updatedBalance)))
+	if err != nil {
+		return err
+	}
+
+	// Update the totalSupply
+	totalSupplyBytes, err := ctx.GetStub().GetState(totalSupplyKey)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve total token supply: %v", err)
+	}
+
+	// If no tokens have been minted, throw error
+	if totalSupplyBytes == nil {
+		return errors.New("totalSupply does not exist")
+	}
+
+	totalSupply, _ := strconv.Atoi(string(totalSupplyBytes)) // Error handling not needed since Itoa() was used when setting the totalSupply, guaranteeing it was an integer.
+
+	// Subtract the burn amount to the total supply and update the state
+	totalSupply -= amount
+	err = ctx.GetStub().PutState(totalSupplyKey, []byte(strconv.Itoa(totalSupply)))
+	if err != nil {
+		return err
+	}
+
+	// Emit the Transfer event
+	transferEvent := event{minter, "0x0", amount}
+	transferEventJSON, err := json.Marshal(transferEvent)
+	if err != nil {
+		return fmt.Errorf("failed to obtain JSON encoding: %v", err)
+	}
+	err = ctx.GetStub().SetEvent("Transfer", transferEventJSON)
+	if err != nil {
+		return fmt.Errorf("failed to set event: %v", err)
+	}
+
+	log.Printf("minter account %s balance updated from %d to %d", minter, currentBalance, updatedBalance)
+
+	return nil
+}
+
+// Transfer transfers tokens from client account to recipient account
+// recipient account must be a valid clientID as returned by the ClientID() function
+// This function triggers a Transfer event
 func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, recipient string, amount int) error {
 
 	// Get ID of submitting client identity
@@ -103,14 +207,14 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, re
 	}
 
 	// Emit the Transfer event
-	transferEvent := map[string]string{"from": clientID, "to": recipient, "value": strconv.Itoa(amount)}
+	transferEvent := event{clientID, recipient, amount}
 	transferEventJSON, err := json.Marshal(transferEvent)
 	if err != nil {
 		return fmt.Errorf("failed to obtain JSON encoding: %v", err)
 	}
 	err = ctx.GetStub().SetEvent("Transfer", transferEventJSON)
 	if err != nil {
-		return fmt.Errorf("event failed to register: %v", err)
+		return fmt.Errorf("failed to set event: %v", err)
 	}
 
 	return nil
@@ -153,8 +257,8 @@ func (s *SmartContract) ClientAccountBalance(ctx contractapi.TransactionContextI
 	return balance, nil
 }
 
-// ClientAccountID returns the id of the requesting client's account.
-// In this implementation, the client account ID is the clientId itself.
+// ClientAccountID returns the id of the requesting client's account
+// In this implementation, the client account ID is the clientId itself
 // Users can use this function to get their own account id, which they can then give to others as the payment address
 func (s *SmartContract) ClientAccountID(ctx contractapi.TransactionContextInterface) (string, error) {
 
@@ -190,8 +294,9 @@ func (s *SmartContract) TotalSupply(ctx contractapi.TransactionContextInterface)
 	return totalSupply, nil
 }
 
-// Approve allows the spender to withdraw from the calling client's token account.
-// The spender can withdraw multiple times if necessary, up to the value amount.
+// Approve allows the spender to withdraw from the calling client's token account
+// The spender can withdraw multiple times if necessary, up to the value amount
+// This function triggers an Approval event
 func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, spender string, value int) error {
 
 	// Get ID of submitting client identity
@@ -213,14 +318,14 @@ func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, spe
 	}
 
 	// Emit the Approval event
-	approvalEvent := map[string]string{"owner": owner, "spender": spender, "value": strconv.Itoa(value)}
+	approvalEvent := event{owner, spender, value}
 	approvalEventJSON, err := json.Marshal(approvalEvent)
 	if err != nil {
 		return fmt.Errorf("failed to obtain JSON encoding: %v", err)
 	}
 	err = ctx.GetStub().SetEvent("Approval", approvalEventJSON)
 	if err != nil {
-		return fmt.Errorf("event failed to register: %v", err)
+		return fmt.Errorf("failed to set event: %v", err)
 	}
 
 	log.Printf("client %s approved a withdrawal allowance of %d for spender %s", owner, value, spender)
@@ -228,7 +333,7 @@ func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, spe
 	return nil
 }
 
-// Allowance returns the amount still available for the spender to withdraw from the owner.
+// Allowance returns the amount still available for the spender to withdraw from the owner
 func (s *SmartContract) Allowance(ctx contractapi.TransactionContextInterface, owner string, spender string) (int, error) {
 
 	// Create allowanceKey
@@ -257,8 +362,8 @@ func (s *SmartContract) Allowance(ctx contractapi.TransactionContextInterface, o
 	return allowance, nil
 }
 
-// TransferFrom transfers the value amount from the "from" address to the "to" address.
-// This function triggers a Transfer event.
+// TransferFrom transfers the value amount from the "from" address to the "to" address
+// This function triggers a Transfer event
 func (s *SmartContract) TransferFrom(ctx contractapi.TransactionContextInterface, from string, to string, value int) error {
 
 	// Get ID of submitting client identity
@@ -300,6 +405,17 @@ func (s *SmartContract) TransferFrom(ctx contractapi.TransactionContextInterface
 		return err
 	}
 
+	// Emit the Transfer event
+	transferEvent := event{from, to, value}
+	transferEventJSON, err := json.Marshal(transferEvent)
+	if err != nil {
+		return fmt.Errorf("failed to obtain JSON encoding: %v", err)
+	}
+	err = ctx.GetStub().SetEvent("Transfer", transferEventJSON)
+	if err != nil {
+		return fmt.Errorf("failed to set event: %v", err)
+	}
+
 	log.Printf("spender %s allowance updated from %d to %d", spender, currentAllowance, updatedAllowance)
 
 	return nil
@@ -307,8 +423,8 @@ func (s *SmartContract) TransferFrom(ctx contractapi.TransactionContextInterface
 
 // Helper Functions
 
-// transferHelper is a helper function that transfers tokens from the "from" address to the "to" address.
-// Dependant functions include Transfer and TransferFrom.
+// transferHelper is a helper function that transfers tokens from the "from" address to the "to" address
+// Dependant functions include Transfer and TransferFrom
 func transferHelper(ctx contractapi.TransactionContextInterface, from string, to string, value int) error {
 
 	if value < 0 { // transfer of 0 is allowed in ERC-20, so just validate against negative amounts
