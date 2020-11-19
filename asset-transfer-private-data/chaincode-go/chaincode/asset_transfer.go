@@ -8,6 +8,7 @@ package chaincode
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -102,9 +103,9 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 	}
 
 	// Get ID of submitting client identity
-	clientID, err := ctx.GetClientIdentity().GetID()
+	clientID, err := submittingClientIdentity(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get verified OrgID: %v", err)
+		return err
 	}
 
 	// Verify that the client is submitting request to peer in their organization
@@ -131,7 +132,8 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 	// Save asset to private data collection
 	// Typical logger, logs to stdout/file in the fabric managed docker container, running this chaincode
 	// Look for container name like dev-peer0.org1.example.com-{chaincodename_version}-xyz
-	log.Printf("CreateAsset Put: collection %v, ID %v", assetCollection, assetInput.ID)
+	log.Printf("CreateAsset Put: collection %v, ID %v, owner %v", assetCollection, assetInput.ID, clientID)
+
 	err = ctx.GetStub().PutPrivateData(assetCollection, assetInput.ID, assetJSONasBytes)
 	if err != nil {
 		return fmt.Errorf("failed to put asset into private data collecton: %v", err)
@@ -170,9 +172,9 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 func (s *SmartContract) AgreeToTransfer(ctx contractapi.TransactionContextInterface) error {
 
 	// Get ID of submitting client identity
-	clientID, err := ctx.GetClientIdentity().GetID()
+	clientID, err := submittingClientIdentity(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get verified OrgID: %v", err)
+		return err
 	}
 
 	// Value is private, therefore it gets passed in transient field
@@ -355,9 +357,9 @@ func (s *SmartContract) verifyAgreement(ctx contractapi.TransactionContextInterf
 	// Check 1: verify that the transfer is being initiatied by the owner
 
 	// Get ID of submitting client identity
-	clientID, err := ctx.GetClientIdentity().GetID()
+	clientID, err := submittingClientIdentity(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get verified OrgID: %v", err)
+		return err
 	}
 
 	if clientID != owner {
@@ -573,4 +575,16 @@ func verifyClientOrgMatchesPeerOrg(ctx contractapi.TransactionContextInterface) 
 	}
 
 	return nil
+}
+
+func submittingClientIdentity(ctx contractapi.TransactionContextInterface) (string, error) {
+	b64ID, err := ctx.GetClientIdentity().GetID()
+	if err != nil {
+		return "", fmt.Errorf("Failed to read clientID: %v", err)
+	}
+	decodeID, err := base64.StdEncoding.DecodeString(b64ID)
+	if err != nil {
+		return "", fmt.Errorf("failed to base64 decode clientID: %v", err)
+	}
+	return string(decodeID), nil
 }

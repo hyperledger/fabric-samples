@@ -22,8 +22,6 @@ const mspOrg1 = 'Org1MSP';
 const mspOrg2 = 'Org2MSP';
 const Org1UserId = 'appUser1';
 const Org2UserId = 'appUser2';
-const userOrg1IdentityString = `x509::CN=${Org1UserId},OU=client+OU=org1+OU=department1::CN=ca.org1.example.com,O=org1.example.com,L=Durham,ST=North Carolina,C=US`;
-const userOrg2IdentityString = `x509::CN=${Org2UserId},OU=client+OU=org2+OU=department1::CN=ca.org2.example.com,O=org2.example.com,L=Hursley,ST=Hampshire,C=UK`;
 
 const RED = '\x1b[31m\n';
 const RESET = '\x1b[0m';
@@ -42,7 +40,7 @@ function doFail(msgString) {
     process.exit(1);
 }
 
-function verifyAssetData(org, resultBuffer, expectedId, color, size, owner, appraisedValue) {
+function verifyAssetData(org, resultBuffer, expectedId, color, size, ownerUserId, appraisedValue) {
 
     let asset;
     if (resultBuffer) {
@@ -63,11 +61,11 @@ function verifyAssetData(org, resultBuffer, expectedId, color, size, owner, appr
     if (asset.size !== size) {
         doFail(`Failed size check - asset ${asset.assetID} has size of ${asset.size}, expected value ${size}`);
     }
-    let assetsOwner = Buffer.from(asset.owner, 'base64').toString();
-    if (assetsOwner === owner) {
-        console.log(`\tasset ${asset.assetID} owner: ${assetsOwner}`);
+
+    if (asset.owner.includes(ownerUserId)) {
+        console.log(`\tasset ${asset.assetID} owner: ${asset.owner}`);
     } else {
-        doFail(`Failed owner check from ${org} - asset ${asset.assetID} owned by ${assetsOwner}, expected value ${owner}`);
+        doFail(`Failed owner check from ${org} - asset ${asset.assetID} owned by ${asset.owner}, expected userId ${ownerUserId}`);
     }
     if (appraisedValue) {
         if (asset.appraisedValue !== appraisedValue) {
@@ -243,7 +241,7 @@ async function main() {
             console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID1);
             result = await contractOrg2.evaluateTransaction('ReadAsset', assetID1);
             console.log(`<-- result: ${prettyJSONString(result.toString())}`);
-            verifyAssetData(mspOrg2, result, assetID1, 'green', 20, userOrg1IdentityString);
+            verifyAssetData(mspOrg2, result, assetID1, 'green', 20, Org1UserId);
 
 
             // Org2 cannot ReadAssetPrivateDetails from Org1's private collection due to Collection policy
@@ -291,7 +289,7 @@ async function main() {
             console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID1);
             result = await contractOrg1.evaluateTransaction('ReadAsset', assetID1);
             console.log(`<-- result: ${prettyJSONString(result.toString())}`);
-            verifyAssetData(mspOrg1, result, assetID1, 'green', 20, userOrg2IdentityString);
+            verifyAssetData(mspOrg1, result, assetID1, 'green', 20, Org2UserId);
 
             //Confirm that transfer removed the private details from the Org1 collection:
             console.log('\n--> Evaluate Transaction: ReadAssetPrivateDetails');
@@ -304,7 +302,7 @@ async function main() {
             console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID2);
             result = await contractOrg1.evaluateTransaction('ReadAsset', assetID2);
             console.log(`<-- result: ${prettyJSONString(result.toString())}`);
-            verifyAssetData(mspOrg1, result, assetID2, 'blue', 35, userOrg1IdentityString);
+            verifyAssetData(mspOrg1, result, assetID2, 'blue', 35, Org1UserId);
 
             console.log('\n********* Demo deleting asset **************');
             let dataForDelete = { assetID: assetID2 };
