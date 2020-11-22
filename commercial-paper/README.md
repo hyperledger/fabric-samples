@@ -209,7 +209,6 @@ Running in MagnetoCorp directory:
 # MAGNETOCORP
 
 peer lifecycle chaincode package cp.tar.gz --lang node --path ./contract --label cp_0
-
 peer lifecycle chaincode install cp.tar.gz
 
 export PACKAGE_ID=$(peer lifecycle chaincode queryinstalled --output json | jq -r '.installed_chaincodes[0].package_id')
@@ -237,7 +236,6 @@ Running in Digibank directory:
 # DIGIBANK
 
 peer lifecycle chaincode package cp.tar.gz --lang node --path ./contract --label cp_0
-
 peer lifecycle chaincode install cp.tar.gz
 
 export PACKAGE_ID=$(peer lifecycle chaincode queryinstalled --output json | jq -r '.installed_chaincodes[0].package_id')
