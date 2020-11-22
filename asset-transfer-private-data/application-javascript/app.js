@@ -22,6 +22,11 @@ const mspOrg1 = 'Org1MSP';
 const mspOrg2 = 'Org2MSP';
 const Org1UserId = 'appUser1';
 const Org2UserId = 'appUser2';
+const userOrg1IdentityString = `x509::CN=${Org1UserId},OU=client+OU=org1+OU=department1::CN=ca.org1.example.com,O=org1.example.com,L=Durham,ST=North Carolina,C=US`;
+const userOrg2IdentityString = `x509::CN=${Org2UserId},OU=client+OU=org2+OU=department1::CN=ca.org2.example.com,O=org2.example.com,L=Hursley,ST=Hampshire,C=UK`;
+
+const RED = '\x1b[31m\n';
+const RESET = '\x1b[0m';
 
 function prettyJSONString(inputString) {
     if (inputString) {
@@ -29,6 +34,67 @@ function prettyJSONString(inputString) {
     }
     else {
         return inputString;
+    }
+}
+
+function doFail(msgString) {
+    console.error(`${RED}\t${msgString}${RESET}`);
+    process.exit(1);
+}
+
+function verifyAssetData(org, resultBuffer, expectedId, color, size, owner, appraisedValue) {
+
+    let asset;
+    if (resultBuffer) {
+        asset = JSON.parse(resultBuffer.toString('utf8'));
+    } else {
+        doFail('Failed to read asset');
+    }
+    console.log(`*** verify asset data for: ${expectedId}`);
+    if (!asset) {
+        doFail('Received empty asset');
+    }
+    if (expectedId !== asset.assetID) {
+        doFail(`recieved asset ${asset.assetID} , but expected ${expectedId}`);
+    }
+    if (asset.color !== color) {
+        doFail(`asset ${asset.assetID} has color of ${asset.color}, expected value ${color}`);
+    }
+    if (asset.size !== size) {
+        doFail(`Failed size check - asset ${asset.assetID} has size of ${asset.size}, expected value ${size}`);
+    }
+    let assetsOwner = Buffer.from(asset.owner, 'base64').toString();
+    if (assetsOwner === owner) {
+        console.log(`\tasset ${asset.assetID} owner: ${assetsOwner}`);
+    } else {
+        doFail(`Failed owner check from ${org} - asset ${asset.assetID} owned by ${assetsOwner}, expected value ${owner}`);
+    }
+    if (appraisedValue) {
+        if (asset.appraisedValue !== appraisedValue) {
+            doFail(`Failed appraised value check from ${org} - asset ${asset.assetID} has appraised value of ${asset.appraisedValue}, expected value ${appraisedValue}`);
+        }
+    }
+}
+
+function verifyAssetPrivateDetails(resultBuffer, expectedId, appraisedValue) {
+    let assetPD;
+    if (resultBuffer) {
+        assetPD = JSON.parse(resultBuffer.toString('utf8'));
+    } else {
+        doFail('Failed to read asset private details');
+    }
+    console.log(`*** verify private details: ${expectedId}`);
+    if (!assetPD) {
+        doFail('Received empty data');
+    }
+    if (expectedId !== assetPD.assetID) {
+        doFail(`recieved ${assetPD.assetID} , but expected ${expectedId}`);
+    }
+
+    if (appraisedValue) {
+        if (assetPD.appraisedValue !== appraisedValue) {
+            doFail(`Failed appraised value check - asset ${assetPD.assetID} has appraised value of ${assetPD.appraisedValue}, expected value ${appraisedValue}`);
+        }
     }
 }
 
@@ -115,8 +181,10 @@ async function main() {
         try {
             // Sample transactions are listed below
             // Add few sample Assets & transfers one of the asset from Org1 to Org2 as the new owner
-            let assetID1 = 'asset1';
-            let assetID2 = 'asset2';
+            let randomNumber = Math.floor(Math.random() * 1000) + 1;
+            // use a random key so that we can run multiple times
+            let assetID1 = `asset${randomNumber}`;
+            let assetID2 = `asset${randomNumber + 1}`;
             const assetType = 'ValuableAsset';
             let result;
             let asset1Data = { objectType: assetType, assetID: assetID1, color: 'green', size: 20, appraisedValue: 100 };
@@ -146,12 +214,15 @@ async function main() {
             console.log('\n--> Evaluate Transaction: GetAssetByRange asset0-asset9');
             // GetAssetByRange returns assets on the ledger with ID in the range of startKey (inclusive) and endKey (exclusive)
             result = await contractOrg1.evaluateTransaction('GetAssetByRange', 'asset0', 'asset9');
-            console.log('  result: ' + prettyJSONString(result.toString()));
-
+            console.log(`<-- result: ${prettyJSONString(result.toString())}`);
+            if (!result || result.length === 0) {
+                doFail('recieved empty query list for GetAssetByRange');
+            }
             console.log('\n--> Evaluate Transaction: ReadAssetPrivateDetails from ' + org1PrivateCollectionName);
             // ReadAssetPrivateDetails reads data from Org's private collection. Args: collectionName, assetID
             result = await contractOrg1.evaluateTransaction('ReadAssetPrivateDetails', org1PrivateCollectionName, assetID1);
-            console.log('  result: ' + prettyJSONString(result.toString()));
+            console.log(`<-- result: ${prettyJSONString(result.toString())}`);
+            verifyAssetPrivateDetails(result, assetID1, 100);
 
             // Attempt Transfer the asset to Org2 , without Org2 adding AgreeToTransfer //
             // Transaction should return an error: "failed transfer verification ..."
@@ -171,9 +242,9 @@ async function main() {
             console.log('\n~~~~~~~~~~~~~~~~ As Org2 Client ~~~~~~~~~~~~~~~~');
             console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID1);
             result = await contractOrg2.evaluateTransaction('ReadAsset', assetID1);
-            console.log('  result: ' + prettyJSONString(result.toString()));
-            let assetOwner = JSON.parse(result.toString()).owner;
-            console.log('  Asset owner: ' + Buffer.from(assetOwner, 'base64').toString());
+            console.log(`<-- result: ${prettyJSONString(result.toString())}`);
+            verifyAssetData(mspOrg2, result, assetID1, 'green', 20, userOrg1IdentityString);
+
 
             // Org2 cannot ReadAssetPrivateDetails from Org1's private collection due to Collection policy
             //    Will fail: await contractOrg2.evaluateTransaction('ReadAssetPrivateDetails', org1PrivateCollectionName, assetID1);
@@ -203,7 +274,7 @@ async function main() {
             // All members can send txn ReadTransferAgreement, set by Org2 above
             console.log('\n--> Evaluate Transaction: ReadTransferAgreement ' + assetID1);
             result = await contractOrg1.evaluateTransaction('ReadTransferAgreement', assetID1);
-            console.log('  result: ' + prettyJSONString(result.toString()));
+            console.log(`<-- result: ${prettyJSONString(result.toString())}`);
 
             // Transfer the asset to Org2 //
             // To transfer the asset, the owner needs to pass the MSP ID of new asset owner, and initiate the transfer
@@ -219,19 +290,21 @@ async function main() {
             //Again ReadAsset : results will show that the buyer identity now owns the asset:
             console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID1);
             result = await contractOrg1.evaluateTransaction('ReadAsset', assetID1);
-            console.log('  result: ' + prettyJSONString(result.toString()));
-            assetOwner = JSON.parse(result.toString()).owner;
-            console.log('  Asset owner: ' + Buffer.from(assetOwner, 'base64').toString());
+            console.log(`<-- result: ${prettyJSONString(result.toString())}`);
+            verifyAssetData(mspOrg1, result, assetID1, 'green', 20, userOrg2IdentityString);
 
             //Confirm that transfer removed the private details from the Org1 collection:
             console.log('\n--> Evaluate Transaction: ReadAssetPrivateDetails');
             // ReadAssetPrivateDetails reads data from Org's private collection: Should return empty
             result = await contractOrg1.evaluateTransaction('ReadAssetPrivateDetails', org1PrivateCollectionName, assetID1);
-            console.log('  result: ' + prettyJSONString(result.toString()));
-
+            console.log(`<-- result: ${prettyJSONString(result.toString())}`);
+            if (result && result.length > 0) {
+                doFail('Expected empty data from ReadAssetPrivateDetails');
+            }
             console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID2);
             result = await contractOrg1.evaluateTransaction('ReadAsset', assetID2);
-            console.log('  result: ' + prettyJSONString(result.toString()));
+            console.log(`<-- result: ${prettyJSONString(result.toString())}`);
+            verifyAssetData(mspOrg1, result, assetID2, 'blue', 35, userOrg1IdentityString);
 
             console.log('\n********* Demo deleting asset **************');
             let dataForDelete = { assetID: assetID2 };
@@ -259,13 +332,17 @@ async function main() {
 
             console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID2);
             result = await contractOrg1.evaluateTransaction('ReadAsset', assetID2);
-            console.log('  result: ' + prettyJSONString(result.toString()));
+            console.log(`<-- result: ${prettyJSONString(result.toString())}`);
+            if (result && result.length > 0) {
+                doFail('Expected empty read, after asset is deleted');
+            }
 
             console.log('\n~~~~~~~~~~~~~~~~ As Org2 Client ~~~~~~~~~~~~~~~~');
             // Org2 can ReadAssetPrivateDetails: Org2 is owner, and private details exist in new owner's Collection
             console.log('\n--> Evaluate Transaction as Org2: ReadAssetPrivateDetails ' + assetID1 + ' from ' + org2PrivateCollectionName);
             result = await contractOrg2.evaluateTransaction('ReadAssetPrivateDetails', org2PrivateCollectionName, assetID1);
-            console.log('  result: ' + prettyJSONString(result.toString()));
+            console.log(`<-- result: ${prettyJSONString(result.toString())}`);
+            verifyAssetPrivateDetails(result, assetID1, 100);
         } finally {
             // Disconnect from the gateway peer when all work for this client identity is complete
             gatewayOrg1.disconnect();

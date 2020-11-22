@@ -63,12 +63,14 @@ func main() {
 
 	contract := network.GetContract("basic")
 
+	log.Println("--> Submit Transaction: InitLedger, function creates the initial set of assets on the ledger")
 	result, err := contract.SubmitTransaction("InitLedger")
 	if err != nil {
-		log.Fatalf("failed to evaluate transaction: %v", err)
+		log.Fatalf("Failed to Submit transaction: %v", err)
 	}
 	log.Println(string(result))
 
+	log.Println("--> Evaluate Transaction: GetAllAssets, function returns all the current assets on the ledger")
 	result, err = contract.EvaluateTransaction("GetAllAssets")
 	if err != nil {
 		log.Fatalf("Failed to evaluate transaction: %v", err)
@@ -78,28 +80,28 @@ func main() {
 	log.Println("--> Submit Transaction: CreateAsset, creates new asset with ID, color, owner, size, and appraisedValue arguments")
 	result, err = contract.SubmitTransaction("CreateAsset", "asset13", "yellow", "5", "Tom", "1300")
 	if err != nil {
-		log.Fatalf("Failed to evaluate transaction: %v", err)
+		log.Fatalf("Failed to Submit transaction: %v", err)
 	}
 	log.Println(string(result))
 
 	log.Println("--> Evaluate Transaction: ReadAsset, function returns an asset with a given assetID")
 	result, err = contract.EvaluateTransaction("ReadAsset", "asset13")
 	if err != nil {
-		log.Fatalf("failed to evaluate transaction: %v\n", err)
+		log.Fatalf("Failed to evaluate transaction: %v\n", err)
 	}
 	log.Println(string(result))
 
 	log.Println("--> Evaluate Transaction: AssetExists, function returns 'true' if an asset with given assetID exist")
 	result, err = contract.EvaluateTransaction("AssetExists", "asset1")
 	if err != nil {
-		log.Fatalf("failed to evaluate transaction: %v\n", err)
+		log.Fatalf("Failed to evaluate transaction: %v\n", err)
 	}
 	log.Println(string(result))
 
 	log.Println("--> Submit Transaction: TransferAsset asset1, transfer to new owner of Tom")
 	_, err = contract.SubmitTransaction("TransferAsset", "asset1", "Tom")
 	if err != nil {
-		log.Fatalf("Failed to submit transaction: %v", err)
+		log.Fatalf("Failed to Submit transaction: %v", err)
 	}
 
 	log.Println("--> Evaluate Transaction: ReadAsset, function returns 'asset1' attributes")

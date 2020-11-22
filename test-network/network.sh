@@ -18,57 +18,6 @@ export VERBOSE=false
 
 source scriptUtils.sh
 
-# Print the usage message
-function printHelp() {
-  println "Usage: "
-  println "  network.sh <Mode> [Flags]"
-  println "    Modes:"
-  println "      \e[0;32mup\e[0m - bring up fabric orderer and peer nodes. No channel is created"
-  println "      \e[0;32mup createChannel\e[0m - bring up fabric network with one channel"
-  println "      \e[0;32mcreateChannel\e[0m - create and join a channel after the network is created"
-  println "      \e[0;32mdeployCC\e[0m - deploy the asset transfer basic chaincode on the channel or specify"
-  println "      \e[0;32mdown\e[0m - clear the network with docker-compose down"
-  println "      \e[0;32mrestart\e[0m - restart the network"
-  println
-  println "    Flags:"
-  println "    Used with \e[0;32mnetwork.sh up\e[0m, \e[0;32mnetwork.sh createChannel\e[0m:"
-  println "    -ca <use CAs> -  create Certificate Authorities to generate the crypto material"
-  println "    -c <channel name> - channel name to use (defaults to \"mychannel\")"
-  println "    -s <dbtype> - the database backend to use: goleveldb (default) or couchdb"
-  println "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
-  println "    -d <delay> - delay duration in seconds (defaults to 3)"
-  println "    -i <imagetag> - the tag to be used to launch the network (defaults to \"latest\")"
-  println "    -cai <ca_imagetag> - the image tag to be used for CA (defaults to \"${CA_IMAGETAG}\")"
-  println "    -verbose - verbose mode"
-  println "    Used with \e[0;32mnetwork.sh deployCC\e[0m"
-  println "    -c <channel name> - deploy chaincode to channel"
-  println "    -ccn <name> - the short name of the chaincode to deploy: basic (default),ledger, private, sbe, secured"
-  println "    -ccl <language> - the programming language of the chaincode to deploy: go (default), java, javascript, typescript"
-  println "    -ccv <version>  - chaincode version. 1.0 (default)"
-  println "    -ccs <sequence>  - chaincode definition sequence. Must be an integer, 1 (default), 2, 3, etc"
-  println "    -ccp <path>  - Optional, path to the chaincode. When provided the -ccn will be used as the deployed name and not the short name of the known chaincodes."
-  println "    -ccep <policy>  - Optional, chaincode endorsement policy, using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
-  println "    -cccg <collection-config>  - Optional, path to a private data collections configuration file"
-  println "    -cci <fcn name>  - Optional, chaincode init required function to invoke. When provided this function will be invoked after deployment of the chaincode and will define the chaincode as initialization required."
-  println
-  println "    -h - print this message"
-  println
-  println " Possible Mode and flag combinations"
-  println "   \e[0;32mup\e[0m -ca -c -r -d -s -i -verbose"
-  println "   \e[0;32mup createChannel\e[0m -ca -c -r -d -s -i -verbose"
-  println "   \e[0;32mcreateChannel\e[0m -c -r -d -verbose"
-  println "   \e[0;32mdeployCC\e[0m -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose"
-  println
-  println " Taking all defaults:"
-  println "   network.sh up"
-  println
-  println " Examples:"
-  println "   network.sh up createChannel -ca -c mychannel -s couchdb -i 2.0.0"
-  println "   network.sh createChannel -c channelName"
-  println "   network.sh deployCC -ccn basic -ccl javascript"
-  println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
-}
-
 # Obtain CONTAINER_IDS and remove them
 # TODO Might want to make this optional - could clear other containers
 # This function is called when you bring a network down
@@ -362,7 +311,7 @@ function createChannel() {
 }
 
 
-## Call the script to install and instantiate a chaincode on the channel
+## Call the script to deploy a chaincode to the channel
 function deployCC() {
 
   scripts/deployCC.sh $CHANNEL_NAME $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION $CC_SEQUENCE $CC_INIT_FCN $CC_END_POLICY $CC_COLL_CONFIG $CLI_DELAY $MAX_RETRY $VERBOSE
@@ -472,7 +421,7 @@ while [[ $# -ge 1 ]] ; do
   key="$1"
   case $key in
   -h )
-    printHelp
+    printHelp $MODE
     exit 0
     ;;
   -c )
@@ -579,9 +528,6 @@ elif [ "${MODE}" == "deployCC" ]; then
   deployCC
 elif [ "${MODE}" == "down" ]; then
   networkDown
-elif [ "${MODE}" == "restart" ]; then
-  networkDown
-  networkUp
 else
   printHelp
   exit 1

@@ -4,8 +4,8 @@
     "description": "FabCar contract implemented in JavaScript",
     "main": "index.js",
     "engines": {
-        "node": ">=8",
-        "npm": ">=5"
+        "node": ">=12",
+        "npm": ">=6.9"
     },
     "scripts": {
         "lint": "eslint .",

@@ -24,13 +24,13 @@ function stopNetwork() {
 }
 
 # Run Go application
-#createNetwork
-#print "Initializing Go application"
-#pushd ../asset-transfer-basic/application-go
-#print "Executing AssetTransfer.go"
-#go run .
-#popd
-#stopNetwork
+createNetwork
+print "Initializing Go application"
+pushd ../asset-transfer-basic/application-go
+print "Executing AssetTransfer.go"
+go run .
+popd
+stopNetwork
 
 # Run Java application
 createNetwork
@@ -48,5 +48,17 @@ pushd ../asset-transfer-basic/application-javascript
 npm install
 print "Executing app.js"
 node app.js
+popd
+stopNetwork
+
+# Run typescript application
+createNetwork
+print "Initializing Typescript application"
+pushd ../asset-transfer-basic/application-typescript
+npm install
+print "Building app.ts"
+npm run build
+print "Running the output app"
+node dist/app.js
 popd
 stopNetwork
