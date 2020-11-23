@@ -197,7 +197,7 @@ cd fabric-samples/commercial-paper/organization/digibank
 
 You need to perform similar operations for _both_ organizations and for your language choice from the instructions below. For the different contract languages, the steps are very similar  - the full set of steps are actually shown in the JavaScript section (see twisty). However, you will perform one or two different initial steps for Java or Go before completing the remaining common steps as instructed in those language sections. 
 
-Note that the commands below make use of the `jq` utility for parsing output - download and install it from [here](https://stedolan.github.io/jq/download/)
+Note that the commands below make use of the `jq` utility for parsing output - download and install it from [the jq download page](https://stedolan.github.io/jq/download/).
 
 
 **<details><summary>For a JavaScript Contract</summary>**
