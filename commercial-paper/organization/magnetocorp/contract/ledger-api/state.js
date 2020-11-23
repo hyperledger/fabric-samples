@@ -38,9 +38,11 @@ class State {
         return this.currentState;
     }
 
-    serialize() {
+    // not used
+/*    serialize() {
+        
         return State.serialize(this);
-    }
+    } */
 
     /**
      * Convert object to buffer containing JSON data serialization
@@ -49,6 +51,8 @@ class State {
      * @return {buffer} buffer with the data to store
      */
     static serialize(object) {
+        // don't write the key:value passed in - we already have a real composite key, issuer and paper Number.
+        delete object.key;
         return Buffer.from(JSON.stringify(object));
     }
 
@@ -88,7 +92,8 @@ class State {
      * @param (String[]) keyParts
      */
     static makeKey(keyParts) {
-        return keyParts.map(part => JSON.stringify(part)).join(':');
+        // return keyParts.map(part => JSON.stringify(part)).join(':');
+        return keyParts.map(part => part).join(':');
     }
 
     static splitKey(key){
