@@ -7,7 +7,7 @@ steps:
     inputs:
       versionSpec: $(NODE_VER)
     displayName: Install Node.js
-  - script: curl -L --retry 5 --retry-delay 3 https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-linux-amd64-${FABRIC_VERSION}-stable.tar.gz | tar xz
+  - script: curl -L --retry 5 --retry-delay 3 https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-linux-amd64-2.0.0-stable.tar.gz | tar xz
     displayName: Download Fabric CLI
   - script: curl -L --retry 5 --retry-delay 3 https://hyperledger.jfrog.io/hyperledger/fabric-binaries/hyperledger-fabric-ca-linux-amd64-${FABRIC_VERSION}-stable.tar.gz | tar xz
     displayName: Download Fabric CA CLI
