@@ -13,7 +13,7 @@ function print() {
 
 function createNetwork() {
   print "Creating network"
-  ./network.sh up createChannel -ca -s couchdb -i "${FABRIC_VERSION}"
+  ./network.sh up createChannel -i "${FABRIC_VERSION}"
   print "Deploying ${CHAINCODE_NAME} chaincode"
   ./network.sh deployCC -ccn "${CHAINCODE_NAME}" -ccv 1 -ccs 1 -ccl "${CHAINCODE_LANGUAGE}"
 }
