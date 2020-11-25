@@ -20,7 +20,6 @@ services:
     image: hyperledger/fabric-orderer:$IMAGE_TAG
     environment:
       - FABRIC_LOGGING_SPEC=INFO
-      - FABRIC_CFG_PATH=/var/hyperledger/orderer
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_LISTENPORT=7050
       - ORDERER_GENERAL_GENESISMETHOD=file
@@ -41,7 +40,6 @@ services:
     command: orderer
     volumes:
         - ../system-genesis-block/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
-        - ../../config/orderer.yaml:/var/hyperledger/orderer/orderer.yaml
         - ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
         - ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/:/var/hyperledger/orderer/tls
         - orderer.example.com:/var/hyperledger/production/orderer
@@ -68,7 +66,6 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variabes
-      - FABRIC_CFG_PATH=/etc/hyperledger/fabric
       - CORE_PEER_ID=peer0.org1.example.com
       - CORE_PEER_ADDRESS=peer0.org1.example.com:7051
       - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
@@ -79,7 +76,6 @@ services:
       - CORE_PEER_LOCALMSPID=Org1MSP
     volumes:
         - /var/run/:/host/var/run/
-        - ../../config/core.yaml:/etc/hyperledger/fabric/core.yaml
         - ../organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/fabric/msp
         - ../organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls:/etc/hyperledger/fabric/tls
         - peer0.org1.example.com:/var/hyperledger/production
@@ -108,7 +104,6 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variabes
-      - FABRIC_CFG_PATH=/etc/hyperledger/fabric
       - CORE_PEER_ID=peer0.org2.example.com
       - CORE_PEER_ADDRESS=peer0.org2.example.com:9051
       - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
@@ -119,7 +114,6 @@ services:
       - CORE_PEER_LOCALMSPID=Org2MSP
     volumes:
         - /var/run/:/host/var/run/
-        - ../../config/core.yaml:/etc/hyperledger/fabric/core.yaml
         - ../organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp:/etc/hyperledger/fabric/msp
         - ../organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls:/etc/hyperledger/fabric/tls
         - peer0.org2.example.com:/var/hyperledger/production
