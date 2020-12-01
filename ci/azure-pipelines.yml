@@ -169,6 +169,8 @@ jobs:
           CHAINCODE_LANGUAGE: typescript
     steps:
       - template: templates/install-deps.yml
+      - script: sudo apt-get install softhsm2
+        displayName: Install SoftHSM
       - script: ../ci/scripts/run-test-network-basic.sh
         workingDirectory: test-network
         displayName: Run Test Network Basic Chaincode

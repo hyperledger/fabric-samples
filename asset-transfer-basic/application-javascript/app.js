@@ -6,77 +6,43 @@
 
 'use strict';
 
-const { Gateway, Wallets } = require('fabric-network');
+/**
+ *  A test application to show basic queries operations with any of the asset-transfer-basic chaincodes
+ *   -- How to submit a transaction
+ *   -- How to query and check the
+ *   -- How to use an HSM for users key and signing support
+ **/
+
+const { Gateway, Wallets, HsmX509Provider } = require('fabric-network');
 const FabricCAServices = require('fabric-ca-client');
 const path = require('path');
-const { buildCAClient, registerAndEnrollUser, enrollAdmin } = require('../../test-application/javascript/CAUtil.js');
+const fs = require('fs');
+const { buildCAClient, registerAndEnrollUser, enrollAdmin,  getHSMLibPath} = require('../../test-application/javascript/CAUtil.js');
 const { buildCCPOrg1, buildWallet } = require('../../test-application/javascript/AppUtil.js');
 
 const channelName = 'mychannel';
 const chaincodeName = 'basic';
 const mspOrg1 = 'Org1MSP';
 const walletPath = path.join(__dirname, 'wallet');
-const org1UserId = 'appUser';
+
+const user1 = 'appUser1';
+const user2 = 'appUser2';
 
 function prettyJSONString(inputString) {
 	return JSON.stringify(JSON.parse(inputString), null, 2);
 }
 
-// pre-requisites:
-// - fabric-sample two organization test-network setup with two peers, ordering service,
-//   and 2 certificate authorities
-//         ===> from directory /fabric-samples/test-network
-//         ./network.sh up createChannel -ca
-// - Use any of the asset-transfer-basic chaincodes deployed on the channel "mychannel"
-//   with the chaincode name of "basic". The following deploy command will package,
-//   install, approve, and commit the javascript chaincode, all the actions it takes
-//   to deploy a chaincode to a channel.
-//         ===> from directory /fabric-samples/test-network
-//         ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ -ccl javascript
-// - Be sure that node.js is installed
-//         ===> from directory /fabric-samples/asset-transfer-basic/application-javascript
-//         node -v
-// - npm installed code dependencies
-//         ===> from directory /fabric-samples/asset-transfer-basic/application-javascript
-//         npm install
-// - to run this test application
-//         ===> from directory /fabric-samples/asset-transfer-basic/application-javascript
-//         node app.js
-
-// NOTE: If you see  kind an error like these:
-/*
-    2020-08-07T20:23:17.590Z - error: [DiscoveryService]: send[mychannel] - Channel:mychannel received discovery error:access denied
-    ******** FAILED to run the application: Error: DiscoveryService: mychannel error: access denied
-
-   OR
-
-   Failed to register user : Error: fabric-ca request register failed with errors [[ { code: 20, message: 'Authentication failure' } ]]
-   ******** FAILED to run the application: Error: Identity not found in wallet: appUser
-*/
-// Delete the /fabric-samples/asset-transfer-basic/application-javascript/wallet directory
-// and retry this application.
-//
-// The certificate authority must have been restarted and the saved certificates for the
-// admin and application user are not valid. Deleting the wallet store will force these to be reset
-// with the new certificate authority.
-//
-
-/**
- *  A test application to show basic queries operations with any of the asset-transfer-basic chaincodes
- *   -- How to submit a transaction
- *   -- How to query and check the results
- *
- * To see the SDK workings, try setting the logging to show on the console before running
- *        export HFC_LOGGING='{"debug":"console"}'
- */
 async function main() {
 	try {
+		let username = user1;
+
 		// build an in memory object with the network configuration (also known as a connection profile)
 		const ccp = buildCCPOrg1();
 
 		// build an instance of the fabric ca services client based on
 		// the information in the network configuration
 		const caClient = buildCAClient(FabricCAServices, ccp, 'ca.org1.example.com');
+		let hsmCaClient; // must a different ca client with a HSM crypto suite assigned when enrolling HSM user
 
 		// setup the wallet to hold the credentials of the application user
 		const wallet = await buildWallet(Wallets, walletPath);
@@ -84,9 +50,37 @@ async function main() {
 		// in a real application this would be done on an administrative flow, and only once
 		await enrollAdmin(caClient, wallet, mspOrg1);
 
+		// users will be created using the HSM if SOFTHSM2_CONF and the HSM simulator has been initialized
+		// Be sure to run the following before starting this application if you wish use the HSM simulator
+		/*
+			export SOFTHSM2_CONF="../../test-network/hsm/softhsm2.conf"
+			softhsm2-util --init-token --slot 0 --label "ForFabric" --pin 98765432 --so-pin 1234
+		*/
+
+		/*
+			NOTE: You will not be able to re run this application with the same user name when using
+					the HSM simulator. The simulator has been restarted and will not have the handle
+					as saved in the "wallet" store.
+		*/
+		if (process.env.SOFTHSM2_CONF) {
+			// setup the wallet provider and the ca client to have the pkcs11 cryptosuite to work with
+			// the HSM to generate keys and sign transactions
+			const hsmOptions = {
+				lib: getHSMLibPath(fs),
+				pin: process.env.PKCS11_PIN || '98765432',
+				slot: Number(process.env.PKCS11_SLOT || '0')
+			};
+			// build the wallet identity provider and the PKCS11 crypto suite based on the HSM options
+			const hsmProvider = new HsmX509Provider(hsmOptions);
+			wallet.getProviderRegistry().addProvider(hsmProvider);
+			hsmCaClient = buildCAClient(FabricCAServices, ccp, 'ca.org1.example.com', hsmProvider.getCryptoSuite());
+			username = user2;
+		}
+
 		// in a real application this would be done only when a new user was required to be added
 		// and would be part of an administrative flow
-		await registerAndEnrollUser(caClient, wallet, mspOrg1, org1UserId, 'org1.department1');
+		// note: when not using an HSM, hsmCaClient will be 'undefined'
+		await registerAndEnrollUser(caClient, wallet, mspOrg1, username, 'org1.department1', hsmCaClient);
 
 		// Create a new gateway instance for interacting with the fabric network.
 		// In a real application this would be done as the backend server session is setup for
@@ -100,12 +94,15 @@ async function main() {
 			// signed by this user using the credentials stored in the wallet.
 			await gateway.connect(ccp, {
 				wallet,
-				identity: org1UserId,
+				identity: username,
 				discovery: { enabled: true, asLocalhost: true } // using asLocalhost as this gateway is using a fabric network deployed locally
 			});
 
 			// Build a network instance based on the channel where the smart contract is deployed
 			const network = await gateway.getNetwork(channelName);
+			// show the peers that network (channel) knows about
+			// This will show all discovered peers and also peers that are in the connection profile
+			console.log('\n--> Network has been discovered ' + network.getChannel().getEndorsers());
 
 			// Get the contract from the network.
 			const contract = network.getContract(chaincodeName);
@@ -172,6 +169,9 @@ async function main() {
 			console.log('\n--> Evaluate Transaction: ReadAsset, function returns "asset1" attributes');
 			result = await contract.evaluateTransaction('ReadAsset', 'asset1');
 			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
+		} catch (runError) {
+			console.log('**** Error:' + runError);
+			console.log(runError.stack);
 		} finally {
 			// Disconnect from the gateway when the application is closing
 			// This will close all connections to the network

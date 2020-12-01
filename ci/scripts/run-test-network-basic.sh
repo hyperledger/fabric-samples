@@ -48,6 +48,11 @@ pushd ../asset-transfer-basic/application-javascript
 npm install
 print "Executing app.js"
 node app.js
+print "Setup the HSM simulator"
+export SOFTHSM2_CONF="../../test-network/hsm/softhsm2.conf"
+softhsm2-util --init-token --slot 0 --label "ForFabric" --pin 98765432 --so-pin 1234
+print "Executing app.js using the HSM simulator"
+node app.js
 popd
 stopNetwork
 
