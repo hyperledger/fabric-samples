@@ -141,15 +141,13 @@ fi
 . scripts/envVar.sh
 
 packageChaincode() {
-  ORG=$1
-  setGlobals $ORG
   set -x
   peer lifecycle chaincode package ${CC_NAME}.tar.gz --path ${CC_SRC_PATH} --lang ${CC_RUNTIME_LANGUAGE} --label ${CC_NAME}_${CC_VERSION} >&log.txt
   res=$?
   { set +x; } 2>/dev/null
   cat log.txt
-  verifyResult $res "Chaincode packaging on peer0.org${ORG} has failed"
-  successln "Chaincode is packaged on peer0.org${ORG}"
+  verifyResult $res "Chaincode packaging has failed"
+  successln "Chaincode is packaged"
 }
 
 # installChaincode PEER ORG
@@ -316,7 +314,7 @@ chaincodeQuery() {
 }
 
 ## package the chaincode
-packageChaincode 1
+packageChaincode
 
 ## Install chaincode on peer0.org1 and peer0.org2
 infoln "Installing chaincode on peer0.org1..."
