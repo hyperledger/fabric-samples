@@ -289,6 +289,16 @@ function networkUp() {
   fi
 }
 
+function dockerComposeCommand() {
+
+  if [ "$CRYPTO" == "Certificate Authorities" ]; then
+      IMAGE_TAG=${CA_IMAGETAG} docker-compose -f $COMPOSE_FILE_CA -f $COMPOSE_FILE_CA_ORG3 "${ARGS[@]}"
+  else
+      IMAGE_TAG=${IMAGETAG}    docker-compose -f ${COMPOSE_FILE_BASE} -f ${COMPOSE_FILE_COUCH} -f $COMPOSE_FILE_COUCH_ORG3 -f $COMPOSE_FILE_ORG3 "${ARGS[@]}"
+  fi
+}
+
+
 ## call the script to join create the channel and join the peers of org1 and org2
 function createChannel() {
 
@@ -381,6 +391,8 @@ COMPOSE_FILE_CA=docker/docker-compose-ca.yaml
 COMPOSE_FILE_COUCH_ORG3=addOrg3/docker/docker-compose-couch-org3.yaml
 # use this as the default docker-compose yaml definition for org3
 COMPOSE_FILE_ORG3=addOrg3/docker/docker-compose-org3.yaml
+# use this as the certificate authorities docker-compose yaml definition for org3
+COMPOSE_FILE_CA_ORG3=addOrg3/docker/docker-compose-ca-org3.yaml
 #
 # use go as the default language for chaincode
 CC_SRC_LANGUAGE="go"
@@ -487,6 +499,11 @@ while [[ $# -ge 1 ]] ; do
     VERBOSE=true
     shift
     ;;
+  -- )
+    shift
+    ARGS=( "$@" )
+    break 2
+    ;;
   * )
     errorln "Unknown flag: $key"
     printHelp
@@ -509,6 +526,8 @@ if [ "$MODE" == "up" ]; then
 elif [ "$MODE" == "createChannel" ]; then
   infoln "Creating channel '${CHANNEL_NAME}'."
   infoln "If network is not up, starting nodes with CLI timeout of '${MAX_RETRY}' tries and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE} ${CRYPTO_MODE}"
+elif [ "$MODE" == "dc-command" ]; then
+  infoln "docker-compose command execution"
 elif [ "$MODE" == "down" ]; then
   infoln "Stopping network"
 elif [ "$MODE" == "restart" ]; then
@@ -526,6 +545,8 @@ elif [ "${MODE}" == "createChannel" ]; then
   createChannel
 elif [ "${MODE}" == "deployCC" ]; then
   deployCC
+elif [ "${MODE}" == "dc-command" ]; then
+  dockerComposeCommand
 elif [ "${MODE}" == "down" ]; then
   networkDown
 else

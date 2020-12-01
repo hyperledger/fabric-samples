@@ -71,6 +71,17 @@ function printHelp() {
     println " Examples:"
     println "   network.sh deployCC -ccn basic -ccl javascript"
     println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
+  elif [ "$USAGE" == "dc-command" ]; then
+    println "Usage: "
+    println "  network.sh \033[0;32mdc-command\033[0m [Flags]"
+    println "    -- <args> - pass following arguments to docker-compose"
+    println "    -ca - run command for CA docker-compose network (instead of network for orderer and peers)"
+    println
+    println "    -h - Print this message"
+    println
+    println " Examples:"
+    println "   network.sh dc-command -- logs -f orderer.example.com"
+    println "   network.sh dc-command -ca -- ps"
   else
     println "Usage: "
     println "  network.sh <Mode> [Flags]"
@@ -80,6 +91,7 @@ function printHelp() {
     println "      \033[0;32mcreateChannel\033[0m - Create and join a channel after the network is created"
     println "      \033[0;32mdeployCC\033[0m - Deploy a chaincode to a channel (defaults to asset-transfer-basic)"
     println "      \033[0;32mdown\033[0m - Bring down the network"
+    println "      \033[0;32mdc-command\033[0m - Run docker-compose commands, e.g., for logging"
     println
     println "    Flags:"
     println "    Used with \033[0;32mnetwork.sh up\033[0m, \033[0;32mnetwork.sh createChannel\033[0m:"
@@ -102,6 +114,10 @@ function printHelp() {
     println "    -ccep <policy>  - (Optional) Chaincode endorsement policy using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
     println "    -cccg <collection-config>  - (Optional) File path to private data collections configuration file"
     println "    -cci <fcn name>  - (Optional) Name of chaincode initialization function. When a function is provided, the execution of init will be requested and the function will be invoked."
+    println
+    println "    Used with \033[0;32mnetwork.sh dc-command\033[0m"
+    println "    -- <args> - pass following arguments to docker-compose"
+    println "    -ca - run command for CA docker-compose network (instead of network for orderer and peers)"
     println
     println "    -h - Print this message"
     println
