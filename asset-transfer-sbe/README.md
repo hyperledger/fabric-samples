@@ -64,7 +64,7 @@ Run the following command to deploy the test network and create a channel named 
 
 You can use the test network script to deploy the smart contract to the channel that was just created. The script uses the Fabric chaincode lifecycle to deploy the smart contract to the channel. We will use the default chaincode level endorsement policy used by the Fabric chaincode lifecycle, which requires an endorsement from a majority of channel members. In our case, this will require that both Org1 and Org2 endorse a transaction (2 of 2). Deploy the smart contract to `mychannel` using the following command:
 ```
-./network.sh deployCC -ccn sbe -ccl typescript
+./network.sh deployCC -ccn sbe -ccp ../asset-transfer-sbe/chaincode-typescript/ -ccl typescript
 ```
 
 Set the following environment variables to interact with the network as a user from Org1:

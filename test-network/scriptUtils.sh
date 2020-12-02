@@ -69,7 +69,7 @@ function printHelp() {
     println "   \033[0;32mdeployCC\033[0m -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose"
     println
     println " Examples:"
-    println "   network.sh deployCC -ccn basic -ccl javascript"
+    println "   network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ ./ -ccl javascript"
     println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
   else
     println "Usage: "
@@ -114,7 +114,7 @@ function printHelp() {
     println " Examples:"
     println "   network.sh up createChannel -ca -c mychannel -s couchdb -i 2.0.0"
     println "   network.sh createChannel -c channelName"
-    println "   network.sh deployCC -ccn basic -ccl javascript"
+    println "   network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ -ccl javascript"
     println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
   fi
 }

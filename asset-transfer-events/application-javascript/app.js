@@ -44,7 +44,7 @@
 //   approve, and commit the javascript chaincode, all the actions it takes
 //   to deploy a chaincode to a channel.
 //         ===> from directory test-network
-//         ./network.sh deployCC -ccn events -ccl javascript -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
+//         ./network.sh deployCC -ccn events -ccp ../asset-transfer-events/chaincode-javacript/ -ccl javascript -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
 //
 // - Be sure that node.js is installed
 //         ===> from directory asset-transfer-sbe/application-javascript
