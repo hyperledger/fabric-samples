@@ -27,7 +27,7 @@
 //   install, approve, and commit the javascript chaincode, all the actions it takes
 //   to deploy a chaincode to a channel.
 //         ===> from directory /fabric-samples/test-network
-//         ./network.sh deployCC -ccn sbe -ccl typescript
+//         ./network.sh deployCC -ccn sbe -ccp ../asset-transfer-sbe/chaincode-typescript/ -ccl typescript
 // - Be sure that node.js is installed
 //         ===> from directory /fabric-samples/asset-transfer-sbe/application-javascript
 //         node -v

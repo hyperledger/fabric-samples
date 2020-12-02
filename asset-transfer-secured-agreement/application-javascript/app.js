@@ -29,7 +29,7 @@
 //   to deploy a chaincode to a channel with the endorsement and private collection
 //   settings.
 //         ===> from directory /fabric-samples/test-network
-//         ./network.sh deployCC -ccn secured -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
+//         ./network.sh deployCC -ccn secured -ccp ../asset-transfer-secured-agreement/chaincode-go/ -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
 //
 // - Be sure that node.js is installed
 //         ===> from directory /fabric-samples/asset-transfer-sbe/application-javascript

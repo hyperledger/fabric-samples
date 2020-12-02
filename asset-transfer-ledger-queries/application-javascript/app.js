@@ -33,7 +33,7 @@ function prettyJSONString(inputString) {
 //   install, approve, and commit the javascript chaincode, all the actions it takes
 //   to deploy a chaincode to a channel.
 //         ===> from directory /fabric-samples/test-network
-//         ./network.sh deployCC -ccn ledger -ccl javascript
+//         ./network.sh deployCC -ccn ledger -ccp ../asset-transfer-ledger-queries/chaincode-javascript/ -ccl javascript
 // - Be sure that node.js is installed
 //         ===> from directory /fabric-samples/asset-transfer-ledger-queries/application-javascript
 //         node -v

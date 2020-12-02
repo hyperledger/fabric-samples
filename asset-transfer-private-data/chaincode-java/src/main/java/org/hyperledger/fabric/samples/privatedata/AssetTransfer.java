@@ -42,7 +42,7 @@ import java.util.Map;
  * To deploy this chaincode to test-network, use the collection config as described in
  * See <a href="https://hyperledger-fabric.readthedocs.io/en/latest/private_data_tutorial.html</a>
  * Change both -ccs sequence & -ccv version args for iterative deployment
- *  ./network.sh deployCC -ccn private -ccl java -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cccg ../asset-transfer-private-data/chaincode-go/collections_config.json -ccs 1 -ccv 1
+ *  ./network.sh deployCC -ccn private -ccp ../asset-transfer-private-data/chaincode-java/ -ccl java -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cccg ../asset-transfer-private-data/chaincode-go/collections_config.json -ccs 1 -ccv 1
  */
 @Contract(
         name = "private",
