@@ -66,6 +66,8 @@ github.com/hyperledger/fabric-protos-go v0.0.0-20200707132912-fee30f3ccd23 h1:SE
 github.com/hyperledger/fabric-protos-go v0.0.0-20200707132912-fee30f3ccd23/go.mod h1:xVYTjK4DtZRBxZ2D9aE4y6AbLaPwue2o/criQyQbVD0=
 github.com/hyperledger/fabric-sdk-go v1.0.0-beta3.0.20201006151309-9c426dcc5096 h1:veml7LmfavSHqF8w8z/PGGlfdXvmx5SstQIH6Nyy87c=
 github.com/hyperledger/fabric-sdk-go v1.0.0-beta3.0.20201006151309-9c426dcc5096/go.mod h1:qWE9Syfg1KbwNjtILk70bJLilnmCvllIYFCSY/pa1RU=
+github.com/hyperledger/fabric-sdk-go v1.0.0-rc1 h1:cfDo/5ovUZf2dCz08fznUxxVYEWAT4yKJcAh9b+K9Mk=
+github.com/hyperledger/fabric-sdk-go v1.0.0-rc1/go.mod h1:qWE9Syfg1KbwNjtILk70bJLilnmCvllIYFCSY/pa1RU=
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jmhodges/clock v0.0.0-20160418191101-880ee4c33548/go.mod h1:hGT6jSUVzF6no3QaDSMLGLEHtHSBSefs+MgcDWnmhmo=
 github.com/jmoiron/sqlx v0.0.0-20180124204410-05cef0741ade/go.mod h1:IiEW3SEiiErVyFdH8NTuWjSifiEQKUoyK3LNqr2kCHU=
