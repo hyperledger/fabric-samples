@@ -33,34 +33,6 @@ CC_SRC_LANGUAGE=$(echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:])
 
 FABRIC_CFG_PATH=$PWD/../config/
 
-# User has not provided a path, therefore the CC_NAME must
-# be the short name of a known chaincode sample
-if [ "$CC_SRC_PATH" = "NA" ]; then
-  infoln "Determining the path to the chaincode"
-  # first see which chaincode we have. This will be based on the
-  # short name of the known chaincode sample
-  if [ "$CC_NAME" = "basic" ]; then
-    println $'\e[0;32m'asset-transfer-basic$'\e[0m' chaincode
-    CC_SRC_PATH="../asset-transfer-basic"
-  elif [ "$CC_NAME" = "events" ]; then
-    println $'\e[0;32m'asset-transfer-events$'\e[0m' chaincode
-    CC_SRC_PATH="../asset-transfer-events"
-  elif [ "$CC_NAME" = "secured" ]; then
-    println $'\e[0;32m'asset-transfer-secured-agreeement$'\e[0m' chaincode
-    CC_SRC_PATH="../asset-transfer-secured-agreement"
-  elif [ "$CC_NAME" = "ledger" ]; then
-    println $'\e[0;32m'asset-transfer-ledger-agreeement$'\e[0m' chaincode
-    CC_SRC_PATH="../asset-transfer-ledger-queries"
-  elif [ "$CC_NAME" = "private" ]; then
-    println $'\e[0;32m'asset-transfer-private-data$'\e[0m' chaincode
-    CC_SRC_PATH="../asset-transfer-private-data"
-  elif [ "$CC_NAME" = "sbe" ]; then
-    println $'\e[0;32m'asset-transfer-sbe$'\e[0m' chaincode
-    CC_SRC_PATH="../asset-transfer-sbe"
-  else
-    fatalln "The chaincode name ${CC_NAME} is not supported by this script. Supported chaincode names are: basic, events, ledger, private, sbe, secured"
-  fi
-
   # now see what language it is written in
   if [ "$CC_SRC_LANGUAGE" = "go" ]; then
     CC_SRC_PATH="$CC_SRC_PATH/chaincode-go/"
