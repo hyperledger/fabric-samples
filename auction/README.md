@@ -29,7 +29,7 @@ Note that we use the `-ca` flag to deploy the network using certificate authorit
 
 Run the following command to deploy the auction smart contract. We will override the default endorsement policy to allow any channel member to create an auction without requiring an endorsement from another organization.
 ```
-./network.sh deployCC -ccn auction -ccp ../auction/chaincode-go/ -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
+./network.sh deployCC -ccn auction -ccp ../auction/chaincode-go/ -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
 ```
 
 ## Install the application dependencies

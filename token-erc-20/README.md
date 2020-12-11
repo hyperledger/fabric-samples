@@ -33,7 +33,7 @@ You can use the test network script to deploy the ERC-20 token contract to the c
 
 **For a Go Contract:**
 ```
-./network.sh deployCC -ccn token_erc20 -ccp ../token-erc-20/chaincode-go/
+./network.sh deployCC -ccn token_erc20 -ccp ../token-erc-20/chaincode-go/ -ccl go
 ```
 
 **For a JavaScript Contract:**

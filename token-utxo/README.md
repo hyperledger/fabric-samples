@@ -32,7 +32,7 @@ The -ca flag is used to deploy the network using certificate authorities. This a
 
 You can use the test network script to deploy the UTXO token contract to the channel that was just created. Deploy the smart contract to `mychannel` using the following command:
 ```
-./network.sh deployCC -ccn token_utxo -ccp ../token-utxo/chaincode-go/
+./network.sh deployCC -ccn token_utxo -ccp ../token-utxo/chaincode-go/ -ccl go
 ```
 
 The above command deploys the go chaincode with short name `token_utxo`. The smart contract will utilize the default endorsement policy of majority of channel members.

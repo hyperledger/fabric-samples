@@ -19,7 +19,7 @@ pushd ../test-network
 
 echo "Bring up test network"
 ./network.sh up createChannel -ca
-./network.sh deployCC -ccn bigdatacc -ccp ../high-throughput/chaincode-go/ -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cci Init
+./network.sh deployCC -ccn bigdatacc -ccp ../high-throughput/chaincode-go/ -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cci Init
 popd
 cat <<EOF
 
