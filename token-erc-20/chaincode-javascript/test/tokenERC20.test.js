@@ -190,6 +190,16 @@ describe('Chaincode', () => {
         });
     });
 
+    describe('#SetOption', () => {
+        it('should work', async () => {
+            const response = await token.SetOption(ctx, 'some name', 'some symbol', '2');
+            sinon.assert.calledWith(mockStub.putState, 'name', Buffer.from('some name'));
+            sinon.assert.calledWith(mockStub.putState, 'symbol', Buffer.from('some symbol'));
+            sinon.assert.calledWith(mockStub.putState, 'decimals', Buffer.from('2'));
+            expect(response).to.equals(true);
+        });
+    });
+
     describe('#Mint', () => {
         it('should add token to a new account and a new total supply', async () => {
             mockClientIdentity.getMSPID.returns('Org1MSP');
