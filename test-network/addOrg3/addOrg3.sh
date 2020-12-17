@@ -52,7 +52,6 @@ function printHelp () {
 
 # Create Organziation crypto material using cryptogen or CAs
 function generateOrg3() {
-
   # Create crypto material using cryptogen
   if [ "$CRYPTO" == "cryptogen" ]; then
     which cryptogen
@@ -95,7 +94,7 @@ function generateOrg3() {
 
     echo
     echo "##########################################################"
-    echo "##### Generate certificates using Fabric CA's ############"
+    echo "##### Generate certificates using Fabric CA ############"
     echo "##########################################################"
 
     IMAGE_TAG=${CA_IMAGETAG} docker-compose -f $COMPOSE_FILE_CA_ORG3 up -d 2>&1
@@ -154,7 +153,6 @@ function Org3Up () {
 
 # Generate the needed certificates, the genesis block and start the network.
 function addOrg3 () {
-
   # If the test network is not up, abort
   if [ ! -d ../organizations/ordererOrganizations ]; then
     echo
@@ -169,11 +167,8 @@ function addOrg3 () {
     generateOrg3Definition
   fi
 
-  CONTAINER_IDS=$(docker ps -a | awk '($2 ~ /fabric-tools/) {print $1}')
-  if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" == " " ]; then
-    echo "Bringing up network"
-    Org3Up
-  fi
+  echo "Bringing up Org3 peer"
+  Org3Up
 
   # Use the CLI container to create the configuration transaction needed to add
   # Org3 to the network
@@ -181,7 +176,7 @@ function addOrg3 () {
   echo "###############################################################"
   echo "####### Generate and submit config tx to add Org3 #############"
   echo "###############################################################"
-  docker exec Org3cli ./scripts/org3-scripts/step1org3.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  docker exec cli ./scripts/org3-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to create config tx"
     exit 1
@@ -189,19 +184,17 @@ function addOrg3 () {
 
   echo
   echo "###############################################################"
-  echo "############### Have Org3 peers join network ##################"
+  echo "############### Join Org3 peers to network ##################"
   echo "###############################################################"
-  docker exec Org3cli ./scripts/org3-scripts/step2org3.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  docker exec cli ./scripts/org3-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
-    echo "ERROR !!!! Unable to have Org3 peers join network"
+    echo "ERROR !!!! Unable to join Org3 peers to network"
     exit 1
   fi
-
 }
 
 # Tear down running network
 function networkDown () {
-
     cd ..
     ./network.sh down
 }

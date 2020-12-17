@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source scriptUtils.sh
+source scripts/utils.sh
 
 function createOrg1() {
 
