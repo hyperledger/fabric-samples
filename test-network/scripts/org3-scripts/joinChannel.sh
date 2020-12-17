@@ -11,9 +11,6 @@
 # chaincode as version 2.0 on peer0.org3.
 #
 
-echo
-echo "========= Getting Org3 on to your test network ========= "
-echo
 CHANNEL_NAME="$1"
 DELAY="$2"
 TIMEOUT="$3"
@@ -61,16 +58,13 @@ peer channel fetch 0 $BLOCKFILE -o orderer.example.com:7050 --ordererTLSHostname
 res=$?
 { set +x; } 2>/dev/null
 cat log.txt
-verifyResult $res "Fetching config block from orderer has Failed"
+verifyResult $res "Fetching config block from orderer has failed"
 
+infoln "Joining org3 peer to the channel..."
 joinChannel 3
 
-echo "Setting anchor peer for org3..."
+infoln "Setting anchor peer for org3..."
 setAnchorPeer 3
-echo "===================== peer0.org3 joined channel '$CHANNEL_NAME' ===================== "
 
-echo
-echo "========= Finished adding Org3 to your test network! ========= "
-echo
-
-exit 0
+successln "Channel '$CHANNEL_NAME' joined"
+successln "Org3 peer successfully added to network"

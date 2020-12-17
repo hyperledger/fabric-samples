@@ -41,7 +41,6 @@ createChannel() {
 	done
 	cat log.txt
 	verifyResult $res "Channel creation failed"
-	successln "Channel '$CHANNEL_NAME' created"
 }
 
 # joinChannel ORG
@@ -82,11 +81,12 @@ BLOCKFILE="./channel-artifacts/${CHANNEL_NAME}.block"
 ## Create channel
 infoln "Creating channel ${CHANNEL_NAME}"
 createChannel
+successln "Channel '$CHANNEL_NAME' created"
 
 ## Join all the peers to the channel
-infoln "Join Org1 peers to the channel..."
+infoln "Joining org1 peer to the channel..."
 joinChannel 1
-infoln "Join Org2 peers to the channel..."
+infoln "Joining org2 peer to the channel..."
 joinChannel 2
 
 ## Set the anchor peers for each org in the channel
@@ -95,6 +95,4 @@ setAnchorPeer 1
 infoln "Setting anchor peer for org2..."
 setAnchorPeer 2
 
-successln "Channel successfully joined"
-
-exit 0
+successln "Channel '$CHANNEL_NAME' joined"

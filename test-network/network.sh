@@ -141,9 +141,9 @@ function createOrgs() {
     if [ "$?" -ne 0 ]; then
       fatalln "cryptogen tool not found. exiting"
     fi
-    infoln "Generate certificates using cryptogen tool"
+    infoln "Generating certificates using cryptogen tool"
 
-    infoln "Create Org1 Identities"
+    infoln "Creating Org1 Identities"
 
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-org1.yaml --output="organizations"
@@ -153,7 +153,7 @@ function createOrgs() {
       fatalln "Failed to generate certificates..."
     fi
 
-    infoln "Create Org2 Identities"
+    infoln "Creating Org2 Identities"
 
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
@@ -163,7 +163,7 @@ function createOrgs() {
       fatalln "Failed to generate certificates..."
     fi
 
-    infoln "Create Orderer Org Identities"
+    infoln "Creating Orderer Org Identities"
 
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-orderer.yaml --output="organizations"
@@ -177,7 +177,7 @@ function createOrgs() {
 
   # Create crypto material using Fabric CA
   if [ "$CRYPTO" == "Certificate Authorities" ]; then
-    infoln "Generate certificates using Fabric CA"
+    infoln "Generating certificates using Fabric CA"
 
     IMAGE_TAG=${CA_IMAGETAG} docker-compose -f $COMPOSE_FILE_CA up -d 2>&1
 
@@ -192,21 +192,21 @@ function createOrgs() {
       fi
     done
 
-    infoln "Create Org1 Identities"
+    infoln "Creating Org1 Identities"
 
     createOrg1
 
-    infoln "Create Org2 Identities"
+    infoln "Creating Org2 Identities"
 
     createOrg2
 
-    infoln "Create Orderer Org Identities"
+    infoln "Creating Orderer Org Identities"
 
     createOrderer
 
   fi
 
-  infoln "Generate CCP files for Org1 and Org2"
+  infoln "Generating CCP files for Org1 and Org2"
   ./organizations/ccp-generate.sh
 }
 
@@ -300,9 +300,6 @@ function createChannel() {
   # configtx.yaml is mounted in the cli container, which allows us to use it to
   # create the channel artifacts
   scripts/createChannel.sh $CHANNEL_NAME $CLI_DELAY $MAX_RETRY $VERBOSE
-  if [ $? -ne 0 ]; then
-    fatalln "Create channel failed"
-  fi
 }
 
 
@@ -337,7 +334,6 @@ function networkDown() {
     docker run --rm -v $(pwd):/data busybox sh -c 'cd /data && rm -rf addOrg3/fabric-ca/org3/msp addOrg3/fabric-ca/org3/tls-cert.pem addOrg3/fabric-ca/org3/ca-cert.pem addOrg3/fabric-ca/org3/IssuerPublicKey addOrg3/fabric-ca/org3/IssuerRevocationPublicKey addOrg3/fabric-ca/org3/fabric-ca-server.db'
     # remove channel and script artifacts
     docker run --rm -v $(pwd):/data busybox sh -c 'cd /data && rm -rf channel-artifacts log.txt *.tar.gz'
-
   fi
 }
 
