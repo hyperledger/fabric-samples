@@ -30,7 +30,7 @@ services:
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: /bin/bash
     volumes:
-        - /var/run/:/host/var/run/
+        - /var/run/docker.sock:/host/var/run/docker.sock
         - ./../../../../organization/magnetocorp:/opt/gopath/src/github.com/
         - ./../../../../../test-network/organizations:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
     networks:

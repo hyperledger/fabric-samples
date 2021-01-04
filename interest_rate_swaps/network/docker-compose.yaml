@@ -25,7 +25,7 @@ services:
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     volumes:
-    - /var/run/:/host/var/run/
+    - /var/run/docker.sock:/host/var/run/docker.sock
 
   orderer:
     container_name: irs-orderer
@@ -147,7 +147,7 @@ services:
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: /bin/bash
     volumes:
-        - /var/run/:/host/var/run/
+        - /var/run/docker.sock/:/host/var/run/docker.sock
         - ../chaincode/:/opt/gopath/src/irscc
         - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
         - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
