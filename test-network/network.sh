@@ -16,7 +16,7 @@ export PATH=${PWD}/../bin:$PATH
 export FABRIC_CFG_PATH=${PWD}/configtx
 export VERBOSE=false
 
-source scriptUtils.sh
+. scripts/utils.sh
 
 # Obtain CONTAINER_IDS and remove them
 # TODO Might want to make this optional - could clear other containers
@@ -131,7 +131,6 @@ function checkPrereqs() {
 
 # Create Organization crypto material using cryptogen or CAs
 function createOrgs() {
-
   if [ -d "organizations/peerOrganizations" ]; then
     rm -Rf organizations/peerOrganizations && rm -Rf organizations/ordererOrganizations
   fi
@@ -142,9 +141,9 @@ function createOrgs() {
     if [ "$?" -ne 0 ]; then
       fatalln "cryptogen tool not found. exiting"
     fi
-    infoln "Generate certificates using cryptogen tool"
+    infoln "Generating certificates using cryptogen tool"
 
-    infoln "Create Org1 Identities"
+    infoln "Creating Org1 Identities"
 
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-org1.yaml --output="organizations"
@@ -154,7 +153,7 @@ function createOrgs() {
       fatalln "Failed to generate certificates..."
     fi
 
-    infoln "Create Org2 Identities"
+    infoln "Creating Org2 Identities"
 
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
@@ -164,7 +163,7 @@ function createOrgs() {
       fatalln "Failed to generate certificates..."
     fi
 
-    infoln "Create Orderer Org Identities"
+    infoln "Creating Orderer Org Identities"
 
     set -x
     cryptogen generate --config=./organizations/cryptogen/crypto-config-orderer.yaml --output="organizations"
@@ -176,10 +175,9 @@ function createOrgs() {
 
   fi
 
-  # Create crypto material using Fabric CAs
+  # Create crypto material using Fabric CA
   if [ "$CRYPTO" == "Certificate Authorities" ]; then
-
-    infoln "Generate certificates using Fabric CA's"
+    infoln "Generating certificates using Fabric CA"
 
     IMAGE_TAG=${CA_IMAGETAG} docker-compose -f $COMPOSE_FILE_CA up -d 2>&1
 
@@ -194,21 +192,21 @@ function createOrgs() {
       fi
     done
 
-    infoln "Create Org1 Identities"
+    infoln "Creating Org1 Identities"
 
     createOrg1
 
-    infoln "Create Org2 Identities"
+    infoln "Creating Org2 Identities"
 
     createOrg2
 
-    infoln "Create Orderer Org Identities"
+    infoln "Creating Orderer Org Identities"
 
     createOrderer
 
   fi
 
-  infoln "Generate CCP files for Org1 and Org2"
+  infoln "Generating CCP files for Org1 and Org2"
   ./organizations/ccp-generate.sh
 }
 
@@ -240,7 +238,6 @@ function createOrgs() {
 
 # Generate orderer system channel genesis block.
 function createConsortium() {
-
   which configtxgen
   if [ "$?" -ne 0 ]; then
     fatalln "configtxgen tool not found."
@@ -267,7 +264,6 @@ function createConsortium() {
 
 # Bring up the peer and orderer nodes using docker compose.
 function networkUp() {
-
   checkPrereqs
   # generate artifacts if they don't exist
   if [ ! -d "organizations/peerOrganizations" ]; then
@@ -289,10 +285,10 @@ function networkUp() {
   fi
 }
 
-## call the script to join create the channel and join the peers of org1 and org2
+# call the script to create the channel, join the peers of org1 and org2,
+# and then update the anchor peers for each organization
 function createChannel() {
-
-## Bring up the network if it is not already up.
+  # Bring up the network if it is not already up.
 
   if [ ! -d "organizations/peerOrganizations" ]; then
     infoln "Bringing up network"
@@ -303,24 +299,17 @@ function createChannel() {
   # more to create the channel creation transaction and the anchor peer updates.
   # configtx.yaml is mounted in the cli container, which allows us to use it to
   # create the channel artifacts
- scripts/createChannel.sh $CHANNEL_NAME $CLI_DELAY $MAX_RETRY $VERBOSE
-  if [ $? -ne 0 ]; then
-    fatalln "Create channel failed"
-  fi
-
+  scripts/createChannel.sh $CHANNEL_NAME $CLI_DELAY $MAX_RETRY $VERBOSE
 }
 
 
 ## Call the script to deploy a chaincode to the channel
 function deployCC() {
-
   scripts/deployCC.sh $CHANNEL_NAME $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION $CC_SEQUENCE $CC_INIT_FCN $CC_END_POLICY $CC_COLL_CONFIG $CLI_DELAY $MAX_RETRY $VERBOSE
 
   if [ $? -ne 0 ]; then
     fatalln "Deploying chaincode failed"
   fi
-
-  exit 0
 }
 
 
@@ -345,7 +334,6 @@ function networkDown() {
     docker run --rm -v $(pwd):/data busybox sh -c 'cd /data && rm -rf addOrg3/fabric-ca/org3/msp addOrg3/fabric-ca/org3/tls-cert.pem addOrg3/fabric-ca/org3/ca-cert.pem addOrg3/fabric-ca/org3/IssuerPublicKey addOrg3/fabric-ca/org3/IssuerRevocationPublicKey addOrg3/fabric-ca/org3/fabric-ca-server.db'
     # remove channel and script artifacts
     docker run --rm -v $(pwd):/data busybox sh -c 'cd /data && rm -rf channel-artifacts log.txt *.tar.gz'
-
   fi
 }
 

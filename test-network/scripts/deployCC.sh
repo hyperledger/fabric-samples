@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source scriptUtils.sh
+source scripts/utils.sh
 
 CHANNEL_NAME=${1:-"mychannel"}
 CC_NAME=${2}
