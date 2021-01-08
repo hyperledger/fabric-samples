@@ -17,9 +17,13 @@ if [ ! -d "channel-artifacts" ]; then
 	mkdir channel-artifacts
 fi
 
-createChannelTx() {
+createChannelGenesisBlock() {
+	which configtxgen
+	if [ "$?" -ne 0 ]; then
+		fatalln "configtxgen tool not found."
+	fi
 	set -x
-	configtxgen -profile TwoOrgsChannel -outputCreateChannelTx ./channel-artifacts/${CHANNEL_NAME}.tx -channelID $CHANNEL_NAME
+	configtxgen -profile TwoOrgsApplicationGenesis -outputBlock ./channel-artifacts/${CHANNEL_NAME}.block -channelID $CHANNEL_NAME
 	res=$?
 	{ set +x; } 2>/dev/null
   verifyResult $res "Failed to generate channel configuration transaction..."
@@ -33,7 +37,7 @@ createChannel() {
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
 		sleep $DELAY
 		set -x
-		peer channel create -o localhost:7050 -c $CHANNEL_NAME --ordererTLSHostnameOverride orderer.example.com -f ./channel-artifacts/${CHANNEL_NAME}.tx --outputBlock $BLOCKFILE --tls --cafile $ORDERER_CA >&log.txt
+		osnadmin channel join --channel-id $CHANNEL_NAME --config-block ./channel-artifacts/${CHANNEL_NAME}.block -o localhost:7053 --ca-file $ORDERER_CA --client-cert $ORDERER_ADMIN_TLS_SIGN_CERT --client-key $ORDERER_ADMIN_TLS_PRIVATE_KEY >&log.txt
 		res=$?
 		{ set +x; } 2>/dev/null
 		let rc=$res
@@ -71,9 +75,9 @@ setAnchorPeer() {
 
 FABRIC_CFG_PATH=${PWD}/configtx
 
-## Create channeltx
-infoln "Generating channel create transaction '${CHANNEL_NAME}.tx'"
-createChannelTx
+## Create channel genesis block
+infoln "Generating channel genesis block '${CHANNEL_NAME}.block'"
+createChannelGenesisBlock
 
 FABRIC_CFG_PATH=$PWD/../config/
 BLOCKFILE="./channel-artifacts/${CHANNEL_NAME}.block"
