@@ -120,7 +120,7 @@ function checkPrereqs() {
 # directory. Cryptogen uses the files to generate the crypto  material for each
 # org in the "organizations" directory.
 
-# You can also Fabric CAs to generate the crypto material. CAs sign the certificates
+# You can also use Fabric CAs to generate the crypto material. CAs sign the certificates
 # and keys that they generate to create a valid root of trust for each organization.
 # The script uses Docker Compose to bring up three CAs, one for each peer organization
 # and the ordering organization. The configuration file for creating the Fabric CA
@@ -211,23 +211,17 @@ function createOrgs() {
 }
 
 # Once you create the organization crypto material, you need to create the
-# genesis block of the orderer system channel. This block is required to bring
-# up any orderer nodes and create any application channels.
+# genesis block of the application channel.
 
 # The configtxgen tool is used to create the genesis block. Configtxgen consumes a
 # "configtx.yaml" file that contains the definitions for the sample network. The
-# genesis block is defined using the "TwoOrgsOrdererGenesis" profile at the bottom
-# of the file. This profile defines a sample consortium, "SampleConsortium",
-# consisting of our two Peer Orgs. This consortium defines which organizations are
-# recognized as members of the network. The peer and ordering organizations are defined
-# in the "Profiles" section at the top of the file. As part of each organization
-# profile, the file points to a the location of the MSP directory for each member.
-# This MSP is used to create the channel MSP that defines the root of trust for
-# each organization. In essence, the channel MSP allows the nodes and users to be
-# recognized as network members. The file also specifies the anchor peers for each
-# peer org. In future steps, this same file is used to create the channel creation
-# transaction and the anchor peer updates.
-#
+# genesis block is defined using the "TwoOrgsApplicationGenesis" profile at the bottom
+# of the file. This profile defines an application channel consisting of our two Peer Orgs.
+# The peer and ordering organizations are defined in the "Profiles" section at the
+# top of the file. As part of each organization profile, the file points to the
+# location of the MSP directory for each member. This MSP is used to create the channel
+# MSP that defines the root of trust for each organization. In essence, the channel
+# MSP allows the nodes and users to be recognized as network members.
 #
 # If you receive the following warning, it can be safely ignored:
 #
@@ -236,27 +230,7 @@ function createOrgs() {
 # You can ignore the logs regarding intermediate certs, we are not using them in
 # this crypto implementation.
 
-# Generate orderer system channel genesis block.
-function createConsortium() {
-  which configtxgen
-  if [ "$?" -ne 0 ]; then
-    fatalln "configtxgen tool not found."
-  fi
-
-  infoln "Generating Orderer Genesis block"
-
-  # Note: For some unknown reason (at least for now) the block file can't be
-  # named orderer.genesis.block or the orderer will fail to launch!
-  set -x
-  configtxgen -profile TwoOrgsOrdererGenesis -channelID system-channel -outputBlock ./system-genesis-block/genesis.block
-  res=$?
-  { set +x; } 2>/dev/null
-  if [ $res -ne 0 ]; then
-    fatalln "Failed to generate orderer genesis block..."
-  fi
-}
-
-# After we create the org crypto material and the system channel genesis block,
+# After we create the org crypto material and the application channel genesis block,
 # we can now bring up the peers and ordering service. By default, the base
 # file for creating the network is "docker-compose-test-net.yaml" in the ``docker``
 # folder. This file defines the environment variables and file mounts that
@@ -268,7 +242,6 @@ function networkUp() {
   # generate artifacts if they don't exist
   if [ ! -d "organizations/peerOrganizations" ]; then
     createOrgs
-    createConsortium
   fi
 
   COMPOSE_FILES="-f ${COMPOSE_FILE_BASE}"
@@ -296,9 +269,7 @@ function createChannel() {
   fi
 
   # now run the script that creates a channel. This script uses configtxgen once
-  # more to create the channel creation transaction and the anchor peer updates.
-  # configtx.yaml is mounted in the cli container, which allows us to use it to
-  # create the channel artifacts
+  # to create the channel creation transaction and the anchor peer updates.
   scripts/createChannel.sh $CHANNEL_NAME $CLI_DELAY $MAX_RETRY $VERBOSE
 }
 
