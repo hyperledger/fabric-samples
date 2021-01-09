@@ -36,10 +36,3 @@ Organizations:
             Endorsement:
                 Type: Signature
                 Rule: "OR('Org3MSP.peer')"
-
-        AnchorPeers:
-            # AnchorPeers defines the location of peers which can be used
-            # for cross org gossip communication.  Note, this value is only
-            # encoded in the genesis block in the Application section context
-            - Host: peer0.org3.example.com
-              Port: 11051
