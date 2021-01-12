@@ -5,15 +5,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-. ../../scripts/utils.sh
-
 function createOrg3 {
 	infoln "Enrolling the CA admin"
 	mkdir -p ../organizations/peerOrganizations/org3.example.com/
 
 	export FABRIC_CA_CLIENT_HOME=${PWD}/../organizations/peerOrganizations/org3.example.com/
-#  rm -rf $FABRIC_CA_CLIENT_HOME/fabric-ca-client-config.yaml
-#  rm -rf $FABRIC_CA_CLIENT_HOME/msp
 
   set -x
   fabric-ca-client enroll -u https://admin:adminpw@localhost:11054 --caname ca-org3 --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
@@ -49,9 +45,6 @@ function createOrg3 {
   fabric-ca-client register --caname ca-org3 --id.name org3admin --id.secret org3adminpw --id.type admin --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
   { set +x; } 2>/dev/null
 
-	mkdir -p ../organizations/peerOrganizations/org3.example.com/peers
-  mkdir -p ../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com
-
   infoln "Generating the peer0 msp"
   set -x
 	fabric-ca-client enroll -u https://peer0:peer0pw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp --csr.hosts peer0.org3.example.com --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
@@ -78,17 +71,12 @@ function createOrg3 {
   mkdir ${PWD}/../organizations/peerOrganizations/org3.example.com/ca
   cp ${PWD}/../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp/cacerts/* ${PWD}/../organizations/peerOrganizations/org3.example.com/ca/ca.org3.example.com-cert.pem
 
-  mkdir -p ../organizations/peerOrganizations/org3.example.com/users
-  mkdir -p ../organizations/peerOrganizations/org3.example.com/users/User1@org3.example.com
-
   infoln "Generating the user msp"
   set -x
 	fabric-ca-client enroll -u https://user1:user1pw@localhost:11054 --caname ca-org3 -M ${PWD}/../organizations/peerOrganizations/org3.example.com/users/User1@org3.example.com/msp --tls.certfiles ${PWD}/fabric-ca/org3/tls-cert.pem
   { set +x; } 2>/dev/null
 
   cp ${PWD}/../organizations/peerOrganizations/org3.example.com/msp/config.yaml ${PWD}/../organizations/peerOrganizations/org3.example.com/users/User1@org3.example.com/msp/config.yaml
-
-  mkdir -p ../organizations/peerOrganizations/org3.example.com/users/Admin@org3.example.com
 
   infoln "Generating the org admin msp"
   set -x
