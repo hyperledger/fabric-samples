@@ -10,8 +10,8 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "fabric-network": "^2.1.0",
-    "fabric-ca-client": "^2.1.0",
+    "fabric-network": "^2.2.4",
+    "fabric-ca-client": "^2.2.4",
     "js-yaml": "^3.12.0"
   },
   "devDependencies": {
