@@ -40,34 +40,34 @@ export FABRIC_CA_CLIENT_HOME=${PWD}/organizations/peerOrganizations/org1.example
 There are two ways to generate certificates with attributes added. We will use both methods and create two identities in the process. The first method is to specify that the attribute be added to the certificate by default when the identity is registered. The following command will register an identity named creator1 with the attribute of `abac.creator=true`.
 
 ```
-fabric-ca-client register --id.name creator1 --id.secret creator1pw --id.type client --id.affiliation org1 --id.attrs 'abac.creator=true:ecert' --tls.certfiles ${PWD}/organizations/fabric-ca/org1/tls-cert.pem
+fabric-ca-client register --id.name creator1 --id.secret creator1pw --id.type client --id.affiliation org1 --id.attrs 'abac.creator=true:ecert' --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
 ```
 
 The `ecert` suffix adds the attribute to the certificate automatically when the identity is enrolled. As a result, the following enroll command will contain the attribute that was provided in the registration command.
 
 ```
-fabric-ca-client enroll -u https://creator1:creator1pw@localhost:7054 --caname ca-org1 -M ${PWD}/organizations/peerOrganizations/org1.example.com/users/creator1@org1.example.com/msp --tls.certfiles ${PWD}/organizations/fabric-ca/org1/tls-cert.pem
+fabric-ca-client enroll -u https://creator1:creator1pw@localhost:7054 --caname ca-org1 -M "${PWD}/organizations/peerOrganizations/org1.example.com/users/creator1@org1.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
 ```
 
 Now that we have enrolled the identity, run the command below to copy the Node OU configuration file into the creator1 MSP folder.
 ```
-cp ${PWD}/organizations/peerOrganizations/org1.example.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/org1.example.com/users/creator1@org1.example.com/msp/config.yaml
+cp "${PWD}/organizations/peerOrganizations/org1.example.com/msp/config.yaml" "${PWD}/organizations/peerOrganizations/org1.example.com/users/creator1@org1.example.com/msp/config.yaml"
 ```
 
 The second method is to request that the attribute be added upon enrollment. The following command will register an identity named creator2 with the same `abac.creator` attribute.
 ```
-fabric-ca-client register --id.name creator2 --id.secret creator2pw --id.type client --id.affiliation org1 --id.attrs 'abac.creator=true:' --tls.certfiles ${PWD}/organizations/fabric-ca/org1/tls-cert.pem
+fabric-ca-client register --id.name creator2 --id.secret creator2pw --id.type client --id.affiliation org1 --id.attrs 'abac.creator=true:' --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
 ```
 
 The following enroll command will add the attribute to the certificate:
 
 ```
-fabric-ca-client enroll -u https://creator2:creator2pw@localhost:7054 --caname ca-org1 --enrollment.attrs "abac.creator" -M ${PWD}/organizations/peerOrganizations/org1.example.com/users/creator2@org1.example.com/msp --tls.certfiles ${PWD}/organizations/fabric-ca/org1/tls-cert.pem
+fabric-ca-client enroll -u https://creator2:creator2pw@localhost:7054 --caname ca-org1 --enrollment.attrs "abac.creator" -M "${PWD}/organizations/peerOrganizations/org1.example.com/users/creator2@org1.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
 ```
 
 Run the command below to copy the Node OU configuration file into the creator2 MSP folder.
 ```
-cp ${PWD}/organizations/peerOrganizations/org1.example.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/org1.example.com/users/creator2@org1.example.com/msp/config.yaml
+cp "${PWD}/organizations/peerOrganizations/org1.example.com/msp/config.yaml" "${PWD}/organizations/peerOrganizations/org1.example.com/users/creator2@org1.example.com/msp/config.yaml"
 ```
 
 ## Create an asset
@@ -80,12 +80,12 @@ export CORE_PEER_LOCALMSPID="Org1MSP"
 export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/creator1@org1.example.com/msp
 export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
 export CORE_PEER_ADDRESS=localhost:7051
-export TARGET_TLS_OPTIONS="-o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
+export TARGET_TLS_OPTIONS=(-o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt")
 ```
 
 Run the following command to create Asset1:
 ```
-peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n abac -c '{"function":"CreateAsset","Args":["Asset1","blue","20","100"]}'
+peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n abac -c '{"function":"CreateAsset","Args":["Asset1","blue","20","100"]}'
 ```
 
 You can use the command below to query the asset on the ledger:
@@ -102,7 +102,7 @@ The result will list the creator1 identity as the asset owner. The `GetID()` API
 As the owner of Asset1, the creator1 identity has the ability to transfer the asset to another owner. In order to transfer the asset, the owner needs to provide the name and issuer of the new owner to the `TransferAsset` function. The `asset-transfer-abac` smart contract has a `GetSubmittingClientIdentity` function that allows users to retrieve their certificate information and provide it to the asset owner out of band (we omit this step). Issue the command below to transfer Asset1 to the user1 identity from Org1 that was created when the test network was deployed:
 ```
 export RECIPIENT="x509::CN=user1,OU=client,O=Hyperledger,ST=North Carolina,C=US::CN=ca.org1.example.com,O=org1.example.com,L=Durham,ST=North Carolina,C=US"
-peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n abac -c '{"function":"TransferAsset","Args":["Asset1","'"$RECIPIENT"'"]}'
+peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n abac -c '{"function":"TransferAsset","Args":["Asset1","'"$RECIPIENT"'"]}'
 ```
 Query the ledger to verify that the asset has a new owner:
 ```
@@ -117,7 +117,7 @@ We can see that Asset1 with is now owned by User1:
 
 Now that the asset has been transferred, the new owner can update the asset properties. The smart contract uses the `GetID()` API to ensure that the update is being submitted by the asset owner. To demonstrate the difference between identity and attribute based access control, lets try to update the asset using the creator1 identity first:
 ```
-peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n abac -c '{"function":"UpdateAsset","Args":["Asset1","green","20","100"]}'
+peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n abac -c '{"function":"UpdateAsset","Args":["Asset1","green","20","100"]}'
 ```
 
 Even though creator1 can create new assets, the smart contract detects that the transaction was not submitted by the identity that owns the asset, user1. The command returns the following error:
@@ -132,7 +132,7 @@ export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.examp
 
 We can now update the asset. Run the following command to change the asset color from blue to green. All other aspects of the asset will remain unchanged.
 ```
-peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n abac -c '{"function":"UpdateAsset","Args":["Asset1","green","20","100"]}'
+peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n abac -c '{"function":"UpdateAsset","Args":["Asset1","green","20","100"]}'
 ```
 Run the query command again to verify that the asset has changed color:
 ```
@@ -147,7 +147,7 @@ The result will display that Asset1 is now green:
 
 The owner also has the ability to delete the asset. Run the following command to remove Asset1 from the ledger:
 ```
-peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n abac -c '{"function":"DeleteAsset","Args":["Asset1"]}'
+peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n abac -c '{"function":"DeleteAsset","Args":["Asset1"]}'
 ```
 
 If you query the ledger once more, you will see that Asset1 no longer exists:
@@ -157,7 +157,7 @@ peer chaincode query -C mychannel -n abac -c '{"function":"ReadAsset","Args":["A
 
 While we are operating as User1, we can demonstrate attribute based access control by trying to create an asset using an identity without the `abac.creator=true` attribute. Run the following command to try to create Asset1 as User1:
 ```
-peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n abac -c '{"function":"CreateAsset","Args":["Asset2","red","20","100"]}'
+peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n abac -c '{"function":"CreateAsset","Args":["Asset2","red","20","100"]}'
 ```
 
 The smart contract will return the following error:

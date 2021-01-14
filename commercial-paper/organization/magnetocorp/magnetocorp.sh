@@ -35,4 +35,4 @@ export PATH="${DIR}/../../../bin:${PWD}:$PATH"
 env | sort | comm -1 -3 /tmp/env.orig - | sed -E 's/(.*)=(.*)/export \1="\2"/'
 rm /tmp/env.orig
 
-cd ${DIR}
+cd "${DIR}"
