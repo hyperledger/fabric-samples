@@ -26,7 +26,6 @@ OVERRIDE_ORG="2"
 
 
 parsePeerConnectionParameters 1 2
-export PEER_PARMS="${PEER_CONN_PARMS##*( )}"
 
 # set the fabric config path
 export FABRIC_CFG_PATH="${DIR}/../../../config"
