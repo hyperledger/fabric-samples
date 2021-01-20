@@ -26,8 +26,6 @@ OVERRIDE_ORG="1"
 
 parsePeerConnectionParameters 1 2
 
-export PEER_PARMS="${PEER_CONN_PARMS##*( )}"
-
 # set the fabric config path
 export FABRIC_CFG_PATH="${DIR}/../../../config"
 export PATH="${DIR}/../../../bin:${PWD}:$PATH"
@@ -36,4 +34,4 @@ env | sort | comm -1 -3 /tmp/env.orig - | sed -E 's/(.*)=(.*)/export \1="\2"/'
 
 rm /tmp/env.orig
 
-cd ${DIR}
+cd "${DIR}"

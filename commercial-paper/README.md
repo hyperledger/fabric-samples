@@ -224,7 +224,7 @@ peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSH
                                           --package-id $PACKAGE_ID \
                                           --sequence 1  \
                                           --tls  \
-                                          --cafile $ORDERER_CA
+                                          --cafile "$ORDERER_CA"
                                           
 peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
 ```
@@ -248,7 +248,7 @@ peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSH
                                           --package-id $PACKAGE_ID \
                                           --sequence 1  \
                                           --tls  \
-                                          --cafile $ORDERER_CA
+                                          --cafile "$ORDERER_CA"
 
 peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
 
@@ -260,12 +260,12 @@ Once both organizations have installed, and approved the chaincode, it can be co
 # MAGNETOCORP
 
 peer lifecycle chaincode commit -o localhost:7050 \
-                                --peerAddresses localhost:7051 --tlsRootCertFiles ${PEER0_ORG1_CA} \
-                                --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
+                                --peerAddresses localhost:7051 --tlsRootCertFiles "${PEER0_ORG1_CA}" \
+                                --peerAddresses localhost:9051 --tlsRootCertFiles "${PEER0_ORG2_CA}" \
                                 --ordererTLSHostnameOverride orderer.example.com \
                                 --channelID mychannel --name papercontract -v 0 \
                                 --sequence 1 \
-                                --tls --cafile $ORDERER_CA --waitForEvent 
+                                --tls --cafile "$ORDERER_CA" --waitForEvent 
 
 ```
 
@@ -274,18 +274,18 @@ To test, try sending some simple transactions.
 ```
 
 peer chaincode invoke -o localhost:7050  --ordererTLSHostnameOverride orderer.example.com \
-                                --peerAddresses localhost:7051 --tlsRootCertFiles ${PEER0_ORG1_CA} \
-                                --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
+                                --peerAddresses localhost:7051 --tlsRootCertFiles "${PEER0_ORG1_CA}" \
+                                --peerAddresses localhost:9051 --tlsRootCertFiles "${PEER0_ORG2_CA}" \
                                 --channelID mychannel --name papercontract \
                                 -c '{"Args":["org.papernet.commercialpaper:instantiate"]}' ${PEER_ADDRESS_ORG1} ${PEER_ADDRESS_ORG2} \
-                                --tls --cafile $ORDERER_CA --waitForEvent
+                                --tls --cafile "$ORDERER_CA" --waitForEvent
 
 peer chaincode query -o localhost:7050  --ordererTLSHostnameOverride orderer.example.com \
                                         --channelID mychannel \
                                         --name papercontract \
                                         -c '{"Args":["org.hyperledger.fabric:GetMetadata"]}' \
-                                        --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
-                                        --tls --cafile $ORDERER_CA | jq '.' -C | more
+                                        --peerAddresses localhost:9051 --tlsRootCertFiles "${PEER0_ORG2_CA}" \
+                                        --tls --cafile "$ORDERER_CA" | jq '.' -C | more
 ```
 </p>
 </details>
@@ -324,7 +324,7 @@ peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSH
                                           --package-id $PACKAGE_ID \
                                           --sequence 1  \
                                           --tls  \
-                                          --cafile $ORDERER_CA
+                                          --cafile "$ORDERER_CA"
                                           
 peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
 ```
@@ -348,7 +348,7 @@ peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSH
                                           --package-id $PACKAGE_ID \
                                           --sequence 1  \
                                           --tls  \
-                                          --cafile $ORDERER_CA
+                                          --cafile "$ORDERER_CA"
 
 peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
 
@@ -360,12 +360,12 @@ Once both organizations have installed, and approved the chaincode, it can be co
 # MAGNETOCORP
 
 peer lifecycle chaincode commit -o localhost:7050 \
-                                --peerAddresses localhost:7051 --tlsRootCertFiles ${PEER0_ORG1_CA} \
-                                --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
+                                --peerAddresses localhost:7051 --tlsRootCertFiles "${PEER0_ORG1_CA}" \
+                                --peerAddresses localhost:9051 --tlsRootCertFiles "${PEER0_ORG2_CA}" \
                                 --ordererTLSHostnameOverride orderer.example.com \
                                 --channelID mychannel --name papercontract -v 0 \
                                 --sequence 1 \
-                                --tls --cafile $ORDERER_CA --waitForEvent 
+                                --tls --cafile "$ORDERER_CA" --waitForEvent 
 
 ```
 
@@ -374,18 +374,18 @@ To test, try sending some simple transactions.
 ```
 
 peer chaincode invoke -o localhost:7050  --ordererTLSHostnameOverride orderer.example.com \
-                                --peerAddresses localhost:7051 --tlsRootCertFiles ${PEER0_ORG1_CA} \
-                                --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
+                                --peerAddresses localhost:7051 --tlsRootCertFiles "${PEER0_ORG1_CA}" \
+                                --peerAddresses localhost:9051 --tlsRootCertFiles "${PEER0_ORG2_CA}" \
                                 --channelID mychannel --name papercontract \
                                 -c '{"Args":["org.papernet.commercialpaper:instantiate"]}' ${PEER_ADDRESS_ORG1} ${PEER_ADDRESS_ORG2} \
-                                --tls --cafile $ORDERER_CA --waitForEvent
+                                --tls --cafile "$ORDERER_CA" --waitForEvent
 
 peer chaincode query -o localhost:7050  --ordererTLSHostnameOverride orderer.example.com \
                                         --channelID mychannel \
                                         --name papercontract \
                                         -c '{"Args":["org.hyperledger.fabric:GetMetadata"]}' \
-                                        --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
-                                        --tls --cafile $ORDERER_CA | jq '.' -C | more
+                                        --peerAddresses localhost:9051 --tlsRootCertFiles "${PEER0_ORG2_CA}" \
+                                        --tls --cafile "$ORDERER_CA" | jq '.' -C | more
 ```
 
 </p>
@@ -424,7 +424,7 @@ peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSH
                                           --package-id $PACKAGE_ID \
                                           --sequence 1  \
                                           --tls  \
-                                          --cafile $ORDERER_CA
+                                          --cafile "$ORDERER_CA"
                                           
 peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
 ```
@@ -448,7 +448,7 @@ peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSH
                                           --package-id $PACKAGE_ID \
                                           --sequence 1  \
                                           --tls  \
-                                          --cafile $ORDERER_CA
+                                          --cafile "$ORDERER_CA"
 
 peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
 
@@ -460,12 +460,12 @@ Once both organizations have installed, and approved the chaincode, it can be co
 # MAGNETOCORP
 
 peer lifecycle chaincode commit -o localhost:7050 \
-                                --peerAddresses localhost:7051 --tlsRootCertFiles ${PEER0_ORG1_CA} \
-                                --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
+                                --peerAddresses localhost:7051 --tlsRootCertFiles "${PEER0_ORG1_CA}" \
+                                --peerAddresses localhost:9051 --tlsRootCertFiles "${PEER0_ORG2_CA}" \
                                 --ordererTLSHostnameOverride orderer.example.com \
                                 --channelID mychannel --name papercontract -v 0 \
                                 --sequence 1 \
-                                --tls --cafile $ORDERER_CA --waitForEvent 
+                                --tls --cafile "$ORDERER_CA" --waitForEvent 
 
 ```
 
@@ -474,18 +474,18 @@ To test, try sending some simple transactions.
 ```
 
 peer chaincode invoke -o localhost:7050  --ordererTLSHostnameOverride orderer.example.com \
-                                --peerAddresses localhost:7051 --tlsRootCertFiles ${PEER0_ORG1_CA} \
-                                --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
+                                --peerAddresses localhost:7051 --tlsRootCertFiles "${PEER0_ORG1_CA}" \
+                                --peerAddresses localhost:9051 --tlsRootCertFiles "${PEER0_ORG2_CA}" \
                                 --channelID mychannel --name papercontract \
                                 -c '{"Args":["org.papernet.commercialpaper:instantiate"]}' ${PEER_ADDRESS_ORG1} ${PEER_ADDRESS_ORG2} \
-                                --tls --cafile $ORDERER_CA --waitForEvent
+                                --tls --cafile "$ORDERER_CA" --waitForEvent
 
 peer chaincode query -o localhost:7050  --ordererTLSHostnameOverride orderer.example.com \
                                         --channelID mychannel \
                                         --name papercontract \
                                         -c '{"Args":["org.hyperledger.fabric:GetMetadata"]}' \
-                                        --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
-                                        --tls --cafile $ORDERER_CA | jq '.' -C | more
+                                        --peerAddresses localhost:9051 --tlsRootCertFiles "${PEER0_ORG2_CA}" \
+                                        --tls --cafile "$ORDERER_CA" | jq '.' -C | more
 ```
 
 
