@@ -40,7 +40,7 @@ steps:
                                                 --package-id $PACKAGE_ID \
                                                 --sequence 1  \
                                                 --tls  \
-                                                --cafile $ORDERER_CA
+                                                --cafile "$ORDERER_CA"
 
       peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
     workingDirectory: commercial-paper/organization/magnetocorp
@@ -60,17 +60,17 @@ steps:
                                                 --package-id $PACKAGE_ID \
                                                 --sequence 1  \
                                                 --tls  \
-                                                --cafile $ORDERER_CA
+                                                --cafile "$ORDERER_CA"
 
       peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
 
       peer lifecycle chaincode commit -o localhost:7050 \
-                                --peerAddresses localhost:7051 --tlsRootCertFiles ${PEER0_ORG1_CA} \
-                                --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
+                                --peerAddresses localhost:7051 --tlsRootCertFiles "${PEER0_ORG1_CA}" \
+                                --peerAddresses localhost:9051 --tlsRootCertFiles "${PEER0_ORG2_CA}" \
                                 --ordererTLSHostnameOverride orderer.example.com \
                                 --channelID mychannel --name papercontract -v 0 \
                                 --sequence 1 \
-                                --tls --cafile $ORDERER_CA --waitForEvent
+                                --tls --cafile "$ORDERER_CA" --waitForEvent
 
     workingDirectory: commercial-paper/organization/digibank
     displayName: Setup Commercial Paper Contract

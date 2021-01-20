@@ -77,22 +77,26 @@ setGlobalsCLI() {
 # Helper function that sets the peer connection parameters for a chaincode
 # operation
 parsePeerConnectionParameters() {
-  PEER_CONN_PARMS=""
+  PEER_CONN_PARMS=()
   PEERS=""
   while [ "$#" -gt 0 ]; do
     setGlobals $1
     PEER="peer0.org$1"
     ## Set peer addresses
-    PEERS="$PEERS $PEER"
-    PEER_CONN_PARMS="$PEER_CONN_PARMS --peerAddresses $CORE_PEER_ADDRESS"
+    if [ -z "$PEERS" ]
+    then
+	PEERS="$PEER"
+    else
+	PEERS="$PEERS $PEER"
+    fi
+    PEER_CONN_PARMS=("${PEER_CONN_PARMS[@]}" --peerAddresses $CORE_PEER_ADDRESS)
     ## Set path to TLS certificate
-    TLSINFO=$(eval echo "--tlsRootCertFiles \$PEER0_ORG$1_CA")
-    PEER_CONN_PARMS="$PEER_CONN_PARMS $TLSINFO"
+    CA=PEER0_ORG$1_CA
+    TLSINFO=(--tlsRootCertFiles "${!CA}")
+    PEER_CONN_PARMS=("${PEER_CONN_PARMS[@]}" "${TLSINFO[@]}")
     # shift by one to get to the next organization
     shift
   done
-  # remove leading space for output
-  PEERS="$(echo -e "$PEERS" | sed -e 's/^[[:space:]]*//')"
 }
 
 verifyResult() {

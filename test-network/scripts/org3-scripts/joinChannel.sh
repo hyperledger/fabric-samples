@@ -54,7 +54,7 @@ BLOCKFILE="${CHANNEL_NAME}.block"
 
 echo "Fetching channel config block from orderer..."
 set -x
-peer channel fetch 0 $BLOCKFILE -o orderer.example.com:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME --tls --cafile $ORDERER_CA >&log.txt
+peer channel fetch 0 $BLOCKFILE -o orderer.example.com:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME --tls --cafile "$ORDERER_CA" >&log.txt
 res=$?
 { set +x; } 2>/dev/null
 cat log.txt
