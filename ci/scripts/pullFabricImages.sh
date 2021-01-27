@@ -1,7 +1,7 @@
 #!/bin/bash -e
 set -euo pipefail
 
-FABRIC_VERSION=${FABRIC_VERSION:-2.3}
+FABRIC_VERSION=${FABRIC_VERSION:-2.4}
 STABLE_TAG=amd64-${FABRIC_VERSION}-stable
 
 for image in baseos peer orderer ca tools orderer ccenv javaenv nodeenv tools; do
