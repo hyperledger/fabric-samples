@@ -1,7 +1,9 @@
-
 /*
-SPDX-License-Identifier: Apache-2.0
+ * Copyright IBM Corp. All Rights Reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
 */
+
 'use strict';
 
 const State = require('../ledger-api/state.js');
