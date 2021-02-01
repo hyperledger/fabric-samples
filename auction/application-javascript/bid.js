@@ -8,20 +8,10 @@
 
 const { Gateway, Wallets } = require('fabric-network');
 const path = require('path');
-const { buildCCPOrg1, buildCCPOrg2, buildWallet } = require('../../test-application/javascript/AppUtil.js');
+const { buildCCPOrg1, buildCCPOrg2, buildWallet, prettyJSONString} = require('../../test-application/javascript/AppUtil.js');
 
 const myChannel = 'mychannel';
 const myChaincodeName = 'auction';
-
-
-function prettyJSONString(inputString) {
-    if (inputString) {
-        return JSON.stringify(JSON.parse(inputString), null, 2);
-    }
-    else {
-        return inputString;
-    }
-}
 
 async function bid(ccp,wallet,user,orgMSP,auctionID,price) {
     try {
@@ -36,7 +26,7 @@ async function bid(ccp,wallet,user,orgMSP,auctionID,price) {
         const contract = network.getContract(myChaincodeName);
 
         console.log('\n--> Evaluate Transaction: get your client ID');
-        let bidder = await contract.evaluateTransaction('GetID');
+        let bidder = await contract.evaluateTransaction('GetSubmittingClientIdentity');
         console.log('*** Result:  Bidder ID is ' + bidder.toString());
 
         let bidData = { objectType: 'bid', price: parseInt(price), org: orgMSP, bidder: bidder.toString()};
@@ -78,7 +68,7 @@ async function main() {
             process.exit(1);
         }
 
-        const org = process.argv[2]
+        const org = process.argv[2];
         const user = process.argv[3];
         const auctionID = process.argv[4];
         const price = process.argv[5];
@@ -107,6 +97,5 @@ async function main() {
         process.exit(1);
     }
 }
-
 
 main();

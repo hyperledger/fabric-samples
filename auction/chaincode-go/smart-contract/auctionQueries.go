@@ -40,7 +40,7 @@ func (s *SmartContract) QueryBid(ctx contractapi.TransactionContextInterface, au
 		return nil, fmt.Errorf("failed to get implicit collection name: %v", err)
 	}
 
-	clientID, err := ctx.GetClientIdentity().GetID()
+	clientID, err := s.GetSubmittingClientIdentity(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get client identity %v", err)
 	}
@@ -77,20 +77,8 @@ func (s *SmartContract) QueryBid(ctx contractapi.TransactionContextInterface, au
 	return bid, nil
 }
 
-// GetID is an internal helper function to allow users to get their identity
-func (s *SmartContract) GetID(ctx contractapi.TransactionContextInterface) (string, error) {
-
-	// Get the MSP ID of submitting client identity
-	clientID, err := ctx.GetClientIdentity().GetID()
-	if err != nil {
-		return "", fmt.Errorf("failed to get verified MSPID: %v", err)
-	}
-
-	return clientID, nil
-}
-
-// queryAllBids is an internal function that is used to determine if a winning bid has yet to be revealed
-func queryAllBids(ctx contractapi.TransactionContextInterface, auctionPrice int, revealedBidders map[string]FullBid, bidders map[string]BidHash) error {
+// checkForHigherBid is an internal function that is used to determine if a winning bid has yet to be revealed
+func checkForHigherBid(ctx contractapi.TransactionContextInterface, auctionPrice int, revealedBidders map[string]FullBid, bidders map[string]BidHash) error {
 
 	// Get MSP ID of peer org
 	peerMSPID, err := shim.GetMSPID()

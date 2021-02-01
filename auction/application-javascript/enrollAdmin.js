@@ -15,15 +15,6 @@ const { buildCCPOrg1, buildCCPOrg2, buildWallet } = require('../../test-applicat
 const mspOrg1 = 'Org1MSP';
 const mspOrg2 = 'Org2MSP';
 
-function prettyJSONString(inputString) {
-    if (inputString) {
-        return JSON.stringify(JSON.parse(inputString), null, 2);
-    }
-    else {
-        return inputString;
-    }
-}
-
 async function connectToOrg1CA() {
     console.log('\n--> Enrolling the Org1 CA admin');
     const ccpOrg1 = buildCCPOrg1();

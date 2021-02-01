@@ -8,20 +8,10 @@
 
 const { Gateway, Wallets } = require('fabric-network');
 const path = require('path');
-const { buildCCPOrg1, buildCCPOrg2, buildWallet } = require('../../test-application/javascript/AppUtil.js');
+const { buildCCPOrg1, buildCCPOrg2, buildWallet, prettyJSONString} = require('../../test-application/javascript/AppUtil.js');
 
 const myChannel = 'mychannel';
 const myChaincodeName = 'auction';
-
-
-function prettyJSONString(inputString) {
-    if (inputString) {
-        return JSON.stringify(JSON.parse(inputString), null, 2);
-    }
-    else {
-        return inputString;
-    }
-}
 
 async function queryAuction(ccp,wallet,user,auctionID) {
     try {
@@ -54,7 +44,7 @@ async function main() {
             process.exit(1);
         }
 
-        const org = process.argv[2]
+        const org = process.argv[2];
         const user = process.argv[3];
         const auctionID = process.argv[4];
 
