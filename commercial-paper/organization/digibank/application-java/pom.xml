@@ -14,7 +14,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <!-- fabric-chaincode-java -->
-    <fabric-chaincode-java.version>[2.0,3.0)</fabric-chaincode-java.version>
+    <fabric-chaincode-java.version>2.1.0</fabric-chaincode-java.version>
     <!-- fabric-gateway-java -->
     <fabric-gateway-java.version>2.1.0</fabric-gateway-java.version>
 
