@@ -74,68 +74,6 @@ jobs:
     displayName: Lint
     pool:
       vmImage: ubuntu-18.04
-    strategy:
-      matrix:
-        Basic-Application-Go:
-          DIRECTORY: asset-transfer-basic
-          LANGUAGE: go
-          TYPE: application
-        Basic-Application-Java:
-          DIRECTORY: asset-transfer-basic
-          LANGUAGE: java
-          TYPE: application
-        Basic-Application-Javascript:
-          DIRECTORY: asset-transfer-basic
-          LANGUAGE: javascript
-          TYPE: application
-        Basic-Chaincode-Go:
-          DIRECTORY: asset-transfer-basic
-          LANGUAGE: go
-          TYPE: chaincode
-        Basic-Chaincode-Java:
-          DIRECTORY: asset-transfer-basic
-          LANGUAGE: java
-          TYPE: chaincode
-        Basic-Chaincode-Javascript:
-          DIRECTORY: asset-transfer-basic
-          LANGUAGE: javascript
-          TYPE: chaincode
-        Basic-Chaincode-Typescript:
-          DIRECTORY: asset-transfer-basic
-          LANGUAGE: typescript
-          TYPE: chaincode
-        Ledger-Application-Java:
-          DIRECTORY: asset-transfer-ledger-queries
-          LANGUAGE: java
-          TYPE: application
-        Ledger-Chaincode-Go:
-          DIRECTORY: asset-transfer-ledger-queries
-          LANGUAGE: go
-          TYPE: chaincode
-        Ledger-Chaincode-Javascript:
-          DIRECTORY: asset-transfer-ledger-queries
-          LANGUAGE: javascript
-          TYPE: chaincode
-        PrivateData-Application-Javascript:
-          DIRECTORY: asset-transfer-private-data
-          LANGUAGE: javascript
-          TYPE: application
-        PrivateData-Chaincode-Go:
-          DIRECTORY: asset-transfer-private-data
-          LANGUAGE: go
-          TYPE: chaincode
-        SBE-Chaincode-Typescript:
-          DIRECTORY: asset-transfer-sbe
-          LANGUAGE: typescript
-          TYPE: chaincode
-        SBE-Chaincode-Java:
-          DIRECTORY: asset-transfer-sbe
-          LANGUAGE: java
-          TYPE: chaincode
-        Secured-Chaincode-Go:
-          DIRECTORY: asset-transfer-secured-agreement
-          LANGUAGE: go
-          TYPE: chaincode
     steps:
       - task: GoTool@0
         inputs:
@@ -146,6 +84,8 @@ jobs:
         inputs:
           versionSpec: $(NODE_VER)
         displayName: Install Node.js
+      - script: npm install -g typescript eslint tslint
+        displayName: Install Javascript Linting Deps
       - script: ./ci/scripts/lint.sh
         displayName: Lint Code
 
