@@ -17,8 +17,8 @@ async function createAuction(ccp,wallet,user,auctionID,item) {
 	try {
 
 		const gateway = new Gateway();
-		//connect using Discovery enabled
 
+		//connect using Discovery enabled
 		await gateway.connect(ccp,
 			{ wallet: wallet, identity: user, discovery: { enabled: true, asLocalhost: true } });
 
@@ -44,8 +44,8 @@ async function createAuction(ccp,wallet,user,auctionID,item) {
 async function main() {
 	try {
 
-		if (process.argv[2] == undefined || process.argv[3] == undefined ||
-            process.argv[4] == undefined || process.argv[5] == undefined) {
+		if (process.argv[2] === undefined || process.argv[3] === undefined ||
+            process.argv[4] === undefined || process.argv[5] === undefined) {
 			console.log('Usage: node createAuction.js org userID auctionID item');
 			process.exit(1);
 		}
@@ -55,17 +55,13 @@ async function main() {
 		const auctionID = process.argv[4];
 		const item = process.argv[5];
 
-		if (org == 'Org1' || org == 'org1') {
-
-			const orgMSP = 'Org1MSP';
+		if (org === 'Org1' || org === 'org1') {
 			const ccp = buildCCPOrg1();
 			const walletPath = path.join(__dirname, 'wallet/org1');
 			const wallet = await buildWallet(Wallets, walletPath);
 			await createAuction(ccp,wallet,user,auctionID,item);
 		}
-		else if (org == 'Org2' || org == 'org2') {
-
-			const orgMSP = 'Org2MSP';
+		else if (org === 'Org2' || org === 'org2') {
 			const ccp = buildCCPOrg2();
 			const walletPath = path.join(__dirname, 'wallet/org2');
 			const wallet = await buildWallet(Wallets, walletPath);

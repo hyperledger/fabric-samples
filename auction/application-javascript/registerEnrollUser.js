@@ -40,7 +40,7 @@ async function connectToOrg2CA(UserID) {
 }
 async function main() {
 
-	if (process.argv[2] == undefined && process.argv[3] == undefined) {
+	if (process.argv[2] === undefined && process.argv[3] === undefined) {
 		console.log('Usage: node registerEnrollUser.js org userID');
 		process.exit(1);
 	}
@@ -50,10 +50,10 @@ async function main() {
 
 	try {
 
-		if (org == 'Org1' || org == 'org1') {
+		if (org === 'Org1' || org === 'org1') {
 			await connectToOrg1CA(userId);
 		}
-		else if (org == 'Org2' || org == 'org2') {
+		else if (org === 'Org2' || org === 'org2') {
 			await connectToOrg2CA(userId);
 		} else {
 			console.log('Usage: node registerEnrollUser.js org userID');
