@@ -320,7 +320,7 @@ async function main() {
 			} catch (deleteError) {
 				console.log(`${RED}<-- Failed: DeleteAsset - ${deleteError}${RESET}`);
 				if (deleteError.toString().includes('ENDORSEMENT_POLICY_FAILURE')) {
-					console.log(`${RED}Be sure that chaincode was deployed with the endorsement policy "OR('Org1MSP.peer','Org2MSP.peer')"${RESET}`)
+					console.log(`${RED}Be sure that chaincode was deployed with the endorsement policy "OR('Org1MSP.peer','Org2MSP.peer')"${RESET}`);
 				}
 			}
 			try {
