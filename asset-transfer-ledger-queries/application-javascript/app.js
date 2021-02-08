@@ -129,7 +129,7 @@ async function main() {
 					console.log('*** Result: committed');
 				} catch (initError) {
 					// this is error is OK if we are rerunning this app without restarting
-					console.log(`******** initLedger failed :: ${initError}`)
+					console.log(`******** initLedger failed :: ${initError}`);
 				}
 			} else {
 				console.log('*** not executing "InitLedger');
@@ -179,7 +179,7 @@ async function main() {
 
 			console.log('\n--> Evaluate Transaction: AssetExists, function returns "false" if an asset with ID(asset7) does not exist');
 			result = await contract.evaluateTransaction('AssetExists', 'asset7');
-			console.log(`*** Result: ${prettyJSONString(result.toString())}`)
+			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
 			console.log('\n--> Submit Transaction: TransferAsset, transfer asset(asset2) to new owner(Tom)');
 			await contract.submitTransaction('TransferAsset', 'asset2', 'Tom');
