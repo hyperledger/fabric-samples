@@ -62,8 +62,8 @@ async function bid(ccp,wallet,user,orgMSP,auctionID,price) {
 async function main() {
 	try {
 
-		if (process.argv[2] == undefined || process.argv[3] == undefined ||
-            process.argv[4] == undefined || process.argv[5] == undefined) {
+		if (process.argv[2] === undefined || process.argv[3] === undefined ||
+            process.argv[4] === undefined || process.argv[5] === undefined) {
 			console.log('Usage: node bid.js org userID auctionID price');
 			process.exit(1);
 		}
@@ -73,7 +73,7 @@ async function main() {
 		const auctionID = process.argv[4];
 		const price = process.argv[5];
 
-		if (org == 'Org1' || org == 'org1') {
+		if (org === 'Org1' || org === 'org1') {
 
 			const orgMSP = 'Org1MSP';
 			const ccp = buildCCPOrg1();
@@ -81,7 +81,7 @@ async function main() {
 			const wallet = await buildWallet(Wallets, walletPath);
 			await bid(ccp,wallet,user,orgMSP,auctionID,price);
 		}
-		else if (org == 'Org2' || org == 'org2') {
+		else if (org === 'Org2' || org === 'org2') {
 
 			const orgMSP = 'Org2MSP';
 			const ccp = buildCCPOrg2();
