@@ -7,6 +7,7 @@ version: '2'
 
 networks:
   test:
+    name: fabric_test
 
 services:
   couchdb4:
