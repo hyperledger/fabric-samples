@@ -168,16 +168,10 @@ function networkDown () {
     ./network.sh down
 }
 
-
-# Obtain the OS and Architecture string that will be used to select the correct
-# native binaries for your platform
-OS_ARCH=$(echo "$(uname -s|tr '[:upper:]' '[:lower:]'|sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
-# timeout duration - the duration the CLI should wait for a response from
-# another container before giving up
-
 # Using crpto vs CA. default is cryptogen
 CRYPTO="cryptogen"
-
+# timeout duration - the duration the CLI should wait for a response from
+# another container before giving up
 CLI_TIMEOUT=10
 #default for delay
 CLI_DELAY=3
