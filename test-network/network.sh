@@ -54,7 +54,7 @@ function checkPrereqs() {
   # use the fabric tools container to see if the samples and binaries match your
   # docker images
   LOCAL_VERSION=$(peer version | sed -ne 's/ Version: //p')
-  DOCKER_IMAGE_VERSION=$(docker run --rm hyperledger/fabric-tools:$IMAGETAG peer version | sed -ne 's/ Version: //p' | head -1)
+  DOCKER_IMAGE_VERSION=$(docker run --rm hyperledger/fabric-tools:latest peer version | sed -ne 's/ Version: //p' | head -1)
 
   infoln "LOCAL_VERSION=$LOCAL_VERSION"
   infoln "DOCKER_IMAGE_VERSION=$DOCKER_IMAGE_VERSION"
@@ -87,7 +87,7 @@ function checkPrereqs() {
       exit 1
     fi
     CA_LOCAL_VERSION=$(fabric-ca-client version | sed -ne 's/ Version: //p')
-    CA_DOCKER_IMAGE_VERSION=$(docker run --rm hyperledger/fabric-ca:$CA_IMAGETAG fabric-ca-client version | sed -ne 's/ Version: //p' | head -1)
+    CA_DOCKER_IMAGE_VERSION=$(docker run --rm hyperledger/fabric-ca:latest fabric-ca-client version | sed -ne 's/ Version: //p' | head -1)
     infoln "CA_LOCAL_VERSION=$CA_LOCAL_VERSION"
     infoln "CA_DOCKER_IMAGE_VERSION=$CA_DOCKER_IMAGE_VERSION"
 
@@ -170,8 +170,7 @@ function createOrgs() {
   # Create crypto material using Fabric CA
   if [ "$CRYPTO" == "Certificate Authorities" ]; then
     infoln "Generating certificates using Fabric CA"
-
-    IMAGE_TAG=${CA_IMAGETAG} docker-compose -f $COMPOSE_FILE_CA up -d 2>&1
+    docker-compose -f $COMPOSE_FILE_CA up -d 2>&1
 
     . organizations/fabric-ca/registerEnroll.sh
 
@@ -242,7 +241,7 @@ function networkUp() {
     COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_COUCH}"
   fi
 
-  IMAGE_TAG=$IMAGETAG docker-compose ${COMPOSE_FILES} up -d 2>&1
+  docker-compose ${COMPOSE_FILES} up -d 2>&1
 
   docker ps -a
   if [ $? -ne 0 ]; then
@@ -336,10 +335,6 @@ CC_SRC_LANGUAGE="NA"
 CC_VERSION="1.0"
 # Chaincode definition sequence
 CC_SEQUENCE=1
-# default image tag
-IMAGETAG="latest"
-# default ca image tag
-CA_IMAGETAG="latest"
 # default database
 DATABASE="leveldb"
 
@@ -421,14 +416,6 @@ while [[ $# -ge 1 ]] ; do
     ;;
   -cci )
     CC_INIT_FCN="$2"
-    shift
-    ;;
-  -i )
-    IMAGETAG="$2"
-    shift
-    ;;
-  -cai )
-    CA_IMAGETAG="$2"
     shift
     ;;
   -verbose )

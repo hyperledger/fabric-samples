@@ -19,18 +19,16 @@ function printHelp() {
     println "    -s <dbtype> - Peer state database to deploy: goleveldb (default) or couchdb"
     println "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
     println "    -d <delay> - CLI delays for a certain number of seconds (defaults to 3)"
-    println "    -i <imagetag> - Docker image tag of Fabric to deploy (defaults to \"latest\")"
-    println "    -cai <ca_imagetag> - Docker image tag of Fabric CA to deploy (defaults to \"${CA_IMAGETAG}\")"
     println "    -verbose - Verbose mode"
     println
     println "    -h - Print this message"
     println
     println " Possible Mode and flag combinations"
-    println "   \033[0;32mup\033[0m -ca -r -d -s -i -cai -verbose"
-    println "   \033[0;32mup createChannel\033[0m -ca -c -r -d -s -i -cai -verbose"
+    println "   \033[0;32mup\033[0m -ca -r -d -s -verbose"
+    println "   \033[0;32mup createChannel\033[0m -ca -c -r -d -s -verbose"
     println
     println " Examples:"
-    println "   network.sh up createChannel -ca -c mychannel -s couchdb -i 2.0.0"
+    println "   network.sh up createChannel -ca -c mychannel -s couchdb "
   elif [ "$USAGE" == "createChannel" ]; then
     println "Usage: "
     println "  network.sh \033[0;32mcreateChannel\033[0m [Flags]"
@@ -88,8 +86,6 @@ function printHelp() {
     println "    -s <dbtype> - Peer state database to deploy: goleveldb (default) or couchdb"
     println "    -r <max retry> - CLI times out after certain number of attempts (defaults to 5)"
     println "    -d <delay> - CLI delays for a certain number of seconds (defaults to 3)"
-    println "    -i <imagetag> - Docker image tag of Fabric to deploy (defaults to \"latest\")"
-    println "    -cai <ca_imagetag> - Docker image tag of Fabric CA to deploy (defaults to \"${CA_IMAGETAG}\")"
     println "    -verbose - Verbose mode"
     println
     println "    Used with \033[0;32mnetwork.sh deployCC\033[0m"
@@ -106,13 +102,13 @@ function printHelp() {
     println "    -h - Print this message"
     println
     println " Possible Mode and flag combinations"
-    println "   \033[0;32mup\033[0m -ca -r -d -s -i -cai -verbose"
-    println "   \033[0;32mup createChannel\033[0m -ca -c -r -d -s -i -cai -verbose"
+    println "   \033[0;32mup\033[0m -ca -r -d -s -verbose"
+    println "   \033[0;32mup createChannel\033[0m -ca -c -r -d -s -verbose"
     println "   \033[0;32mcreateChannel\033[0m -c -r -d -verbose"
     println "   \033[0;32mdeployCC\033[0m -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose"
     println
     println " Examples:"
-    println "   network.sh up createChannel -ca -c mychannel -s couchdb -i 2.0.0"
+    println "   network.sh up createChannel -ca -c mychannel -s couchdb"
     println "   network.sh createChannel -c channelName"
     println "   network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ -ccl javascript"
     println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"

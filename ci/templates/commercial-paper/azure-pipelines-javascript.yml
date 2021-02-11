@@ -4,7 +4,7 @@
 
 steps:
   - script: |
-      ./network.sh up createChannel -ca -s couchdb -i ${FABRIC_VERSION} # FABRIC_VERSION is set in ci/azure-pipelines.yml
+      ./network.sh up createChannel -ca -s couchdb
 
       # Copy the connection profiles so they are in the correct organizations.
       cp "./organizations/peerOrganizations/org1.example.com/connection-org1.yaml" "../commercial-paper/organization/digibank/gateway/"
