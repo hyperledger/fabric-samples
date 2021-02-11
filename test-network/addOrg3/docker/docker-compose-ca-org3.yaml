@@ -10,9 +10,10 @@ networks:
     name: fabric_test
 
 services:
-
   ca_org3:
     image: hyperledger/fabric-ca:latest
+    labels:
+      service: hyperledger-fabric
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
       - FABRIC_CA_SERVER_CA_NAME=ca-org3
