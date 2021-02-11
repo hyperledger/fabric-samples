@@ -17,6 +17,8 @@ services:
   peer0.org3.example.com:
     container_name: peer0.org3.example.com
     image: hyperledger/fabric-peer:latest
+    labels:
+      service: hyperledger-fabric
     environment:
       #Generic peer variables
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
