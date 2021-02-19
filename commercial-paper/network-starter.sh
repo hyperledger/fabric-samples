@@ -33,4 +33,4 @@ cp "${DIR}/../test-network/organizations/peerOrganizations/org2.example.com/user
 cp "${DIR}/../test-network/organizations/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/keystore/"* "${DIR}/../test-network/organizations/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/keystore/priv_sk"
 
 echo Suggest that you monitor the docker containers by running
-echo "./organization/magnetocorp/configuration/cli/monitordocker.sh net_test"
+echo "./organization/magnetocorp/configuration/cli/monitordocker.sh fabric_test"

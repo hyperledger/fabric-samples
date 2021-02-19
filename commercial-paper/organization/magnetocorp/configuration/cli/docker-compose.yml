@@ -8,7 +8,7 @@ version: '2'
 networks:
   basic:
     external:
-      name: net_test
+      name: fabric_test
 
 services:
   cliMagnetoCorp:
@@ -34,4 +34,4 @@ services:
         - ./../../../../organization/magnetocorp:/opt/gopath/src/github.com/
         - ./../../../../../test-network/organizations:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
     networks:
-        - basic
+        - test
