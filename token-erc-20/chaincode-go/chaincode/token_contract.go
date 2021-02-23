@@ -23,9 +23,9 @@ type SmartContract struct {
 
 // event provides an organized struct for emitting events
 type event struct {
-	from  string
-	to    string
-	value int
+	From  string `json:"from"`
+	To    string `json:"to"`
+	Value int    `json:"value"`
 }
 
 // Mint creates new tokens and adds them to minter's account balance
