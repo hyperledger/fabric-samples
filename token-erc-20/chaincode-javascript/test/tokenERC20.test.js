@@ -94,6 +94,12 @@ describe('Chaincode', () => {
     });
 
     describe('#_transfer', () => {
+
+        it('should fail when the sender and the receipient are the same', async () => {
+            await expect(token._transfer(ctx, 'Alice', 'Alice', '1000'))
+                .to.be.rejectedWith(Error, 'cannot transfer to and from same client account');
+        });
+
         it('should fail when the sender does not have enough token', async () => {
             mockStub.createCompositeKey.withArgs('balance', ['Alice']).returns('balance_Alice');
             mockStub.getState.withArgs('balance_Alice').resolves(Buffer.from('500'));
