@@ -5,13 +5,19 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-function createOrg3 {
+#
+# 4 5 6
+#
+function createOrg4 {
 	infoln "Enrolling the CA admin"
-	mkdir -p ../organizations/peerOrganizations/org3.example.com/
+	mkdir -p ../organizations/peerOrganizations/org4.example.com/
 
-	export FABRIC_CA_CLIENT_HOME=${PWD}/../organizations/peerOrganizations/org3.example.com/
+	export FABRIC_CA_CLIENT_HOME=${PWD}/../organizations/peerOrganizations/org4.example.com/
 
   set -x
+  #
+  # 4 5 6
+  #
   fabric-ca-client enroll -u https://admin:adminpw@localhost:11054 --caname ca-org3 --tls.certfiles "${PWD}/fabric-ca/org3/tls-cert.pem"
   { set +x; } 2>/dev/null
 
