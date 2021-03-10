@@ -49,7 +49,8 @@ setAnchorPeer() {
   scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME
 }
 
-setGlobalsCLI 3
+
+setGlobalsCLI 4
 BLOCKFILE="${CHANNEL_NAME}.block"
 
 echo "Fetching channel config block from orderer..."
@@ -60,11 +61,11 @@ res=$?
 cat log.txt
 verifyResult $res "Fetching config block from orderer has failed"
 
-infoln "Joining org3 peer to the channel..."
-joinChannel 3
+infoln "Joining org4 peer to the channel..."
+joinChannel 4
 
-infoln "Setting anchor peer for org3..."
-setAnchorPeer 3
+infoln "Setting anchor peer for org4..."
+setAnchorPeer 4
 
 successln "Channel '$CHANNEL_NAME' joined"
-successln "Org3 peer successfully added to network"
+successln "Org4 peer successfully added to network"
