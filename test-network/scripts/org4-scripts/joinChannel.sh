@@ -6,9 +6,9 @@
 #
 
 # This script is designed to be run in the cli container as the
-# second step of the EYFN tutorial. It joins the org3 peers to the
+# second step of the EYFN tutorial. It joins the org4 peers to the
 # channel previously setup in the BYFN tutorial and install the
-# chaincode as version 2.0 on peer0.org3.
+# chaincode as version 2.0 on peer0.org4.
 #
 
 CHANNEL_NAME="$1"
