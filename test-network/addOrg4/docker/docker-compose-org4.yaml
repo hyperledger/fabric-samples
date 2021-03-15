@@ -43,7 +43,7 @@ services:
         - /var/run/docker.sock:/host/var/run/docker.sock
         - ../../organizations/peerOrganizations/org4.example.com/peers/peer0.org4.example.com/msp:/etc/hyperledger/fabric/msp
         - ../../organizations/peerOrganizations/org4.example.com/peers/peer0.org4.example.com/tls:/etc/hyperledger/fabric/tls
-        - peer0.ca_org4.example.com:/var/hyperledger/production
+        - peer0.org4.example.com:/var/hyperledger/production
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
