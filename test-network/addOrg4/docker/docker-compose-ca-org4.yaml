@@ -10,7 +10,7 @@ networks:
     name: fabric_test
 
 services:
-  ca_org3:
+  ca_org4:
     image: hyperledger/fabric-ca:latest
     labels:
       service: hyperledger-fabric
