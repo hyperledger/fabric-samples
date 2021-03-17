@@ -6,7 +6,7 @@
 version: '2'
 
 volumes:
-  peer0.org6.example.com:
+  peer0.org5.example.com:
 
 networks:
   test:
@@ -14,8 +14,8 @@ networks:
 
 services:
 
-  peer0.org6.example.com:
-    container_name: peer0.org6.example.com
+  peer0.org5.example.com:
+    container_name: peer0.org5.example.com
     image: hyperledger/fabric-peer:latest
     labels:
       service: hyperledger-fabric
@@ -31,22 +31,22 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variabes
-      - CORE_PEER_ID=peer0.org6.example.com
-      - CORE_PEER_ADDRESS=peer0.org6.example.com:11051
-      - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.org6.example.com:11052
-      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11052
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org6.example.com:11051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org6.example.com:11051
-      - CORE_PEER_LOCALMSPID=Org6MSP
+      - CORE_PEER_ID=peer0.org5.example.com
+      - CORE_PEER_ADDRESS=peer0.org5.example.com:15051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:15051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.org5.example.com:15052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:15052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org5.example.com:15051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org5.example.com:15051
+      - CORE_PEER_LOCALMSPID=Org5MSP
     volumes:
         - /var/run/docker.sock:/host/var/run/docker.sock
-        - ../../organizations/peerOrganizations/org6.example.com/peers/peer0.org6.example.com/msp:/etc/hyperledger/fabric/msp
-        - ../../organizations/peerOrganizations/org6.example.com/peers/peer0.org6.example.com/tls:/etc/hyperledger/fabric/tls
-        - peer0.org6.example.com:/var/hyperledger/production
+        - ../../organizations/peerOrganizations/org5.example.com/peers/peer0.org5.example.com/msp:/etc/hyperledger/fabric/msp
+        - ../../organizations/peerOrganizations/org5.example.com/peers/peer0.org5.example.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.org5.example.com:/var/hyperledger/production
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
-      - 11051:11051
+      - 15051:15051
     networks:
       - test
