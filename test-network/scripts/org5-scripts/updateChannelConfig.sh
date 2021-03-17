@@ -7,7 +7,7 @@
 
 # This script is designed to be run in the cli container as the
 # first step of the EYFN tutorial.  It creates and submits a
-# configuration transaction to add org4 to the test network
+# configuration transaction to add org5 to the test network
 #
 
 CHANNEL_NAME="$1"
@@ -34,19 +34,19 @@ fetchChannelConfig 1 ${CHANNEL_NAME} config.json
 
 # Modify the configuration to append the new org
 set -x
-jq -s '.[0] * {"channel_group":{"groups":{"Application":{"groups": {"Org4MSP":.[1]}}}}}' config.json ./organizations/peerOrganizations/org4.example.com/org4.json > modified_config.json
+jq -s '.[0] * {"channel_group":{"groups":{"Application":{"groups": {"Org5MSP":.[1]}}}}}' config.json ./organizations/peerOrganizations/org5.example.com/org5.json > modified_config.json
 { set +x; } 2>/dev/null
 
-# Compute a config update, based on the differences between config.json and modified_config.json, write it as a transaction to org4_update_in_envelope.pb
-createConfigUpdate ${CHANNEL_NAME} config.json modified_config.json org4_update_in_envelope.pb
+# Compute a config update, based on the differences between config.json and modified_config.json, write it as a transaction to org5_update_in_envelope.pb
+createConfigUpdate ${CHANNEL_NAME} config.json modified_config.json org5_update_in_envelope.pb
 
 infoln "Signing config transaction"
-signConfigtxAsPeerOrg 1 org4_update_in_envelope.pb
+signConfigtxAsPeerOrg 1 org5_update_in_envelope.pb
 
 infoln "Submitting transaction from a different peer (peer0.org2) which also signs it"
 setGlobals 2
 set -x
-peer channel update -f org4_update_in_envelope.pb -c ${CHANNEL_NAME} -o orderer.example.com:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "$ORDERER_CA"
+peer channel update -f org5_update_in_envelope.pb -c ${CHANNEL_NAME} -o orderer.example.com:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "$ORDERER_CA"
 { set +x; } 2>/dev/null
 
-successln "Config transaction to add org4 to network submitted"
+successln "Config transaction to add org5 to network submitted"
