@@ -3,7 +3,7 @@
 #
 
 trigger:
-  - master
+  - main
   - release-1.4
 
 variables:
