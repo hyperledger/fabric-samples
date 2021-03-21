@@ -103,7 +103,7 @@ public class RegisterUser {
 		registrationRequest.setEnrollmentID("appUser");
 		String enrollmentSecret = caClient.register(registrationRequest, admin);
 		Enrollment enrollment = caClient.enroll("appUser", enrollmentSecret);
-		Identity user = Identities.newX509Identity("Org1MSP", adminIdentity.getCertificate(), adminIdentity.getPrivateKey());
+		Identity user = Identities.newX509Identity("Org1MSP", enrollment);
 		wallet.put("appUser", user);
 		System.out.println("Successfully enrolled user \"appUser\" and imported it into the wallet");
 	}
