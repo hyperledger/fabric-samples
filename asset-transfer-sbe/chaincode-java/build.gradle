@@ -3,6 +3,7 @@
  */
 
 plugins {
+    id 'com.github.johnrengelman.shadow' version '5.1.0'
     id 'application'
     id 'checkstyle'
     id 'jacoco'
@@ -68,6 +69,18 @@ test {
     useJUnitPlatform()
     testLogging {
         events "passed", "skipped", "failed"
+    }
+}
+
+mainClassName = 'org.hyperledger.fabric.contract.ContractRouter'
+
+shadowJar {
+    baseName = 'chaincode'
+    version = null
+    classifier = null
+
+    manifest {
+        attributes 'Main-Class': 'org.hyperledger.fabric.contract.ContractRouter'
     }
 }
 
