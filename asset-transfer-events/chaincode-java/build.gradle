@@ -3,6 +3,7 @@
  */
 
 plugins {
+    id 'com.github.johnrengelman.shadow' version '5.1.0'
     id 'application'
     id 'checkstyle'
     id 'jacoco'
@@ -46,6 +47,18 @@ checkstyleTest {
 
 jacocoTestReport {
     dependsOn test
+}
+
+mainClassName = 'org.hyperledger.fabric.contract.ContractRouter'
+
+shadowJar {
+    baseName = 'chaincode'
+    version = null
+    classifier = null
+
+    manifest {
+        attributes 'Main-Class': 'org.hyperledger.fabric.contract.ContractRouter'
+    }
 }
 
 installDist.dependsOn check
