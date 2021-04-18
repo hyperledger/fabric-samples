@@ -243,19 +243,27 @@ func getTLSProperties() shim.TLSProperties {
 
 	// convert tlsDisabledStr to boolean
 	tlsDisabled := getBoolOrDefault(tlsDisabledStr, false)
+	var keyBytes, certBytes, clientCACertBytes []byte
+	var err error
 
-	keyBytes, err := ioutil.ReadFile(key)
-	if err != nil {
-		log.Panicf("error while reading the crypto file: %s", err)
+	if !tlsDisabled {
+		keyBytes, err = ioutil.ReadFile(key)
+		if err != nil {
+			log.Panicf("error while reading the crypto file: %s", err)
+		}
+		certBytes, err = ioutil.ReadFile(cert)
+		if err != nil {
+			log.Panicf("error while reading the crypto file: %s", err)
+		}
 	}
-	certBytes, err := ioutil.ReadFile(cert)
-	if err != nil {
-		log.Panicf("error while reading the crypto file: %s", err)
+	// Did not request for the peer cert verification
+	if clientCACert != "" {
+		clientCACertBytes, err = ioutil.ReadFile(clientCACert)
+		if err != nil {
+			log.Panicf("error while reading the crypto file: %s", err)
+		}
 	}
-	clientCACertBytes, err := ioutil.ReadFile(clientCACert)
-	if err != nil {
-		log.Panicf("error while reading the crypto file: %s", err)
-	}
+
 	return shim.TLSProperties{
 		Disabled: tlsDisabled,
 		Key: keyBytes,
