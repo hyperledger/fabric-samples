@@ -13,7 +13,6 @@ fabric-samples uses a non-author code review policy, requiring a single approval
 | Jason Yellick             | jyellick         | jyellick       | jyellick@us.ibm.com                 |
 | Matthew B White           | mbwhite          | mbwhite        | whitemat@uk.ibm.com                 |
 | Nikhil Gupta              | nikhil550        | negupta        | nikhilg550@gmail.com                |
-| Simon Stone               | sstone1          | sstone1        | sstone1@uk.ibm.com                  |
 
 Also: Please see the [Release Manager section](https://github.com/hyperledger/fabric/blob/main/MAINTAINERS.md)
 
