@@ -32,10 +32,10 @@ type Auction struct {
 
 // FullBid is the structure of a revealed bid
 type FullBid struct {
-	Type     string `json:"objectType"`
-	Price    int    `json:"price"`
-	Org      string `json:"org"`
-	Bidder   string `json:"bidder"`
+	Type   string `json:"objectType"`
+	Price  int    `json:"price"`
+	Org    string `json:"org"`
+	Bidder string `json:"bidder"`
 }
 
 // BidHash is the structure of a private bid
@@ -157,7 +157,7 @@ func (s *SmartContract) SubmitBid(ctx contractapi.TransactionContextInterface, a
 	}
 
 	// get the auction from public state
-	auction, err := s.QueryAuction(ctx,auctionID)
+	auction, err := s.QueryAuction(ctx, auctionID)
 	if err != nil {
 		return fmt.Errorf("failed to get auction from public state %v", err)
 	}
@@ -258,7 +258,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 	}
 
 	// get auction from public state
-	auction, err := s.QueryAuction(ctx,auctionID)
+	auction, err := s.QueryAuction(ctx, auctionID)
 	if err != nil {
 		return fmt.Errorf("failed to get auction from public state %v", err)
 	}
@@ -307,12 +307,12 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 
 	// we can add the bid to the auction if all checks have passed
 	type transientBidInput struct {
-		Price    int    `json:"price"`
-		Org      string `json:"org"`
-		Bidder   string `json:"bidder"`
+		Price  int    `json:"price"`
+		Org    string `json:"org"`
+		Bidder string `json:"bidder"`
 	}
 
-	// unmarshal bid imput
+	// unmarshal bid input
 	var bidInput transientBidInput
 	err = json.Unmarshal(transientBidJSON, &bidInput)
 	if err != nil {
@@ -327,10 +327,10 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 
 	// marshal transient parameters and ID and MSPID into bid object
 	NewBid := FullBid{
-		Type:     bidKeyType,
-		Price:    bidInput.Price,
-		Org:      bidInput.Org,
-		Bidder:   bidInput.Bidder,
+		Type:   bidKeyType,
+		Price:  bidInput.Price,
+		Org:    bidInput.Org,
+		Bidder: bidInput.Bidder,
 	}
 
 	// check 4: make sure that the transaction is being submitted is the bidder
@@ -359,7 +359,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 func (s *SmartContract) CloseAuction(ctx contractapi.TransactionContextInterface, auctionID string) error {
 
 	// get auction from public state
-	auction, err := s.QueryAuction(ctx,auctionID)
+	auction, err := s.QueryAuction(ctx, auctionID)
 	if err != nil {
 		return fmt.Errorf("failed to get auction from public state %v", err)
 	}
@@ -399,7 +399,7 @@ func (s *SmartContract) CloseAuction(ctx contractapi.TransactionContextInterface
 func (s *SmartContract) EndAuction(ctx contractapi.TransactionContextInterface, auctionID string) error {
 
 	// get auction from public state
-	auction, err := s.QueryAuction(ctx,auctionID)
+	auction, err := s.QueryAuction(ctx, auctionID)
 	if err != nil {
 		return fmt.Errorf("failed to get auction from public state %v", err)
 	}
