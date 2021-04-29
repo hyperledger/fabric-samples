@@ -310,7 +310,7 @@ class Chaincode extends Contract {
 
 	// This is JavaScript so without Funcation Decorators, all functions are assumed
 	// to be transaction functions
-	// 
+	//
 	// For internal functions... prefix them with _
 	async _GetAllResults(iterator, isHistory) {
 		let allResults = [];
