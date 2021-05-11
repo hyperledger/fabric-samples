@@ -72,7 +72,7 @@ class AssetTransfer extends Contract {
             Owner: owner,
             AppraisedValue: appraisedValue,
         };
-        ctx.stub.putState(id, Buffer.from(JSON.stringify(asset)));
+        await ctx.stub.putState(id, Buffer.from(JSON.stringify(asset)));
         return JSON.stringify(asset);
     }
 
@@ -146,8 +146,6 @@ class AssetTransfer extends Contract {
         }
         return JSON.stringify(allResults);
     }
-
-
 }
 
 module.exports = AssetTransfer;
