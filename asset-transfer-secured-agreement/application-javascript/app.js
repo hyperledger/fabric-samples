@@ -563,5 +563,6 @@ async function main() {
 		process.exit(1);
 	}
 	console.log(`${GREEN} **** END ****${RESET}`);
+	process.exit(0);
 }
 main();

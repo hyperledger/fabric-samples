@@ -59,6 +59,7 @@ async function main() {
         console.error(`Failed to register user "appUser": ${error}`);
         process.exit(1);
     }
+    process.exit(0);
 }
 
 main();

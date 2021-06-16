@@ -166,6 +166,7 @@ async function main() {
     } catch (error) {
         console.error(`******** FAILED to run the application: ${error}`);
     }
+    process.exit(0);
 }
 
 main();

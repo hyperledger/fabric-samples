@@ -52,6 +52,7 @@ async function main() {
         console.error(`Failed to submit transaction: ${error}`);
         process.exit(1);
     }
+    process.exit(0);
 }
 
 main();

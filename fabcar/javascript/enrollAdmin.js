@@ -51,6 +51,7 @@ async function main() {
         console.error(`Failed to enroll admin user "admin": ${error}`);
         process.exit(1);
     }
+    process.exit(0);
 }
 
 main();

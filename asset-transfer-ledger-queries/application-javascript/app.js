@@ -238,7 +238,7 @@ async function main() {
 	}
 
 	console.log('*** application ending');
-
+	process.exit(0);
 }
 
 main();

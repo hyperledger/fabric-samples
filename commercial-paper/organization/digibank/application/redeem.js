@@ -89,6 +89,7 @@ async function main() {
     // Disconnect from the gateway
     console.log('Disconnect from Fabric gateway.')
     gateway.disconnect();
+    process.exit(0);
 
   }
 }

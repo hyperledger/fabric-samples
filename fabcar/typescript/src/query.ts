@@ -46,6 +46,7 @@ async function main() {
         console.error(`Failed to evaluate transaction: ${error}`);
         process.exit(1);
     }
+    process.exit(0);
 }
 
 main();
