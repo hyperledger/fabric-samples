@@ -12,6 +12,7 @@ volumes:
 
 networks:
   test:
+    name: fabric_test
 
 services:
 
@@ -26,6 +27,7 @@ services:
       - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
       - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
       - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_OPERATIONS_LISTENADDRESS=0.0.0.0:17050
       # enabled TLS
       - ORDERER_GENERAL_TLS_ENABLED=true
       - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
@@ -45,6 +47,7 @@ services:
         - orderer.example.com:/var/hyperledger/production/orderer
     ports:
       - 7050:7050
+      - 17050:17050
     networks:
       - test
 
@@ -57,7 +60,7 @@ services:
       # the following setting starts chaincode containers on the same
       # bridge network as the peers
       # https://docs.docker.com/compose/networking/
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${COMPOSE_PROJECT_NAME}_test
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric_test
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
       - CORE_PEER_TLS_ENABLED=true
@@ -74,6 +77,7 @@ services:
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org1.example.com:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.example.com:7051
       - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:17051
     volumes:
         - /var/run/docker.sock:/host/var/run/docker.sock
         - ../organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/fabric/msp
@@ -83,6 +87,7 @@ services:
     command: peer node start
     ports:
       - 7051:7051
+      - 17051:17051
     networks:
       - test
 
@@ -95,7 +100,7 @@ services:
       # the following setting starts chaincode containers on the same
       # bridge network as the peers
       # https://docs.docker.com/compose/networking/
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${COMPOSE_PROJECT_NAME}_test
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric_test
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
       - CORE_PEER_TLS_ENABLED=true
@@ -112,6 +117,7 @@ services:
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org2.example.com:9051
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org2.example.com:9051
       - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:19051
     volumes:
         - /var/run/docker.sock:/host/var/run/docker.sock
         - ../organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp:/etc/hyperledger/fabric/msp
@@ -121,9 +127,10 @@ services:
     command: peer node start
     ports:
       - 9051:9051
+      - 19051:19051
     networks:
       - test
-  
+
   cli:
     container_name: cli
     image: hyperledger/fabric-tools:$IMAGE_TAG
