@@ -2,18 +2,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import pino from 'pino';
+import { logger } from './logger';
+import { createServer } from './server';
+import * as config from './config';
 
-import app from './server';
+async function main() {
+  const app = await createServer();
 
-// TODO check any required env vars
+  app.listen(config.port, () => {
+    logger.info('Express server started on port: %d', config.port);
+  });
+}
 
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-});
-
-// Start the server
-const port = Number(process.env.PORT || 3000);
-app.listen(port, () => {
-  logger.info('Express server started on port: %d', port);
-});
+main();

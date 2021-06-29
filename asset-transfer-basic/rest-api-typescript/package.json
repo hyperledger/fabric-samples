@@ -5,7 +5,9 @@
   "main": "dist/index.js",
   "dependencies": {
     "dotenv": "^10.0.0",
+    "env-var": "^7.0.1",
     "express": "^4.17.1",
+    "fabric-network": "^2.2.8",
     "helmet": "^4.6.0",
     "http-status-codes": "^2.1.4",
     "pino": "^6.11.3",
@@ -32,6 +34,7 @@
     "build": "tsc",
     "clean": "rimraf ./dist",
     "format": "prettier --write \"{src,test}/**/*.ts\"",
+    "generateEnv": "./scripts/generateEnv.sh",
     "lint": "eslint . --ext .ts",
     "start": "node --require source-map-support/register ./dist",
     "start:dev": "node --require source-map-support/register --require dotenv/config ./dist | pino-pretty",
