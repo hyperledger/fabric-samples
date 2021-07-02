@@ -6,11 +6,10 @@ import helmet from 'helmet';
 import { StatusCodes, getReasonPhrase } from 'http-status-codes';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import pinoMiddleware from 'pino-http';
-import { Gateway, GatewayOptions, Contract, Wallets } from 'fabric-network';
 
-import * as config from './config';
 import { logger } from './logger';
 import { assetsRouter } from './assets.router';
+import { getContract } from './fabric';
 
 const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } = StatusCodes;
 
@@ -91,35 +90,4 @@ export const createServer = async (): Promise<Application> => {
   });
 
   return app;
-};
-
-// TODO should this go in a fabric.ts file?
-
-const getContract = async (): Promise<Contract> => {
-  const wallet = await Wallets.newInMemoryWallet();
-
-  const x509Identity = {
-    credentials: {
-      certificate: config.certificate,
-      privateKey: config.privateKey,
-    },
-    mspId: config.mspId,
-    type: 'X.509',
-  };
-  await wallet.put(config.identityName, x509Identity);
-
-  const gateway = new Gateway();
-
-  const gatewayOpts: GatewayOptions = {
-    wallet,
-    identity: config.identityName,
-    discovery: { enabled: true, asLocalhost: config.asLocalHost },
-  };
-
-  await gateway.connect(config.connectionProfile, gatewayOpts);
-
-  const network = await gateway.getNetwork(config.channelName);
-  const contract = network.getContract(config.chaincodeName);
-
-  return contract;
 };
