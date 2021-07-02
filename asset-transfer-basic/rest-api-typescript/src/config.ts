@@ -15,6 +15,12 @@ export const port = env
   .example('3000')
   .asIntPositive();
 
+export const retryDelay = env
+  .get('RETRY_DELAY')
+  .default('3000')
+  .example('3000')
+  .asIntPositive();
+
 export const asLocalHost = env
   .get('AS_LOCAL_HOST')
   .default('true')
@@ -24,25 +30,37 @@ export const asLocalHost = env
 export const identityName = 'restServerIdentity';
 
 export const mspId = env
-  .get('MSP_ID')
+  .get('HLF_MSP_ID')
   .default('Org1MSP')
   .example('Org1MSP')
   .asString();
 
 export const channelName = env
-  .get('CHANNEL_NAME')
+  .get('HLF_CHANNEL_NAME')
   .default('mychannel')
   .example('mychannel')
   .asString();
 
 export const chaincodeName = env
-  .get('CHAINCODE_NAME')
+  .get('HLF_CHAINCODE_NAME')
   .default('basic')
   .example('basic')
   .asString();
 
+export const commitTimeout = env
+  .get('HLF_COMMIT_TIMEOUT')
+  .default('3000')
+  .example('3000')
+  .asIntPositive();
+
+export const endorseTimeout = env
+  .get('HLF_ENDORSE_TIMEOUT')
+  .default('30')
+  .example('30')
+  .asIntPositive();
+
 export const connectionProfile = env
-  .get('CONNECTION_PROFILE')
+  .get('HLF_CONNECTION_PROFILE')
   .required()
   .example(
     '{"name":"test-network-org1","version":"1.0.0","client":{"organization":"Org1" ... }'
@@ -50,13 +68,32 @@ export const connectionProfile = env
   .asJsonObject();
 
 export const certificate = env
-  .get('CERTIFICATE')
+  .get('HLF_CERTIFICATE')
   .required()
   .example('"-----BEGIN CERTIFICATE-----\\n...\\n-----END CERTIFICATE-----\\n"')
   .asString();
 
 export const privateKey = env
-  .get('PRIVATE_KEY')
+  .get('HLF_PRIVATE_KEY')
   .required()
   .example('"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"')
   .asString();
+
+export const redisHost = env
+  .get('REDIS_HOST')
+  .default('localhost')
+  .example('localhost')
+  .asString();
+
+export const redisPort = env
+  .get('REDIS_PORT')
+  .default('6379')
+  .example('6379')
+  .asIntPositive();
+
+export const redisUsername = env
+  .get('REDIS_USERNAME')
+  .example('conga')
+  .asString();
+
+export const redisPassword = env.get('REDIS_PASSWORD').asString();

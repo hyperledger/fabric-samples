@@ -14,10 +14,24 @@ LOG_LEVEL=info
 
 PORT=3000
 
-CONNECTION_PROFILE=$(cat ${CONNECTION_PROFILE_FILE} | jq -c .)
+RETRY_DELAY=3000
 
-CERTIFICATE="$(cat ${CERTIFICATE_FILE} | sed -e 's/$/\\n/' | tr -d '\r\n')"
+HLF_CONNECTION_PROFILE=$(cat ${CONNECTION_PROFILE_FILE} | jq -c .)
 
-PRIVATE_KEY="$(cat ${PRIVATE_KEY_FILE} | sed -e 's/$/\\n/' | tr -d '\r\n')"
+HLF_CERTIFICATE="$(cat ${CERTIFICATE_FILE} | sed -e 's/$/\\n/' | tr -d '\r\n')"
+
+HLF_PRIVATE_KEY="$(cat ${PRIVATE_KEY_FILE} | sed -e 's/$/\\n/' | tr -d '\r\n')"
+
+HLF_COMMIT_TIMEOUT=3000
+
+HLF_ENDORSE_TIMEOUT=30
+
+REDIS_HOST=localhost
+
+REDIS_PORT=6379
+
+#REDIS_USERNAME=
+
+#REDIS_PASSWORD=
 
 ENV_END

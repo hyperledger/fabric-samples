@@ -10,6 +10,7 @@ import pinoMiddleware from 'pino-http';
 import { logger } from './logger';
 import { assetsRouter } from './assets.router';
 import { getContract } from './fabric';
+import { redis } from './redis';
 
 const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } = StatusCodes;
 
@@ -49,6 +50,7 @@ export const createServer = async (): Promise<Application> => {
 
   const contract = await getContract();
   app.set('contract', contract);
+  app.set('redis', redis);
 
   // Health routes
   app.get('/ready', (_req, res) =>
