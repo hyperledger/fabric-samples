@@ -202,7 +202,6 @@ Orderer: &OrdererDefaults
 
     # Orderer Type: The orderer implementation to start
     OrdererType: etcdraft
-    
     # Addresses used to be the list of orderer addresses that clients and peers
     # could connect to.  However, this does not allow clients to associate orderer
     # addresses and orderer organizations which can be useful for things such
@@ -307,12 +306,10 @@ Profiles:
             <<: *OrdererDefaults
             Organizations:
                 - *OrdererOrg
-            Capabilities:
-                <<: *OrdererCapabilities
+            Capabilities: *OrdererCapabilities
         Application:
             <<: *ApplicationDefaults
             Organizations:
                 - *Org1
                 - *Org2
-            Capabilities:
-                <<: *ApplicationCapabilities
+            Capabilities: *ApplicationCapabilities
