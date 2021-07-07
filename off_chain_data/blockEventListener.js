@@ -116,20 +116,13 @@ async function main() {
         // Get the network (channel) our contract is deployed to.
         const network = await gateway.getNetwork('mychannel');
 
-        const listener = await network.addBlockListener(
-            async (err, blockNum, block) => {
-                if (err) {
-                    console.error(err);
-                    return;
-                }
-                // Add the block to the processing map by block number
-                await ProcessingMap.set(block.header.number, block);
-
-                console.log(`Added block ${blockNum} to ProcessingMap`)
-            },
-            // set the starting block for the listener
-            { filtered: false, startBlock: parseInt(nextBlock, 10) }
-        );
+        const listener = async (event) => {
+            // Add the block to the processing map by block number
+            await ProcessingMap.set(event.blockNumber, event.blockData);
+            console.log(`Added block ${event.blockNumber} to ProcessingMap`);
+        };
+        const options = { filtered: false, startBlock: parseInt(nextBlock, 10) };
+        await network.addBlockListener(listener, options);
 
         console.log(`Listening for block events, nextblock: ${nextBlock}`);
 
