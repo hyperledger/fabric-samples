@@ -1,0 +1,87 @@
+#
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orderer3-config
+data:
+  FABRIC_CFG_PATH: /var/hyperledger/fabric/config
+  FABRIC_LOGGING_SPEC: "debug:cauthdsl,policies,msp,common.configtx,common.channelconfig=info"
+  ORDERER_GENERAL_LISTENADDRESS: "0.0.0.0"
+  ORDERER_GENERAL_LISTENPORT: "6050"
+  ORDERER_GENERAL_LOCALMSPID: OrdererMSP
+  ORDERER_GENERAL_LOCALMSPDIR: /var/hyperledger/fabric/crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/msp
+  ORDERER_GENERAL_TLS_ENABLED: "true"
+  ORDERER_GENERAL_TLS_PRIVATEKEY: /var/hyperledger/fabric/crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.key
+  ORDERER_GENERAL_TLS_CERTIFICATE: /var/hyperledger/fabric/crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+  # following setting is not really needed at runtime since channel config has ca root certs, but we need to override the default in orderer.yaml
+  ORDERER_GENERAL_TLS_ROOTCAS: /var/hyperledger/fabric/crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/ca.crt
+  ORDERER_GENERAL_BOOTSTRAPMETHOD: file
+  ORDERER_GENERAL_BOOTSTRAPFILE: /var/hyperledger/fabric/channel-artifacts/genesis.block
+  ORDERER_FILELEDGER_LOCATION: /var/hyperledger/fabric/data/orderer3
+  ORDERER_CONSENSUS_WALDIR: /var/hyperledger/fabric/data/orderer3/etcdraft/wal
+  ORDERER_CONSENSUS_SNAPDIR: /var/hyperledger/fabric/data/orderer3/etcdraft/wal
+  ORDERER_OPERATIONS_LISTENADDRESS: "0.0.0.0:8443"
+  ORDERER_ADMIN_LISTENADDRESS: "0.0.0.0:9443"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderer3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orderer3
+  template:
+    metadata:
+      labels:
+        app: orderer3
+    spec:
+      containers:
+      - name: main
+        image: hyperledger/fabric-orderer:2.3.2
+        imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: orderer3-config
+        ports:
+          - containerPort: 6050
+          - containerPort: 8443
+          - containerPort: 9443
+        volumeMounts:
+          - name: fabric-volume
+            mountPath: /var/hyperledger/fabric
+          - name: fabric-config
+            mountPath: /var/hyperledger/fabric/config
+      volumes:
+        - name: fabric-volume
+          persistentVolumeClaim:
+            claimName: fabric
+        - name: fabric-config
+          configMap:
+            name: fabric-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderer3
+spec:
+  ports:
+    - name: general
+      port: 6050
+      protocol: TCP
+    - name: operations
+      port: 8443
+      protocol: TCP
+    - name: admin
+      port: 9443
+      protocol: TCP
+  selector:
+    app: orderer3

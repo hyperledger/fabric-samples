@@ -1,0 +1,55 @@
+#
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: debug
+  name: debug
+  namespace: test-network
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      run: debug
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: debug
+    spec:
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      containers:
+      - image: radial/busyboxplus:curl
+        imagePullPolicy: Always
+        name: main
+        resources: {}
+        stdin: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        tty: true
+        volumeMounts:
+          - name: fabric-volume
+            mountPath: /var/hyperledger/fabric
+          - name: fabric-config
+            mountPath: /var/hyperledger/fabric/config
+      volumes:
+        - name: fabric-volume
+          persistentVolumeClaim:
+            claimName: fabric
+        - name: fabric-config
+          configMap:
+            name: fabric-config

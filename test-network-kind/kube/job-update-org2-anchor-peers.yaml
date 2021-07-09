@@ -1,0 +1,45 @@
+#
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: update-org2-anchor-peers-
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      name: update-org2-anchor-peers
+    spec:
+      restartPolicy: "Never"
+      containers:
+      - name: main
+        image: hyperledger/fabric-tools:2.3.2
+        # todo: latest tag is not at docker hub
+        imagePullPolicy: Always
+        env:
+          - name: FABRIC_CFG_PATH
+            value: /var/hyperledger/fabric
+        command: [
+            "configtxgen",
+            "-profile",                 "TwoOrgsChannel",
+            "-outputAnchorPeersUpdate", "/var/hyperledger/fabric/channel-artifacts/Org2MSPanchors.tx",
+            "-channelID",               "mychannel",
+            "-asOrg",                   "Org2MSP",
+        ]
+        volumeMounts:
+          - name: fabric-volume
+            mountPath: /var/hyperledger/fabric
+          - name: config-volume
+            mountPath: /var/hyperledger/fabric/configtx.yaml
+            subPath: configtx.yaml
+      volumes:
+        - name: fabric-volume
+          persistentVolumeClaim:
+            claimName: fabric
+        - name: config-volume
+          configMap:
+            name: fabric-config
