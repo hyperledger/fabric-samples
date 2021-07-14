@@ -35,7 +35,7 @@ assetsRouter.post(
   body('owner', 'must be a string').notEmpty(),
   body('appraisedValue', 'must be a number').isNumeric(),
   async (req: Request, res: Response) => {
-    logger.info(req.body, 'Create asset request received');
+    logger.debug(req.body, 'Create asset request received');
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -93,7 +93,7 @@ assetsRouter.post(
       // codes that can be checked.
       await clearTransactionDetails(redis, txnId);
 
-      logger.error(err);
+      logger.error(err, 'Error processing create asset request for asset ID %s with transaction ID %s', req.body.id, txnId);
       return res.status(INTERNAL_SERVER_ERROR).json({
         status: getReasonPhrase(INTERNAL_SERVER_ERROR),
         timestamp: new Date().toISOString(),
@@ -103,12 +103,12 @@ assetsRouter.post(
 );
 
 assetsRouter.options('/:assetId', async (req: Request, res: Response) => {
-  logger.info(req.body, 'Read asset request received');
+  const assetId = req.params.assetId;
+  logger.debug('Asset options request received for asset ID %s', assetId);
 
   try {
     const contract: Contract = req.app.get('contract');
 
-    const assetId = req.params.assetId;
     const data = await contract.evaluateTransaction('AssetExists', assetId);
     const exists = data.toString() === 'true';
 
@@ -129,7 +129,7 @@ assetsRouter.options('/:assetId', async (req: Request, res: Response) => {
       });
     }
   } catch (err) {
-    logger.error(err);
+    logger.error(err, 'Error processing asset options request for asset ID %s', assetId);
     return res.status(INTERNAL_SERVER_ERROR).json({
       status: getReasonPhrase(INTERNAL_SERVER_ERROR),
       timestamp: new Date().toISOString(),
@@ -138,16 +138,18 @@ assetsRouter.options('/:assetId', async (req: Request, res: Response) => {
 });
 
 assetsRouter.get('/:assetId', async (req: Request, res: Response) => {
+  const assetId = req.params.assetId;
+  logger.debug('Read asset request received for asset ID %s', assetId);
+
   try {
     const contract: Contract = req.app.get('contract');
 
-    const assetId = req.params.assetId;
     const data = await contract.evaluateTransaction('ReadAsset', assetId);
     const asset = JSON.parse(data.toString());
 
     return res.status(OK).json(asset);
   } catch (err) {
-    logger.error(err);
+    logger.error(err, 'Error processing read asset request for asset ID %s', assetId);
     return res.status(INTERNAL_SERVER_ERROR).json({
       status: getReasonPhrase(INTERNAL_SERVER_ERROR),
       timestamp: new Date().toISOString(),

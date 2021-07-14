@@ -75,7 +75,7 @@ export const createDeferredEventHandler = (
 
     const removeCommitListener = async () => {
       network.removeCommitListener(listener);
-      logger.info('Stopped listening for transaction %s events', transactionId);
+      logger.debug('Stopped listening for transaction %s events', transactionId);
 
       const txnExists = await redis.exists(transactionId);
       if (txnExists) {
@@ -92,7 +92,7 @@ export const createDeferredEventHandler = (
       }
 
       if (event && event.isValid) {
-        logger.info('Transaction %s successfully committed', transactionId);
+        logger.debug('Transaction %s successfully committed', transactionId);
 
         await clearTransactionDetails(redis, transactionId);
         await removeCommitListener();
@@ -101,9 +101,9 @@ export const createDeferredEventHandler = (
 
     const deferredEventHandler: TxEventHandler = {
       startListening: async () => {
-        logger.info('Setting timeout for %d ms', options.commitTimeout * 1000);
+        logger.debug('Setting timeout for %d ms', options.commitTimeout * 1000);
         setTimeout(async () => {
-          logger.info(
+          logger.debug(
             'Timeout listening for transaction %s events',
             transactionId
           );
@@ -111,14 +111,14 @@ export const createDeferredEventHandler = (
         }, options.commitTimeout * 1000);
 
         await network.addCommitListener(listener, peers, transactionId);
-        logger.info('Listening for transaction %s events', transactionId);
+        logger.debug('Listening for transaction %s events', transactionId);
       },
       waitForEvents: async () => {
         // No-op
       },
       cancelListening: async () => {
         // TODO this is what the doc says, but is it true?!
-        logger.info(
+        logger.warn(
           'Submission of transaction %s to the orderer failed',
           transactionId
         );
@@ -137,7 +137,7 @@ export const startRetryLoop = (contract: Contract, redis: Redis): void => {
         const pendingTransactionCount = await (redis as Redis).zcard(
           'index:txn:timestamp'
         );
-        logger.info('Transactions awaiting retry: %d', pendingTransactionCount);
+        logger.debug('Transactions awaiting retry: %d', pendingTransactionCount);
 
         const transactionIds = await (redis as Redis).zrange(
           'index:txn:timestamp',
@@ -174,7 +174,7 @@ const retryTransaction = async (
   transactionId: string,
   savedTransaction: Record<string, string>
 ) => {
-  logger.info('Retrying transaction %s', transactionId);
+  logger.debug('Retrying transaction %s', transactionId);
 
   try {
     const transaction = contract.deserializeTransaction(
@@ -186,7 +186,7 @@ const retryTransaction = async (
     await clearTransactionDetails(redis, transactionId);
   } catch (err) {
     if (isDuplicateTransaction(err)) {
-      logger.info('Transaction %s has already been committed', transactionId);
+      logger.debug('Transaction %s has already been committed', transactionId);
       await clearTransactionDetails(redis, transactionId);
     } else {
       // TODO check for retry limit and update timestamp
@@ -214,7 +214,7 @@ const isDuplicateTransaction = (error: {
 
     return isDuplicateTxn;
   } catch (err) {
-    logger.warn(err, 'error checking for duplicate transaction');
+    logger.warn(err, 'Error checking for duplicate transaction');
   }
 
   return false;
@@ -230,7 +230,7 @@ export const storeTransactionDetails = async (
   timestamp: number
 ): Promise<void> => {
   const key = `txn:${transactionId}`;
-  logger.info(
+  logger.debug(
     'Storing transaction details. Key: %s State: %s Args: %s Timestamp: %d',
     key,
     transactionState,
@@ -259,7 +259,7 @@ export const clearTransactionDetails = async (
   transactionId: string
 ): Promise<void> => {
   const key = `txn:${transactionId}`;
-  logger.info('Removing transaction details. Key: %s', key);
+  logger.debug('Removing transaction details. Key: %s', key);
   try {
     await redis
       .multi()
@@ -267,6 +267,6 @@ export const clearTransactionDetails = async (
       .zrem('index:txn:timestamp', transactionId)
       .exec();
   } catch (err) {
-    logger.error(err, 'error remove saved transaction state');
+    logger.error(err, 'Error remove saved transaction state for transaction ID %s', transactionId);
   }
 };
