@@ -93,7 +93,12 @@ assetsRouter.post(
       // codes that can be checked.
       await clearTransactionDetails(redis, txnId);
 
-      logger.error(err, 'Error processing create asset request for asset ID %s with transaction ID %s', req.body.id, txnId);
+      logger.error(
+        err,
+        'Error processing create asset request for asset ID %s with transaction ID %s',
+        req.body.id,
+        txnId
+      );
       return res.status(INTERNAL_SERVER_ERROR).json({
         status: getReasonPhrase(INTERNAL_SERVER_ERROR),
         timestamp: new Date().toISOString(),
@@ -129,7 +134,11 @@ assetsRouter.options('/:assetId', async (req: Request, res: Response) => {
       });
     }
   } catch (err) {
-    logger.error(err, 'Error processing asset options request for asset ID %s', assetId);
+    logger.error(
+      err,
+      'Error processing asset options request for asset ID %s',
+      assetId
+    );
     return res.status(INTERNAL_SERVER_ERROR).json({
       status: getReasonPhrase(INTERNAL_SERVER_ERROR),
       timestamp: new Date().toISOString(),
@@ -149,7 +158,11 @@ assetsRouter.get('/:assetId', async (req: Request, res: Response) => {
 
     return res.status(OK).json(asset);
   } catch (err) {
-    logger.error(err, 'Error processing read asset request for asset ID %s', assetId);
+    logger.error(
+      err,
+      'Error processing read asset request for asset ID %s',
+      assetId
+    );
     return res.status(INTERNAL_SERVER_ERROR).json({
       status: getReasonPhrase(INTERNAL_SERVER_ERROR),
       timestamp: new Date().toISOString(),

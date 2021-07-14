@@ -75,7 +75,10 @@ export const createDeferredEventHandler = (
 
     const removeCommitListener = async () => {
       network.removeCommitListener(listener);
-      logger.debug('Stopped listening for transaction %s events', transactionId);
+      logger.debug(
+        'Stopped listening for transaction %s events',
+        transactionId
+      );
 
       const txnExists = await redis.exists(transactionId);
       if (txnExists) {
@@ -137,7 +140,10 @@ export const startRetryLoop = (contract: Contract, redis: Redis): void => {
         const pendingTransactionCount = await (redis as Redis).zcard(
           'index:txn:timestamp'
         );
-        logger.debug('Transactions awaiting retry: %d', pendingTransactionCount);
+        logger.debug(
+          'Transactions awaiting retry: %d',
+          pendingTransactionCount
+        );
 
         const transactionIds = await (redis as Redis).zrange(
           'index:txn:timestamp',
@@ -267,6 +273,10 @@ export const clearTransactionDetails = async (
       .zrem('index:txn:timestamp', transactionId)
       .exec();
   } catch (err) {
-    logger.error(err, 'Error remove saved transaction state for transaction ID %s', transactionId);
+    logger.error(
+      err,
+      'Error remove saved transaction state for transaction ID %s',
+      transactionId
+    );
   }
 };
