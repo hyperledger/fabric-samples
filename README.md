@@ -8,6 +8,8 @@ The REST API is intended to work with the [basic asset transfer example](https:/
 
 To install the basic asset transfer chaincode on a local Fabric network, follow the [Using the Fabric test network](https://hyperledger-fabric.readthedocs.io/en/release-2.2/test_network.html) tutorial
 
+**Note:** these instructions should work with the release-2.2 branch of `fabric-samples` but later versions require some changes
+
 To build and start the sample REST server, you'll need to [download and install an LTS version of node](https://nodejs.org/en/download/)
 
 Clone this repository and change to the `fabric-rest-sample/asset-transfer-basic/rest-api-typescript` directory before running the following commands
@@ -44,38 +46,44 @@ npm run start:dev
 
 If everything went well, you can now make REST calls!
 
-For example, check whether an asset exists...
+For example, get all assets...
 
 ```shell
-curl -v -X OPTIONS http://localhost:3000/api/assets/asset7
+curl http://localhost:3000/api/assets
+```
+
+Check whether an asset exists...
+
+```shell
+curl --include --request OPTIONS http://localhost:3000/api/assets/asset7
 ```
 
 Create an asset...
 
 ```shell
-curl --header "Content-Type: application/json" --request POST --data '{"id":"asset7","color":"red","size":42,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets
+curl --include --header "Content-Type: application/json" --request POST --data '{"id":"asset7","color":"red","size":42,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets
 ```
 
 Read an asset...
 
 ```shell
-curl -v http://localhost:3000/api/assets/asset7
+curl http://localhost:3000/api/assets/asset7
 ```
 
 Update an asset...
 
 ```shell
-curl --header "Content-Type: application/json" --request PUT --data '{"id":"asset7","color":"red","size":11,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets/asset7
+curl --include --header "Content-Type: application/json" --request PUT --data '{"id":"asset7","color":"red","size":11,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets/asset7
 ```
 
 Transfer an asset...
 
 ```shell
-curl --header "Content-Type: application/json" --request PATCH --data '[{"op":"replace","path":"/owner","value":"Ashleigh"}]' http://localhost:3000/api/assets/asset7
+curl --include --header "Content-Type: application/json" --request PATCH --data '[{"op":"replace","path":"/owner","value":"Ashleigh"}]' http://localhost:3000/api/assets/asset7
 ```
 
 Delete an asset...
 
 ```shell
-curl -v -X DELETE http://localhost:3000/api/assets/asset7
+curl --include --request DELETE http://localhost:3000/api/assets/asset7
 ```

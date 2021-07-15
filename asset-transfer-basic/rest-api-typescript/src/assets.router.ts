@@ -27,6 +27,25 @@ const { ACCEPTED, BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } =
 
 export const assetsRouter = express.Router();
 
+assetsRouter.get('/', async (req: Request, res: Response) => {
+  logger.debug('Get all assets request received');
+
+  try {
+    const contract: Contract = req.app.get('contract');
+
+    const data = await contract.evaluateTransaction('GetAllAssets');
+    const assets = JSON.parse(data.toString());
+
+    return res.status(OK).json(assets);
+  } catch (err) {
+    logger.error(err, 'Error processing get all assets request');
+    return res.status(INTERNAL_SERVER_ERROR).json({
+      status: getReasonPhrase(INTERNAL_SERVER_ERROR),
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
 assetsRouter.post(
   '/',
   body().isObject().withMessage('body must contain an asset object'),
