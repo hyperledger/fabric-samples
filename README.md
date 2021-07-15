@@ -68,20 +68,14 @@ Update an asset...
 curl --header "Content-Type: application/json" --request PUT --data '{"id":"asset7","color":"red","size":11,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets/asset7
 ```
 
+Transfer an asset...
+
+```shell
+curl --header "Content-Type: application/json" --request PATCH --data '[{"op":"replace","path":"/owner","value":"Ashleigh"}]' http://localhost:3000/api/assets/asset7
+```
+
 Delete an asset...
 
 ```shell
 curl -v -X DELETE http://localhost:3000/api/assets/asset7
-```
-
-Or all of the above for complete chaos!
-
-```
-curl --request OPTIONS http://localhost:3000/api/assets/asset7 \
-  --next --header "Content-Type: application/json" --request POST --data '{"id":"asset7","color":"red","size":42,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets \
-  --next --request READ http://localhost:3000/api/assets/asset7 \
-  --next --header "Content-Type: application/json" --request PUT --data '{"id":"asset7","color":"red","size":11,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets/asset7 \
-  --next --request READ http://localhost:3000/api/assets/asset7 \
-  --next --request DELETE http://localhost:3000/api/assets/asset7 \
-  --next --request READ http://localhost:3000/api/assets/asset7
 ```
