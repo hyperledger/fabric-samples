@@ -15,15 +15,18 @@ import { body, validationResult } from 'express-validator';
 import { Contract } from 'fabric-network';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import { Redis } from 'ioredis';
-import {
-  clearTransactionDetails,
-  createDeferredEventHandler,
-  storeTransactionDetails,
-} from './fabric';
+import { AssetExistsError, AssetNotFoundError } from './errors';
+import { evatuateTransaction, submitTransaction } from './fabric';
 import { logger } from './logger';
 
-const { ACCEPTED, BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } =
-  StatusCodes;
+const {
+  ACCEPTED,
+  BAD_REQUEST,
+  CONFLICT,
+  INTERNAL_SERVER_ERROR,
+  NOT_FOUND,
+  OK,
+} = StatusCodes;
 
 export const assetsRouter = express.Router();
 
@@ -33,7 +36,7 @@ assetsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const contract: Contract = req.app.get('contract');
 
-    const data = await contract.evaluateTransaction('GetAllAssets');
+    const data = await evatuateTransaction(contract, 'GetAllAssets');
     const assets = JSON.parse(data.toString());
 
     return res.status(OK).json(assets);
@@ -61,6 +64,7 @@ assetsRouter.post(
     if (!errors.isEmpty()) {
       return res.status(BAD_REQUEST).json({
         status: getReasonPhrase(BAD_REQUEST),
+        reason: 'VALIDATION_ERROR',
         message: 'Invalid request body',
         timestamp: new Date().toISOString(),
         errors: errors.array(),
@@ -69,27 +73,14 @@ assetsRouter.post(
 
     const contract: Contract = req.app.get('contract');
     const redis: Redis = req.app.get('redis');
-    const txn = contract.createTransaction('CreateAsset');
-    const txnId = txn.getTransactionId();
-    const txnState = txn.serialize();
-    const txnArgs = JSON.stringify([
-      req.body.id,
-      req.body.color,
-      req.body.size,
-      req.body.owner,
-      req.body.appraisedValue,
-    ]);
+    const assetId = req.body.id;
 
     try {
-      const timestamp = Date.now();
-
-      // Store the transaction details and set the event handler in case there
-      // are problems later with commiting the transaction
-      await storeTransactionDetails(redis, txnId, txnState, txnArgs, timestamp);
-      txn.setEventHandler(createDeferredEventHandler(redis));
-
-      await txn.submit(
-        req.body.id,
+      await submitTransaction(
+        contract,
+        redis,
+        'CreateAsset',
+        assetId,
         req.body.color,
         req.body.size,
         req.body.owner,
@@ -101,25 +92,22 @@ assetsRouter.post(
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
-      // TODO will this always catch endorsement errors or can those
-      // arrive later?
-
-      // There's no point retrying a transaction if there were business
-      // logic errors so clear the transaction details
-      //
-      // Note: it would be nice to pick out business logic errors returned
-      // from chaincode, e.g. asset already exists, and return those as a
-      // 400 error with message instead. Unfortunately the asset transfer
-      // sample or Fabric Node SDK do not provide any well defined error
-      // codes that can be checked.
-      await clearTransactionDetails(redis, txnId);
-
       logger.error(
         err,
         'Error processing create asset request for asset ID %s with transaction ID %s',
-        req.body.id,
-        txnId
+        assetId,
+        err.transactionId
       );
+
+      if (err instanceof AssetExistsError) {
+        return res.status(CONFLICT).json({
+          status: getReasonPhrase(CONFLICT),
+          reason: 'ASSET_EXISTS',
+          message: err.message,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
       return res.status(INTERNAL_SERVER_ERROR).json({
         status: getReasonPhrase(INTERNAL_SERVER_ERROR),
         timestamp: new Date().toISOString(),
@@ -135,7 +123,7 @@ assetsRouter.options('/:assetId', async (req: Request, res: Response) => {
   try {
     const contract: Contract = req.app.get('contract');
 
-    const data = await contract.evaluateTransaction('AssetExists', assetId);
+    const data = await evatuateTransaction(contract, 'AssetExists', assetId);
     const exists = data.toString() === 'true';
 
     if (exists) {
@@ -174,7 +162,7 @@ assetsRouter.get('/:assetId', async (req: Request, res: Response) => {
   try {
     const contract: Contract = req.app.get('contract');
 
-    const data = await contract.evaluateTransaction('ReadAsset', assetId);
+    const data = await evatuateTransaction(contract, 'ReadAsset', assetId);
     const asset = JSON.parse(data.toString());
 
     return res.status(OK).json(asset);
@@ -184,6 +172,14 @@ assetsRouter.get('/:assetId', async (req: Request, res: Response) => {
       'Error processing read asset request for asset ID %s',
       assetId
     );
+
+    if (err instanceof AssetNotFoundError) {
+      return res.status(NOT_FOUND).json({
+        status: getReasonPhrase(NOT_FOUND),
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     return res.status(INTERNAL_SERVER_ERROR).json({
       status: getReasonPhrase(INTERNAL_SERVER_ERROR),
       timestamp: new Date().toISOString(),
@@ -191,7 +187,6 @@ assetsRouter.get('/:assetId', async (req: Request, res: Response) => {
   }
 });
 
-// TODO this shares a lot of code with the post endpoint!
 assetsRouter.put(
   '/:assetId',
   body().isObject().withMessage('body must contain an asset object'),
@@ -207,6 +202,7 @@ assetsRouter.put(
     if (!errors.isEmpty()) {
       return res.status(BAD_REQUEST).json({
         status: getReasonPhrase(BAD_REQUEST),
+        reason: 'VALIDATION_ERROR',
         message: 'Invalid request body',
         timestamp: new Date().toISOString(),
         errors: errors.array(),
@@ -216,6 +212,7 @@ assetsRouter.put(
     if (req.params.assetId != req.body.id) {
       return res.status(BAD_REQUEST).json({
         status: getReasonPhrase(BAD_REQUEST),
+        reason: 'ASSET_ID_MISMATCH',
         message: 'Asset IDs must match',
         timestamp: new Date().toISOString(),
       });
@@ -223,27 +220,14 @@ assetsRouter.put(
 
     const contract: Contract = req.app.get('contract');
     const redis: Redis = req.app.get('redis');
-    const txn = contract.createTransaction('UpdateAsset');
-    const txnId = txn.getTransactionId();
-    const txnState = txn.serialize();
-    const txnArgs = JSON.stringify([
-      req.params.assetId,
-      req.body.color,
-      req.body.size,
-      req.body.owner,
-      req.body.appraisedValue,
-    ]);
+    const assetId = req.params.assetId;
 
     try {
-      const timestamp = Date.now();
-
-      // Store the transaction details and set the event handler in case there
-      // are problems later with commiting the transaction
-      await storeTransactionDetails(redis, txnId, txnState, txnArgs, timestamp);
-      txn.setEventHandler(createDeferredEventHandler(redis));
-
-      await txn.submit(
-        req.params.assetId,
+      await submitTransaction(
+        contract,
+        redis,
+        'UpdateAsset',
+        assetId,
         req.body.color,
         req.body.size,
         req.body.owner,
@@ -255,25 +239,20 @@ assetsRouter.put(
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
-      // TODO will this always catch endorsement errors or can those
-      // arrive later?
-
-      // There's no point retrying a transaction if there were business
-      // logic errors so clear the transaction details
-      //
-      // Note: it would be nice to pick out business logic errors returned
-      // from chaincode, e.g. asset already exists, and return those as a
-      // 400 error with message instead. Unfortunately the asset transfer
-      // sample or Fabric Node SDK do not provide any well defined error
-      // codes that can be checked.
-      await clearTransactionDetails(redis, txnId);
-
       logger.error(
         err,
         'Error processing update asset request for asset ID %s with transaction ID %s',
-        req.params.assetId,
-        txnId
+        assetId,
+        err.transactionId
       );
+
+      if (err instanceof AssetNotFoundError) {
+        return res.status(NOT_FOUND).json({
+          status: getReasonPhrase(NOT_FOUND),
+          timestamp: new Date().toISOString(),
+        });
+      }
+
       return res.status(INTERNAL_SERVER_ERROR).json({
         status: getReasonPhrase(INTERNAL_SERVER_ERROR),
         timestamp: new Date().toISOString(),
@@ -282,7 +261,6 @@ assetsRouter.put(
   }
 );
 
-// TODO this shares a lot of code with the post endpoint!
 assetsRouter.patch(
   '/:assetId',
   body()
@@ -301,56 +279,46 @@ assetsRouter.patch(
     if (!errors.isEmpty()) {
       return res.status(BAD_REQUEST).json({
         status: getReasonPhrase(BAD_REQUEST),
+        reason: 'VALIDATION_ERROR',
         message: 'Invalid request body',
         timestamp: new Date().toISOString(),
         errors: errors.array(),
       });
     }
 
+    const contract: Contract = req.app.get('contract');
+    const redis: Redis = req.app.get('redis');
     const assetId = req.params.assetId;
     const newOwner = req.body[0].value;
 
-    const contract: Contract = req.app.get('contract');
-    const redis: Redis = req.app.get('redis');
-    const txn = contract.createTransaction('TransferAsset');
-    const txnId = txn.getTransactionId();
-    const txnState = txn.serialize();
-    const txnArgs = JSON.stringify([assetId, newOwner]);
-
     try {
-      const timestamp = Date.now();
-
-      // Store the transaction details and set the event handler in case there
-      // are problems later with commiting the transaction
-      await storeTransactionDetails(redis, txnId, txnState, txnArgs, timestamp);
-      txn.setEventHandler(createDeferredEventHandler(redis));
-
-      await txn.submit(assetId, newOwner);
+      await submitTransaction(
+        contract,
+        redis,
+        'TransferAsset',
+        assetId,
+        newOwner
+      );
 
       return res.status(ACCEPTED).json({
         status: getReasonPhrase(ACCEPTED),
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
-      // TODO will this always catch endorsement errors or can those
-      // arrive later?
-
-      // There's no point retrying a transaction if there were business
-      // logic errors so clear the transaction details
-      //
-      // Note: it would be nice to pick out business logic errors returned
-      // from chaincode, e.g. asset already exists, and return those as a
-      // 400 error with message instead. Unfortunately the asset transfer
-      // sample or Fabric Node SDK do not provide any well defined error
-      // codes that can be checked.
-      await clearTransactionDetails(redis, txnId);
-
       logger.error(
         err,
         'Error processing update asset request for asset ID %s with transaction ID %s',
         req.params.assetId,
-        txnId
+        err.transactionId
       );
+
+      if (err instanceof AssetNotFoundError) {
+        return res.status(NOT_FOUND).json({
+          status: getReasonPhrase(NOT_FOUND),
+          timestamp: new Date().toISOString(),
+        });
+      }
+
       return res.status(INTERNAL_SERVER_ERROR).json({
         status: getReasonPhrase(INTERNAL_SERVER_ERROR),
         timestamp: new Date().toISOString(),
@@ -364,45 +332,30 @@ assetsRouter.delete('/:assetId', async (req: Request, res: Response) => {
 
   const contract: Contract = req.app.get('contract');
   const redis: Redis = req.app.get('redis');
-  const txn = contract.createTransaction('DeleteAsset');
-  const txnId = txn.getTransactionId();
-  const txnState = txn.serialize();
-  const txnArgs = JSON.stringify([req.params.assetId]);
+  const assetId = req.params.assetId;
 
   try {
-    const timestamp = Date.now();
-
-    // Store the transaction details and set the event handler in case there
-    // are problems later with commiting the transaction
-    await storeTransactionDetails(redis, txnId, txnState, txnArgs, timestamp);
-    txn.setEventHandler(createDeferredEventHandler(redis));
-
-    await txn.submit(req.params.assetId);
+    await submitTransaction(contract, redis, 'DeleteAsset', assetId);
 
     return res.status(ACCEPTED).json({
       status: getReasonPhrase(ACCEPTED),
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
-    // TODO will this always catch endorsement errors or can those
-    // arrive later?
-
-    // There's no point retrying a transaction if there were business
-    // logic errors so clear the transaction details
-    //
-    // Note: it would be nice to pick out business logic errors returned
-    // from chaincode, e.g. asset already exists, and return those as a
-    // 400 error with message instead. Unfortunately the asset transfer
-    // sample or Fabric Node SDK do not provide any well defined error
-    // codes that can be checked.
-    await clearTransactionDetails(redis, txnId);
-
     logger.error(
       err,
       'Error processing delete asset request for asset ID %s with transaction ID %s',
-      req.params.assetId,
-      txnId
+      assetId,
+      err.transactionId
     );
+
+    if (err instanceof AssetNotFoundError) {
+      return res.status(NOT_FOUND).json({
+        status: getReasonPhrase(NOT_FOUND),
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     return res.status(INTERNAL_SERVER_ERROR).json({
       status: getReasonPhrase(INTERNAL_SERVER_ERROR),
       timestamp: new Date().toISOString(),

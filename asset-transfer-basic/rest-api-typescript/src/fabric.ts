@@ -16,6 +16,12 @@ import {
 import { Redis } from 'ioredis';
 import * as config from './config';
 import { logger } from './logger';
+import { storeTransactionDetails, clearTransactionDetails } from './redis';
+import {
+  AssetExistsError,
+  AssetNotFoundError,
+  TransactionError,
+} from './errors';
 
 export const getContract = async (): Promise<Contract> => {
   const wallet = await Wallets.newInMemoryWallet();
@@ -174,6 +180,86 @@ export const startRetryLoop = (contract: Contract, redis: Redis): void => {
   );
 };
 
+export const evatuateTransaction = async (
+  contract: Contract,
+  transactionName: string,
+  ...transactionArgs: string[]
+): Promise<Buffer> => {
+  const txn = contract.createTransaction(transactionName);
+  const txnId = txn.getTransactionId();
+
+  try {
+    return await txn.evaluate(...transactionArgs);
+  } catch (err) {
+    throw handleError(txnId, err);
+  }
+};
+
+export const submitTransaction = async (
+  contract: Contract,
+  redis: Redis,
+  transactionName: string,
+  ...transactionArgs: string[]
+): Promise<string> => {
+  const txn = contract.createTransaction(transactionName);
+  const txnId = txn.getTransactionId();
+  const txnState = txn.serialize();
+  const txnArgs = JSON.stringify(transactionArgs);
+  const timestamp = Date.now();
+
+  try {
+    // Store the transaction details and set the event handler in case there
+    // are problems later with commiting the transaction
+    await storeTransactionDetails(redis, txnId, txnState, txnArgs, timestamp);
+    txn.setEventHandler(createDeferredEventHandler(redis));
+
+    await txn.submit(...transactionArgs);
+  } catch (err) {
+    // If the transaction failed to endorse, there is no point attempting
+    // to retry it later so clear the transaction details
+    // TODO will this always catch endorsement errors or can they
+    // arrive later?
+    await clearTransactionDetails(redis, txnId);
+    throw handleError(txnId, err);
+  }
+
+  return txnId;
+};
+
+// Unfortunately the chaincode samples do not use error codes, and the error
+// message text is not the same for each implementation
+const handleError = (transactionId: string, err: Error): Error => {
+  // This regex needs to match the following error messages:
+  //   "the asset %s already exists"
+  //   "The asset ${id} already exists"
+  //   "Asset %s already exists"
+  const assetAlreadyExistsRegex = /([tT]he )?[aA]sset \w* already exists/g;
+  const assetAlreadyExistsMatch = err.message.match(assetAlreadyExistsRegex);
+  logger.debug(
+    { message: err.message, result: assetAlreadyExistsMatch },
+    'Checking for asset already exists message'
+  );
+  if (assetAlreadyExistsMatch) {
+    return new AssetExistsError(assetAlreadyExistsMatch[0], transactionId);
+  }
+
+  // This regex needs to match the following error messages:
+  //   "the asset %s does not exist"
+  //   "The asset ${id} does not exist"
+  //   "Asset %s does not exist"
+  const assetDoesNotExistRegex = /([tT]he )?[aA]sset \w* does not exist/g;
+  const assetDoesNotExistMatch = err.message.match(assetDoesNotExistRegex);
+  logger.debug(
+    { message: err.message, result: assetDoesNotExistMatch },
+    'Checking for asset does not exist message'
+  );
+  if (assetDoesNotExistMatch) {
+    return new AssetNotFoundError(assetDoesNotExistMatch[0], transactionId);
+  }
+
+  return new TransactionError('Transaction error', transactionId);
+};
+
 const retryTransaction = async (
   contract: Contract,
   redis: Redis,
@@ -224,59 +310,4 @@ const isDuplicateTransaction = (error: {
   }
 
   return false;
-};
-
-// TODO move these to redis.ts?
-
-export const storeTransactionDetails = async (
-  redis: Redis,
-  transactionId: string,
-  transactionState: Buffer,
-  transactionArgs: string,
-  timestamp: number
-): Promise<void> => {
-  const key = `txn:${transactionId}`;
-  logger.debug(
-    'Storing transaction details. Key: %s State: %s Args: %s Timestamp: %d',
-    key,
-    transactionState,
-    transactionArgs,
-    timestamp
-  );
-  await redis
-    .multi()
-    .hset(
-      key,
-      'state',
-      transactionState,
-      'args',
-      transactionArgs,
-      'timestamp',
-      timestamp,
-      'retries',
-      '0'
-    )
-    .zadd('index:txn:timestamp', timestamp, transactionId)
-    .exec();
-};
-
-export const clearTransactionDetails = async (
-  redis: Redis,
-  transactionId: string
-): Promise<void> => {
-  const key = `txn:${transactionId}`;
-  logger.debug('Removing transaction details. Key: %s', key);
-  try {
-    await redis
-      .multi()
-      .del(key)
-      .zrem('index:txn:timestamp', transactionId)
-      .exec();
-  } catch (err) {
-    logger.error(
-      err,
-      'Error remove saved transaction state for transaction ID %s',
-      transactionId
-    );
-  }
 };
