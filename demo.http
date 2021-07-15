@@ -1,0 +1,60 @@
+// Demo file for use with REST Client for Visual Studio Code
+// See https://github.com/Huachao/vscode-restclient
+@hostname = localhost
+@port = 3000
+@baseUrl = http://{{hostname}}:{{port}}/api
+
+### Get all assets
+
+GET {{baseUrl}}/assets HTTP/1.1
+
+### Check if asset exists
+
+OPTIONS {{baseUrl}}/assets/asset7 HTTP/1.1
+
+### Create asset
+
+POST {{baseUrl}}/assets HTTP/1.1
+content-type: application/json
+
+{
+    "id": "asset7",
+    "color": "red",
+    "size": 42,
+    "owner": "Jean",
+    "appraisedValue": 101
+}
+
+### Read asset
+
+GET {{baseUrl}}/assets/asset7 HTTP/1.1
+
+### Update asset
+
+PUT {{baseUrl}}/assets/asset7 HTTP/1.1
+content-type: application/json
+
+{
+    "id": "asset7",
+    "color": "red",
+    "size": 11,
+    "owner": "Jean",
+    "appraisedValue": 101
+}
+
+### Transfer asset
+
+PATCH {{baseUrl}}/assets/asset7 HTTP/1.1
+content-type: application/json
+
+[
+    {
+        "op": "replace",
+        "path": "/owner",
+        "value": "Ashleigh"
+    }
+]
+
+### Delete asset
+
+DELETE {{baseUrl}}/assets/asset7 HTTP/1.1
