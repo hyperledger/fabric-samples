@@ -14,6 +14,18 @@ export class TransactionError extends Error {
   }
 }
 
+export class TransactionNotFoundError extends Error {
+  transactionId: string;
+
+  constructor(message: string, transactionId: string) {
+    super(message);
+    Object.setPrototypeOf(this, TransactionNotFoundError.prototype);
+
+    this.name = 'TransactionNotFoundError';
+    this.transactionId = transactionId;
+  }
+}
+
 export class AssetExistsError extends TransactionError {
   constructor(message: string, transactionId: string) {
     super(message, transactionId);

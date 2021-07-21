@@ -9,7 +9,8 @@ import pinoMiddleware from 'pino-http';
 
 import { logger } from './logger';
 import { assetsRouter } from './assets.router';
-import { getContract } from './fabric';
+import { transactionsRouter } from './transactions.router';
+import { getContracts, getGateway } from './fabric';
 import { redis } from './redis';
 
 const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } = StatusCodes;
@@ -48,8 +49,9 @@ export const createServer = async (): Promise<Application> => {
     app.use(helmet());
   }
 
-  const contract = await getContract();
-  app.set('contract', contract);
+  const gateway = await getGateway();
+  const contracts = await getContracts(gateway);
+  app.set('contracts', contracts);
   app.set('redis', redis);
 
   // Health routes
@@ -72,6 +74,7 @@ export const createServer = async (): Promise<Application> => {
   });
 
   app.use('/api/assets', assetsRouter);
+  app.use('/api/transactions', transactionsRouter);
 
   // For everything else
   app.use((_req, res) =>

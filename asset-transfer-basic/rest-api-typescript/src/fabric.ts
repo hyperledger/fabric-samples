@@ -21,9 +21,10 @@ import {
   AssetExistsError,
   AssetNotFoundError,
   TransactionError,
+  TransactionNotFoundError,
 } from './errors';
 
-export const getContract = async (): Promise<Contract> => {
+export const getGateway = async (): Promise<Gateway> => {
   const wallet = await Wallets.newInMemoryWallet();
 
   const x509Identity = {
@@ -55,10 +56,18 @@ export const getContract = async (): Promise<Contract> => {
 
   await gateway.connect(config.connectionProfile, connectOptions);
 
-  const network = await gateway.getNetwork(config.channelName);
-  const contract = network.getContract(config.chaincodeName);
+  return gateway;
+};
 
-  return contract;
+export const getContracts = async (
+  gateway: Gateway
+): Promise<{ contract: Contract; qscc: Contract }> => {
+  const network = await gateway.getNetwork(config.channelName);
+
+  const contract = network.getContract(config.chaincodeName);
+  const qscc = network.getContract('qscc');
+
+  return { contract, qscc };
 };
 
 export const createDeferredEventHandler = (
@@ -257,6 +266,28 @@ const handleError = (transactionId: string, err: Error): Error => {
     return new AssetNotFoundError(assetDoesNotExistMatch[0], transactionId);
   }
 
+  // This regex needs to match the following error messages:
+  //   "Failed to get transaction with id %s, error Entry not found in index"
+  const transactionDoesNotExistRegex =
+    /Failed to get transaction with id [^,]*, error Entry not found in index/g;
+  const transactionDoesNotExistMatch = err.message.match(
+    transactionDoesNotExistRegex
+  );
+  logger.debug(
+    { message: err.message, result: transactionDoesNotExistMatch },
+    'Checking for transaction does not exist message'
+  );
+  if (transactionDoesNotExistMatch) {
+    return new TransactionNotFoundError(
+      transactionDoesNotExistMatch[0],
+      transactionId
+    );
+  }
+
+  logger.error(
+    { transactionId: transactionId, error: err },
+    'Unhandled transaction error'
+  );
   return new TransactionError('Transaction error', transactionId);
 };
 
