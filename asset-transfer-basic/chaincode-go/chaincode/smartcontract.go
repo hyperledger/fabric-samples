@@ -13,12 +13,15 @@ type SmartContract struct {
 }
 
 // Asset describes basic details of what makes up a simple asset
+
+// Insert struct field in alphabetic order => to achieve determinism accross languages
+// golang keeps the order when marshal to json but doesn't order automatically
 type Asset struct {
+	AppraisedValue int    `json:"AppraisedValue"`
+	Color          string `json:"Color"`
 	ID             string `json:"ID"`
-	Color          string `json:"color"`
-	Size           int    `json:"size"`
-	Owner          string `json:"owner"`
-	AppraisedValue int    `json:"appraisedValue"`
+	Owner          string `json:"Owner"`
+	Size           int    `json:"Size"`
 }
 
 // InitLedger adds a base set of assets to the ledger
@@ -56,7 +59,7 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 	if exists {
 		return fmt.Errorf("the asset %s already exists", id)
 	}
-
+	
 	asset := Asset{
 		ID:             id,
 		Color:          color,

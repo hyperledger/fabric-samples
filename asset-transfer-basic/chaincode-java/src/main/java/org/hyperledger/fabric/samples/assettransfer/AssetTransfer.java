@@ -6,6 +6,10 @@ package org.hyperledger.fabric.samples.assettransfer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
+import java.util.Map;
+import java.util.HashMap;
+
 
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.contract.ContractInterface;
@@ -20,7 +24,9 @@ import org.hyperledger.fabric.shim.ChaincodeStub;
 import org.hyperledger.fabric.shim.ledger.KeyValue;
 import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 
-import com.owlike.genson.Genson;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 
 @Contract(
         name = "basic",
@@ -38,7 +44,8 @@ import com.owlike.genson.Genson;
 @Default
 public final class AssetTransfer implements ContractInterface {
 
-    private final Genson genson = new Genson();
+    private Gson gson = new Gson();
+    private ObjectMapper om = new ObjectMapper();
 
     private enum AssetTransferErrors {
         ASSET_NOT_FOUND,
@@ -86,8 +93,28 @@ public final class AssetTransfer implements ContractInterface {
         }
 
         Asset asset = new Asset(assetID, color, size, owner, appraisedValue);
-        String assetJSON = genson.serialize(asset);
-        stub.putStringState(assetID, assetJSON);
+        //deserializing your json into a sorted map, and then serialize the map to get the sorted-by-key json string.
+        //TreeMap will enforce a sorting order for you, independent of what order they're supplied in
+        String json = gson.toJson(asset);
+        try {
+            om.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+            Map<String, Object> map = om.readValue(json, HashMap.class);
+            String sortedJson = om.writeValueAsString(map);
+            stub.putStringState(assetID, sortedJson);
+        } catch (Exception e) {
+        }
+        /*String json = gson.toJson(asset);
+        TreeMap<String, Object> map = gson.fromJson(json, TreeMap.class);
+        String sortedJson = gson.toJson(map);
+        stub.putStringState(assetID, sortedJson);*/
+
+        //could use JSON Object approach instead
+        /*Map<String, String> sortedMap = gson.fromJson(json, TreeMap.class);     //this will auto-sort by key alphabetically
+        JSONObject sortedJSON = new JSONObject();     //recreate new JSON object for sorted result
+        for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
+            sortedJSON.put(entry.getKey(), entry.getValue());
+        }
+        stub.putState(assetID, sortedJson);    //wuold do it if possible to write JSONObject to stste  */
 
         return asset;
     }
@@ -110,7 +137,7 @@ public final class AssetTransfer implements ContractInterface {
             throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
         }
 
-        Asset asset = genson.deserialize(assetJSON, Asset.class);
+        Asset asset = gson.fromJson(assetJSON, Asset.class);
         return asset;
     }
 
@@ -137,8 +164,26 @@ public final class AssetTransfer implements ContractInterface {
         }
 
         Asset newAsset = new Asset(assetID, color, size, owner, appraisedValue);
-        String newAssetJSON = genson.serialize(newAsset);
-        stub.putStringState(assetID, newAssetJSON);
+        String json = gson.toJson(newAsset);
+        try {
+            om.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+            Map<String, Object> map = om.readValue(json, HashMap.class);
+            String sortedJson = om.writeValueAsString(map);//could also use gson instead
+            stub.putStringState(assetID, sortedJson);
+        } catch (Exception e) {
+        }
+        /*String json = gson.toJson(asset);
+        TreeMap<String, Object> map = gson.fromJson(json, TreeMap.class);
+        String sortedJson = gson.toJson(map);
+        stub.putStringState(assetID, sortedJson);*/
+
+        //could use JSON Object approach instead
+        /*Map<String, String> sortedMap = gson.fromJson(json, TreeMap.class);     //this will auto-sort by key alphabetically
+        JSONObject sortedJSON = new JSONObject();     //recreate new JSON object for sorted result
+        for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
+            sortedJSON.put(entry.getKey(), entry.getValue());
+        }
+        stub.putState(assetID, sortedJson);    //wuold do it if possible to write JSONObject to stste  */
 
         return newAsset;
     }
@@ -196,11 +241,29 @@ public final class AssetTransfer implements ContractInterface {
             throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
         }
 
-        Asset asset = genson.deserialize(assetJSON, Asset.class);
+        Asset asset = gson.fromJson(assetJSON, Asset.class);
 
         Asset newAsset = new Asset(asset.getAssetID(), asset.getColor(), asset.getSize(), newOwner, asset.getAppraisedValue());
-        String newAssetJSON = genson.serialize(newAsset);
-        stub.putStringState(assetID, newAssetJSON);
+        String json = gson.toJson(newAsset);
+        try {
+            om.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+            Map<String, Object> map = om.readValue(json, HashMap.class);
+            String sortedJson = om.writeValueAsString(map);
+            stub.putStringState(assetID, sortedJson);
+        } catch (Exception e) {
+        }
+        /*String json = gson.toJson(asset);
+        TreeMap<String, Object> map = gson.fromJson(json, TreeMap.class);
+        String sortedJson = gson.toJson(map);
+        stub.putStringState(assetID, sortedJson);*/
+
+        //could use JSON Object approach instead
+        /*Map<String, String> sortedMap = gson.fromJson(json, TreeMap.class);     //this will auto-sort by key alphabetically
+        JSONObject sortedJSON = new JSONObject();     //recreate new JSON object for sorted result
+        for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
+            sortedJSON.put(entry.getKey(), entry.getValue());
+        }
+        stub.putState(assetID, sortedJson);    //wuold do it if possible to write JSONObject to stste  */
 
         return newAsset;
     }
@@ -224,12 +287,12 @@ public final class AssetTransfer implements ContractInterface {
         QueryResultsIterator<KeyValue> results = stub.getStateByRange("", "");
 
         for (KeyValue result: results) {
-            Asset asset = genson.deserialize(result.getStringValue(), Asset.class);
+            Asset asset = gson.fromJson(result.getStringValue(), Asset.class);
             queryResults.add(asset);
             System.out.println(asset.toString());
         }
 
-        final String response = genson.serialize(queryResults);
+        final String response = gson.toJson(queryResults);
 
         return response;
     }
