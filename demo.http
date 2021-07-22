@@ -25,6 +25,10 @@ content-type: application/json
     "appraisedValue": 101
 }
 
+### Read transaction status
+
+GET {{baseUrl}}/transactions/__transaction_id__ HTTP/1.1
+
 ### Read asset
 
 GET {{baseUrl}}/assets/asset7 HTTP/1.1
