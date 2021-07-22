@@ -12,7 +12,7 @@ import { createServer } from './server';
 async function main() {
   const app = await createServer();
 
-  const contract: Contract = app.get('contract');
+  const contract: Contract = app.get('contracts').contract;
   const redis: Redis = app.get('redis');
   startRetryLoop(contract, redis);
 

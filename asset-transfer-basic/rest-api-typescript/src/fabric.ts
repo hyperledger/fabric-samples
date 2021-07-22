@@ -160,6 +160,10 @@ export const startRetryLoop = (contract: Contract, redis: Redis): void => {
           pendingTransactionCount
         );
 
+        // TODO pick a random transaction instead to reduce chances of
+        // clashing with other instances? Currently no zrandmember
+        // command though...
+        //   https://github.com/luin/ioredis/issues/1374
         const transactionIds = await (redis as Redis).zrange(
           'index:txn:timestamp',
           -1,
@@ -309,7 +313,7 @@ const retryTransaction = async (
     await clearTransactionDetails(redis, transactionId);
   } catch (err) {
     if (isDuplicateTransaction(err)) {
-      logger.debug('Transaction %s has already been committed', transactionId);
+      logger.warn('Transaction %s has already been committed', transactionId);
       await clearTransactionDetails(redis, transactionId);
     } else {
       // TODO check for retry limit and update timestamp
