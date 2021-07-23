@@ -24,6 +24,7 @@ import {
   TransactionError,
   TransactionNotFoundError,
 } from './errors';
+import fabproto6 from 'fabric-protos';
 
 export const getNetwork = async (gateway: Gateway): Promise<Network> => {
   const network = await gateway.getNetwork(config.channelName);
@@ -288,4 +289,20 @@ export const blockEventHandler = (redis: Redis): BlockListener => {
   };
 
   return blockListner;
+};
+
+export const getChainInfo = async (qscc: Contract): Promise<boolean> => {
+  try {
+    const data = await qscc.evaluateTransaction(
+      'GetChainInfo',
+      config.channelName
+    );
+    const info = fabproto6.common.BlockchainInfo.decode(data);
+    const blockHeight = info.height.toString();
+    logger.info('Current block height: %s', blockHeight);
+    return true;
+  } catch (e) {
+    logger.error(e, 'Unable to get blockchain info');
+    return false;
+  }
 };

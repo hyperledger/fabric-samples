@@ -10,10 +10,17 @@ import pinoMiddleware from 'pino-http';
 import { logger } from './logger';
 import { assetsRouter } from './assets.router';
 import { transactionsRouter } from './transactions.router';
-import { getContracts, getGateway, getNetwork } from './fabric';
+import { getContracts, getGateway, getNetwork, getChainInfo } from './fabric';
 import { redis } from './redis';
+import { Contract } from 'fabric-network';
 
-const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } = StatusCodes;
+const {
+  BAD_REQUEST,
+  INTERNAL_SERVER_ERROR,
+  NOT_FOUND,
+  OK,
+  SERVICE_UNAVAILABLE,
+} = StatusCodes;
 
 export const createServer = async (): Promise<Application> => {
   const app = express();
@@ -63,12 +70,20 @@ export const createServer = async (): Promise<Application> => {
       timestamp: new Date().toISOString(),
     })
   );
-  app.get('/live', (_req, res) =>
-    res.status(OK).json({
-      status: getReasonPhrase(OK),
-      timestamp: new Date().toISOString(),
-    })
-  );
+  app.get('/live', async (_req, res) => {
+    const qscc: Contract = _req.app.get('contracts').qscc;
+    if ((await getChainInfo(qscc)) === true) {
+      res.status(OK).json({
+        status: getReasonPhrase(OK),
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      res.status(SERVICE_UNAVAILABLE).json({
+        status: getReasonPhrase(SERVICE_UNAVAILABLE),
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
 
   // TODO delete me
   app.get('/error', (_req, _res) => {
