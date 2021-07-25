@@ -300,6 +300,20 @@ Channel: &ChannelDefaults
 ################################################################################
 Profiles:
 
+    TwoOrgsOrdererGenesis:
+        <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *Org1
+                    - *Org2
+
     TwoOrgsApplicationGenesis:
         <<: *ChannelDefaults
         Orderer:
