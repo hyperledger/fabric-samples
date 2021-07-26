@@ -28,15 +28,16 @@ export const asLocalHost = env
   .asBoolStrict();
 
 export const identityNameOrg1 = 'Org1';
+
 export const identityNameOrg2 = 'Org2';
 
-const mspIdOrg1 = env
+export const mspIdOrg1 = env
   .get('HLF_MSP_ID_ORG1')
   .default('Org1MSP')
   .example('Org1MSP')
   .asString();
 
-const mspIdOrg2 = env
+export const mspIdOrg2 = env
   .get('HLF_MSP_ID_ORG2')
   .default('Org2MSP')
   .example('Org2MSP')
@@ -66,7 +67,7 @@ export const endorseTimeout = env
   .example('30')
   .asIntPositive();
 
-const connectionProfileOrg1 = env
+export const connectionProfileOrg1 = env
   .get('HLF_CONNECTION_PROFILE_ORG1')
   .required()
   .example(
@@ -74,19 +75,19 @@ const connectionProfileOrg1 = env
   )
   .asJsonObject();
 
-const certificateOrg1 = env
+export const certificateOrg1 = env
   .get('HLF_CERTIFICATE_ORG1')
   .required()
   .example('"-----BEGIN CERTIFICATE-----\\n...\\n-----END CERTIFICATE-----\\n"')
   .asString();
 
-const privateKeyOrg1 = env
+export const privateKeyOrg1 = env
   .get('HLF_PRIVATE_KEY_ORG1')
   .required()
   .example('"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"')
   .asString();
 
-const connectionProfileOrg2 = env
+export const connectionProfileOrg2 = env
   .get('HLF_CONNECTION_PROFILE_ORG2')
   .required()
   .example(
@@ -94,13 +95,13 @@ const connectionProfileOrg2 = env
   )
   .asJsonObject();
 
-const certificateOrg2 = env
+export const certificateOrg2 = env
   .get('HLF_CERTIFICATE_ORG2')
   .required()
   .example('"-----BEGIN CERTIFICATE-----\\n...\\n-----END CERTIFICATE-----\\n"')
   .asString();
 
-const privateKeyOrg2 = env
+export const privateKeyOrg2 = env
   .get('HLF_PRIVATE_KEY_ORG2')
   .required()
   .example('"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"')
@@ -136,19 +137,3 @@ export const org2ApiKey = env
   .required()
   .example('456')
   .asString();
-
-export const ORG1_CONFIG = {
-  identityName: identityNameOrg1,
-  mspId: mspIdOrg1,
-  connectionProfile: connectionProfileOrg1,
-  certificate: certificateOrg1,
-  privateKey: privateKeyOrg1,
-};
-
-export const ORG2_CONFIG = {
-  identityName: identityNameOrg2,
-  mspId: mspIdOrg2,
-  connectionProfile: connectionProfileOrg2,
-  certificate: certificateOrg2,
-  privateKey: privateKeyOrg2,
-};

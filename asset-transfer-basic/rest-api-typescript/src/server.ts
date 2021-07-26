@@ -67,6 +67,10 @@ export const createServer = async (): Promise<Application> => {
     // TBC
   }
 
+  if (process.env.NODE_ENV === 'test') {
+    // TBC
+  }
+
   if (process.env.NODE_ENV === 'production') {
     app.use(helmet());
   }

@@ -40,9 +40,25 @@ interface FabricConfigType {
   privateKey: string;
 }
 
+const ORG1_CONFIG = {
+  identityName: config.identityNameOrg1,
+  mspId: config.mspIdOrg1,
+  connectionProfile: config.connectionProfileOrg1,
+  certificate: config.certificateOrg1,
+  privateKey: config.privateKeyOrg1,
+};
+
+const ORG2_CONFIG = {
+  identityName: config.identityNameOrg2,
+  mspId: config.mspIdOrg2,
+  connectionProfile: config.connectionProfileOrg2,
+  certificate: config.certificateOrg2,
+  privateKey: config.privateKeyOrg2,
+};
+
 const FabricDataMapper: { [key: string]: FabricConfigType } = {
-  [config.identityNameOrg1]: config.ORG1_CONFIG,
-  [config.identityNameOrg2]: config.ORG2_CONFIG,
+  [config.identityNameOrg1]: ORG1_CONFIG,
+  [config.identityNameOrg2]: ORG2_CONFIG,
 };
 
 export const getGateway = async (org: string): Promise<Gateway> => {
