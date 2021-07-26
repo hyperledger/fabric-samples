@@ -2,10 +2,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Contract } from 'fabric-network';
+import { Contract, Network } from 'fabric-network';
 import { Redis } from 'ioredis';
 import * as config from './config';
-import { startRetryLoop } from './fabric';
+import { startRetryLoop, blockEventHandler } from './fabric';
 import { logger } from './logger';
 import { createServer } from './server';
 
@@ -14,6 +14,8 @@ async function main() {
 
   const contract: Contract = app.get('contracts').contract;
   const redis: Redis = app.get('redis');
+  const network: Network = app.get('network');
+  await network.addBlockListener(blockEventHandler(redis));
   startRetryLoop(contract, redis);
 
   app.listen(config.port, () => {

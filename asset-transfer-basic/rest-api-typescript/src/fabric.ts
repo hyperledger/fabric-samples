@@ -12,7 +12,10 @@ import {
   TxEventHandler,
   TxEventHandlerFactory,
   Wallets,
-  Network
+  Network,
+  BlockListener,
+  BlockEvent,
+  TransactionEvent,
 } from 'fabric-network';
 import { Redis } from 'ioredis';
 import * as config from './config';
@@ -24,7 +27,6 @@ import {
   TransactionError,
   TransactionNotFoundError,
 } from './errors';
-
 
 export const getNetwork = async (gateway: Gateway): Promise<Network> => {
   const network = await gateway.getNetwork(config.channelName);
@@ -354,3 +356,21 @@ const isDuplicateTransaction = (error: {
   return false;
 };
 
+export const blockEventHandler = (redis: Redis): BlockListener => {
+  const blockListner = async (event: BlockEvent) => {
+    logger.debug('Block event received ');
+    const transEvents: Array<TransactionEvent> = event.getTransactionEvents();
+
+    for (const transEvent of transEvents) {
+      if (transEvent && transEvent.isValid) {
+        logger.debug(
+          'Remove transation with txnId %s',
+          transEvent.transactionId
+        );
+        await clearTransactionDetails(redis, transEvent.transactionId);
+      }
+    }
+  };
+
+  return blockListner;
+};

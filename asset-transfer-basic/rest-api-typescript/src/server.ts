@@ -51,10 +51,10 @@ export const createServer = async (): Promise<Application> => {
 
   const gateway = await getGateway();
   const contracts = await getContracts(gateway);
-  const network = await getNetwork(gateway)
+  const network = await getNetwork(gateway);
   app.set('contracts', contracts);
   app.set('redis', redis);
-  app.set('network',network)
+  app.set('network', network);
 
   // Health routes
   app.get('/ready', (_req, res) =>
