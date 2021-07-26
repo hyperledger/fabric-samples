@@ -69,13 +69,10 @@ export const getGateway = async (): Promise<Gateway> => {
 };
 
 export const getContracts = async (
-  gateway: Gateway
+  network: Network
 ): Promise<{ contract: Contract; qscc: Contract }> => {
-  const network = await gateway.getNetwork(config.channelName);
-
   const contract = network.getContract(config.chaincodeName);
   const qscc = network.getContract('qscc');
-
   return { contract, qscc };
 };
 

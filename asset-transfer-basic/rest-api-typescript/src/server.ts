@@ -50,8 +50,8 @@ export const createServer = async (): Promise<Application> => {
   }
 
   const gateway = await getGateway();
-  const contracts = await getContracts(gateway);
   const network = await getNetwork(gateway);
+  const contracts = await getContracts(network);
   app.set('contracts', contracts);
   app.set('redis', redis);
   app.set('network', network);
