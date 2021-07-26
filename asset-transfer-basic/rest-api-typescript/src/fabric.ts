@@ -12,6 +12,7 @@ import {
   TxEventHandler,
   TxEventHandlerFactory,
   Wallets,
+  Network
 } from 'fabric-network';
 import { Redis } from 'ioredis';
 import * as config from './config';
@@ -23,6 +24,12 @@ import {
   TransactionError,
   TransactionNotFoundError,
 } from './errors';
+
+
+export const getNetwork = async (gateway: Gateway): Promise<Network> => {
+  const network = await gateway.getNetwork(config.channelName);
+  return network;
+};
 
 export const getGateway = async (): Promise<Gateway> => {
   const wallet = await Wallets.newInMemoryWallet();
@@ -346,3 +353,4 @@ const isDuplicateTransaction = (error: {
 
   return false;
 };
+
