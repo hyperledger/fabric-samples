@@ -87,7 +87,7 @@ services:
       - CORE_PEER_LOCALMSPID=Org1MSP
       - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:17051
     volumes:
-        - /var/run/docker.sock:/host/var/run/docker.sock
+        - ${DOCKER_SOCK}:/host/var/run/docker.sock
         - ../organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/fabric/msp
         - ../organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls:/etc/hyperledger/fabric/tls
         - peer0.org1.example.com:/var/hyperledger/production
@@ -126,7 +126,7 @@ services:
       - CORE_PEER_LOCALMSPID=Org2MSP
       - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:19051
     volumes:
-        - /var/run/docker.sock:/host/var/run/docker.sock
+        - ${DOCKER_SOCK}:/host/var/run/docker.sock
         - ../organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp:/etc/hyperledger/fabric/msp
         - ../organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls:/etc/hyperledger/fabric/tls
         - peer0.org2.example.com:/var/hyperledger/production
