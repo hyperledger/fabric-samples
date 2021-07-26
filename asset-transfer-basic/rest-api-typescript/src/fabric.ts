@@ -3,14 +3,11 @@
  */
 
 import {
-  CommitListener,
   Contract,
   DefaultEventHandlerStrategies,
   DefaultQueryHandlerStrategies,
   Gateway,
   GatewayOptions,
-  TxEventHandler,
-  TxEventHandlerFactory,
   Wallets,
   Network,
   BlockListener,
@@ -55,7 +52,7 @@ export const getGateway = async (): Promise<Gateway> => {
     eventHandlerOptions: {
       commitTimeout: config.commitTimeout,
       endorseTimeout: config.endorseTimeout,
-      strategy: DefaultEventHandlerStrategies.PREFER_MSPID_SCOPE_ANYFORTX,
+      strategy: DefaultEventHandlerStrategies.NONE,
     },
     queryHandlerOptions: {
       timeout: 3,
@@ -74,84 +71,6 @@ export const getContracts = async (
   const contract = network.getContract(config.chaincodeName);
   const qscc = network.getContract('qscc');
   return { contract, qscc };
-};
-
-export const createDeferredEventHandler = (
-  redis: Redis
-): TxEventHandlerFactory => {
-  return (transactionId, network): TxEventHandler => {
-    // TODO would like to store the transaction details here
-    // but doesn't seem possible to use await or handle errors
-    // in the TxEventHandlerFactory :(
-
-    const mspId = network.getGateway().getIdentity().mspId;
-    const peers = network.getChannel().getEndorsers(mspId);
-
-    const options = Object.assign(
-      {
-        commitTimeout: 30,
-      },
-      network.getGateway().getOptions().eventHandlerOptions
-    );
-
-    const removeCommitListener = async () => {
-      network.removeCommitListener(listener);
-      logger.debug(
-        'Stopped listening for transaction %s events',
-        transactionId
-      );
-
-      const txnExists = await redis.exists(transactionId);
-      if (txnExists) {
-        logger.warn(
-          'Transaction %s was not successfully committed',
-          transactionId
-        );
-      }
-    };
-
-    const listener: CommitListener = async (error, event) => {
-      if (error) {
-        logger.error(error, 'Commit error for transaction %s', transactionId);
-      }
-
-      if (event && event.isValid) {
-        logger.debug('Transaction %s successfully committed', transactionId);
-
-        await clearTransactionDetails(redis, transactionId);
-        await removeCommitListener();
-      }
-    };
-
-    const deferredEventHandler: TxEventHandler = {
-      startListening: async () => {
-        logger.debug('Setting timeout for %d ms', options.commitTimeout * 1000);
-        setTimeout(async () => {
-          logger.debug(
-            'Timeout listening for transaction %s events',
-            transactionId
-          );
-          await removeCommitListener();
-        }, options.commitTimeout * 1000);
-
-        await network.addCommitListener(listener, peers, transactionId);
-        logger.debug('Listening for transaction %s events', transactionId);
-      },
-      waitForEvents: async () => {
-        // No-op
-      },
-      cancelListening: async () => {
-        // TODO this is what the doc says, but is it true?!
-        logger.warn(
-          'Submission of transaction %s to the orderer failed',
-          transactionId
-        );
-        await removeCommitListener();
-      },
-    };
-
-    return deferredEventHandler;
-  };
 };
 
 export const startRetryLoop = (contract: Contract, redis: Redis): void => {
@@ -230,7 +149,6 @@ export const submitTransaction = async (
     // Store the transaction details and set the event handler in case there
     // are problems later with commiting the transaction
     await storeTransactionDetails(redis, txnId, txnState, txnArgs, timestamp);
-    txn.setEventHandler(createDeferredEventHandler(redis));
 
     await txn.submit(...transactionArgs);
   } catch (err) {
