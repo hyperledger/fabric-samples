@@ -52,7 +52,7 @@ export const getGateway = async (): Promise<Gateway> => {
     eventHandlerOptions: {
       commitTimeout: config.commitTimeout,
       endorseTimeout: config.endorseTimeout,
-      strategy: DefaultEventHandlerStrategies.NONE,
+      strategy: DefaultEventHandlerStrategies.PREFER_MSPID_SCOPE_ANYFORTX,
     },
     queryHandlerOptions: {
       timeout: 3,
@@ -149,7 +149,7 @@ export const submitTransaction = async (
     // Store the transaction details and set the event handler in case there
     // are problems later with commiting the transaction
     await storeTransactionDetails(redis, txnId, txnState, txnArgs, timestamp);
-
+    txn.setEventHandler(DefaultEventHandlerStrategies.NONE);
     await txn.submit(...transactionArgs);
   } catch (err) {
     // If the transaction failed to endorse, there is no point attempting
