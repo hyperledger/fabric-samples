@@ -1,79 +1,31 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
-
 plugins {
-    id 'com.github.johnrengelman.shadow' version '5.1.0'
-    id 'application'
-    id 'checkstyle'
-    id 'jacoco'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'java'
 }
 
-group 'org.hyperledger.fabric.samples'
-version '1.0-SNAPSHOT'
+version '0.0.1'
 
-dependencies {
-    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.2.0'
-    implementation 'com.owlike:genson:1.6'
-    implementation 'com.google.code.gson:gson:2.8.7'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.8.9'
-    implementation 'io.vertx:vertx-core:3.5.3'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
-    testImplementation 'org.assertj:assertj-core:3.11.1'
-    testImplementation 'org.mockito:mockito-core:2.+'
-}
+sourceCompatibility = 1.8
 
 repositories {
-    maven {
-        url "https://hyperledger.jfrog.io/hyperledger/fabric-maven"
-    }
-    jcenter()
+    mavenLocal()
+    mavenCentral()
     maven {
         url 'https://jitpack.io'
     }
 }
 
-application {
-    mainClass = 'org.hyperledger.fabric.contract.ContractRouter'
+dependencies {
+    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.2.0'
+    implementation 'com.owlike:genson:1.6'
+    implementation 'io.vertx:vertx-core:3.5.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
+    testImplementation 'org.assertj:assertj-core:3.11.1'
+    testImplementation 'org.mockito:mockito-core:2.+'
 }
-
-checkstyle {
-    toolVersion '8.21'
-    configFile file("config/checkstyle/checkstyle.xml")
-}
-
-checkstyleMain {
-    source ='src/main/java'
-}
-
-checkstyleTest {
-    source ='src/test/java'
-}
-
-jacocoTestReport {
-    dependsOn test
-}
-
-jacocoTestCoverageVerification {
-    violationRules {
-        rule {
-            limit {
-                minimum = 0.9
-            }
-        }
-    }
-
-    finalizedBy jacocoTestReport
-}
-
-test {
-    useJUnitPlatform()
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-}
-
-mainClassName = 'org.hyperledger.fabric.contract.ContractRouter'
 
 shadowJar {
     baseName = 'chaincode'
@@ -85,5 +37,14 @@ shadowJar {
     }
 }
 
-check.dependsOn jacocoTestCoverageVerification
-installDist.dependsOn check
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+
+tasks.withType(JavaCompile) {
+  options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-parameters"
+}
