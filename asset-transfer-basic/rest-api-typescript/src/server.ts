@@ -22,7 +22,7 @@ const {
   SERVICE_UNAVAILABLE,
 } = StatusCodes;
 
-import { fabricAPIKeyStrategy } from './auth';
+import { authenticateApiKey, fabricAPIKeyStrategy } from './auth';
 import passport from 'passport';
 export const createServer = async (): Promise<Application> => {
   const app = express();
@@ -98,16 +98,8 @@ export const createServer = async (): Promise<Application> => {
     throw new Error('Example error');
   });
 
-  app.use(
-    '/api/assets',
-    passport.authenticate('headerapikey', { session: false }),
-    assetsRouter
-  );
-  app.use(
-    '/api/transactions',
-    passport.authenticate('headerapikey', { session: false }),
-    transactionsRouter
-  );
+  app.use('/api/assets', authenticateApiKey, assetsRouter);
+  app.use('/api/transactions', authenticateApiKey, transactionsRouter);
 
   // For everything else
   app.use((_req, res) =>
