@@ -4,18 +4,23 @@
 @port = 3000
 @baseUrl = http://{{hostname}}:{{port}}/api
 
-### Get all assets
+//Get the apikey from .env file 
+@api-key= Api-Key 295069C9-ABF5-4D2A-A020-2FF9F4E8DF07
 
+### Get all assets
 GET {{baseUrl}}/assets HTTP/1.1
+api-key: {{api-key}}
 
 ### Check if asset exists
 
 OPTIONS {{baseUrl}}/assets/asset7 HTTP/1.1
+api-key: {{api-key}}
 
 ### Create asset
 
 POST {{baseUrl}}/assets HTTP/1.1
 content-type: application/json
+api-key: {{api-key}}
 
 {
     "id": "asset7",
@@ -28,15 +33,18 @@ content-type: application/json
 ### Read transaction status
 
 GET {{baseUrl}}/transactions/__transaction_id__ HTTP/1.1
+api-key: {{api-key}}
 
 ### Read asset
 
 GET {{baseUrl}}/assets/asset7 HTTP/1.1
+api-key: {{api-key}}
 
 ### Update asset
 
 PUT {{baseUrl}}/assets/asset7 HTTP/1.1
 content-type: application/json
+api-key: {{api-key}}
 
 {
     "id": "asset7",
@@ -50,6 +58,7 @@ content-type: application/json
 
 PATCH {{baseUrl}}/assets/asset7 HTTP/1.1
 content-type: application/json
+api-key: {{api-key}}
 
 [
     {
@@ -62,3 +71,4 @@ content-type: application/json
 ### Delete asset
 
 DELETE {{baseUrl}}/assets/asset7 HTTP/1.1
+api-key: {{api-key}}

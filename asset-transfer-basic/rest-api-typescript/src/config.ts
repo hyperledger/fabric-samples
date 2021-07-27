@@ -97,3 +97,9 @@ export const redisUsername = env
   .asString();
 
 export const redisPassword = env.get('REDIS_PASSWORD').asString();
+
+export const org1ApiKey = env
+  .get('ORG1_APIKEY')
+  .required()
+  .example('123')
+  .asString();

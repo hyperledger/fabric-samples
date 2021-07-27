@@ -22,6 +22,8 @@ const {
   SERVICE_UNAVAILABLE,
 } = StatusCodes;
 
+import { fabricAPIKeyStrategy } from './auth';
+import passport from 'passport';
 export const createServer = async (): Promise<Application> => {
   const app = express();
 
@@ -47,6 +49,12 @@ export const createServer = async (): Promise<Application> => {
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  //define passport startegy
+  passport.use(fabricAPIKeyStrategy);
+
+  //initialize passport js
+  app.use(passport.initialize());
 
   if (process.env.NODE_ENV === 'development') {
     // TBC
@@ -90,8 +98,16 @@ export const createServer = async (): Promise<Application> => {
     throw new Error('Example error');
   });
 
-  app.use('/api/assets', assetsRouter);
-  app.use('/api/transactions', transactionsRouter);
+  app.use(
+    '/api/assets',
+    passport.authenticate('headerapikey', { session: false }),
+    assetsRouter
+  );
+  app.use(
+    '/api/transactions',
+    passport.authenticate('headerapikey', { session: false }),
+    transactionsRouter
+  );
 
   // For everything else
   app.use((_req, res) =>

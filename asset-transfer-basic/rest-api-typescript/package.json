@@ -12,6 +12,8 @@
     "helmet": "^4.6.0",
     "http-status-codes": "^2.1.4",
     "ioredis": "^4.27.6",
+    "passport": "^0.4.1",
+    "passport-headerapikey": "^1.2.2",
     "pino": "^6.11.3",
     "pino-http": "^5.5.0",
     "source-map-support": "^0.5.19"
@@ -20,6 +22,7 @@
     "@types/express": "^4.17.12",
     "@types/ioredis": "^4.26.4",
     "@types/node": "^15.12.4",
+    "@types/passport": "^1.0.7",
     "@types/pino": "^6.3.8",
     "@types/pino-http": "^5.4.1",
     "@typescript-eslint/eslint-plugin": "^4.28.0",

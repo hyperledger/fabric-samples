@@ -65,35 +65,35 @@ curl --include --request OPTIONS http://localhost:3000/api/assets/asset7
 ### Create an asset...
 
 ```shell
-curl --include --header "Content-Type: application/json" --request POST --data '{"id":"asset7","color":"red","size":42,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets
+curl --include --header "Content-Type: application/json" --header "api-key:Api-Key <apikeyfororg>" --request POST --data '{"id":"asset7","color":"red","size":42,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets
 ```
 
 ### Read transaction status...
 
 ```shell
-curl http://localhost:3000/api/transactions/__transaction_id__
+curl --header "api-key:Api-Key <apikeyfororg>" http://localhost:3000/api/transactions/__transaction_id__
 ```
 
 ### Read an asset...
 
 ```shell
-curl http://localhost:3000/api/assets/asset7
+curl --header "api-key:Api-Key <apikeyfororg>" http://localhost:3000/api/assets/asset7
 ```
 
 ### Update an asset...
 
 ```shell
-curl --include --header "Content-Type: application/json" --request PUT --data '{"id":"asset7","color":"red","size":11,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets/asset7
+curl --include --header "Content-Type: application/json" --header "api-key:Api-Key <apikeyfororg>" --request PUT --data '{"id":"asset7","color":"red","size":11,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets/asset7
 ```
 
 ### Transfer an asset...
 
 ```shell
-curl --include --header "Content-Type: application/json" --request PATCH --data '[{"op":"replace","path":"/owner","value":"Ashleigh"}]' http://localhost:3000/api/assets/asset7
+curl --include --header "Content-Type: application/json" --header "api-key:Api-Key <apikeyfororg>" --request PATCH --data '[{"op":"replace","path":"/owner","value":"Ashleigh"}]' http://localhost:3000/api/assets/asset7
 ```
 
 ### Delete an asset...
 
 ```shell
-curl --include --request DELETE http://localhost:3000/api/assets/asset7
+curl --include --header "api-key:Api-Key <apikeyfororg>" --request DELETE http://localhost:3000/api/assets/asset7
 ```
