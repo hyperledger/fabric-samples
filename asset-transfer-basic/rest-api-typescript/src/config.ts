@@ -27,12 +27,19 @@ export const asLocalHost = env
   .example('true')
   .asBoolStrict();
 
-export const identityName = 'restServerIdentity';
+export const identityNameOrg1 = 'Org1';
+export const identityNameOrg2 = 'Org2';
 
-export const mspId = env
-  .get('HLF_MSP_ID')
+const mspIdOrg1 = env
+  .get('HLF_MSP_ID_ORG1')
   .default('Org1MSP')
   .example('Org1MSP')
+  .asString();
+
+const mspIdOrg2 = env
+  .get('HLF_MSP_ID_ORG2')
+  .default('Org2MSP')
+  .example('Org2MSP')
   .asString();
 
 export const channelName = env
@@ -59,22 +66,42 @@ export const endorseTimeout = env
   .example('30')
   .asIntPositive();
 
-export const connectionProfile = env
-  .get('HLF_CONNECTION_PROFILE')
+const connectionProfileOrg1 = env
+  .get('HLF_CONNECTION_PROFILE_ORG1')
   .required()
   .example(
     '{"name":"test-network-org1","version":"1.0.0","client":{"organization":"Org1" ... }'
   )
   .asJsonObject();
 
-export const certificate = env
-  .get('HLF_CERTIFICATE')
+const certificateOrg1 = env
+  .get('HLF_CERTIFICATE_ORG1')
   .required()
   .example('"-----BEGIN CERTIFICATE-----\\n...\\n-----END CERTIFICATE-----\\n"')
   .asString();
 
-export const privateKey = env
-  .get('HLF_PRIVATE_KEY')
+const privateKeyOrg1 = env
+  .get('HLF_PRIVATE_KEY_ORG1')
+  .required()
+  .example('"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"')
+  .asString();
+
+const connectionProfileOrg2 = env
+  .get('HLF_CONNECTION_PROFILE_ORG2')
+  .required()
+  .example(
+    '{"name":"test-network-org2","version":"1.0.0","client":{"organization":"Org2" ... }'
+  )
+  .asJsonObject();
+
+const certificateOrg2 = env
+  .get('HLF_CERTIFICATE_ORG2')
+  .required()
+  .example('"-----BEGIN CERTIFICATE-----\\n...\\n-----END CERTIFICATE-----\\n"')
+  .asString();
+
+const privateKeyOrg2 = env
+  .get('HLF_PRIVATE_KEY_ORG2')
   .required()
   .example('"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"')
   .asString();
@@ -103,3 +130,25 @@ export const org1ApiKey = env
   .required()
   .example('123')
   .asString();
+
+export const org2ApiKey = env
+  .get('ORG2_APIKEY')
+  .required()
+  .example('456')
+  .asString();
+
+export const ORG1_CONFIG = {
+  identityName: identityNameOrg1,
+  mspId: mspIdOrg1,
+  connectionProfile: connectionProfileOrg1,
+  certificate: certificateOrg1,
+  privateKey: privateKeyOrg1,
+};
+
+export const ORG2_CONFIG = {
+  identityName: identityNameOrg2,
+  mspId: mspIdOrg2,
+  connectionProfile: connectionProfileOrg2,
+  certificate: certificateOrg2,
+  privateKey: privateKeyOrg2,
+};

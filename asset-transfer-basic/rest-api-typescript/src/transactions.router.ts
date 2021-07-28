@@ -7,7 +7,7 @@ import { Contract } from 'fabric-network';
 import { protos } from 'fabric-protos';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import { Redis } from 'ioredis';
-import { evatuateTransaction } from './fabric';
+import { evatuateTransaction, getContractForOrg } from './fabric';
 import { logger } from './logger';
 import * as config from './config';
 import { TransactionNotFoundError } from './errors';
@@ -28,7 +28,7 @@ transactionsRouter.get(
     let progress: Progress = 'DONE';
     let validationCode = '';
 
-    const qscc: Contract = req.app.get('contracts').qscc;
+    const qscc: Contract = getContractForOrg(req).qscc;
     const redis: Redis = req.app.get('redis');
 
     try {

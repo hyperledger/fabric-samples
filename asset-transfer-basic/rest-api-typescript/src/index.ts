@@ -12,9 +12,11 @@ import { createServer } from './server';
 async function main() {
   const app = await createServer();
 
-  const contract: Contract = app.get('contracts').contract;
+  const contract: Contract =
+    app.get('fabric')[config.identityNameOrg1].contracts.contract;
   const redis: Redis = app.get('redis');
-  const network: Network = app.get('network');
+  const network: Network = app.get('fabric')[config.identityNameOrg1].network;
+
   await network.addBlockListener(blockEventHandler(redis));
   startRetryLoop(contract, redis);
 

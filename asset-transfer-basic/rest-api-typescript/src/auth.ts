@@ -21,12 +21,13 @@ export const fabricAPIKeyStrategy: HeaderAPIKeyStrategy =
         org: '',
       };
       if (apikey === config.org1ApiKey) {
-        user.org = 'Org1';
+        user.org = config.identityNameOrg1;
         logger.debug('Organisation set to Org1');
         done(null, user);
-
-        //todo
-        //add org2 apikey check
+      } else if (apikey === config.org2ApiKey) {
+        user.org = config.identityNameOrg2;
+        logger.info('Organisation set to Org2');
+        done(null, user);
       } else {
         logger.debug({ apikey }, 'No valid X-API-Key');
         return done(null, false);
@@ -42,7 +43,8 @@ export const authenticateApiKey = (
   passport.authenticate(
     'headerapikey',
     { session: false },
-    function (err, user, _info) {
+    (err, user, _info) => {
+      logger.debug({ user }, 'USERUSERUSER');
       if (err) return next(err);
       if (!user)
         return res.status(UNAUTHORIZED).json({
@@ -50,7 +52,8 @@ export const authenticateApiKey = (
           reason: 'NO_VALID_APIKEY',
           timestamp: new Date().toISOString(),
         });
-      req.logIn(user, { session: false }, (err) => {
+
+      req.logIn(user, { session: false }, async (err) => {
         if (err) {
           return next(err);
         }

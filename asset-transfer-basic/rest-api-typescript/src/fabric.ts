@@ -14,6 +14,7 @@ import {
   BlockEvent,
   TransactionEvent,
 } from 'fabric-network';
+import { Request } from 'express';
 import { Redis } from 'ioredis';
 import * as config from './config';
 import { logger } from './logger';
@@ -31,24 +32,39 @@ export const getNetwork = async (gateway: Gateway): Promise<Network> => {
   return network;
 };
 
-export const getGateway = async (): Promise<Gateway> => {
+interface FabricConfigType {
+  identityName: string;
+  mspId: string;
+  connectionProfile: { [key: string]: any };
+  certificate: string;
+  privateKey: string;
+}
+
+const FabricDataMapper: { [key: string]: FabricConfigType } = {
+  [config.identityNameOrg1]: config.ORG1_CONFIG,
+  [config.identityNameOrg2]: config.ORG2_CONFIG,
+};
+
+export const getGateway = async (org: string): Promise<Gateway> => {
+  const fabricConfig = FabricDataMapper[org];
+  logger.debug('Configuring fabric gateway for %s', org);
   const wallet = await Wallets.newInMemoryWallet();
 
   const x509Identity = {
     credentials: {
-      certificate: config.certificate,
-      privateKey: config.privateKey,
+      certificate: fabricConfig.certificate,
+      privateKey: fabricConfig.privateKey,
     },
-    mspId: config.mspId,
+    mspId: fabricConfig.mspId,
     type: 'X.509',
   };
-  await wallet.put(config.identityName, x509Identity);
+  await wallet.put(fabricConfig.identityName, x509Identity);
 
   const gateway = new Gateway();
 
   const connectOptions: GatewayOptions = {
     wallet,
-    identity: config.identityName,
+    identity: fabricConfig.identityName,
     discovery: { enabled: true, asLocalhost: config.asLocalHost },
     eventHandlerOptions: {
       commitTimeout: config.commitTimeout,
@@ -61,8 +77,7 @@ export const getGateway = async (): Promise<Gateway> => {
     },
   };
 
-  await gateway.connect(config.connectionProfile, connectOptions);
-
+  await gateway.connect(fabricConfig.connectionProfile, connectOptions);
   return gateway;
 };
 
@@ -305,4 +320,11 @@ export const getChainInfo = async (qscc: Contract): Promise<boolean> => {
     logger.error(e, 'Unable to get blockchain info');
     return false;
   }
+};
+
+export const getContractForOrg = (
+  req: Request
+): { contract: Contract; qscc: Contract } => {
+  const user: { org: string } = req.user as { org: string };
+  return req.app.get('fabric')[user.org as string].contracts;
 };
