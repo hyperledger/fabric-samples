@@ -7,6 +7,7 @@ export const logLevel = 'info';
 export const port = '3000';
 
 export const retryDelay = '3000';
+export const maxRetryCount = 5;
 
 export const asLocalHost = true;
 
@@ -46,7 +47,7 @@ export const redisHost = 'localhost';
 
 export const redisPort = '6379';
 
-export const redisUsername = 'conga';
+export const redisUsername = '';
 
 export const redisPassword = '';
 

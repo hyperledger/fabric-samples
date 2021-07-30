@@ -18,7 +18,11 @@ import { Request } from 'express';
 import { Redis } from 'ioredis';
 import * as config from './config';
 import { logger } from './logger';
-import { storeTransactionDetails, clearTransactionDetails } from './redis';
+import {
+  storeTransactionDetails,
+  clearTransactionDetails,
+  incrementRetryCount,
+} from './redis';
 import {
   AssetExistsError,
   AssetNotFoundError,
@@ -251,12 +255,12 @@ const handleError = (transactionId: string, err: Error): Error => {
   return new TransactionError('Transaction error', transactionId);
 };
 
-const retryTransaction = async (
+export const retryTransaction = async (
   contract: Contract,
   redis: Redis,
   transactionId: string,
   savedTransaction: Record<string, string>
-) => {
+): Promise<void> => {
   logger.debug('Retrying transaction %s', transactionId);
 
   try {
@@ -279,7 +283,11 @@ const retryTransaction = async (
         savedTransaction.retries,
         transactionId
       );
-      await (redis as Redis).hincrby(`txn:${transactionId}`, 'retries', 1);
+      if (parseInt(savedTransaction.retries) < config.maxRetryCount) {
+        await incrementRetryCount(redis, transactionId);
+      } else {
+        await clearTransactionDetails(redis, transactionId);
+      }
     }
   }
 };

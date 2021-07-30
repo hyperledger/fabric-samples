@@ -21,6 +21,12 @@ export const retryDelay = env
   .example('3000')
   .asIntPositive();
 
+  export const maxRetryCount = env
+  .get('MAX_RETRY_COUNT')
+  .default('5')
+  .example('5')
+  .asIntPositive();
+
 export const asLocalHost = env
   .get('AS_LOCAL_HOST')
   .default('true')

@@ -70,3 +70,20 @@ export const clearTransactionDetails = async (
 };
 
 // TODO add getTransaction etc. helpers?
+
+export const incrementRetryCount = async (
+  redis: Redis,
+  transactionId: string
+): Promise<void> => {
+  const key = `txn:${transactionId}`;
+  logger.debug('Incrementing retries fortransaction Key: %s', key);
+  try {
+    await (redis as Redis).hincrby(`txn:${transactionId}`, 'retries', 1);
+  } catch (err) {
+    logger.error(
+      err,
+      'Error incrementing retries for transaction ID %s',
+      transactionId
+    );
+  }
+};

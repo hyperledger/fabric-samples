@@ -32,10 +32,22 @@ mocked(Gateway.prototype.getNetwork).mockResolvedValue({
   addBlockListener: jest.fn(),
   removeBlockListener: jest.fn(),
 });
+const getMockedNetwork = (getContract = jest.fn()) => {
+  return mocked(Gateway.prototype.getNetwork).mockResolvedValue({
+    getGateway: jest.fn(),
+    getContract,
+    getChannel: jest.fn(),
+    addCommitListener: jest.fn(),
+    removeCommitListener: jest.fn(),
+    addBlockListener: jest.fn(),
+    removeBlockListener: jest.fn(),
+  });
+};
 
 export {
   DefaultEventHandlerStrategies,
   DefaultQueryHandlerStrategies,
   Gateway,
   Wallets,
+  getMockedNetwork,
 };
