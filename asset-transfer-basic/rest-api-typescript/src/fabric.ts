@@ -29,7 +29,7 @@ import {
   TransactionError,
   TransactionNotFoundError,
 } from './errors';
-import fabproto6 from 'fabric-protos';
+import protos from 'fabric-protos';
 
 export const getNetwork = async (gateway: Gateway): Promise<Network> => {
   const network = await gateway.getNetwork(config.channelName);
@@ -169,7 +169,9 @@ export const evatuateTransaction = async (
   const txnId = txn.getTransactionId();
 
   try {
-    return await txn.evaluate(...transactionArgs);
+    const payload = await txn.evaluate(...transactionArgs);
+    logger.debug({ payload }, 'Evaluate transaction response received');
+    return payload;
   } catch (err) {
     throw handleError(txnId, err);
   }
@@ -338,7 +340,7 @@ export const getChainInfo = async (qscc: Contract): Promise<boolean> => {
       'GetChainInfo',
       config.channelName
     );
-    const info = fabproto6.common.BlockchainInfo.decode(data);
+    const info = protos.common.BlockchainInfo.decode(data);
     const blockHeight = info.height.toString();
     logger.info('Current block height: %s', blockHeight);
     return true;

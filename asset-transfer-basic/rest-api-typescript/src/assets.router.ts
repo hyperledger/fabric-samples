@@ -40,7 +40,10 @@ assetsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const contract: Contract = getContractForOrg(req).contract;
     const data = await evatuateTransaction(contract, 'GetAllAssets');
-    const assets = JSON.parse(data.toString());
+    let assets = [];
+    if (data.length > 0) {
+      assets = JSON.parse(data.toString());
+    }
 
     return res.status(OK).json(assets);
   } catch (err) {
