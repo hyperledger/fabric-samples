@@ -1,0 +1,26 @@
+version: '3'
+# Replace network name with the fabric test-network name 
+services:
+  redis: 
+    image: 'redis'
+    ports:
+      - 6379:6379
+    networks:
+      - net_test
+  
+  nodeapp:
+    image: 'fabricapp'   
+    ports:
+        - 3000:3000
+    env_file:
+        - ./.env
+    environment:
+        - REDIS_HOST=redis
+        - AS_LOCAL_HOST=false
+    networks:
+        - net_test
+
+
+networks:
+  net_test:
+    external: true 

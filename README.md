@@ -105,3 +105,22 @@ curl --include --header "Content-Type: application/json" --header "X-Api-Key: ${
 ```shell
 curl --include --header "X-Api-Key: ${SAMPLE_APIKEY}" --request DELETE http://localhost:3000/api/assets/asset7
 ```
+## Steps to run the application using docker:
+
+Move to directory fabric-rest-sample/asset-transfer-basic/rest-api-typescript
+
+### Build docker image 
+    docker build -t fabricapp .
+
+### Generate .env file 
+    TEST_NETWORK_HOME=$HOME/fabric-samples/test-network ./scripts/generateEnv.sh 
+
+    Note: Connection profile need to use the peer container’s hostname instead of localhost. 
+    
+### Run docker containers 
+    docker-compose up -d 
+
+
+
+
+
