@@ -13,7 +13,7 @@ export const port = env
   .get('PORT')
   .default('3000')
   .example('3000')
-  .asIntPositive();
+  .asPortNumber();
 
 export const retryDelay = env
   .get('RETRY_DELAY')
@@ -123,7 +123,7 @@ export const redisPort = env
   .get('REDIS_PORT')
   .default('6379')
   .example('6379')
-  .asIntPositive();
+  .asPortNumber();
 
 export const redisUsername = env
   .get('REDIS_USERNAME')
