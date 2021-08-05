@@ -21,7 +21,7 @@ export const retryDelay = env
   .example('3000')
   .asIntPositive();
 
-  export const maxRetryCount = env
+export const maxRetryCount = env
   .get('MAX_RETRY_COUNT')
   .default('5')
   .example('5')

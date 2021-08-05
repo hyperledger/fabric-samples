@@ -10,7 +10,6 @@ import * as redis from '../redis';
  */
 jest.mock('../config');
 
-
 describe('Testing retryTransaction', () => {
   let contract: any = null;
   const transaction = {
@@ -20,17 +19,15 @@ describe('Testing retryTransaction', () => {
     deserializeTransaction: jest.fn().mockReturnValue(transaction),
   };
   beforeAll(async () => {
-    const rejectableGetContract = jest.fn().mockImplementation(
-      () =>
-        mockedContact
-    );
+    const rejectableGetContract = jest
+      .fn()
+      .mockImplementation(() => mockedContact);
 
     const network = getMockedNetwork(rejectableGetContract)('');
     contract = (await network).getContract('');
-
   });
 
-  describe('Check retry condition  ', () => {
+  describe('Check retry increment  ', () => {
     const transactionId =
       '0ae62c01e4c4b112c3f3954a2f11243da76778e46df9ad2783bcbafc79652b95';
     const key = `txn:${transactionId}`;
@@ -66,7 +63,7 @@ describe('Testing retryTransaction', () => {
         }
       );
     });
-    it('Transaction should exist if  retry count is less then max rety count', async () => {
+    it('retry count should incremnt to 4', async () => {
       savedTransaction.retries = '3';
       data = { [key]: savedTransaction };
       await retryTransaction(
@@ -81,17 +78,6 @@ describe('Testing retryTransaction', () => {
         retries: '4',
         args: args,
       });
-    });
-    it('Clear transaction once retry reaches max retry count ', async () => {
-      savedTransaction.retries = '5';
-      data = { [key]: savedTransaction };
-      await retryTransaction(
-        contract,
-        redis.redis,
-        transactionId,
-        savedTransaction
-      );
-      expect(data[key]).toBe(undefined);
     });
   });
 });

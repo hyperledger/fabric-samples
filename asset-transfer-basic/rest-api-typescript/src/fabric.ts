@@ -136,13 +136,16 @@ export const startRetryLoop = (contract: Contract, redis: Redis): void => {
           const savedTransaction = await (redis as Redis).hgetall(
             `txn:${transactionId}`
           );
-
-          await retryTransaction(
-            contract,
-            redis,
-            transactionId,
-            savedTransaction
-          );
+          if (parseInt(savedTransaction.retries) >= config.maxRetryCount) {
+            await clearTransactionDetails(redis, transactionId);
+          } else {
+            await retryTransaction(
+              contract,
+              redis,
+              transactionId,
+              savedTransaction
+            );
+          }
         }
       } catch (err) {
         // TODO just log?
@@ -283,11 +286,7 @@ export const retryTransaction = async (
         savedTransaction.retries,
         transactionId
       );
-      if (parseInt(savedTransaction.retries) < config.maxRetryCount) {
-        await incrementRetryCount(redis, transactionId);
-      } else {
-        await clearTransactionDetails(redis, transactionId);
-      }
+      await incrementRetryCount(redis, transactionId);
     }
   }
 };
