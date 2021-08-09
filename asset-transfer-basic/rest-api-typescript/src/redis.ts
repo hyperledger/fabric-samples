@@ -23,29 +23,40 @@ export const storeTransactionDetails = async (
   transactionArgs: string,
   timestamp: number
 ): Promise<void> => {
-  const key = `txn:${transactionId}`;
-  logger.debug(
-    'Storing transaction details. Key: %s State: %s Args: %s Timestamp: %d',
-    key,
-    transactionState,
-    transactionArgs,
-    timestamp
-  );
-  await redis
-    .multi()
-    .hset(
+  try {
+    if (transactionId.length === 0) {
+      throw new Error('Empty transaction Id found');
+    }
+    const key = `txn:${transactionId}`;
+    logger.debug(
+      'Storing transaction details. Key: %s State: %s Args: %s Timestamp: %d',
       key,
-      'state',
       transactionState,
-      'args',
       transactionArgs,
-      'timestamp',
-      timestamp,
-      'retries',
-      '0'
-    )
-    .zadd('index:txn:timestamp', timestamp, transactionId)
-    .exec();
+      timestamp
+    );
+    await redis
+      .multi()
+      .hset(
+        key,
+        'state',
+        transactionState,
+        'args',
+        transactionArgs,
+        'timestamp',
+        timestamp,
+        'retries',
+        '0'
+      )
+      .zadd('index:txn:timestamp', timestamp, transactionId)
+      .exec();
+  } catch (err) {
+    logger.error(
+      err,
+      'Error storing transaction details. ID %s',
+      transactionId
+    );
+  }
 };
 
 export const clearTransactionDetails = async (
@@ -78,6 +89,9 @@ export const incrementRetryCount = async (
   const key = `txn:${transactionId}`;
   logger.debug('Incrementing retries fortransaction Key: %s', key);
   try {
+    if (transactionId.length === 0) {
+      throw new Error('Empty transaction Id found');
+    }
     await (redis as Redis).hincrby(`txn:${transactionId}`, 'retries', 1);
   } catch (err) {
     logger.error(

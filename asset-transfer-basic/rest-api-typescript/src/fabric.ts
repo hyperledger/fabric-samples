@@ -67,6 +67,9 @@ const FabricDataMapper: { [key: string]: FabricConfigType } = {
 
 export const getGateway = async (org: string): Promise<Gateway> => {
   const fabricConfig = FabricDataMapper[org];
+  if (fabricConfig == undefined) {
+    throw new Error('Invalid org name for gateway');
+  }
   logger.debug('Configuring fabric gateway for %s', org);
   const wallet = await Wallets.newInMemoryWallet();
 
@@ -78,8 +81,8 @@ export const getGateway = async (org: string): Promise<Gateway> => {
     mspId: fabricConfig.mspId,
     type: 'X.509',
   };
-  await wallet.put(fabricConfig.identityName, x509Identity);
 
+  await wallet.put(fabricConfig.identityName, x509Identity);
   const gateway = new Gateway();
 
   const connectOptions: GatewayOptions = {
