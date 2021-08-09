@@ -6,7 +6,6 @@ import { createServer } from '../server';
 import { Application } from 'express';
 import request from 'supertest';
 
-jest.mock('../config');
 jest.mock('fabric-network');
 jest.mock('ioredis');
 

@@ -190,3 +190,19 @@ export default {
   // Whether to use watchman for file crawling
   // watchman: true,
 };
+
+// Required environment variable values for the config.ts file
+process.env = Object.assign(process.env, {
+  HLF_CONNECTION_PROFILE_ORG1: '{"name":"mock-profile-org1"}',
+  HLF_CERTIFICATE_ORG1:
+    '"-----BEGIN CERTIFICATE-----\\nMOCK\\n-----END CERTIFICATE-----\\n"',
+  HLF_PRIVATE_KEY_ORG1:
+    '"-----BEGIN PRIVATE KEY-----\\nMOCK\\n-----END PRIVATE KEY-----\\n"',
+  HLF_CONNECTION_PROFILE_ORG2: '{"name":"mock-profile-org2"}',
+  HLF_CERTIFICATE_ORG2:
+    '"-----BEGIN CERTIFICATE-----\\nMOCK\\n-----END CERTIFICATE-----\\n"',
+  HLF_PRIVATE_KEY_ORG2:
+    '"-----BEGIN PRIVATE KEY-----\\nMOCK\\n-----END PRIVATE KEY-----\\n"',
+  ORG1_APIKEY: 'ORG1MOCKAPIKEY',
+  ORG2_APIKEY: 'ORG2MOCKAPIKEY',
+});

@@ -85,14 +85,14 @@ export const getGateway = async (org: string): Promise<Gateway> => {
   const connectOptions: GatewayOptions = {
     wallet,
     identity: fabricConfig.identityName,
-    discovery: { enabled: true, asLocalhost: config.asLocalHost },
+    discovery: { enabled: true, asLocalhost: config.asLocalhost },
     eventHandlerOptions: {
       commitTimeout: config.commitTimeout,
       endorseTimeout: config.endorseTimeout,
       strategy: DefaultEventHandlerStrategies.PREFER_MSPID_SCOPE_ANYFORTX,
     },
     queryHandlerOptions: {
-      timeout: 3,
+      timeout: config.queryTimeout,
       strategy: DefaultQueryHandlerStrategies.PREFER_MSPID_SCOPE_ROUND_ROBIN,
     },
   };
