@@ -91,3 +91,4 @@ public final class Asset {
                 + color + ", size=" + size + ", owner=" + owner + ", appraisedValue=" + appraisedValue + "]";
     }
 }
+
