@@ -19,6 +19,7 @@ public class CommercialPaper extends State {
     public final static String ISSUED = "ISSUED";
     public final static String TRADING = "TRADING";
     public final static String REDEEMED = "REDEEMED";
+    public final static String[] STATES = new String[] {ISSUED, TRADING, REDEEMED};
 
     @Property()
     private String state="";
@@ -162,7 +163,8 @@ public class CommercialPaper extends State {
         String maturityDateTime = json.getString("maturityDateTime");
         String owner = json.getString("owner");
         int faceValue = json.getInt("faceValue");
-        String state = json.getString("state");
+        int currentState = json.getInt("currentState");
+        String state = STATES[currentState-1];
         return createInstance(issuer, paperNumber, issueDateTime, maturityDateTime, faceValue, owner, state);
     }
 
