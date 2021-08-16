@@ -17,16 +17,13 @@ export const fabricAPIKeyStrategy: HeaderAPIKeyStrategy =
     false,
     function (apikey, done) {
       logger.debug({ apikey }, 'Checking X-API-Key');
-      const user: { org: string } = {
-        org: '',
-      };
       if (apikey === config.org1ApiKey) {
-        user.org = config.identityNameOrg1;
-        logger.debug('Organisation set to Org1');
+        const user = config.mspIdOrg1;
+        logger.debug('User set to %s', user);
         done(null, user);
       } else if (apikey === config.org2ApiKey) {
-        user.org = config.identityNameOrg2;
-        logger.info('Organisation set to Org2');
+        const user = config.mspIdOrg2;
+        logger.debug('User set to %s', user);
         done(null, user);
       } else {
         logger.debug({ apikey }, 'No valid X-API-Key');
@@ -44,7 +41,6 @@ export const authenticateApiKey = (
     'headerapikey',
     { session: false },
     (err, user, _info) => {
-      logger.debug({ user }, 'USERUSERUSER');
       if (err) return next(err);
       if (!user)
         return res.status(UNAUTHORIZED).json({

@@ -12,10 +12,11 @@ import { createServer } from './server';
 async function main() {
   const app = await createServer();
 
-  const contract: Contract =
-    app.get('fabric')[config.identityNameOrg1].contracts.contract;
-  const redis: Redis = app.get('redis');
-  const network: Network = app.get('fabric')[config.identityNameOrg1].network;
+  // TODO block listener and retry logic currently only handles a single org!!!
+  // TODO should these be initialised here?
+  const contract = app.get(config.mspIdOrg1).assetContract as Contract;
+  const redis = app.get('redis') as Redis;
+  const network = app.get('networkOrg1') as Network;
 
   await network.addBlockListener(blockEventHandler(redis));
   startRetryLoop(contract, redis);

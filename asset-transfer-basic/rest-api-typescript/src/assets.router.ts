@@ -16,11 +16,7 @@ import { Contract } from 'fabric-network';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import { Redis } from 'ioredis';
 import { AssetExistsError, AssetNotFoundError } from './errors';
-import {
-  evatuateTransaction,
-  submitTransaction,
-  getContractForOrg,
-} from './fabric';
+import { evatuateTransaction, submitTransaction } from './fabric';
 import { logger } from './logger';
 
 const {
@@ -38,7 +34,9 @@ assetsRouter.get('/', async (req: Request, res: Response) => {
   logger.debug('Get all assets request received');
 
   try {
-    const contract: Contract = getContractForOrg(req).contract;
+    const mspId = req.user as string;
+    const contract = req.app.get(mspId).assetContract as Contract;
+
     const data = await evatuateTransaction(contract, 'GetAllAssets');
     let assets = [];
     if (data.length > 0) {
@@ -77,8 +75,9 @@ assetsRouter.post(
       });
     }
 
-    const contract: Contract = getContractForOrg(req).contract;
-    const redis: Redis = req.app.get('redis');
+    const mspId = req.user as string;
+    const contract = req.app.get(mspId).assetContract as Contract;
+    const redis = req.app.get('redis') as Redis;
     const assetId = req.body.id;
 
     try {
@@ -128,7 +127,8 @@ assetsRouter.options('/:assetId', async (req: Request, res: Response) => {
   logger.debug('Asset options request received for asset ID %s', assetId);
 
   try {
-    const contract: Contract = getContractForOrg(req).contract;
+    const mspId = req.user as string;
+    const contract = req.app.get(mspId).assetContract as Contract;
 
     const data = await evatuateTransaction(contract, 'AssetExists', assetId);
     const exists = data.toString() === 'true';
@@ -167,7 +167,8 @@ assetsRouter.get('/:assetId', async (req: Request, res: Response) => {
   logger.debug('Read asset request received for asset ID %s', assetId);
 
   try {
-    const contract: Contract = getContractForOrg(req).contract;
+    const mspId = req.user as string;
+    const contract = req.app.get(mspId).assetContract as Contract;
 
     const data = await evatuateTransaction(contract, 'ReadAsset', assetId);
     const asset = JSON.parse(data.toString());
@@ -225,8 +226,9 @@ assetsRouter.put(
       });
     }
 
-    const contract: Contract = getContractForOrg(req).contract;
-    const redis: Redis = req.app.get('redis');
+    const mspId = req.user as string;
+    const contract = req.app.get(mspId).assetContract as Contract;
+    const redis = req.app.get('redis') as Redis;
     const assetId = req.params.assetId;
 
     try {
@@ -294,8 +296,9 @@ assetsRouter.patch(
       });
     }
 
-    const contract: Contract = getContractForOrg(req).contract;
-    const redis: Redis = req.app.get('redis');
+    const mspId = req.user as string;
+    const contract = req.app.get(mspId).assetContract as Contract;
+    const redis = req.app.get('redis') as Redis;
     const assetId = req.params.assetId;
     const newOwner = req.body[0].value;
 
@@ -339,8 +342,9 @@ assetsRouter.patch(
 assetsRouter.delete('/:assetId', async (req: Request, res: Response) => {
   logger.debug(req.body, 'Delete asset request received');
 
-  const contract: Contract = getContractForOrg(req).contract;
-  const redis: Redis = req.app.get('redis');
+  const mspId = req.user as string;
+  const contract = req.app.get(mspId).assetContract as Contract;
+  const redis = req.app.get('redis') as Redis;
   const assetId = req.params.assetId;
 
   try {

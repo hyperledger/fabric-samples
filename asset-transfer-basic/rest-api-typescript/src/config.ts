@@ -50,12 +50,6 @@ export const asLocalhost = env
   .example('true')
   .asBoolStrict();
 
-// TODO delete this and use mspIdOrg1
-export const identityNameOrg1 = 'Org1';
-
-// TODO delete this and use mspIdOrg2
-export const identityNameOrg2 = 'Org2';
-
 /*
  * The Org1 MSP ID
  */
@@ -128,7 +122,7 @@ export const connectionProfileOrg1 = env
   .example(
     '{"name":"test-network-org1","version":"1.0.0","client":{"organization":"Org1" ... }'
   )
-  .asJsonObject();
+  .asJsonObject() as Record<string, unknown>;
 
 /*
  * Certificate for the Org1 identity
@@ -157,7 +151,7 @@ export const connectionProfileOrg2 = env
   .example(
     '{"name":"test-network-org2","version":"1.0.0","client":{"organization":"Org2" ... }'
   )
-  .asJsonObject();
+  .asJsonObject() as Record<string, unknown>;
 
 /*
  * Certificate for the Org2 identity

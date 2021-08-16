@@ -12,10 +12,10 @@ import { assetsRouter } from './assets.router';
 import { transactionsRouter } from './transactions.router';
 import {
   getContracts,
-  getGateway,
   getNetwork,
-  getChainInfo,
-  getContractForOrg,
+  getBlockHeight,
+  createGateway,
+  createWallet,
 } from './fabric';
 import { redis } from './redis';
 import { Contract } from 'fabric-network';
@@ -74,29 +74,29 @@ export const createServer = async (): Promise<Application> => {
   if (process.env.NODE_ENV === 'production') {
     app.use(helmet());
   }
-  //
-  const gatewayOrg1 = await getGateway(config.identityNameOrg1);
-  const gatewayOrg2 = await getGateway(config.identityNameOrg2);
+
+  const wallet = await createWallet();
+
+  const gatewayOrg1 = await createGateway(
+    config.connectionProfileOrg1,
+    config.mspIdOrg1,
+    wallet
+  );
   const networkOrg1 = await getNetwork(gatewayOrg1);
-  const networkOrg2 = await getNetwork(gatewayOrg2);
-
   const contractsOrg1 = await getContracts(networkOrg1);
+  app.set(config.mspIdOrg1, contractsOrg1);
+
+  // TODO used for block listener, which needs fixing!
+  app.set('networkOrg1', networkOrg1);
+
+  const gatewayOrg2 = await createGateway(
+    config.connectionProfileOrg2,
+    config.mspIdOrg2,
+    wallet
+  );
+  const networkOrg2 = await getNetwork(gatewayOrg2);
   const contractsOrg2 = await getContracts(networkOrg2);
-
-  const fabric = {
-    [config.identityNameOrg1]: {
-      gateway: gatewayOrg1,
-      contracts: contractsOrg1,
-      network: networkOrg1,
-    },
-    [config.identityNameOrg2]: {
-      gateway: gatewayOrg2,
-      contracts: contractsOrg2,
-      network: networkOrg2,
-    },
-  };
-
-  app.set('fabric', fabric);
+  app.set(config.mspIdOrg2, contractsOrg2);
 
   app.set('redis', redis);
 
@@ -107,32 +107,27 @@ export const createServer = async (): Promise<Application> => {
       timestamp: new Date().toISOString(),
     })
   );
-  app.get('/live', async (_req, res) => {
-    _req.user = { org: config.identityNameOrg1 };
-    const qsccOrg1: Contract = getContractForOrg(_req).qscc;
-    const Org1Liveness = await getChainInfo(qsccOrg1);
-    logger.debug('Org1 liveness %s', Org1Liveness);
-    _req.user = { org: config.identityNameOrg2 };
-    const qsccOrg2: Contract = getContractForOrg(_req).qscc;
-    const Org2Liveness = await getChainInfo(qsccOrg2);
-    logger.debug('Org2 liveness %s', Org2Liveness);
+  app.get('/live', async (req, res) => {
+    logger.debug(req.body, 'Liveness request received');
 
-    if (Org1Liveness && Org2Liveness) {
-      res.status(OK).json({
-        status: getReasonPhrase(OK),
-        timestamp: new Date().toISOString(),
-      });
-    } else {
+    const qsccOrg1 = req.app.get(config.mspIdOrg1).qsccContract as Contract;
+    const qsccOrg2 = req.app.get(config.mspIdOrg2).qsccContract as Contract;
+
+    try {
+      await Promise.all([getBlockHeight(qsccOrg1), getBlockHeight(qsccOrg2)]);
+    } catch (err) {
+      logger.error(err, 'Error processing liveness request');
+
       res.status(SERVICE_UNAVAILABLE).json({
         status: getReasonPhrase(SERVICE_UNAVAILABLE),
         timestamp: new Date().toISOString(),
       });
     }
-  });
 
-  // TODO delete me
-  app.get('/error', (_req, _res) => {
-    throw new Error('Example error');
+    res.status(OK).json({
+      status: getReasonPhrase(OK),
+      timestamp: new Date().toISOString(),
+    });
   });
 
   app.use('/api/assets', authenticateApiKey, assetsRouter);

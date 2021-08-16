@@ -3,9 +3,13 @@
  */
 
 import { mock } from 'jest-mock-extended';
-import { Contract, Network, Transaction, WalletStore } from 'fabric-network';
+import { Contract, Network, Transaction } from 'fabric-network';
 import { mocked } from 'ts-jest/utils';
 import * as fabricProtos from 'fabric-protos';
+
+const actualFabricNetwork = jest.requireActual('fabric-network');
+const Wallet = actualFabricNetwork.Wallet;
+const Wallets = actualFabricNetwork.Wallets;
 
 const mockAsset1 = {
   ID: 'asset1',
@@ -50,14 +54,7 @@ const {
   DefaultEventHandlerStrategies,
   DefaultQueryHandlerStrategies,
   Gateway,
-  Wallet,
-  Wallets,
 }: FabricNetworkModule = jest.createMockFromModule('fabric-network');
-
-const mockWalletStore = mock<WalletStore>();
-mocked(Wallets.newInMemoryWallet).mockResolvedValue(
-  new Wallet(mockWalletStore)
-);
 
 const mockAssetExistsTransaction = mock<Transaction>();
 mockAssetExistsTransaction.evaluate
@@ -171,24 +168,11 @@ mockNetwork.getContract.calledWith('qscc').mockReturnValue(mockSystemContract);
 
 mocked(Gateway.prototype.getNetwork).mockResolvedValue(mockNetwork);
 
-// TODO remove this and use simpler mocks in fabric spec tests
-const getMockedNetwork = (getContract = jest.fn()) => {
-  return mocked(Gateway.prototype.getNetwork).mockResolvedValue({
-    getGateway: jest.fn(),
-    getContract,
-    getChannel: jest.fn(),
-    addCommitListener: jest.fn(),
-    removeCommitListener: jest.fn(),
-    addBlockListener: jest.fn(),
-    removeBlockListener: jest.fn(),
-  });
-};
-
 export {
   DefaultEventHandlerStrategies,
   DefaultQueryHandlerStrategies,
   Contract,
   Gateway,
+  Wallet,
   Wallets,
-  getMockedNetwork,
 };

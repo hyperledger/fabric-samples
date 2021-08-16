@@ -13,8 +13,8 @@ import {
   BlockListener,
   BlockEvent,
   TransactionEvent,
+  Wallet,
 } from 'fabric-network';
-import { Request } from 'express';
 import { Redis } from 'ioredis';
 import * as config from './config';
 import { logger } from './logger';
@@ -31,63 +31,60 @@ import {
 } from './errors';
 import protos from 'fabric-protos';
 
-export const getNetwork = async (gateway: Gateway): Promise<Network> => {
-  const network = await gateway.getNetwork(config.channelName);
-  return network;
-};
-
-interface FabricConfigType {
-  identityName: string;
-  mspId: string;
-  connectionProfile: { [key: string]: any };
-  certificate: string;
-  privateKey: string;
-}
-
-const ORG1_CONFIG = {
-  identityName: config.identityNameOrg1,
-  mspId: config.mspIdOrg1,
-  connectionProfile: config.connectionProfileOrg1,
-  certificate: config.certificateOrg1,
-  privateKey: config.privateKeyOrg1,
-};
-
-const ORG2_CONFIG = {
-  identityName: config.identityNameOrg2,
-  mspId: config.mspIdOrg2,
-  connectionProfile: config.connectionProfileOrg2,
-  certificate: config.certificateOrg2,
-  privateKey: config.privateKeyOrg2,
-};
-
-const FabricDataMapper: { [key: string]: FabricConfigType } = {
-  [config.identityNameOrg1]: ORG1_CONFIG,
-  [config.identityNameOrg2]: ORG2_CONFIG,
-};
-
-export const getGateway = async (org: string): Promise<Gateway> => {
-  const fabricConfig = FabricDataMapper[org];
-  if (fabricConfig == undefined) {
-    throw new Error('Invalid org name for gateway');
-  }
-  logger.debug('Configuring fabric gateway for %s', org);
+/*
+ * Creates an in memory wallet to hold credentials for an Org1 and Org2 user
+ *
+ * In this sample there is a single user for each MSP ID to demonstrate how
+ * a client app might submit transactions for different users
+ *
+ * Alternatively a REST server could use its own identity for all transactions,
+ * or it could use credentials supplied in the REST requests
+ */
+export const createWallet = async (): Promise<Wallet> => {
   const wallet = await Wallets.newInMemoryWallet();
 
-  const x509Identity = {
+  const org1Identity = {
     credentials: {
-      certificate: fabricConfig.certificate,
-      privateKey: fabricConfig.privateKey,
+      certificate: config.certificateOrg1,
+      privateKey: config.privateKeyOrg1,
     },
-    mspId: fabricConfig.mspId,
+    mspId: config.mspIdOrg1,
     type: 'X.509',
   };
 
-  await wallet.put(fabricConfig.identityName, x509Identity);
+  await wallet.put(config.mspIdOrg1, org1Identity);
+
+  const org2Identity = {
+    credentials: {
+      certificate: config.certificateOrg2,
+      privateKey: config.privateKeyOrg2,
+    },
+    mspId: config.mspIdOrg2,
+    type: 'X.509',
+  };
+
+  await wallet.put(config.mspIdOrg2, org2Identity);
+
+  return wallet;
+};
+
+/*
+ * Create a Gateway connection
+ *
+ * Gateway instances can and should be reused rather than connecting to submit every transaction
+ */
+export const createGateway = async (
+  connectionProfile: Record<string, unknown>,
+  identity: string,
+  wallet: Wallet
+): Promise<Gateway> => {
+  logger.debug({ connectionProfile, identity }, 'Configuring gateway');
+
   const gateway = new Gateway();
 
-  const connectOptions: GatewayOptions = {
+  const options: GatewayOptions = {
     wallet,
-    identity: fabricConfig.identityName,
+    identity,
     discovery: { enabled: true, asLocalhost: config.asLocalhost },
     eventHandlerOptions: {
       commitTimeout: config.commitTimeout,
@@ -100,16 +97,22 @@ export const getGateway = async (org: string): Promise<Gateway> => {
     },
   };
 
-  await gateway.connect(fabricConfig.connectionProfile, connectOptions);
+  await gateway.connect(connectionProfile, options);
+
   return gateway;
+};
+
+export const getNetwork = async (gateway: Gateway): Promise<Network> => {
+  const network = await gateway.getNetwork(config.channelName);
+  return network;
 };
 
 export const getContracts = async (
   network: Network
-): Promise<{ contract: Contract; qscc: Contract }> => {
-  const contract = network.getContract(config.chaincodeName);
-  const qscc = network.getContract('qscc');
-  return { contract, qscc };
+): Promise<{ assetContract: Contract; qsccContract: Contract }> => {
+  const assetContract = network.getContract(config.chaincodeName);
+  const qsccContract = network.getContract('qscc');
+  return { assetContract, qsccContract };
 };
 
 export const startRetryLoop = (contract: Contract, redis: Redis): void => {
@@ -334,25 +337,15 @@ export const blockEventHandler = (redis: Redis): BlockListener => {
   return blockListner;
 };
 
-export const getChainInfo = async (qscc: Contract): Promise<boolean> => {
-  try {
-    const data = await qscc.evaluateTransaction(
-      'GetChainInfo',
-      config.channelName
-    );
-    const info = protos.common.BlockchainInfo.decode(data);
-    const blockHeight = info.height.toString();
-    logger.info('Current block height: %s', blockHeight);
-    return true;
-  } catch (e) {
-    logger.error(e, 'Unable to get blockchain info');
-    return false;
-  }
-};
-
-export const getContractForOrg = (
-  req: Request
-): { contract: Contract; qscc: Contract } => {
-  const user: { org: string } = req.user as { org: string };
-  return req.app.get('fabric')[user.org as string].contracts;
+export const getBlockHeight = async (
+  qscc: Contract
+): Promise<number | Long.Long> => {
+  const data = await qscc.evaluateTransaction(
+    'GetChainInfo',
+    config.channelName
+  );
+  const info = protos.common.BlockchainInfo.decode(data);
+  const blockHeight = info.height;
+  logger.debug('Current block height: %d', blockHeight);
+  return blockHeight;
 };
