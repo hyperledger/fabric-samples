@@ -144,7 +144,7 @@ mockBasicContract.createTransaction
 
 const mockGetTransactionByIDTransaction = mock<Transaction>();
 mockGetTransactionByIDTransaction.evaluate
-  .calledWith('mychannel', 'txn1')
+  .calledWith('mychannel', 'txn2')
   .mockResolvedValue(processedTransactionBuffer);
 mockGetTransactionByIDTransaction.evaluate
   .calledWith('mychannel', 'txn3')

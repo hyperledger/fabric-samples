@@ -7,6 +7,7 @@ import { Contract } from 'fabric-network';
 import { protos } from 'fabric-protos';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import { Redis } from 'ioredis';
+import { getTransactionDetails } from './redis';
 import { evatuateTransaction } from './fabric';
 import { logger } from './logger';
 import * as config from './config';
@@ -33,18 +34,14 @@ transactionsRouter.get(
     const redis = req.app.get('redis') as Redis;
 
     try {
-      const savedTransaction = await (redis as Redis).hgetall(
-        `txn:${transactionId}`
-      );
-      logger.debug(
-        { transactionId: transactionId, state: savedTransaction },
-        'Saved transaction state'
+      const savedTransaction = await getTransactionDetails(
+        redis,
+        transactionId
       );
 
-      if (savedTransaction.state) {
+      if (savedTransaction?.transactionState) {
         foundTransaction = true;
-        const retries = parseInt(savedTransaction.retries);
-        if (retries > 0) {
+        if (savedTransaction.retries > 0) {
           progress = 'RETRYING';
         } else {
           progress = 'ACCEPTED';

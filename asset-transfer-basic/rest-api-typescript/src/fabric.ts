@@ -20,8 +20,10 @@ import * as config from './config';
 import { logger } from './logger';
 import {
   storeTransactionDetails,
+  getRetryTransactionDetails,
   clearTransactionDetails,
   incrementRetryCount,
+  TransactionDetails,
 } from './redis';
 import {
   AssetExistsError,
@@ -115,52 +117,48 @@ export const getContracts = async (
   return { assetContract, qsccContract };
 };
 
-export const startRetryLoop = (contract: Contract, redis: Redis): void => {
-  setInterval(
-    async (redis) => {
-      try {
-        const pendingTransactionCount = await (redis as Redis).zcard(
-          'index:txn:timestamp'
-        );
-        logger.debug(
-          'Transactions awaiting retry: %d',
-          pendingTransactionCount
-        );
-
-        // TODO pick a random transaction instead to reduce chances of
-        // clashing with other instances? Currently no zrandmember
-        // command though...
-        //   https://github.com/luin/ioredis/issues/1374
-        const transactionIds = await (redis as Redis).zrange(
-          'index:txn:timestamp',
-          -1,
-          -1
-        );
-
-        if (transactionIds.length > 0) {
-          const transactionId = transactionIds[0];
-          const savedTransaction = await (redis as Redis).hgetall(
-            `txn:${transactionId}`
+export const startRetryLoop = (
+  contracts: Map<string, Contract>,
+  redis: Redis
+): void => {
+  const retryInterval = setInterval(
+    async (contracts, redis) => {
+      if (logger.isLevelEnabled('debug')) {
+        try {
+          const pendingTransactionCount = await (redis as Redis).zcard(
+            'index:txn:timestamp'
           );
-          if (parseInt(savedTransaction.retries) >= config.maxRetryCount) {
-            await clearTransactionDetails(redis, transactionId);
-          } else {
-            await retryTransaction(
-              contract,
-              redis,
-              transactionId,
-              savedTransaction
-            );
-          }
+          logger.debug(
+            '%d transactions awaiting retry',
+            pendingTransactionCount
+          );
+        } catch (err) {
+          logger.warn({ err }, 'Error getting pending transaction count');
         }
-      } catch (err) {
-        // TODO just log?
-        logger.error(err, 'error getting saved transaction state');
+      }
+
+      const savedTransaction = await getRetryTransactionDetails(redis);
+
+      if (savedTransaction) {
+        const contract = contracts.get(savedTransaction.mspId);
+
+        if (contract) {
+          await retryTransaction(contract, redis, savedTransaction);
+        } else {
+          logger.error(
+            'No contract found for %s to retry transaction %s',
+            savedTransaction.mspId,
+            savedTransaction.transactionId
+          );
+        }
       }
     },
     config.retryDelay,
+    contracts,
     redis
   );
+
+  retryInterval.unref();
 };
 
 export const evatuateTransaction = async (
@@ -173,7 +171,10 @@ export const evatuateTransaction = async (
 
   try {
     const payload = await txn.evaluate(...transactionArgs);
-    logger.debug({ payload }, 'Evaluate transaction response received');
+    logger.debug(
+      { transactionId: txnId, payload: payload.toString() },
+      'Evaluate transaction response received'
+    );
     return payload;
   } catch (err) {
     throw handleError(txnId, err);
@@ -183,6 +184,7 @@ export const evatuateTransaction = async (
 export const submitTransaction = async (
   contract: Contract,
   redis: Redis,
+  mspId: string,
   transactionName: string,
   ...transactionArgs: string[]
 ): Promise<string> => {
@@ -195,7 +197,14 @@ export const submitTransaction = async (
   try {
     // Store the transaction details and set the event handler in case there
     // are problems later with commiting the transaction
-    await storeTransactionDetails(redis, txnId, txnState, txnArgs, timestamp);
+    await storeTransactionDetails(
+      redis,
+      txnId,
+      mspId,
+      txnState,
+      txnArgs,
+      timestamp
+    );
     txn.setEventHandler(DefaultEventHandlerStrategies.NONE);
     await txn.submit(...transactionArgs);
   } catch (err) {
@@ -212,6 +221,7 @@ export const submitTransaction = async (
 
 // Unfortunately the chaincode samples do not use error codes, and the error
 // message text is not the same for each implementation
+// TODO move to errors.ts?
 const handleError = (transactionId: string, err: Error): Error => {
   // This regex needs to match the following error messages:
   //   "the asset %s already exists"
@@ -266,40 +276,55 @@ const handleError = (transactionId: string, err: Error): Error => {
   return new TransactionError('Transaction error', transactionId);
 };
 
-export const retryTransaction = async (
+const retryTransaction = async (
   contract: Contract,
   redis: Redis,
-  transactionId: string,
-  savedTransaction: Record<string, string>
+  savedTransaction: TransactionDetails
 ): Promise<void> => {
-  logger.debug('Retrying transaction %s', transactionId);
+  logger.debug('Retrying transaction %s', savedTransaction.transactionId);
 
   try {
     const transaction = contract.deserializeTransaction(
-      Buffer.from(savedTransaction.state)
+      savedTransaction.transactionState
     );
-    const args: string[] = JSON.parse(savedTransaction.args);
+    const args: string[] = JSON.parse(savedTransaction.transactionArgs);
 
-    await transaction.submit(...args);
-    await clearTransactionDetails(redis, transactionId);
+    const payload = await transaction.submit(...args);
+    logger.debug(
+      {
+        transactionId: savedTransaction.transactionId,
+        payload: payload.toString(),
+      },
+      'Retry transaction response received'
+    );
+
+    await clearTransactionDetails(redis, savedTransaction.transactionId);
   } catch (err) {
-    if (isDuplicateTransaction(err)) {
-      logger.warn('Transaction %s has already been committed', transactionId);
-      await clearTransactionDetails(redis, transactionId);
+    if (isDuplicateTransactionError(err)) {
+      logger.warn(
+        'Transaction %s has already been committed',
+        savedTransaction.transactionId
+      );
+      await clearTransactionDetails(redis, savedTransaction.transactionId);
     } else {
-      // TODO check for retry limit and update timestamp
       logger.warn(
         err,
         'Retry %d failed for transaction %s',
         savedTransaction.retries,
-        transactionId
+        savedTransaction.transactionId
       );
-      await incrementRetryCount(redis, transactionId);
+
+      if (savedTransaction.retries < config.maxRetryCount) {
+        await incrementRetryCount(redis, savedTransaction.transactionId);
+      } else {
+        await clearTransactionDetails(redis, savedTransaction.transactionId);
+      }
     }
   }
 };
 
-const isDuplicateTransaction = (error: {
+// TODO move to errors.ts?
+const isDuplicateTransactionError = (error: {
   errors: { endorsements: { details: string }[] }[];
 }) => {
   // TODO this is horrible! Isn't it possible to check for TxValidationCode DUPLICATE_TXID somehow?

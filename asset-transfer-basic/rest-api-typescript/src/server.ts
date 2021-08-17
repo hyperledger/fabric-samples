@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { StatusCodes, getReasonPhrase } from 'http-status-codes';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import pinoMiddleware from 'pino-http';
+import { Contract } from 'fabric-network';
 
 import { logger } from './logger';
 import { assetsRouter } from './assets.router';
@@ -16,6 +17,7 @@ import {
   getNetwork,
   createGateway,
   createWallet,
+  startRetryLoop,
 } from './fabric';
 import { redis } from './redis';
 import * as config from './config';
@@ -90,6 +92,11 @@ export const createServer = async (): Promise<Application> => {
   const networkOrg2 = await getNetwork(gatewayOrg2);
   const contractsOrg2 = await getContracts(networkOrg2);
   app.set(config.mspIdOrg2, contractsOrg2);
+
+  const assetContracts = new Map<string, Contract>();
+  assetContracts.set(config.mspIdOrg1, contractsOrg1.assetContract);
+  assetContracts.set(config.mspIdOrg2, contractsOrg2.assetContract);
+  startRetryLoop(assetContracts, redis);
 
   app.set('redis', redis);
 

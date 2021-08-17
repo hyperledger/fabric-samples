@@ -592,7 +592,7 @@ describe('Asset Transfer Besic REST API', () => {
 
     it('GET should respond with json details for the specified transaction ID', async () => {
       const response = await request(app)
-        .get('/api/transactions/txn1')
+        .get('/api/transactions/txn2')
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
       expect(response.statusCode).toEqual(200);
       expect(response.header).toHaveProperty(

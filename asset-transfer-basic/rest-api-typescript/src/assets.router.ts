@@ -84,6 +84,7 @@ assetsRouter.post(
       const transactionId = await submitTransaction(
         contract,
         redis,
+        mspId,
         'CreateAsset',
         assetId,
         req.body.color,
@@ -235,6 +236,7 @@ assetsRouter.put(
       const transactionId = await submitTransaction(
         contract,
         redis,
+        mspId,
         'UpdateAsset',
         assetId,
         req.body.color,
@@ -306,6 +308,7 @@ assetsRouter.patch(
       const transactionId = await submitTransaction(
         contract,
         redis,
+        mspId,
         'TransferAsset',
         assetId,
         newOwner
@@ -351,6 +354,7 @@ assetsRouter.delete('/:assetId', async (req: Request, res: Response) => {
     const transactionId = await submitTransaction(
       contract,
       redis,
+      mspId,
       'DeleteAsset',
       assetId
     );

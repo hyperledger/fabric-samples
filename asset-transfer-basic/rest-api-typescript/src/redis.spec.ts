@@ -1,75 +1,184 @@
-import IORedis from './__mocks__/IORedis';
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import * as config from './config';
-import { Redis } from 'ioredis';
+import IORedis, { Redis } from 'ioredis';
 import {
   clearTransactionDetails,
   incrementRetryCount,
   storeTransactionDetails,
+  getTransactionDetails,
+  getRetryTransactionDetails,
 } from './redis';
 
-jest.mock('ioredis');
+jest.mock('ioredis', () => require('ioredis-mock/jest'));
 jest.mock('./config');
 
-const redisOptions = {
-  port: config.redisPort,
-  host: config.redisHost,
-  username: config.redisUsername,
-  password: config.redisPassword,
-};
-const redis = new IORedis(redisOptions) as unknown as Redis;
-describe('Testing increment retries ', () => {
-  const transactionId =
+describe('Redis', () => {
+  let redis: Redis;
+
+  const mockTransactionId =
     '0ae62c01e4c4b112c3f3954a2f11243da76778e46df9ad2783bcbafc79652b95';
-  it('Should  increment retries for valid transction id', async () => {
-    await incrementRetryCount(redis, transactionId);
-    expect(redis.hincrby).toHaveBeenCalledTimes(1);
+  const mockKey = `txn:${mockTransactionId}`;
+  const mockMspId = 'Org1MSP';
+  const mockState = Buffer.from(
+    `{"name":"CreateAsset","nonce":"damqinq8nrI4n4qY8lFVsZw7RwG2ufrv","transactionId":${mockTransactionId}`
+  );
+  const mockArgs = '["test111","red",400,"Jean",101]';
+  const mockTimestamp = 1628078044362;
+
+  const addMockTransationDetails = async (redis: Redis) => {
+    await redis
+      .multi()
+      .hset(
+        mockKey,
+        'mspId',
+        mockMspId,
+        'state',
+        mockState,
+        'args',
+        mockArgs,
+        'timestamp',
+        mockTimestamp,
+        'retries',
+        '0'
+      )
+      .zadd('index:txn:timestamp', mockTimestamp, mockTransactionId)
+      .exec();
+  };
+
+  beforeEach(async () => {
+    const redisOptions = {
+      port: config.redisPort,
+      host: config.redisHost,
+      username: config.redisUsername,
+      password: config.redisPassword,
+    };
+
+    redis = new IORedis(redisOptions) as unknown as Redis;
+  });
+  describe('storeTransactionDetails', () => {
+    it('stores transaction details as a hash', async () => {
+      await storeTransactionDetails(
+        redis,
+        mockTransactionId,
+        mockMspId,
+        mockState,
+        mockArgs,
+        mockTimestamp
+      );
+
+      const storedTransaction = await redis.hgetall(mockKey);
+      const expectedTransaction = {
+        mspId: mockMspId,
+        state: mockState,
+        args: mockArgs,
+        retries: '0',
+        timestamp: mockTimestamp.toString(),
+      };
+      expect(storedTransaction).toStrictEqual(expectedTransaction);
+    });
+
+    it('adds the transaction ID to the sorted set timestamp index', async () => {
+      await storeTransactionDetails(
+        redis,
+        mockTransactionId,
+        mockMspId,
+        mockState,
+        mockArgs,
+        mockTimestamp
+      );
+
+      const index = await redis.zrange('index:txn:timestamp', 0, -1);
+      expect(index).toStrictEqual([mockTransactionId]);
+    });
+
+    // TODO this seems to work for spying/mocking...
+    //   jest.spyOn(redis, 'multi').mock...
+    // but haven't worked out how to spy on the hset, zadd, exec in that chain
+    // Ask Mark?
+    it.todo('handles an error from redis');
   });
 
-  it('Should not increment retries for empty transaction id ', async () => {
-    await incrementRetryCount(redis, '');
-    expect(redis.hincrby).toHaveBeenCalledTimes(0);
-  });
-});
+  describe('getTransactionDetails', () => {
+    it('gets the transaction details from a hash', async () => {
+      await addMockTransationDetails(redis);
 
-describe('Testing storeTransactionDetails ', () => {
-  const args = '["test111","red",400,"Jean",101]';
-  const timestamp = 1628078044362;
-  it('Should  store details for valid transction Id', async () => {
-    const transactionId =
-      '0ae62c01e4c4b112c3f3954a2f11243da76778e46df9ad2783bcbafc79652b95';
-    const state = `{"name":"CreateAsset","nonce":"damqinq8nrI4n4qY8lFVsZw7RwG2ufrv","transactionId":${transactionId}`;
-    await storeTransactionDetails(
-      redis,
-      transactionId,
-      Buffer.from(state),
-      args,
-      timestamp
+      const details = await getTransactionDetails(redis, mockTransactionId);
+
+      expect(details).toStrictEqual({
+        transactionId: mockTransactionId,
+        mspId: mockMspId,
+        transactionState: mockState,
+        transactionArgs: mockArgs,
+        retries: 0,
+        timestamp: mockTimestamp,
+      });
+    });
+
+    it.todo('handles an error from redis');
+  });
+
+  describe('getRetryTransactionDetails', () => {
+    it('gets the oldest transaction details from a hash', async () => {
+      await addMockTransationDetails(redis);
+
+      const details = await getRetryTransactionDetails(redis);
+
+      expect(details).toStrictEqual({
+        transactionId: mockTransactionId,
+        mspId: mockMspId,
+        transactionState: mockState,
+        transactionArgs: mockArgs,
+        retries: 0,
+        timestamp: mockTimestamp,
+      });
+    });
+
+    it('gets undefined if there are no transactions to retry', async () => {
+      const details = await getRetryTransactionDetails(redis);
+
+      expect(details).toBeUndefined();
+    });
+
+    it.todo('handles an error from redis');
+  });
+
+  describe('clearTransactionDetails', () => {
+    it('removes the transaction details hash', async () => {
+      await addMockTransationDetails(redis);
+
+      await clearTransactionDetails(redis, mockTransactionId);
+
+      const storedTransaction = await redis.hgetall(mockKey);
+      expect(storedTransaction).not.toHaveProperty('state');
+    });
+
+    it('removes the transaction ID from the sorted set timestamp index', async () => {
+      await addMockTransationDetails(redis);
+
+      await clearTransactionDetails(redis, mockTransactionId);
+
+      const index = await redis.zrange('index:txn:timestamp', 0, -1);
+      expect(index).toStrictEqual([]);
+    });
+  });
+
+  describe('incrementRetryCount', () => {
+    it('increments the retries value in the transction details hash', async () => {
+      await addMockTransationDetails(redis);
+
+      await incrementRetryCount(redis, mockTransactionId);
+
+      const retries = await redis.hget(mockKey, 'retries');
+      expect(retries).toBe('1');
+    });
+
+    it.todo(
+      'updates the position of the transaction ID in the sorted set timestamp index'
     );
-    expect(redis.hset).toHaveBeenCalledTimes(1);
-    expect(redis.zadd).toHaveBeenCalledTimes(1);
-  });
 
-  it('Should not  store details for empty transction Id', async () => {
-    const transactionId = '';
-    const state = `{"name":"CreateAsset","nonce":"damqinq8nrI4n4qY8lFVsZw7RwG2ufrv","transactionId":${transactionId}`;
-    await storeTransactionDetails(
-      redis,
-      transactionId,
-      Buffer.from(state),
-      args,
-      timestamp
-    );
-    expect(redis.hset).toHaveBeenCalledTimes(0);
-    expect(redis.zadd).toHaveBeenCalledTimes(0);
-  });
-});
-
-describe('Testing clearTransactionDetails ', () => {
-  it('Should  clear details ', async () => {
-    const transactionId =
-      '0ae62c01e4c4b112c3f3954a2f11243da76778e46df9ad2783bcbafc79652b95';
-    await clearTransactionDetails(redis, transactionId);
-    expect(redis.del).toHaveBeenCalledTimes(1);
-    expect(redis.zrem).toHaveBeenCalledTimes(1);
+    it.todo('handles an error from redis');
   });
 });

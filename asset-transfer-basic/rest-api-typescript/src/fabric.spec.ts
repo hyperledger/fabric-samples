@@ -7,12 +7,20 @@ import {
   createWallet,
   getContracts,
   getNetwork,
-  retryTransaction,
+  evatuateTransaction,
+  submitTransaction,
+  getBlockHeight,
+  startRetryLoop,
 } from './fabric';
 import * as config from './config';
 
-import IORedis from './__mocks__/IORedis';
-import { Redis } from 'ioredis';
+import {
+  AssetExistsError,
+  AssetNotFoundError,
+  TransactionError,
+  TransactionNotFoundError,
+} from './errors';
+
 import {
   Contract,
   Gateway,
@@ -22,19 +30,14 @@ import {
   Wallet,
 } from 'fabric-network';
 
-import { mock } from 'jest-mock-extended';
+import * as fabricProtos from 'fabric-protos';
+
+import { MockProxy, mock } from 'jest-mock-extended';
+import IORedis, { Redis } from 'ioredis';
+import Long from 'long';
 
 jest.mock('./config');
-jest.mock('ioredis');
-
-const redisOptions = {
-  port: config.redisPort,
-  host: config.redisHost,
-  username: config.redisUsername,
-  password: config.redisPassword,
-};
-
-const redis = new IORedis(redisOptions) as unknown as Redis;
+jest.mock('ioredis', () => require('ioredis-mock/jest'));
 
 describe('Fabric', () => {
   describe('createWallet', () => {
@@ -101,66 +104,393 @@ describe('Fabric', () => {
     });
   });
 
-  describe('Testing retryTransaction', () => {
-    const transactionId =
+  describe('startRetryLoop', () => {
+    let redis: Redis;
+    let mockTransaction: MockProxy<Transaction>;
+    let mockContract: MockProxy<Contract>;
+    let mockContracts: Map<string, Contract>;
+
+    const mockTransactionId =
       '0ae62c01e4c4b112c3f3954a2f11243da76778e46df9ad2783bcbafc79652b95';
-    const state = `{"name":"CreateAsset","nonce":"damqinq8nrI4n4qY8lFVsZw7RwG2ufrv","transactionId":${transactionId}`;
-    const args = '["test111","red",400,"Jean",101]';
-    const timestamp = 1628078044362;
-    const savedTransaction = {
-      timestamp: timestamp.toString(),
-      state: state,
-      retries: '',
-      args: args,
+    const mockKey = `txn:${mockTransactionId}`;
+    const mockMspId = 'Org1MSP';
+    const mockState = Buffer.from(
+      `{"name":"CreateAsset","nonce":"damqinq8nrI4n4qY8lFVsZw7RwG2ufrv","transactionId":${mockTransactionId}`
+    );
+    const mockArgs = '["test111","red",400,"Jean",101]';
+    const mockTimestamp = 1628078044362;
+
+    const flushPromises = () => {
+      jest.useRealTimers();
+      return new Promise((resolve) => setImmediate(resolve));
     };
 
-    describe('Check retry increment  ', () => {
-      const transactionId =
-        '0ae62c01e4c4b112c3f3954a2f11243da76778e46df9ad2783bcbafc79652b95';
-      const state = `{"name":"CreateAsset","nonce":"damqinq8nrI4n4qY8lFVsZw7RwG2ufrv","transactionId":${transactionId}`;
-      const args = '["test111","red",400,"Jean",101]';
-      const timestamp = 1628078044362;
-      const savedTransaction = {
-        timestamp: timestamp.toString(),
-        state: state,
-        retries: '',
-        args: args,
+    const addMockTransationDetails = async (redis: Redis) => {
+      await redis
+        .multi()
+        .hset(
+          mockKey,
+          'mspId',
+          mockMspId,
+          'state',
+          mockState,
+          'args',
+          mockArgs,
+          'timestamp',
+          mockTimestamp,
+          'retries',
+          '0'
+        )
+        .zadd('index:txn:timestamp', mockTimestamp, mockTransactionId)
+        .exec();
+    };
+
+    beforeEach(() => {
+      const redisOptions = {
+        port: config.redisPort,
+        host: config.redisHost,
+        username: config.redisUsername,
+        password: config.redisPassword,
       };
 
-      it('Transaction failure, check redis increment func call', async () => {
-        const mockTransaction = mock<Transaction>();
-        mockTransaction.submit.mockRejectedValue('MOCKERROR');
-        const mockContract = mock<Contract>();
-        mockContract.deserializeTransaction.mockReturnValue(mockTransaction);
+      redis = new IORedis(redisOptions) as unknown as Redis;
 
-        savedTransaction.retries = '3';
-        await retryTransaction(
-          mockContract,
-          redis,
-          transactionId,
-          savedTransaction
-        );
-        expect(redis.hincrby).toHaveBeenCalledTimes(1);
-      });
+      mockTransaction = mock<Transaction>();
+      mockTransaction.submit
+        .mockResolvedValue(Buffer.from('MOCK PAYLOAD'))
+        .mockName('submit');
+      mockContract = mock<Contract>();
+      mockContract.deserializeTransaction.mockReturnValue(mockTransaction);
+      mockContracts = new Map<string, Contract>();
+      mockContracts.set(mockMspId, mockContract);
+
+      jest.useFakeTimers();
     });
 
-    describe('Transaction successful, check redis delete key func call  ', () => {
-      it('call redis increment', async () => {
-        const mockTransaction = mock<Transaction>();
-        mockTransaction.submit.mockResolvedValue(Buffer.from('{}'));
-        const mockContract = mock<Contract>();
-        mockContract.deserializeTransaction.mockReturnValue(mockTransaction);
+    afterEach(() => {
+      jest.useRealTimers();
+    });
 
-        savedTransaction.retries = '3';
-        await retryTransaction(
+    it('starts a retry loop which does nothing if there are no saved transaction details', async () => {
+      const getContractSpy = jest.spyOn(mockContracts, 'get');
+
+      startRetryLoop(mockContracts, redis);
+      jest.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(getContractSpy).not.toBeCalled();
+    });
+
+    it('starts a retry loop which clears the saved details after succesfully retrying a transaction', async () => {
+      addMockTransationDetails(redis);
+
+      startRetryLoop(mockContracts, redis);
+      jest.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(mockContract.deserializeTransaction).toBeCalledWith(mockState);
+      expect(mockTransaction.submit).toBeCalledWith(
+        'test111',
+        'red',
+        400,
+        'Jean',
+        101
+      );
+
+      const index = await redis.zrange('index:txn:timestamp', 0, -1);
+      expect(index).toStrictEqual([]);
+    });
+
+    it('starts a retry loop which increments the retry count when a transaction fails', async () => {
+      addMockTransationDetails(redis);
+      mockTransaction.submit.mockRejectedValue(new Error('MOCK ERROR'));
+
+      startRetryLoop(mockContracts, redis);
+      jest.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(mockContract.deserializeTransaction).toBeCalledWith(mockState);
+      expect(mockTransaction.submit).toBeCalledWith(
+        'test111',
+        'red',
+        400,
+        'Jean',
+        101
+      );
+
+      const index = await redis.zrange('index:txn:timestamp', 0, -1);
+      expect(index).toStrictEqual([
+        '0ae62c01e4c4b112c3f3954a2f11243da76778e46df9ad2783bcbafc79652b95',
+      ]);
+
+      const savedTransaction = await (redis as Redis).hgetall(mockKey);
+      expect(savedTransaction.retries).toBe('1');
+    });
+
+    it('starts a retry loop which clears the saved details when a transaction fails as a duplicate', async () => {
+      addMockTransationDetails(redis);
+      const mockDuplicateTransactionError = new Error('MOCK ERROR');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (mockDuplicateTransactionError as any).errors = [
+        {
+          endorsements: [
+            {
+              details: 'duplicate transaction found',
+            },
+          ],
+        },
+      ];
+      mockTransaction.submit.mockRejectedValue(mockDuplicateTransactionError);
+
+      startRetryLoop(mockContracts, redis);
+      jest.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(mockContract.deserializeTransaction).toBeCalledWith(mockState);
+      expect(mockTransaction.submit).toBeCalledWith(
+        'test111',
+        'red',
+        400,
+        'Jean',
+        101
+      );
+
+      const index = await redis.zrange('index:txn:timestamp', 0, -1);
+      expect(index).toStrictEqual([]);
+    });
+
+    it('starts a retry loop which clears the saved details when a transaction fails the final attempt', async () => {
+      addMockTransationDetails(redis);
+      await (redis as Redis).hincrby(mockKey, 'retries', 5);
+      mockTransaction.submit.mockRejectedValue(new Error('MOCK ERROR'));
+
+      startRetryLoop(mockContracts, redis);
+      jest.runOnlyPendingTimers();
+      await flushPromises();
+
+      expect(mockContract.deserializeTransaction).toBeCalledWith(mockState);
+      expect(mockTransaction.submit).toBeCalledWith(
+        'test111',
+        'red',
+        400,
+        'Jean',
+        101
+      );
+
+      const index = await redis.zrange('index:txn:timestamp', 0, -1);
+      expect(index).toStrictEqual([]);
+    });
+  });
+
+  describe('evatuateTransaction', () => {
+    const mockPayload = Buffer.from('MOCK PAYLOAD');
+    let mockTransaction: MockProxy<Transaction>;
+    let mockContract: MockProxy<Contract>;
+
+    beforeEach(() => {
+      mockTransaction = mock<Transaction>();
+      mockTransaction.evaluate.mockResolvedValue(mockPayload);
+      mockContract = mock<Contract>();
+      mockContract.createTransaction
+        .calledWith('txn')
+        .mockReturnValue(mockTransaction);
+    });
+
+    it('gets the result of evaluating a transaction', async () => {
+      const result = await evatuateTransaction(
+        mockContract,
+        'txn',
+        'arga',
+        'argb'
+      );
+      expect(result.toString()).toBe(mockPayload.toString());
+    });
+
+    it.each([
+      'the asset GOCHAINCODE already exists',
+      'Asset JAVACHAINCODE already exists',
+      'The asset JSCHAINCODE already exists',
+    ])(
+      'throws an AssetExistsError an asset already exists error occurs: %s',
+      async (msg) => {
+        mockTransaction.evaluate.mockRejectedValue(new Error(msg));
+
+        await expect(async () => {
+          await evatuateTransaction(mockContract, 'txn', 'arga', 'argb');
+        }).rejects.toThrow(AssetExistsError);
+      }
+    );
+
+    it.each([
+      'the asset GOCHAINCODE does not exist',
+      'Asset JAVACHAINCODE does not exist',
+      'The asset JSCHAINCODE does not exist',
+    ])(
+      'throws an AssetNotFoundError if an asset does not exist error occurs: %s',
+      async (msg) => {
+        mockTransaction.evaluate.mockRejectedValue(new Error(msg));
+
+        await expect(async () => {
+          await evatuateTransaction(mockContract, 'txn', 'arga', 'argb');
+        }).rejects.toThrow(AssetNotFoundError);
+      }
+    );
+
+    it('throws a TransactionNotFoundError if a transaction not found error occurs', async () => {
+      mockTransaction.evaluate.mockRejectedValue(
+        new Error(
+          'Failed to get transaction with id txn, error Entry not found in index'
+        )
+      );
+
+      await expect(async () => {
+        await evatuateTransaction(mockContract, 'txn', 'arga', 'argb');
+      }).rejects.toThrow(TransactionNotFoundError);
+    });
+
+    it('throws a TransactionError for other errors', async () => {
+      mockTransaction.evaluate.mockRejectedValue(new Error('MOCK ERROR'));
+
+      await expect(async () => {
+        await evatuateTransaction(mockContract, 'txn', 'arga', 'argb');
+      }).rejects.toThrow(TransactionError);
+    });
+  });
+
+  describe('submitTransaction', () => {
+    let redis: Redis;
+    const mockPayload = Buffer.from('MOCK PAYLOAD');
+    let mockTransaction: MockProxy<Transaction>;
+    let mockContract: MockProxy<Contract>;
+
+    beforeEach(async () => {
+      const redisOptions = {
+        port: config.redisPort,
+        host: config.redisHost,
+        username: config.redisUsername,
+        password: config.redisPassword,
+      };
+
+      redis = new IORedis(redisOptions) as unknown as Redis;
+
+      mockTransaction = mock<Transaction>();
+      mockTransaction.submit.mockResolvedValue(mockPayload);
+      mockTransaction.getTransactionId.mockReturnValue('MOCK TXN ID');
+      mockTransaction.serialize.mockReturnValue(Buffer.from('MOCK TXN STATE'));
+      mockContract = mock<Contract>();
+      mockContract.createTransaction
+        .calledWith('txn')
+        .mockReturnValue(mockTransaction);
+    });
+
+    it('gets the transaction ID of the submitted transaction', async () => {
+      const result = await submitTransaction(
+        mockContract,
+        redis,
+        'mspid',
+        'txn',
+        'arga',
+        'argb'
+      );
+      expect(result).toBe('MOCK TXN ID');
+    });
+
+    it.each([
+      'the asset GOCHAINCODE already exists',
+      'Asset JAVACHAINCODE already exists',
+      'The asset JSCHAINCODE already exists',
+    ])(
+      'throws an AssetExistsError an asset already exists error occurs: %s',
+      async (msg) => {
+        mockTransaction.submit.mockRejectedValue(new Error(msg));
+
+        await expect(async () => {
+          await submitTransaction(
+            mockContract,
+            redis,
+            'mspid',
+            'txn',
+            'arga',
+            'argb'
+          );
+        }).rejects.toThrow(AssetExistsError);
+      }
+    );
+
+    it.each([
+      'the asset GOCHAINCODE does not exist',
+      'Asset JAVACHAINCODE does not exist',
+      'The asset JSCHAINCODE does not exist',
+    ])(
+      'throws an AssetNotFoundError if an asset does not exist error occurs: %s',
+      async (msg) => {
+        mockTransaction.submit.mockRejectedValue(new Error(msg));
+
+        await expect(async () => {
+          await submitTransaction(
+            mockContract,
+            redis,
+            'mspid',
+            'txn',
+            'arga',
+            'argb'
+          );
+        }).rejects.toThrow(AssetNotFoundError);
+      }
+    );
+
+    it('throws a TransactionNotFoundError if a transaction not found error occurs', async () => {
+      mockTransaction.submit.mockRejectedValue(
+        new Error(
+          'Failed to get transaction with id txn, error Entry not found in index'
+        )
+      );
+
+      await expect(async () => {
+        await submitTransaction(
           mockContract,
           redis,
-          transactionId,
-          savedTransaction
+          'mspid',
+          'txn',
+          'arga',
+          'argb'
         );
+      }).rejects.toThrow(TransactionNotFoundError);
+    });
 
-        expect(redis.del).toHaveBeenCalledTimes(1);
-      });
+    it('throws a TransactionError for other errors', async () => {
+      mockTransaction.submit.mockRejectedValue(new Error('MOCK ERROR'));
+
+      await expect(async () => {
+        await submitTransaction(
+          mockContract,
+          redis,
+          'mspid',
+          'txn',
+          'arga',
+          'argb'
+        );
+      }).rejects.toThrow(TransactionError);
+    });
+  });
+
+  describe('getBlockHeight', () => {
+    it('gets the current block height', async () => {
+      const mockBlockchainInfoProto =
+        fabricProtos.common.BlockchainInfo.create();
+      mockBlockchainInfoProto.height = 42;
+      const mockBlockchainInfoBuffer = Buffer.from(
+        fabricProtos.common.BlockchainInfo.encode(
+          mockBlockchainInfoProto
+        ).finish()
+      );
+      const mockContract = mock<Contract>();
+      mockContract.evaluateTransaction
+        .calledWith('GetChainInfo', 'mychannel')
+        .mockResolvedValue(mockBlockchainInfoBuffer);
+
+      const result = (await getBlockHeight(mockContract)) as Long;
+      expect(result.toInt()).toStrictEqual(42);
     });
   });
 });
