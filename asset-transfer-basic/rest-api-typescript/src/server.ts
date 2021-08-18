@@ -9,24 +9,17 @@ import pinoMiddleware from 'pino-http';
 
 import { logger } from './logger';
 import { assetsRouter } from './assets.router';
+import { healthRouter } from './health.router';
 import { transactionsRouter } from './transactions.router';
 import {
   getContracts,
   getNetwork,
-  getBlockHeight,
   createGateway,
   createWallet,
 } from './fabric';
 import { redis } from './redis';
-import { Contract } from 'fabric-network';
 import * as config from './config';
-const {
-  BAD_REQUEST,
-  INTERNAL_SERVER_ERROR,
-  NOT_FOUND,
-  OK,
-  SERVICE_UNAVAILABLE,
-} = StatusCodes;
+const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = StatusCodes;
 
 import { authenticateApiKey, fabricAPIKeyStrategy } from './auth';
 import passport from 'passport';
@@ -100,36 +93,7 @@ export const createServer = async (): Promise<Application> => {
 
   app.set('redis', redis);
 
-  // Health routes
-  app.get('/ready', (_req, res) =>
-    res.status(OK).json({
-      status: getReasonPhrase(OK),
-      timestamp: new Date().toISOString(),
-    })
-  );
-  app.get('/live', async (req, res) => {
-    logger.debug(req.body, 'Liveness request received');
-
-    const qsccOrg1 = req.app.get(config.mspIdOrg1).qsccContract as Contract;
-    const qsccOrg2 = req.app.get(config.mspIdOrg2).qsccContract as Contract;
-
-    try {
-      await Promise.all([getBlockHeight(qsccOrg1), getBlockHeight(qsccOrg2)]);
-    } catch (err) {
-      logger.error(err, 'Error processing liveness request');
-
-      res.status(SERVICE_UNAVAILABLE).json({
-        status: getReasonPhrase(SERVICE_UNAVAILABLE),
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    res.status(OK).json({
-      status: getReasonPhrase(OK),
-      timestamp: new Date().toISOString(),
-    });
-  });
-
+  app.use('/', healthRouter);
   app.use('/api/assets', authenticateApiKey, assetsRouter);
   app.use('/api/transactions', authenticateApiKey, transactionsRouter);
 
@@ -142,7 +106,6 @@ export const createServer = async (): Promise<Application> => {
   );
 
   // Print API errors
-  // TBC in addition to pinoMiddleware errors?
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     logger.error(err);
     return res.status(INTERNAL_SERVER_ERROR).json({
