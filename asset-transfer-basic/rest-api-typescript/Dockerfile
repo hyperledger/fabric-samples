@@ -1,20 +1,25 @@
-FROM node:14-alpine3.12
-RUN apk add dumb-init
-WORKDIR /fabric_app/
+FROM node:14-alpine3.12 AS build
 
-COPY --chown=node:node . /fabric_app/
+RUN apk add --no-cache g++ make python3 dumb-init
 
-RUN npm ci 
+WORKDIR /app
 
+COPY --chown=node:node . /app
+
+RUN npm ci
 RUN npm run build
+RUN npm prune --production
+
+FROM node:14-alpine3.12
+ENV NODE_ENV production
+WORKDIR /app
+
+COPY --from=build /usr/bin/dumb-init /usr/bin/dumb-init
+COPY --chown=node:node --from=build /app .
 
 EXPOSE 3000  
 
 USER node
-CMD dumb-init npm run start:dev
 
-
-
-
-
-
+ENTRYPOINT [ "dumb-init", "--", "npm", "run"]
+CMD ["start"]

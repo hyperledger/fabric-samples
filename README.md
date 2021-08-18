@@ -46,6 +46,28 @@ Start the sample REST server
 npm run start:dev
 ```
 
+### Docker image
+
+Alternatively, run the following commands in the `fabric-rest-sample/asset-transfer-basic/rest-api-typescript` directory to start the sample in a Docker container
+
+Build the Docker image
+
+```shell
+docker build -t fabric-rest-sample .
+```
+
+Create a `.env` file to configure the server for the test network (make sure `TEST_NETWORK_HOME` is set to the fully qualified `test-network` directory and `AS_LOCAL_HOST` is set to `false` so that the server works inside the Docker Compose network)
+
+```shell
+TEST_NETWORK_HOME=$HOME/fabric-samples/test-network AS_LOCAL_HOST=false npm run generateEnv
+```
+
+Start the sample REST server and Redis server
+
+```shell
+docker-compose up -d
+```
+
 ## REST API
 
 If everything went well, you can now make basic asset transfer REST calls!
@@ -105,22 +127,3 @@ curl --include --header "Content-Type: application/json" --header "X-Api-Key: ${
 ```shell
 curl --include --header "X-Api-Key: ${SAMPLE_APIKEY}" --request DELETE http://localhost:3000/api/assets/asset7
 ```
-## Steps to run the application using docker:
-
-Move to directory fabric-rest-sample/asset-transfer-basic/rest-api-typescript
-
-### Build docker image 
-    docker build -t fabricapp .
-
-### Generate .env file 
-    TEST_NETWORK_HOME=$HOME/fabric-samples/test-network ./scripts/generateEnv.sh 
-
-    Note: Connection profile need to use the peer container’s hostname instead of localhost. 
-    
-### Run docker containers 
-    docker-compose up -d 
-
-
-
-
-

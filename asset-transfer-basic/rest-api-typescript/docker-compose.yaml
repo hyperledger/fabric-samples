@@ -6,21 +6,19 @@ services:
     ports:
       - 6379:6379
     networks:
-      - net_test
+      - fabric_test
   
   nodeapp:
-    image: 'fabricapp'   
+    image: 'fabric-rest-sample'
+    command: ['start:dotenv']
     ports:
         - 3000:3000
     env_file:
         - ./.env
-    environment:
-        - REDIS_HOST=redis
-        - AS_LOCAL_HOST=false
     networks:
-        - net_test
+        - fabric_test
 
 
 networks:
-  net_test:
+  fabric_test:
     external: true 
