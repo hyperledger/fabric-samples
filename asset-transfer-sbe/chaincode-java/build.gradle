@@ -16,10 +16,11 @@ dependencies {
     
     implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.+'
     implementation 'org.json:json:+'
-    implementation 'import org.hyperledger.fabric.protos.common'
+    implementation 'org.hyperledger.fabric.protos.common'
     implementation 'com.owlike:genson:1.5'
 
     testImplementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.+'
+    testImplementation 'org.hyperledger.fabric.protos.common'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
     testImplementation 'org.assertj:assertj-core:3.11.1'
     testImplementation 'org.mockito:mockito-core:2.+'
