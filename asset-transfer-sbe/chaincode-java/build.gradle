@@ -14,8 +14,12 @@ version '1.0-SNAPSHOT'
 
 dependencies {
     
-    compileOnly 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.+'
+    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.+'
+    implementation 'org.json:json:+'
+    implementation 'com.google.protobuf:protobuf-java:3.+'
+    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-protos:2.+'
     implementation 'com.owlike:genson:1.5'
+
     testImplementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.+'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
     testImplementation 'org.assertj:assertj-core:3.11.1'
