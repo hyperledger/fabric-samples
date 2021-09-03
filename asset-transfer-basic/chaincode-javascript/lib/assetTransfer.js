@@ -65,6 +65,11 @@ class AssetTransfer extends Contract {
 
     // CreateAsset issues a new asset to the world state with given details.
     async CreateAsset(ctx, id, color, size, owner, appraisedValue) {
+        const exists = await this.AssetExists(ctx, id);
+        if (exists) {
+            throw new Error(`The asset ${id} already exists`);
+        }
+
         const asset = {
             ID: id,
             Color: color,
@@ -72,7 +77,7 @@ class AssetTransfer extends Contract {
             Owner: owner,
             AppraisedValue: appraisedValue,
         };
-        ctx.stub.putState(id, Buffer.from(JSON.stringify(asset)));
+        await ctx.stub.putState(id, Buffer.from(JSON.stringify(asset)));
         return JSON.stringify(asset);
     }
 
@@ -146,8 +151,6 @@ class AssetTransfer extends Contract {
         }
         return JSON.stringify(allResults);
     }
-
-
 }
 
 module.exports = AssetTransfer;

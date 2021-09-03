@@ -1,5 +1,7 @@
 /*
- SPDX-License-Identifier: Apache-2.0
+ * Copyright IBM Corp. All Rights Reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
 */
 
 // ====CHAINCODE EXECUTION SAMPLES (CLI) ==================
@@ -179,7 +181,7 @@ class Chaincode extends Contract {
 	async GetAssetsByRange(ctx, startKey, endKey) {
 
 		let resultsIterator = await ctx.stub.getStateByRange(startKey, endKey);
-		let results = await this.GetAllResults(resultsIterator, false);
+		let results = await this._GetAllResults(resultsIterator, false);
 
 		return JSON.stringify(results);
 	}
@@ -247,7 +249,7 @@ class Chaincode extends Contract {
 	async GetQueryResultForQueryString(ctx, queryString) {
 
 		let resultsIterator = await ctx.stub.getQueryResult(queryString);
-		let results = await this.GetAllResults(resultsIterator, false);
+		let results = await this._GetAllResults(resultsIterator, false);
 
 		return JSON.stringify(results);
 	}
@@ -260,7 +262,7 @@ class Chaincode extends Contract {
 	async GetAssetsByRangeWithPagination(ctx, startKey, endKey, pageSize, bookmark) {
 
 		const {iterator, metadata} = await ctx.stub.getStateByRangeWithPagination(startKey, endKey, pageSize, bookmark);
-		const results = await this.GetAllResults(iterator, false);
+		const results = await this._GetAllResults(iterator, false);
 
 		results.ResponseMetadata = {
 			RecordsCount: metadata.fetched_records_count,
@@ -280,7 +282,7 @@ class Chaincode extends Contract {
 	async QueryAssetsWithPagination(ctx, queryString, pageSize, bookmark) {
 
 		const {iterator, metadata} = await ctx.stub.getQueryResultWithPagination(queryString, pageSize, bookmark);
-		const results = await this.GetAllResults(iterator, false);
+		const results = await this._GetAllResults(iterator, false);
 
 		results.ResponseMetadata = {
 			RecordsCount: metadata.fetched_records_count,
@@ -294,7 +296,7 @@ class Chaincode extends Contract {
 	async GetAssetHistory(ctx, assetName) {
 
 		let resultsIterator = await ctx.stub.getHistoryForKey(assetName);
-		let results = await this.GetAllResults(resultsIterator, true);
+		let results = await this._GetAllResults(resultsIterator, true);
 
 		return JSON.stringify(results);
 	}
@@ -306,7 +308,11 @@ class Chaincode extends Contract {
 		return assetState && assetState.length > 0;
 	}
 
-	async GetAllResults(iterator, isHistory) {
+	// This is JavaScript so without Funcation Decorators, all functions are assumed
+	// to be transaction functions
+	//
+	// For internal functions... prefix them with _
+	async _GetAllResults(iterator, isHistory) {
 		let allResults = [];
 		let res = await iterator.next();
 		while (!res.done) {
@@ -314,7 +320,7 @@ class Chaincode extends Contract {
 				let jsonRes = {};
 				console.log(res.value.value.toString('utf8'));
 				if (isHistory && isHistory === true) {
-					jsonRes.TxId = res.value.tx_id;
+					jsonRes.TxId = res.value.txId;
 					jsonRes.Timestamp = res.value.timestamp;
 					try {
 						jsonRes.Value = JSON.parse(res.value.value.toString('utf8'));

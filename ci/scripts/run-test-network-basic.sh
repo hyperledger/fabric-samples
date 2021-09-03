@@ -62,3 +62,19 @@ print "Running the output app"
 node dist/app.js
 popd
 stopNetwork
+
+# Run typescript HSM application
+createNetwork
+print "Initializing Typescript HSM application"
+pushd ../asset-transfer-basic/application-typescript-hsm
+print "Setup SoftHSM"
+export SOFTHSM2_CONF=$PWD/softhsm2.conf
+softhsm2-util --init-token --slot 0 --label "ForFabric" --pin 98765432 --so-pin 1234
+print "install dependencies"
+npm install
+print "Building app.ts"
+npm run build
+print "Running the output app"
+node dist/app.js
+popd
+stopNetwork

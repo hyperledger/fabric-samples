@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -22,20 +23,23 @@ type Auction struct {
 	Type         string             `json:"objectType"`
 	ItemSold     string             `json:"item"`
 	Seller       string             `json:"seller"`
+	Quantity     int                `json:"quantity"`
 	Orgs         []string           `json:"organizations"`
 	PrivateBids  map[string]BidHash `json:"privateBids"`
 	RevealedBids map[string]FullBid `json:"revealedBids"`
-	Winner       string             `json:"winner"`
+	Winners      []Winners          `json:"winners"`
 	Price        int                `json:"price"`
 	Status       string             `json:"status"`
+	Auditor      bool               `json:"auditor"`
 }
 
 // FullBid is the structure of a revealed bid
 type FullBid struct {
 	Type     string `json:"objectType"`
+	Quantity int    `json:"quantity"`
 	Price    int    `json:"price"`
 	Org      string `json:"org"`
-	Bidder   string `json:"bidder"`
+	Buyer    string `json:"buyer"`
 }
 
 // BidHash is the structure of a private bid
@@ -44,11 +48,17 @@ type BidHash struct {
 	Hash string `json:"hash"`
 }
 
+// Winners stores the winners of the auction
+type Winners struct {
+	Buyer    string `json:"buyer"`
+	Quantity int    `json:"quantity"`
+}
+
 const bidKeyType = "bid"
 
 // CreateAuction creates on auction on the public channel. The identity that
 // submits the transacion becomes the seller of the auction
-func (s *SmartContract) CreateAuction(ctx contractapi.TransactionContextInterface, auctionID string, itemsold string) error {
+func (s *SmartContract) CreateAuction(ctx contractapi.TransactionContextInterface, auctionID string, itemsold string, quantity int, withAuditor string) error {
 
 	// get ID of submitting client
 	clientID, err := s.GetSubmittingClientIdentity(ctx)
@@ -62,6 +72,12 @@ func (s *SmartContract) CreateAuction(ctx contractapi.TransactionContextInterfac
 		return fmt.Errorf("failed to get client identity %v", err)
 	}
 
+	auditor := false
+
+	if withAuditor == "withAuditor" {
+		auditor = true
+	}
+
 	// Create auction
 	bidders := make(map[string]BidHash)
 	revealedBids := make(map[string]FullBid)
@@ -69,13 +85,15 @@ func (s *SmartContract) CreateAuction(ctx contractapi.TransactionContextInterfac
 	auction := Auction{
 		Type:         "auction",
 		ItemSold:     itemsold,
+		Quantity:     quantity,
 		Price:        0,
 		Seller:       clientID,
 		Orgs:         []string{clientOrgID},
 		PrivateBids:  bidders,
 		RevealedBids: revealedBids,
-		Winner:       "",
+		Winners:      []Winners{},
 		Status:       "open",
+		Auditor:      auditor,
 	}
 
 	auctionJSON, err := json.Marshal(auction)
@@ -90,7 +108,7 @@ func (s *SmartContract) CreateAuction(ctx contractapi.TransactionContextInterfac
 	}
 
 	// set the seller of the auction as an endorser
-	err = setAssetStateBasedEndorsement(ctx, auctionID, clientOrgID)
+	err = setAssetStateBasedEndorsement(ctx, auctionID, []string{clientOrgID}, auditor)
 	if err != nil {
 		return fmt.Errorf("failed setting state based endorsement for new organization: %v", err)
 	}
@@ -98,7 +116,7 @@ func (s *SmartContract) CreateAuction(ctx contractapi.TransactionContextInterfac
 	return nil
 }
 
-// Bid is used to add a user's bid to the auction. The bid is stored in the private
+// Bid is used to add a users bid to the auction. The bid is stored in the private
 // data collection on the peer of the bidder's organization. The function returns
 // the transaction ID so that users can identify and query their bid
 func (s *SmartContract) Bid(ctx contractapi.TransactionContextInterface, auctionID string) (string, error) {
@@ -109,7 +127,7 @@ func (s *SmartContract) Bid(ctx contractapi.TransactionContextInterface, auction
 		return "", fmt.Errorf("error getting transient: %v", err)
 	}
 
-	BidJSON, ok := transientMap["bid"]
+	bidJSON, ok := transientMap["bid"]
 	if !ok {
 		return "", fmt.Errorf("bid key not found in the transient map")
 	}
@@ -136,7 +154,7 @@ func (s *SmartContract) Bid(ctx contractapi.TransactionContextInterface, auction
 	}
 
 	// put the bid into the organization's implicit data collection
-	err = ctx.GetStub().PutPrivateData(collection, bidKey, BidJSON)
+	err = ctx.GetStub().PutPrivateData(collection, bidKey, bidJSON)
 	if err != nil {
 		return "", fmt.Errorf("failed to input price into collection: %v", err)
 	}
@@ -157,14 +175,14 @@ func (s *SmartContract) SubmitBid(ctx contractapi.TransactionContextInterface, a
 	}
 
 	// get the auction from public state
-	auction, err := s.QueryAuction(ctx,auctionID)
+	auction, err := s.QueryAuction(ctx, auctionID)
 	if err != nil {
 		return fmt.Errorf("failed to get auction from public state %v", err)
 	}
 
 	// the auction needs to be open for users to add their bid
-	Status := auction.Status
-	if Status != "open" {
+	status := auction.Status
+	if status != "open" {
 		return fmt.Errorf("cannot join closed or ended auction")
 	}
 
@@ -180,7 +198,7 @@ func (s *SmartContract) SubmitBid(ctx contractapi.TransactionContextInterface, a
 		return fmt.Errorf("failed to create composite key: %v", err)
 	}
 
-	// get the hash of the bid stored in private data collection
+	// get the hash of the bid if found in private collection
 	bidHash, err := ctx.GetStub().GetPrivateDataHash(collection, bidKey)
 	if err != nil {
 		return fmt.Errorf("failed to read bid bash from collection: %v", err)
@@ -190,23 +208,23 @@ func (s *SmartContract) SubmitBid(ctx contractapi.TransactionContextInterface, a
 	}
 
 	// store the hash along with the bidder's organization
-	NewHash := BidHash{
+	newHash := BidHash{
 		Org:  clientOrgID,
 		Hash: fmt.Sprintf("%x", bidHash),
 	}
 
 	bidders := make(map[string]BidHash)
 	bidders = auction.PrivateBids
-	bidders[bidKey] = NewHash
+	bidders[bidKey] = newHash
 	auction.PrivateBids = bidders
 
-	// Add the bidding organization to the list of participating organizations if it is not already
-	Orgs := auction.Orgs
-	if !(contains(Orgs, clientOrgID)) {
-		newOrgs := append(Orgs, clientOrgID)
+	// Add the bidding organization to the list of participating organization's if it is not already
+	orgs := auction.Orgs
+	if !(contains(orgs, clientOrgID)) {
+		newOrgs := append(orgs, clientOrgID)
 		auction.Orgs = newOrgs
 
-		err = addAssetStateBasedEndorsement(ctx, auctionID, clientOrgID)
+		err = setAssetStateBasedEndorsement(ctx, auctionID, newOrgs, auction.Auditor)
 		if err != nil {
 			return fmt.Errorf("failed setting state based endorsement for new organization: %v", err)
 		}
@@ -258,17 +276,17 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 	}
 
 	// get auction from public state
-	auction, err := s.QueryAuction(ctx,auctionID)
+	auction, err := s.QueryAuction(ctx, auctionID)
 	if err != nil {
 		return fmt.Errorf("failed to get auction from public state %v", err)
 	}
 
 	// Complete a series of three checks before we add the bid to the auction
 
-	// check 1: check that the auction is closed. We cannot reveal a
+	// check 1: check that the auction is closed. We cannot reveal an
 	// bid to an open auction
-	Status := auction.Status
-	if Status != "closed" {
+	status := auction.Status
+	if status != "closed" {
 		return fmt.Errorf("cannot reveal bid for open or ended auction")
 	}
 
@@ -307,9 +325,10 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 
 	// we can add the bid to the auction if all checks have passed
 	type transientBidInput struct {
+		Quantity int    `json:"quantity"`
 		Price    int    `json:"price"`
 		Org      string `json:"org"`
-		Bidder   string `json:"bidder"`
+		Buyer    string `json:"buyer"`
 	}
 
 	// unmarshal bid imput
@@ -319,34 +338,35 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 		return fmt.Errorf("failed to unmarshal JSON: %v", err)
 	}
 
-	// Get ID of submitting client identity
+	// get ID of submitting client
 	clientID, err := s.GetSubmittingClientIdentity(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get client identity %v", err)
 	}
 
 	// marshal transient parameters and ID and MSPID into bid object
-	NewBid := FullBid{
+	newBid := FullBid{
 		Type:     bidKeyType,
+		Quantity: bidInput.Quantity,
 		Price:    bidInput.Price,
 		Org:      bidInput.Org,
-		Bidder:   bidInput.Bidder,
+		Buyer:    bidInput.Buyer,
 	}
 
 	// check 4: make sure that the transaction is being submitted is the bidder
-	if bidInput.Bidder != clientID {
+	if bidInput.Buyer != clientID {
 		return fmt.Errorf("Permission denied, client id %v is not the owner of the bid", clientID)
 	}
 
 	revealedBids := make(map[string]FullBid)
 	revealedBids = auction.RevealedBids
-	revealedBids[bidKey] = NewBid
+	revealedBids[bidKey] = newBid
 	auction.RevealedBids = revealedBids
 
-	newAuctionJSON, _ := json.Marshal(auction)
+	auctionJSON, _ := json.Marshal(auction)
 
 	// put auction with bid added back into state
-	err = ctx.GetStub().PutState(auctionID, newAuctionJSON)
+	err = ctx.GetStub().PutState(auctionID, auctionJSON)
 	if err != nil {
 		return fmt.Errorf("failed to update auction: %v", err)
 	}
@@ -359,7 +379,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 func (s *SmartContract) CloseAuction(ctx contractapi.TransactionContextInterface, auctionID string) error {
 
 	// get auction from public state
-	auction, err := s.QueryAuction(ctx,auctionID)
+	auction, err := s.QueryAuction(ctx, auctionID)
 	if err != nil {
 		return fmt.Errorf("failed to get auction from public state %v", err)
 	}
@@ -372,13 +392,13 @@ func (s *SmartContract) CloseAuction(ctx contractapi.TransactionContextInterface
 		return fmt.Errorf("failed to get client identity %v", err)
 	}
 
-	Seller := auction.Seller
-	if Seller != clientID {
+	seller := auction.Seller
+	if seller != clientID {
 		return fmt.Errorf("auction can only be closed by seller: %v", err)
 	}
 
-	Status := auction.Status
-	if Status != "open" {
+	status := auction.Status
+	if status != "open" {
 		return fmt.Errorf("cannot close auction that is not open")
 	}
 
@@ -399,7 +419,7 @@ func (s *SmartContract) CloseAuction(ctx contractapi.TransactionContextInterface
 func (s *SmartContract) EndAuction(ctx contractapi.TransactionContextInterface, auctionID string) error {
 
 	// get auction from public state
-	auction, err := s.QueryAuction(ctx,auctionID)
+	auction, err := s.QueryAuction(ctx, auctionID)
 	if err != nil {
 		return fmt.Errorf("failed to get auction from public state %v", err)
 	}
@@ -412,27 +432,70 @@ func (s *SmartContract) EndAuction(ctx contractapi.TransactionContextInterface, 
 		return fmt.Errorf("failed to get client identity %v", err)
 	}
 
-	Seller := auction.Seller
-	if Seller != clientID {
+	seller := auction.Seller
+	if seller != clientID {
 		return fmt.Errorf("auction can only be ended by seller: %v", err)
 	}
 
-	Status := auction.Status
-	if Status != "closed" {
+	status := auction.Status
+	if status != "closed" {
 		return fmt.Errorf("Can only end a closed auction")
 	}
 
 	// get the list of revealed bids
+
 	revealedBidMap := auction.RevealedBids
 	if len(auction.RevealedBids) == 0 {
 		return fmt.Errorf("No bids have been revealed, cannot end auction: %v", err)
 	}
 
-	// determine the highest bid
+	// sort the map of revealed bids to make it easier to calculate winners
+	// if bids are tied, fill smaller bids first
+	var bidders []FullBid
+
 	for _, bid := range revealedBidMap {
-		if bid.Price > auction.Price {
-			auction.Winner = bid.Bidder
-			auction.Price = bid.Price
+		bidders = append(bidders, bid)
+	}
+
+	sort.Slice(bidders, func(p, q int) bool {
+		if bidders[p].Price > bidders[q].Price {
+			return true
+		}
+		if bidders[p].Price < bidders[q].Price {
+			return false
+		}
+		return bidders[p].Quantity < bidders[q].Quantity
+	})
+
+	i := 0
+	remainingQuantity := auction.Quantity
+
+	// calculate the winners
+	for remainingQuantity > 0 {
+
+		// create the next winning bid
+		winner := Winners{
+			Buyer:    bidders[i].Buyer,
+			Quantity: bidders[i].Quantity,
+		}
+
+		// add them to the list of winners and change the winning price
+		auction.Winners = append(auction.Winners, winner)
+		auction.Price = bidders[i].Price
+
+		// Calculate the quantity that goes to the winner
+		// if there is sufficient quantity to give them the full bid
+		if remainingQuantity > bidders[i].Quantity {
+			remainingQuantity = remainingQuantity - bidders[i].Quantity
+
+			// if there is not, give the remainder
+		} else {
+			auction.Winners[i].Quantity = remainingQuantity
+			remainingQuantity = 0
+		}
+		i++
+		if i == len(bidders) {
+			remainingQuantity = 0
 		}
 	}
 

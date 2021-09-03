@@ -29,14 +29,14 @@ Note that we use the `-ca` flag to deploy the network using certificate authorit
 
 Run the following command to deploy the auction smart contract. We will override the default endorsement policy to allow any channel member to create an auction without requiring an endorsement from another organization.
 ```
-./network.sh deployCC -ccn auction -ccp ../auction/chaincode-go/ -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
+./network.sh deployCC -ccn auction -ccp ../auction-simple/chaincode-go/ -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
 ```
 
 ## Install the application dependencies
 
 We will interact with the auction smart contract through a set of Node.js applications. Change into the `application-javascript` directory:
 ```
-cd fabric-samples/auction/application-javascript
+cd fabric-samples/auction-simple/application-javascript
 ```
 
 From this directory, run the following command to download the application dependencies:
@@ -398,7 +398,7 @@ The transaction was successfully endorsed by both Org1 and Org2, who both calcul
 
 ## Clean up
 
-When your are done using the auction smart contract, you can bring down the network and clean up the environment. In the `auction/application-javascript` directory, run the following command to remove the wallets used to run the applications:
+When your are done using the auction smart contract, you can bring down the network and clean up the environment. In the `auction-simple/application-javascript` directory, run the following command to remove the wallets used to run the applications:
 ```
 rm -rf wallet
 ```
