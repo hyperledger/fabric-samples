@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-version: '2'
+version: '3.7'
 
 volumes:
   peer0.org3.example.com:
@@ -30,7 +30,7 @@ services:
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
-      # Peer specific variabes
+      # Peer specific variables
       - CORE_PEER_ID=peer0.org3.example.com
       - CORE_PEER_ADDRESS=peer0.org3.example.com:11051
       - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
@@ -40,7 +40,7 @@ services:
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org3.example.com:11051
       - CORE_PEER_LOCALMSPID=Org3MSP
     volumes:
-        - /var/run/docker.sock:/host/var/run/docker.sock
+        - ${DOCKER_SOCK}:/host/var/run/docker.sock
         - ../../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp:/etc/hyperledger/fabric/msp
         - ../../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls:/etc/hyperledger/fabric/tls
         - peer0.org3.example.com:/var/hyperledger/production

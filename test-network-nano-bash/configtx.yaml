@@ -25,7 +25,7 @@ Organizations:
         ID: OrdererMSP
 
         # MSPDir is the filesystem path which contains the MSP configuration
-        MSPDir: ../organizations/ordererOrganizations/example.com/msp
+        MSPDir: crypto-config/ordererOrganizations/example.com/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -42,7 +42,9 @@ Organizations:
                 Rule: "OR('OrdererMSP.admin')"
 
         OrdererEndpoints:
-            - orderer.example.com:7050
+            - 127.0.0.1:6050
+            - 127.0.0.1:6051
+            - 127.0.0.1:6052
 
     - &Org1
         # DefaultOrg defines the organization which is used in the sampleconfig
@@ -52,7 +54,7 @@ Organizations:
         # ID to load the MSP definition as
         ID: Org1MSP
 
-        MSPDir: ../organizations/peerOrganizations/org1.example.com/msp
+        MSPDir: crypto-config/peerOrganizations/org1.example.com/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -71,6 +73,14 @@ Organizations:
                 Type: Signature
                 Rule: "OR('Org1MSP.peer')"
 
+        # leave this flag set to true.
+        AnchorPeers:
+            # AnchorPeers defines the location of peers which can be used
+            # for cross org gossip communication.  Note, this value is only
+            # encoded in the genesis block in the Application section context
+            - Host: 127.0.0.1
+              Port: 7051
+
     - &Org2
         # DefaultOrg defines the organization which is used in the sampleconfig
         # of the fabric.git development environment
@@ -79,7 +89,7 @@ Organizations:
         # ID to load the MSP definition as
         ID: Org2MSP
 
-        MSPDir: ../organizations/peerOrganizations/org2.example.com/msp
+        MSPDir: crypto-config/peerOrganizations/org2.example.com/msp
 
         # Policies defines the set of policies at this level of the config tree
         # For organization policies, their canonical path is usually
@@ -97,6 +107,13 @@ Organizations:
             Endorsement:
                 Type: Signature
                 Rule: "OR('Org2MSP.peer')"
+
+        AnchorPeers:
+            # AnchorPeers defines the location of peers which can be used
+            # for cross org gossip communication.  Note, this value is only
+            # encoded in the genesis block in the Application section context
+            - Host: 127.0.0.1
+              Port: 7055
 
 ################################################################################
 #
@@ -182,11 +199,11 @@ Application: &ApplicationDefaults
             Type: ImplicitMeta
             Rule: "MAJORITY Admins"
         LifecycleEndorsement:
-            Type: ImplicitMeta
-            Rule: "MAJORITY Endorsement"
+                Type: Signature
+                Rule: "OR('Org1MSP.peer','Org2MSP.peer')"
         Endorsement:
-            Type: ImplicitMeta
-            Rule: "MAJORITY Endorsement"
+                Type: Signature
+                Rule: "OR('Org1MSP.peer','Org2MSP.peer')"
 
     Capabilities:
         <<: *ApplicationCapabilities
@@ -202,20 +219,49 @@ Orderer: &OrdererDefaults
 
     # Orderer Type: The orderer implementation to start
     OrdererType: etcdraft
-    # Addresses used to be the list of orderer addresses that clients and peers
-    # could connect to.  However, this does not allow clients to associate orderer
-    # addresses and orderer organizations which can be useful for things such
-    # as TLS validation.  The preferred way to specify orderer addresses is now
-    # to include the OrdererEndpoints item in your org definition
-    Addresses:
-        - orderer.example.com:7050
 
     EtcdRaft:
         Consenters:
-        - Host: orderer.example.com
-          Port: 7050
-          ClientTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
-          ServerTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+        - Host: 127.0.0.1
+          Port: 6050
+          ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+          ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+        - Host: 127.0.0.1
+          Port: 6051
+          ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+          ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+        - Host: 127.0.0.1
+          Port: 6052
+          ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+          ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+
+        # Options to be specified for all the etcd/raft nodes. The values here
+        # are the defaults for all new channels and can be modified on a
+        # per-channel basis via configuration updates.
+        Options:
+            # TickInterval is the time interval between two Node.Tick invocations.
+            #TickInterval: 500ms default
+            TickInterval: 2500ms
+
+            # ElectionTick is the number of Node.Tick invocations that must pass
+            # between elections. That is, if a follower does not receive any
+            # message from the leader of current term before ElectionTick has
+            # elapsed, it will become candidate and start an election.
+            # ElectionTick must be greater than HeartbeatTick.
+            # ElectionTick: 10 default
+            ElectionTick: 5
+
+            # HeartbeatTick is the number of Node.Tick invocations that must
+            # pass between heartbeats. That is, a leader sends heartbeat
+            # messages to maintain its leadership every HeartbeatTick ticks.
+            HeartbeatTick: 1
+
+            # MaxInflightBlocks limits the max number of in-flight append messages
+            # during optimistic replication phase.
+            MaxInflightBlocks: 5
+
+            # SnapshotIntervalSize defines number of bytes per which a snapshot is taken
+            SnapshotIntervalSize: 16 MB
 
     # Batch Timeout: The amount of time to wait before creating a batch
     BatchTimeout: 2s
@@ -300,16 +346,44 @@ Channel: &ChannelDefaults
 ################################################################################
 Profiles:
 
-    TwoOrgsApplicationGenesis:
+    TwoOrgsOrdererGenesis:
         <<: *ChannelDefaults
         Orderer:
             <<: *OrdererDefaults
             Organizations:
                 - *OrdererOrg
-            Capabilities: *OrdererCapabilities
+            Capabilities:
+                <<: *OrdererCapabilities
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *Org1
+                    - *Org2
+    TwoOrgsChannel:
+        Consortium: SampleConsortium
+        <<: *ChannelDefaults
         Application:
             <<: *ApplicationDefaults
             Organizations:
                 - *Org1
                 - *Org2
-            Capabilities: *ApplicationCapabilities
+            Capabilities:
+                <<: *ApplicationCapabilities
+    Org1Channel:
+        Consortium: SampleConsortium
+        <<: *ChannelDefaults
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *Org1
+            Capabilities:
+                <<: *ApplicationCapabilities
+    Org2Channel:
+        Consortium: SampleConsortium
+        <<: *ChannelDefaults
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *Org2
+            Capabilities:
+                <<: *ApplicationCapabilities

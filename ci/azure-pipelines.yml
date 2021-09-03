@@ -17,7 +17,7 @@ jobs:
   - job: CommercialPaper_Go
     displayName: Commercial Paper (Go)
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     steps:
       - template: templates/install-deps.yml
       - template: templates/commercial-paper/azure-pipelines-go.yml
@@ -25,7 +25,7 @@ jobs:
   - job: CommercialPaper_Java
     displayName: Commercial Paper (Java)
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     steps:
       - template: templates/install-deps.yml
       - template: templates/commercial-paper/azure-pipelines-java.yml
@@ -33,7 +33,7 @@ jobs:
   - job: CommercialPaper_JavaScript
     displayName: Commercial Paper (JavaScript)
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     steps:
       - template: templates/install-deps.yml
       - template: templates/commercial-paper/azure-pipelines-javascript.yml
@@ -41,7 +41,7 @@ jobs:
   - job: FabCar_Go
     displayName: FabCar (Go)
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     steps:
       - template: templates/install-deps.yml
       - template: templates/fabcar/azure-pipelines-go.yml
@@ -49,7 +49,7 @@ jobs:
   - job: FabCar_Java
     displayName: FabCar (Java)
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     steps:
       - template: templates/install-deps.yml
       - template: templates/fabcar/azure-pipelines-java.yml
@@ -57,7 +57,7 @@ jobs:
   - job: FabCar_JavaScript
     displayName: FabCar (JavaScript)
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     steps:
       - template: templates/install-deps.yml
       - template: templates/fabcar/azure-pipelines-javascript.yml
@@ -65,7 +65,7 @@ jobs:
   - job: Fabcar_TypeScript
     displayName: FabCar (TypeScript)
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     steps:
       - template: templates/install-deps.yml
       - template: templates/fabcar/azure-pipelines-typescript.yml
@@ -73,7 +73,7 @@ jobs:
   - job: Lint
     displayName: Lint
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     steps:
       - task: GoTool@0
         inputs:
@@ -92,7 +92,7 @@ jobs:
   - job: TestNetworkBasic
     displayName: Test Network
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     strategy:
       matrix:
         Basic-Go:
@@ -109,6 +109,8 @@ jobs:
           CHAINCODE_LANGUAGE: typescript
     steps:
       - template: templates/install-deps.yml
+      - script: sudo apt-get install softhsm2
+        displayName: Install SoftHSM
       - script: ../ci/scripts/run-test-network-basic.sh
         workingDirectory: test-network
         displayName: Run Test Network Basic Chaincode
@@ -116,7 +118,7 @@ jobs:
   - job: TestNetworkLedger
     displayName: Test Network
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     strategy:
       matrix:
         Ledger-Go:
@@ -134,7 +136,7 @@ jobs:
   - job: TestNetworkPrivate
     displayName: Test Network
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     strategy:
       matrix:
         Private-Go:
@@ -149,7 +151,7 @@ jobs:
   - job: TestNetworkSBE
     displayName: Test Network
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     strategy:
       matrix:
         SBE-Typescript:
@@ -167,7 +169,7 @@ jobs:
   - job: TestNetworkSecured
     displayName: Test Network
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     strategy:
       matrix:
         Secured-Go:
@@ -182,7 +184,7 @@ jobs:
   - job: TestNetworkEvents
     displayName: Test Network
     pool:
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-20.04
     strategy:
       matrix:
         Events-Javascript:
