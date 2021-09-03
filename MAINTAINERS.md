@@ -10,7 +10,6 @@ fabric-samples uses a non-author code review policy, requiring a single approval
 | Chris Ferris              | christo4ferris   | cbf            | chris.ferris@gmail.com              |
 | Dave Enyeart              | denyeart         | dave.enyeart   | enyeart@us.ibm.com                  |
 | Gari Singh                | mastersingh24    | mastersingh24  | gari.r.singh@gmail.com              |
-| Jason Yellick             | jyellick         | jyellick       | jyellick@us.ibm.com                 |
 | Matthew B White           | mbwhite          | mbwhite        | whitemat@uk.ibm.com                 |
 | Nikhil Gupta              | nikhil550        | negupta        | nikhilg550@gmail.com                |
 
