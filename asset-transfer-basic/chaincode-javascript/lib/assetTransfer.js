@@ -8,8 +8,8 @@
 
 
 // Deterministic JSON.stringify()
-const { stringify } = require('json-stringify-deterministic');
-const { sortKeysRecursive } = require('sort-keys-recursive');
+const stringify  = require('json-stringify-deterministic');
+const sortKeysRecursive  = require('sort-keys-recursive');
 const { Contract } = require('fabric-contract-api');
 
 class AssetTransfer extends Contract {
