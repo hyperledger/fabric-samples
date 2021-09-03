@@ -63,6 +63,7 @@ if [ "$CC_SRC_LANGUAGE" = "go" ]; then
 elif [ "$CC_SRC_LANGUAGE" = "java" ]; then
   CC_RUNTIME_LANGUAGE=java
 
+  rm -rf $CC_SRC_PATH/build/install/
   infoln "Compiling Java code..."
   pushd $CC_SRC_PATH
   ./gradlew installDist
