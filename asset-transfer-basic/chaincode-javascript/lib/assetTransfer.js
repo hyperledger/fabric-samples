@@ -8,8 +8,8 @@
 
 
 //Deterministic JSON.stringify()
-const stringify = require('json-stringify-deterministic')
-const sortKeysRecursive = require('sort-keys-recursive')
+const stringify = require('json-stringify-deterministic');
+const sortKeysRecursive = require('sort-keys-recursive');
 const { Contract } = require('fabric-contract-api');
 
 class AssetTransfer extends Contract {
@@ -61,7 +61,7 @@ class AssetTransfer extends Contract {
         ];
 
         for (const asset of assets) {
-            //example of how to write to world state deterministically 
+            //example of how to write to world state deterministically
             //use convetion of alphabetic order
             //we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
             //when retrieving data, in any lang, the order of data will be the same and consequently also the corresonding hash
