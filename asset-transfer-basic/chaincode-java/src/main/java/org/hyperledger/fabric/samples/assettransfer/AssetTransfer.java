@@ -7,7 +7,6 @@ package org.hyperledger.fabric.samples.assettransfer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 
 import org.hyperledger.fabric.contract.Context;
@@ -54,7 +53,7 @@ public final class AssetTransfer implements ContractInterface {
      * @param ctx the transaction context
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public void InitLedger(final Context ctx) throws JsonProcessingException {
+    public void InitLedger(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
 
         CreateAsset(ctx, "asset1", "blue", 5, "Tomoko", 300);
@@ -79,7 +78,7 @@ public final class AssetTransfer implements ContractInterface {
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public Asset CreateAsset(final Context ctx, final String assetID, final String color, final int size,
-        final String owner, final int appraisedValue) throws JsonProcessingException {
+        final String owner, final int appraisedValue) {
         ChaincodeStub stub = ctx.getStub();
 
         if (AssetExists(ctx, assetID)) {
@@ -104,7 +103,7 @@ public final class AssetTransfer implements ContractInterface {
      * @return the asset found on the ledger if there was one
      */
     @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public Asset ReadAsset(final Context ctx, final String assetID) throws JsonProcessingException, IOException {
+    public Asset ReadAsset(final Context ctx, final String assetID) {
         ChaincodeStub stub = ctx.getStub();
         String assetJSON = stub.getStringState(assetID);
 
@@ -131,7 +130,7 @@ public final class AssetTransfer implements ContractInterface {
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public Asset UpdateAsset(final Context ctx, final String assetID, final String color, final int size,
-        final String owner, final int appraisedValue) throws JsonProcessingException {
+        final String owner, final int appraisedValue) {
         ChaincodeStub stub = ctx.getStub();
 
         if (!AssetExists(ctx, assetID)) {
@@ -190,7 +189,7 @@ public final class AssetTransfer implements ContractInterface {
      * @return the updated asset
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public Asset TransferAsset(final Context ctx, final String assetID, final String newOwner) throws JsonProcessingException {
+    public Asset TransferAsset(final Context ctx, final String assetID, final String newOwner) {
         ChaincodeStub stub = ctx.getStub();
         String assetJSON = stub.getStringState(assetID);
 
@@ -217,7 +216,7 @@ public final class AssetTransfer implements ContractInterface {
      * @return array of assets found on the ledger
      */
     @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public String GetAllAssets(final Context ctx) throws JsonProcessingException, IOException {
+    public String GetAllAssets(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
 
         List<Asset> queryResults = new ArrayList<Asset>();
