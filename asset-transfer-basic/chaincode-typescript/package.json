@@ -22,7 +22,9 @@
     "license": "Apache-2.0",
     "dependencies": {
         "fabric-contract-api": "^2.0.0",
-        "fabric-shim": "^2.0.0"
+        "fabric-shim": "^2.0.0",
+        "json-stringify-deterministic":"^1.0.0",
+        "sort-keys-recursive":"^2.0.0"
     },
     "devDependencies": {
         "@types/chai": "^4.1.7",
