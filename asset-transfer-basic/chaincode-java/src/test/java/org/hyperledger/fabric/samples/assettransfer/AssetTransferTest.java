@@ -24,9 +24,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.IOException;
-
 public final class AssetTransferTest {
 
     private final class MockKeyValue implements KeyValue {
@@ -112,7 +109,7 @@ public final class AssetTransferTest {
     class InvokeReadAssetTransaction {
 
         @Test
-        public void whenAssetExists() throws JsonProcessingException, IOException {
+        public void whenAssetExists() {
             AssetTransfer contract = new AssetTransfer();
             Context ctx = mock(Context.class);
             ChaincodeStub stub = mock(ChaincodeStub.class);
@@ -144,7 +141,7 @@ public final class AssetTransferTest {
     }
 
     @Test
-    void invokeInitLedgerTransaction() throws JsonProcessingException {
+    void invokeInitLedgerTransaction() {
         AssetTransfer contract = new AssetTransfer();
         Context ctx = mock(Context.class);
         ChaincodeStub stub = mock(ChaincodeStub.class);
@@ -183,7 +180,7 @@ public final class AssetTransferTest {
         }
 
         @Test
-        public void whenAssetDoesNotExist() throws JsonProcessingException {
+        public void whenAssetDoesNotExist() {
             AssetTransfer contract = new AssetTransfer();
             Context ctx = mock(Context.class);
             ChaincodeStub stub = mock(ChaincodeStub.class);
@@ -197,7 +194,7 @@ public final class AssetTransferTest {
     }
 
     @Test
-    void invokeGetAllAssetsTransaction() throws JsonProcessingException, IOException {
+    void invokeGetAllAssetsTransaction() {
         AssetTransfer contract = new AssetTransfer();
         Context ctx = mock(Context.class);
         ChaincodeStub stub = mock(ChaincodeStub.class);
@@ -219,7 +216,7 @@ public final class AssetTransferTest {
     class TransferAssetTransaction {
 
         @Test
-        public void whenAssetExists() throws JsonProcessingException {
+        public void whenAssetExists() {
             AssetTransfer contract = new AssetTransfer();
             Context ctx = mock(Context.class);
             ChaincodeStub stub = mock(ChaincodeStub.class);
@@ -254,7 +251,7 @@ public final class AssetTransferTest {
     class UpdateAssetTransaction {
 
         @Test
-        public void whenAssetExists() throws JsonProcessingException {
+        public void whenAssetExists() {
             AssetTransfer contract = new AssetTransfer();
             Context ctx = mock(Context.class);
             ChaincodeStub stub = mock(ChaincodeStub.class);
