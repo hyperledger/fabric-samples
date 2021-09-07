@@ -6,6 +6,9 @@
 
 'use strict';
 
+// Deterministic JSON.stringify()
+const stringify  = require('json-stringify-deterministic');
+const sortKeysRecursive  = require('sort-keys-recursive');
 const { Contract } = require('fabric-contract-api');
 
 class AssetTransfer extends Contract {
@@ -58,8 +61,11 @@ class AssetTransfer extends Contract {
 
         for (const asset of assets) {
             asset.docType = 'asset';
-            await ctx.stub.putState(asset.ID, Buffer.from(JSON.stringify(asset)));
-            console.info(`Asset ${asset.ID} initialized`);
+            // example of how to write to world state deterministically
+            // use convetion of alphabetic order
+            // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
+            // when retrieving data, in any lang, the order of data will be the same and consequently also the corresonding hash
+            await ctx.stub.putState(asset.ID, Buffer.from(stringify(sortKeysRecursive(asset))));
         }
     }
 
@@ -77,7 +83,8 @@ class AssetTransfer extends Contract {
             Owner: owner,
             AppraisedValue: appraisedValue,
         };
-        await ctx.stub.putState(id, Buffer.from(JSON.stringify(asset)));
+        //we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
+        await ctx.stub.putState(id, Buffer.from(stringify(sortKeysRecursive(asset))));
         return JSON.stringify(asset);
     }
 
@@ -105,7 +112,8 @@ class AssetTransfer extends Contract {
             Owner: owner,
             AppraisedValue: appraisedValue,
         };
-        return ctx.stub.putState(id, Buffer.from(JSON.stringify(updatedAsset)));
+        // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
+        return ctx.stub.putState(id, Buffer.from(stringify(sortKeysRecursive(updatedAsset))));
     }
 
     // DeleteAsset deletes an given asset from the world state.
@@ -128,7 +136,8 @@ class AssetTransfer extends Contract {
         const assetString = await this.ReadAsset(ctx, id);
         const asset = JSON.parse(assetString);
         asset.Owner = newOwner;
-        return ctx.stub.putState(id, Buffer.from(JSON.stringify(asset)));
+        // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
+        return ctx.stub.putState(id, Buffer.from(stringify(sortKeysRecursive(asset))));
     }
 
     // GetAllAssets returns all assets found in the world state.
@@ -146,7 +155,7 @@ class AssetTransfer extends Contract {
                 console.log(err);
                 record = strValue;
             }
-            allResults.push({ Key: result.value.key, Record: record });
+            allResults.push(record);
             result = await iterator.next();
         }
         return JSON.stringify(allResults);
