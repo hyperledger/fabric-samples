@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
       - name: main
-        image: localhost:5000/hyperledger/asset-transfer-basic
-        imagePullPolicy: Always
+        image: hyperledger/asset-transfer-basic
+        imagePullPolicy: IfNotPresent
         env:
         - name: CHAINCODE_SERVER_ADDRESS
           value: 0.0.0.0:9999
