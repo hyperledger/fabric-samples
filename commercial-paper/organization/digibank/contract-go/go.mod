@@ -7,7 +7,8 @@ require (
 	github.com/hyperledger/fabric-contract-api-go v1.1.0
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/stretchr/testify v1.5.1
-	golang.org/x/tools v0.1.0 // indirect
+	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect
+	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4 // indirect
 	google.golang.org/genproto v0.0.0-20191028173616-919d9bdd9fe6 // indirect
 	google.golang.org/grpc v1.24.0 // indirect
 )
