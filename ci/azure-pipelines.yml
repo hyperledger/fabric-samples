@@ -5,11 +5,12 @@
 trigger:
   - main
   - release-1.4
+  - release-2.2
 
 variables:
   FABRIC_VERSION: 2.4
   GO_BIN: $(Build.Repository.LocalPath)/bin
-  GO_VER: 1.14.6
+  GO_VER: 1.16.7
   NODE_VER: 12.x
   PATH: $(Build.Repository.LocalPath)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
