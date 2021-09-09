@@ -1,0 +1,41 @@
+#
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: crypto-config-
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      name: crypto-config
+    spec:
+      restartPolicy: "Never"
+      containers:
+      - name: main
+        image: hyperledger/fabric-tools:2.3.2
+        # todo: fixme for KIND clusters
+        imagePullPolicy: Always
+        command:
+          - cryptogen
+          - generate
+          - --config=/var/hyperledger/fabric/crypto-config.yaml
+          - --output=/var/hyperledger/fabric/crypto-config
+        volumeMounts:
+          - name: fabric-volume
+            mountPath: /var/hyperledger/fabric
+          - name: config-volume
+            mountPath: /var/hyperledger/fabric/crypto-config.yaml
+            subPath: crypto-config.yaml
+      volumes:
+        - name: fabric-volume
+          persistentVolumeClaim:
+            claimName: fabric
+        - name: config-volume
+          configMap:
+            name: fabric-config
+

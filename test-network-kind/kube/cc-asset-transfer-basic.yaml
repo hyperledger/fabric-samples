@@ -1,0 +1,46 @@
+#
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cc-asset-transfer-basic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cc-asset-transfer-basic
+  template:
+    metadata:
+      labels:
+        app: cc-asset-transfer-basic
+    spec:
+      containers:
+      - name: main
+        image: hyperledger/asset-transfer-basic
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: CHAINCODE_SERVER_ADDRESS
+          value: 0.0.0.0:9999
+
+        # todo: load with an envFrom and a dynamic config map with the ID.
+        - name: CHAINCODE_ID
+          value: basic_1.0:d730a5ce916e120f2a2509ee33527a0df68cadac678f5eb196737ad10ba42da9
+        ports:
+        - containerPort: 9999
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cc-asset-transfer-basic
+spec:
+  ports:
+  - name: chaincode
+    port: 9999
+    protocol: TCP
+  selector:
+    app: cc-asset-transfer-basic

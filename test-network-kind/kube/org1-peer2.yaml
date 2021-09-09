@@ -1,0 +1,105 @@
+#
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: org1-peer2-config
+data:
+  FABRIC_CFG_PATH: /var/hyperledger/fabric/config
+  FABRIC_LOGGING_SPEC: "debug:cauthdsl,policies,msp,grpc,peer.gossip.mcs,gossip,leveldbhelper=info"
+  CORE_PEER_TLS_ENABLED: "true"
+  CORE_PEER_TLS_CERT_FILE: /var/hyperledger/fabric/crypto-config/peerOrganizations/org1.example.com/peers/org1-peer2.org1.example.com/tls/server.crt
+  CORE_PEER_TLS_KEY_FILE: /var/hyperledger/fabric/crypto-config/peerOrganizations/org1.example.com/peers/org1-peer2.org1.example.com/tls/server.key
+  CORE_PEER_TLS_ROOTCERT_FILE: /var/hyperledger/fabric/crypto-config/peerOrganizations/org1.example.com/peers/org1-peer2.org1.example.com/tls/ca.crt
+  CORE_PEER_ID: org1-peer2.org1.example.com
+  CORE_PEER_ADDRESS: org1-peer2:7051
+  CORE_PEER_LISTENADDRESS: 0.0.0.0:7051
+  CORE_PEER_CHAINCODEADDRESS: org1-peer2:7052
+  CORE_PEER_CHAINCODELISTENADDRESS: 0.0.0.0:7052
+  # bootstrap peer is the other peer in the same org
+  CORE_PEER_GOSSIP_BOOTSTRAP: org1-peer1:7051
+  CORE_PEER_GOSSIP_EXTERNALENDPOINT: org1-peer2:7051
+  CORE_PEER_LOCALMSPID: Org1MSP
+  CORE_PEER_MSPCONFIGPATH: /var/hyperledger/fabric/crypto-config/peerOrganizations/org1.example.com/peers/org1-peer2.org1.example.com/msp
+  CORE_OPERATIONS_LISTENADDRESS: 0.0.0.0:9443
+  CORE_PEER_FILESYSTEMPATH: /var/hyperledger/fabric/data/org1-peer2.org1.example.com
+  CORE_LEDGER_SNAPSHOTS_ROOTDIR: /var/hyperledger/fabric/data/org1-peer2.org1.example.com/snapshots
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: org1-peer2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: org1-peer2
+  template:
+    metadata:
+      labels:
+        app: org1-peer2
+    spec:
+      containers:
+        - name: main
+          image: hyperledger/fabric-peer:2.3.2
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: org1-peer2-config
+          ports:
+            - containerPort: 7051
+            - containerPort: 7052
+            - containerPort: 9443
+          volumeMounts:
+            - name: fabric-volume
+              mountPath: /var/hyperledger/fabric
+            - name: fabric-config
+              mountPath: /var/hyperledger/fabric/config
+            - name: ccs-builder
+              mountPath: /var/hyperledger/fabric/external-chaincode/builder
+
+      # load the external chaincode binaries into the peer image prior to peer launch.
+      initContainers:
+        - name: fabric-ccs-builder
+          # todo: publish this image to docker hub.  It's currently read from the kind docker context.
+          image: hyperledgendary/fabric-ccs-builder
+          imagePullPolicy: IfNotPresent
+          command: [sh, -c]
+          args: ["cp /go/bin/* /podshare"]
+          volumeMounts:
+            - name: ccs-builder
+              mountPath: /podshare
+
+      volumes:
+        - name: fabric-volume
+          persistentVolumeClaim:
+            claimName: fabric
+        - name: fabric-config
+          configMap:
+            name: fabric-config
+        - name: ccs-builder
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: org1-peer2
+spec:
+  ports:
+    - name: gossip
+      port: 7051
+      protocol: TCP
+    - name: chaincode
+      port: 7052
+      protocol: TCP
+    - name: operations
+      port: 9443
+      protocol: TCP
+  selector:
+    app: org1-peer2
