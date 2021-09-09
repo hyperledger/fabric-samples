@@ -2,128 +2,51 @@
 
 Prototype sample REST server to demonstrate good Fabric Node SDK practices for parts of [FAB-18511](https://jira.hyperledger.org/browse/FAB-18511)
 
-The primary aim of this sample is to show how to write a long running client application using the Fabric Node SDK
+The intention is to deliver the sample to the [asset-transfer-basic/rest-api-typescript directory of the fabric-samples repository](https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic)
 
-The REST API is intended to work with the [basic asset transfer example](https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic)
+See the [sample readme for usage intructions](asset-transfer-basic/rest-api-typescript/README.md)
 
-To install the basic asset transfer chaincode on a local Fabric network, follow the [Using the Fabric test network](https://hyperledger-fabric.readthedocs.io/en/release-2.2/test_network.html) tutorial
+## Overview
 
-## Usage
+The primary aim of this sample is to show how to write a long running client application using the Fabric Node SDK, i.e. without reconnecting for each transaction
 
-**Note:** these instructions should work with the release-2.2 branch of `fabric-samples` but later versions require some changes
+It should also show:
 
-To build and start the sample REST server, you'll need to [download and install an LTS version of node](https://nodejs.org/en/download/)
+- basic transaction retries
+- long running event handling
+- requests from multiple users
 
-Clone this repository and change to the `fabric-rest-sample/asset-transfer-basic/rest-api-typescript` directory before running the following commands
+## Next steps
 
-Install dependencies
+### Handling transaction errors
 
-```shell
-npm install
-```
+Should transactions be retried _unless they fail_ with specific errors, e.g. duplicate transaction (the current implementation)?
 
-Build the REST server
+**or**
 
-```shell
-npm run build
-```
+Should transactions be retried _when they fail_ with specific errors?
 
-Create a `.env` file to configure the server for the test network (make sure TEST_NETWORK_HOME is set to the fully qualified `test-network` directory)
+Also, transactions are currently only retried if they are successfully endorsed- does that seem reasonable?
 
-```shell
-TEST_NETWORK_HOME=$HOME/fabric-samples/test-network npm run generateEnv
-```
+If the transaction failed because of MVCC_READ_CONFLICT, is a chance that it could pass when retrying? (Is MVCC_READ_CONFLICT an endorsement error?)
 
-Start a Redis server
+### Handling other errors
 
-```shell
-npm run start:redis
-```
+Need to make sure it's clear what went wrong and fail properly it necessary, for example when starting without a redis instance
 
-Start the sample REST server
+### Finish off unit tests
 
-```shell
-npm run start:dev
-```
+Coverage is looking much better now but there are a few more todos
 
-### Docker image
+### More comments
 
-Alternatively, run the following commands in the `fabric-rest-sample/asset-transfer-basic/rest-api-typescript` directory to start the sample in a Docker container
+Need to document what's going on and why, especially in the fabric.ts file!
 
-Build the Docker image
+### Feedback
 
-```shell
-docker build -t fabric-rest-sample .
-```
+- More people trying out the sample (and ideally trying to break it a bit!)
+- Code review to merge sample into fabric-samples
 
-Create a `.env` file to configure the server for the test network (make sure `TEST_NETWORK_HOME` is set to the fully qualified `test-network` directory and `AS_LOCAL_HOST` is set to `false` so that the server works inside the Docker Compose network)
+### Known problems
 
-```shell
-TEST_NETWORK_HOME=$HOME/fabric-samples/test-network AS_LOCAL_HOST=false npm run generateEnv
-```
-
-Start the sample REST server and Redis server
-
-```shell
-docker-compose up -d
-```
-
-## REST API
-
-If everything went well, you can now make basic asset transfer REST calls!
-
-The examples below require a `SAMPLE_APIKEY` environment variable which must be set to an API key from the `.env` file created above.
-
-For example, to use the ORG1_APIKEY...
-
-```
-SAMPLE_APIKEY=$(grep ORG1_APIKEY .env | cut -d '=' -f 2-)
-```
-
-### Get all assets...
-
-```shell
-curl --header "X-Api-Key: ${SAMPLE_APIKEY}" http://localhost:3000/api/assets
-```
-
-### Check whether an asset exists...
-
-```shell
-curl --include --header "X-Api-Key: ${SAMPLE_APIKEY}" --request OPTIONS http://localhost:3000/api/assets/asset7
-```
-
-### Create an asset...
-
-```shell
-curl --include --header "Content-Type: application/json" --header "X-Api-Key: ${SAMPLE_APIKEY}" --request POST --data '{"id":"asset7","color":"red","size":42,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets
-```
-
-### Read transaction status...
-
-```shell
-curl --header "X-Api-Key: ${SAMPLE_APIKEY}" http://localhost:3000/api/transactions/__transaction_id__
-```
-
-### Read an asset...
-
-```shell
-curl --header "X-Api-Key: ${SAMPLE_APIKEY}" http://localhost:3000/api/assets/asset7
-```
-
-### Update an asset...
-
-```shell
-curl --include --header "Content-Type: application/json" --header "X-Api-Key: ${SAMPLE_APIKEY}" --request PUT --data '{"id":"asset7","color":"red","size":11,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets/asset7
-```
-
-### Transfer an asset...
-
-```shell
-curl --include --header "Content-Type: application/json" --header "X-Api-Key: ${SAMPLE_APIKEY}" --request PATCH --data '[{"op":"replace","path":"/owner","value":"Ashleigh"}]' http://localhost:3000/api/assets/asset7
-```
-
-### Delete an asset...
-
-```shell
-curl --include --header "X-Api-Key: ${SAMPLE_APIKEY}" --request DELETE http://localhost:3000/api/assets/asset7
-```
+See [issues](https://github.com/hyperledgendary/fabric-rest-sample/issues)
