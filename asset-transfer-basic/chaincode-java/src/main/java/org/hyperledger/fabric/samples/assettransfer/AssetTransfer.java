@@ -7,6 +7,7 @@ package org.hyperledger.fabric.samples.assettransfer;
 import java.util.ArrayList;
 import java.util.List;
 
+
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.contract.ContractInterface;
 import org.hyperledger.fabric.contract.annotation.Contact;
@@ -86,8 +87,9 @@ public final class AssetTransfer implements ContractInterface {
         }
 
         Asset asset = new Asset(assetID, color, size, owner, appraisedValue);
-        String assetJSON = genson.serialize(asset);
-        stub.putStringState(assetID, assetJSON);
+        //Use Genson to convert the Asset into string, sort it alphabetically and serialize it into a json string
+        String sortedJson = genson.serialize(asset);
+        stub.putStringState(assetID, sortedJson);
 
         return asset;
     }
@@ -137,9 +139,9 @@ public final class AssetTransfer implements ContractInterface {
         }
 
         Asset newAsset = new Asset(assetID, color, size, owner, appraisedValue);
-        String newAssetJSON = genson.serialize(newAsset);
-        stub.putStringState(assetID, newAssetJSON);
-
+        //Use Genson to convert the Asset into string, sort it alphabetically and serialize it into a json string
+        String sortedJson = genson.serialize(newAsset);
+        stub.putStringState(assetID, sortedJson);
         return newAsset;
     }
 
@@ -199,8 +201,9 @@ public final class AssetTransfer implements ContractInterface {
         Asset asset = genson.deserialize(assetJSON, Asset.class);
 
         Asset newAsset = new Asset(asset.getAssetID(), asset.getColor(), asset.getSize(), newOwner, asset.getAppraisedValue());
-        String newAssetJSON = genson.serialize(newAsset);
-        stub.putStringState(assetID, newAssetJSON);
+        //Use a Genson to conver the Asset into string, sort it alphabetically and serialize it into a json string
+        String sortedJson = genson.serialize(newAsset);
+        stub.putStringState(assetID, sortedJson);
 
         return newAsset;
     }
@@ -225,8 +228,8 @@ public final class AssetTransfer implements ContractInterface {
 
         for (KeyValue result: results) {
             Asset asset = genson.deserialize(result.getStringValue(), Asset.class);
+            System.out.println(asset);
             queryResults.add(asset);
-            System.out.println(asset.toString());
         }
 
         final String response = genson.serialize(queryResults);
