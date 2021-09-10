@@ -280,6 +280,18 @@ describe('Fabric', () => {
       const index = await redis.zrange('index:txn:timestamp', 0, -1);
       expect(index).toStrictEqual([]);
     });
+
+    it('starts a retry loop which clears the saved details when no contract exist for the org', async () => {
+      addMockTransationDetails(redis);
+      mockContracts = new Map<string, Contract>();
+      startRetryLoop(mockContracts, redis);
+      jest.runOnlyPendingTimers();
+      await flushPromises();
+
+      const index = await redis.zrange('index:txn:timestamp', 0, -1);
+      expect(index).toStrictEqual([]);
+    });
+
   });
 
   describe('evatuateTransaction', () => {
