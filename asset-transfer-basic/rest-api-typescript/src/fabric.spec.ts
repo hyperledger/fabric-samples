@@ -291,7 +291,6 @@ describe('Fabric', () => {
       const index = await redis.zrange('index:txn:timestamp', 0, -1);
       expect(index).toStrictEqual([]);
     });
-
   });
 
   describe('evatuateTransaction', () => {

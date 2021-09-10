@@ -145,7 +145,7 @@ export const startRetryLoop = (
         if (contract) {
           await retryTransaction(contract, redis, savedTransaction);
         } else {
-          clearTransactionDetails(redis,savedTransaction.transactionId)
+          clearTransactionDetails(redis, savedTransaction.transactionId);
           logger.error(
             'No contract found for %s to retry transaction %s',
             savedTransaction.mspId,
