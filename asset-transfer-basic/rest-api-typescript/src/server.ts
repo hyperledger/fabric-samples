@@ -18,6 +18,7 @@ import {
   createGateway,
   createWallet,
   startRetryLoop,
+  blockEventHandler,
 } from './fabric';
 import { redis } from './redis';
 import * as config from './config';
@@ -81,9 +82,6 @@ export const createServer = async (): Promise<Application> => {
   const contractsOrg1 = await getContracts(networkOrg1);
   app.set(config.mspIdOrg1, contractsOrg1);
 
-  // TODO used for block listener, which needs fixing!
-  app.set('networkOrg1', networkOrg1);
-
   const gatewayOrg2 = await createGateway(
     config.connectionProfileOrg2,
     config.mspIdOrg2,
@@ -99,6 +97,13 @@ export const createServer = async (): Promise<Application> => {
   startRetryLoop(assetContracts, redis);
 
   app.set('redis', redis);
+
+  logger.debug('Adding block listener to %s network', config.blockListenerOrg);
+  if (config.blockListenerOrg === config.ORG1) {
+    await networkOrg1.addBlockListener(blockEventHandler(redis));
+  } else {
+    await networkOrg2.addBlockListener(blockEventHandler(redis));
+  }
 
   app.use('/', healthRouter);
   app.use('/api/assets', authenticateApiKey, assetsRouter);

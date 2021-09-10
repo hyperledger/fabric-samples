@@ -152,6 +152,28 @@ describe('Config values', () => {
     });
   });
 
+  describe('blockListenerOrg', () => {
+    it('defaults to "Org1"', () => {
+      const config = require('./config');
+      expect(config.blockListenerOrg).toBe('Org1');
+    });
+
+    it('can be configured using the "HLF_BLOCK_LISTENER_ORG" environment variable', () => {
+      process.env.HLF_BLOCK_LISTENER_ORG = 'Org2';
+      const config = require('./config');
+      expect(config.blockListenerOrg).toBe('Org2');
+    });
+
+    it('throws an error when the "HLF_BLOCK_LISTENER_ORG" environment variable has an invalid value', () => {
+      process.env.HLF_BLOCK_LISTENER_ORG = 'Org3';
+      expect(() => {
+        require('./config');
+      }).toThrow(
+        'env-var: "HLF_BLOCK_LISTENER_ORG" should be one of [Org1, Org2]'
+      );
+    });
+  });
+
   describe('channelName', () => {
     it('defaults to "mychannel"', () => {
       const config = require('./config');

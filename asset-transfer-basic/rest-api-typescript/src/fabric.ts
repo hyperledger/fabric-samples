@@ -344,23 +344,35 @@ const isDuplicateTransactionError = (error: {
   return false;
 };
 
+/*
+ * Block event listener to handle successful transactions
+ *
+ * Transaction details are saved before being submitted so that
+ * they can be retried, and this listener deletes those transaction
+ * details for any successful transactions
+ *
+ * Transactions can be submitted using one of two identities
+ * however one one of those identities is used to listen for
+ * block events
+ */
 export const blockEventHandler = (redis: Redis): BlockListener => {
-  const blockListner = async (event: BlockEvent) => {
-    logger.debug('Block event received ');
-    const transEvents: Array<TransactionEvent> = event.getTransactionEvents();
+  const blockListener = async (event: BlockEvent) => {
+    logger.debug(
+      { blockNumber: event.blockNumber.toString() },
+      'Block event received'
+    );
+    const transactionEvents: Array<TransactionEvent> =
+      event.getTransactionEvents();
 
-    for (const transEvent of transEvents) {
-      if (transEvent && transEvent.isValid) {
-        logger.debug(
-          'Remove transation with txnId %s',
-          transEvent.transactionId
-        );
-        await clearTransactionDetails(redis, transEvent.transactionId);
+    for (const event of transactionEvents) {
+      if (event && event.isValid) {
+        logger.debug('Remove transation with txnId %s', event.transactionId);
+        await clearTransactionDetails(redis, event.transactionId);
       }
     }
   };
 
-  return blockListner;
+  return blockListener;
 };
 
 export const getBlockHeight = async (

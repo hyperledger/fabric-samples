@@ -11,6 +11,7 @@ import {
   submitTransaction,
   getBlockHeight,
   startRetryLoop,
+  blockEventHandler,
 } from './fabric';
 import * as config from './config';
 
@@ -22,11 +23,13 @@ import {
 } from './errors';
 
 import {
+  BlockEvent,
   Contract,
   Gateway,
   GatewayOptions,
   Network,
   Transaction,
+  TransactionEvent,
   Wallet,
 } from 'fabric-network';
 
@@ -40,6 +43,36 @@ jest.mock('./config');
 jest.mock('ioredis', () => require('ioredis-mock/jest'));
 
 describe('Fabric', () => {
+  const mockTransactionId =
+    '0ae62c01e4c4b112c3f3954a2f11243da76778e46df9ad2783bcbafc79652b95';
+  const mockKey = `txn:${mockTransactionId}`;
+  const mockMspId = 'Org1MSP';
+  const mockState = Buffer.from(
+    `{"name":"CreateAsset","nonce":"damqinq8nrI4n4qY8lFVsZw7RwG2ufrv","transactionId":${mockTransactionId}`
+  );
+  const mockArgs = '["test111","red",400,"Jean",101]';
+  const mockTimestamp = 1628078044362;
+
+  const addMockTransationDetails = async (redis: Redis) => {
+    await redis
+      .multi()
+      .hset(
+        mockKey,
+        'mspId',
+        mockMspId,
+        'state',
+        mockState,
+        'args',
+        mockArgs,
+        'timestamp',
+        mockTimestamp,
+        'retries',
+        '0'
+      )
+      .zadd('index:txn:timestamp', mockTimestamp, mockTransactionId)
+      .exec();
+  };
+
   describe('createWallet', () => {
     it('creates a wallet containing identities for both orgs', async () => {
       const wallet = await createWallet();
@@ -110,39 +143,9 @@ describe('Fabric', () => {
     let mockContract: MockProxy<Contract>;
     let mockContracts: Map<string, Contract>;
 
-    const mockTransactionId =
-      '0ae62c01e4c4b112c3f3954a2f11243da76778e46df9ad2783bcbafc79652b95';
-    const mockKey = `txn:${mockTransactionId}`;
-    const mockMspId = 'Org1MSP';
-    const mockState = Buffer.from(
-      `{"name":"CreateAsset","nonce":"damqinq8nrI4n4qY8lFVsZw7RwG2ufrv","transactionId":${mockTransactionId}`
-    );
-    const mockArgs = '["test111","red",400,"Jean",101]';
-    const mockTimestamp = 1628078044362;
-
     const flushPromises = () => {
       jest.useRealTimers();
       return new Promise((resolve) => setImmediate(resolve));
-    };
-
-    const addMockTransationDetails = async (redis: Redis) => {
-      await redis
-        .multi()
-        .hset(
-          mockKey,
-          'mspId',
-          mockMspId,
-          'state',
-          mockState,
-          'args',
-          mockArgs,
-          'timestamp',
-          mockTimestamp,
-          'retries',
-          '0'
-        )
-        .zadd('index:txn:timestamp', mockTimestamp, mockTransactionId)
-        .exec();
     };
 
     beforeEach(() => {
@@ -482,6 +485,63 @@ describe('Fabric', () => {
           'argb'
         );
       }).rejects.toThrow(TransactionError);
+    });
+  });
+
+  describe('blockEventHandler', () => {
+    let redis: Redis;
+    let mockIsValidGetter: jest.Mock<boolean, []>;
+    let mockTransactionIdGetter: jest.Mock<string, []>;
+    let mockTransactionEvent: MockProxy<TransactionEvent>;
+    let mockBlockEvent: MockProxy<BlockEvent>;
+
+    beforeEach(async () => {
+      const redisOptions = {
+        port: config.redisPort,
+        host: config.redisHost,
+        username: config.redisUsername,
+        password: config.redisPassword,
+      };
+
+      redis = new IORedis(redisOptions) as unknown as Redis;
+      addMockTransationDetails(redis);
+
+      const baseMock = {};
+      mockTransactionEvent = mock<TransactionEvent>(baseMock);
+      mockIsValidGetter = jest.fn<boolean, []>();
+      Object.defineProperty(baseMock, 'isValid', { get: mockIsValidGetter });
+      mockTransactionIdGetter = jest.fn<string, []>();
+      Object.defineProperty(baseMock, 'transactionId', {
+        get: mockTransactionIdGetter,
+      });
+
+      mockBlockEvent = mock<BlockEvent>();
+      mockBlockEvent.getTransactionEvents.mockReturnValue([
+        mockTransactionEvent,
+      ]);
+    });
+
+    it('clears saved details for valid transactions', async () => {
+      const blockListener = blockEventHandler(redis);
+      mockIsValidGetter.mockReturnValue(true);
+      mockTransactionIdGetter.mockReturnValue(mockTransactionId);
+
+      await blockListener(mockBlockEvent);
+
+      const index = await redis.zrange('index:txn:timestamp', 0, -1);
+      expect(index).toStrictEqual([]);
+    });
+
+    it('does not clear saved details for invalid transactions', async () => {
+      const blockListener = blockEventHandler(redis);
+      mockIsValidGetter.mockReturnValue(false);
+
+      await blockListener(mockBlockEvent);
+
+      const index = await redis.zrange('index:txn:timestamp', 0, -1);
+      expect(index).toStrictEqual([
+        '0ae62c01e4c4b112c3f3954a2f11243da76778e46df9ad2783bcbafc79652b95',
+      ]);
     });
   });
 

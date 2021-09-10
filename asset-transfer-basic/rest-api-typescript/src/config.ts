@@ -4,6 +4,9 @@
 
 import * as env from 'env-var';
 
+export const ORG1 = 'Org1';
+export const ORG2 = 'Org2';
+
 /*
  * Log level for the REST server
  */
@@ -55,8 +58,8 @@ export const asLocalhost = env
  */
 export const mspIdOrg1 = env
   .get('HLF_MSP_ID_ORG1')
-  .default('Org1MSP')
-  .example('Org1MSP')
+  .default(`${ORG1}MSP`)
+  .example(`${ORG1}MSP`)
   .asString();
 
 /*
@@ -64,9 +67,17 @@ export const mspIdOrg1 = env
  */
 export const mspIdOrg2 = env
   .get('HLF_MSP_ID_ORG2')
-  .default('Org2MSP')
-  .example('Org2MSP')
+  .default(`${ORG2}MSP`)
+  .example(`${ORG2}MSP`)
   .asString();
+
+/*
+ * The block listener org
+ */
+export const blockListenerOrg = env
+  .get('HLF_BLOCK_LISTENER_ORG')
+  .default(ORG1)
+  .asEnum([ORG1, ORG2]);
 
 /*
  * Name of the channel which the basic asset sample chaincode has been installed on
