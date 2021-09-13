@@ -104,11 +104,22 @@ export const createGateway = async (
   return gateway;
 };
 
+/*
+ * Get the network which the asset transfer sample chaincode is running on
+ *
+ * In addion to getting the contract, the network will also be used to
+ * start a block event listener
+ */
 export const getNetwork = async (gateway: Gateway): Promise<Network> => {
   const network = await gateway.getNetwork(config.channelName);
   return network;
 };
 
+/*
+ * Get the asset transfer sample contract and the qscc system contract
+ *
+ * The system contract is used for the liveness REST endpoint
+ */
 export const getContracts = async (
   network: Network
 ): Promise<{ assetContract: Contract; qsccContract: Contract }> => {
@@ -117,6 +128,13 @@ export const getContracts = async (
   return { assetContract, qsccContract };
 };
 
+/*
+ * Starts a timer to retry transactions at regular intervals
+ *
+ * Note: there is check for whether the transaction has successfully completed
+ * since it could succeed between any check and the retry, so the additional
+ * transaction to get the status is unlikely to be worthwhile
+ */
 export const startRetryLoop = (
   contracts: Map<string, Contract>,
   redis: Redis
@@ -162,6 +180,9 @@ export const startRetryLoop = (
   retryInterval.unref();
 };
 
+/*
+ * Evaluate a transaction and handle any errors
+ */
 export const evatuateTransaction = async (
   contract: Contract,
   transactionName: string,
@@ -182,6 +203,12 @@ export const evatuateTransaction = async (
   }
 };
 
+/*
+ * Submit a transaction and handle any errors
+ *
+ * Transaction details are saved before being submitted so that they can be
+ * retried if any errors occur
+ */
 export const submitTransaction = async (
   contract: Contract,
   redis: Redis,
@@ -277,6 +304,12 @@ const handleError = (transactionId: string, err: Error): Error => {
   return new TransactionError('Transaction error', transactionId);
 };
 
+/*
+ * Retry a transaction
+ *
+ * The saved transaction details include a retry count which is used to ensure
+ * failing transactions are not retried indefinitely
+ */
 const retryTransaction = async (
   contract: Contract,
   redis: Redis,
@@ -347,13 +380,12 @@ const isDuplicateTransactionError = (error: {
 /*
  * Block event listener to handle successful transactions
  *
- * Transaction details are saved before being submitted so that
- * they can be retried, and this listener deletes those transaction
- * details for any successful transactions
+ * Transaction details are saved before being submitted so that they can be
+ * retried, and this listener deletes those transaction details for any
+ * successful transactions
  *
- * Transactions can be submitted using one of two identities
- * however one one of those identities is used to listen for
- * block events
+ * Transactions can be submitted using one of two identities however one one
+ * of those identities is used to listen for block events
  */
 export const blockEventHandler = (redis: Redis): BlockListener => {
   const blockListener = async (event: BlockEvent) => {
@@ -375,6 +407,12 @@ export const blockEventHandler = (redis: Redis): BlockListener => {
   return blockListener;
 };
 
+/*
+ * Get the current block height
+ * 
+ * This example of using a system contract is used for the liveness REST
+ * endpoint 
+ */
 export const getBlockHeight = async (
   qscc: Contract
 ): Promise<number | Long.Long> => {
