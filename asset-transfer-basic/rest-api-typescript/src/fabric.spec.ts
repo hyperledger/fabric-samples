@@ -320,35 +320,25 @@ describe('Fabric', () => {
       expect(result.toString()).toBe(mockPayload.toString());
     });
 
-    it.each([
-      'the asset GOCHAINCODE already exists',
-      'Asset JAVACHAINCODE already exists',
-      'The asset JSCHAINCODE already exists',
-    ])(
-      'throws an AssetExistsError an asset already exists error occurs: %s',
-      async (msg) => {
-        mockTransaction.evaluate.mockRejectedValue(new Error(msg));
+    it('throws an AssetExistsError an asset already exists error occurs', async () => {
+      mockTransaction.evaluate.mockRejectedValue(
+        new Error('The asset JSCHAINCODE already exists')
+      );
 
-        await expect(async () => {
-          await evatuateTransaction(mockContract, 'txn', 'arga', 'argb');
-        }).rejects.toThrow(AssetExistsError);
-      }
-    );
+      await expect(async () => {
+        await evatuateTransaction(mockContract, 'txn', 'arga', 'argb');
+      }).rejects.toThrow(AssetExistsError);
+    });
 
-    it.each([
-      'the asset GOCHAINCODE does not exist',
-      'Asset JAVACHAINCODE does not exist',
-      'The asset JSCHAINCODE does not exist',
-    ])(
-      'throws an AssetNotFoundError if an asset does not exist error occurs: %s',
-      async (msg) => {
-        mockTransaction.evaluate.mockRejectedValue(new Error(msg));
+    it('throws an AssetNotFoundError if an asset does not exist error occurs', async () => {
+      mockTransaction.evaluate.mockRejectedValue(
+        new Error('The asset JSCHAINCODE does not exist')
+      );
 
-        await expect(async () => {
-          await evatuateTransaction(mockContract, 'txn', 'arga', 'argb');
-        }).rejects.toThrow(AssetNotFoundError);
-      }
-    );
+      await expect(async () => {
+        await evatuateTransaction(mockContract, 'txn', 'arga', 'argb');
+      }).rejects.toThrow(AssetNotFoundError);
+    });
 
     it('throws a TransactionNotFoundError if a transaction not found error occurs', async () => {
       mockTransaction.evaluate.mockRejectedValue(
