@@ -38,7 +38,7 @@ The configuration for the listener is stored in the `config.json` file:
     "channelid": "mychannel",
     "use_couchdb":true,
     "create_history_log":true,
-    "couchdb_address": "http://localhost:5990"
+    "couchdb_address": "http://admin:password@localhost:5990"
 }
 ```
 
@@ -48,7 +48,7 @@ The configuration for the listener is stored in the `config.json` file:
 CouchDB. If set to false, only a local log of events will be stored.
 `create_history_log:` If true, a local log file will be created with all of the
 block changes.
-`couchdb_address:` is the local address for an off chain CouchDB database.
+`couchdb_address:` is the local address for an off chain CouchDB database with username and password.
 
 ### Create an instance of CouchDB
 
@@ -56,7 +56,7 @@ If you set the "use_couchdb" option to true in `config.json`, you can run the
 following command start a local instance of CouchDB using docker:
 
 ```
-docker run --publish 5990:5984 --detach --name offchaindb couchdb:2.3.1
+docker run -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password --publish 5990:5984 --detach --name offchaindb couchdb:3.1.1
 docker start offchaindb
 ```
 
