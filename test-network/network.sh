@@ -227,12 +227,33 @@ function createOrgs() {
 # folder. This file defines the environment variables and file mounts that
 # point the crypto material and genesis block that were created in earlier.
 
+# Generate orderer system channel genesis block.
+function createConsortium() {
+  which configtxgen
+  if [ "$?" -ne 0 ]; then
+    fatalln "configtxgen tool not found."
+  fi
+
+  infoln "Generating Orderer Genesis block"
+
+  # Note: For some unknown reason (at least for now) the block file can't be
+  # named orderer.genesis.block or the orderer will fail to launch!
+  set -x
+  configtxgen -profile TwoOrgsOrdererGenesis -channelID system-channel -outputBlock ./system-genesis-block/genesis.block
+  res=$?
+  { set +x; } 2>/dev/null
+  if [ $res -ne 0 ]; then
+    fatalln "Failed to generate orderer genesis block..."
+  fi
+}
+
 # Bring up the peer and orderer nodes using docker compose.
 function networkUp() {
   checkPrereqs
   # generate artifacts if they don't exist
   if [ ! -d "organizations/peerOrganizations" ]; then
     createOrgs
+    createConsortium
   fi
 
   COMPOSE_FILES="-f ${COMPOSE_FILE_BASE}"
