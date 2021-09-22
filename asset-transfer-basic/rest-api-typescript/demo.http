@@ -40,6 +40,11 @@ X-Api-Key: {{api-key}}
     "appraisedValue": 101
 }
 
+### Read job status
+
+GET {{apiUrl}}/jobs/__job_id__ HTTP/1.1
+X-Api-Key: {{api-key}}
+
 ### Read transaction status
 
 GET {{apiUrl}}/transactions/__transaction_id__ HTTP/1.1

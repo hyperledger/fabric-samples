@@ -1,32 +1,35 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  *
- * Note: this sample is intended to work with the basic asset transfer
+ * This sample is intended to work with the basic asset transfer
  * chaincode which imposes some constraints on what is possible here.
  *
  * For example,
  *  - There is no validation for Asset IDs
  *  - There are no error codes from the chaincode
  *
+ * To avoid timeouts, long running tasks should be decoupled from HTTP request
+ * processing
+ *
+ * Submit transactions can potentially be very long running, especially if the
+ * transaction fails and needs to be retried one or more times
+ *
+ * To allow requests to respond quickly enough, this sample queues submit
+ * requests for processing asynchronously and immediately returns 202 Accepted
  */
 
 import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { Contract } from 'fabric-network';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
-import { Redis } from 'ioredis';
-import { AssetExistsError, AssetNotFoundError } from './errors';
-import { evatuateTransaction, submitTransaction } from './fabric';
+import { Queue } from 'bullmq';
+import { AssetNotFoundError } from './errors';
+import { evatuateTransaction } from './fabric';
+import { addSubmitTransactionJob } from './jobs';
 import { logger } from './logger';
 
-const {
-  ACCEPTED,
-  BAD_REQUEST,
-  CONFLICT,
-  INTERNAL_SERVER_ERROR,
-  NOT_FOUND,
-  OK,
-} = StatusCodes;
+const { ACCEPTED, BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } =
+  StatusCodes;
 
 export const assetsRouter = express.Router();
 
@@ -45,7 +48,7 @@ assetsRouter.get('/', async (req: Request, res: Response) => {
 
     return res.status(OK).json(assets);
   } catch (err) {
-    logger.error(err, 'Error processing get all assets request');
+    logger.error({ err }, 'Error processing get all assets request');
     return res.status(INTERNAL_SERVER_ERROR).json({
       status: getReasonPhrase(INTERNAL_SERVER_ERROR),
       timestamp: new Date().toISOString(),
@@ -76,14 +79,12 @@ assetsRouter.post(
     }
 
     const mspId = req.user as string;
-    const contract = req.app.get(mspId).assetContract as Contract;
-    const redis = req.app.get('redis') as Redis;
     const assetId = req.body.id;
 
     try {
-      const transactionId = await submitTransaction(
-        contract,
-        redis,
+      const submitQueue = req.app.get('jobq') as Queue;
+      const jobId = await addSubmitTransactionJob(
+        submitQueue,
         mspId,
         'CreateAsset',
         assetId,
@@ -95,25 +96,15 @@ assetsRouter.post(
 
       return res.status(ACCEPTED).json({
         status: getReasonPhrase(ACCEPTED),
-        transactionId: transactionId,
+        jobId: jobId,
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
       logger.error(
-        err,
-        'Error processing create asset request for asset ID %s with transaction ID %s',
-        assetId,
-        err.transactionId
+        { err },
+        'Error processing create asset request for asset ID %s',
+        assetId
       );
-
-      if (err instanceof AssetExistsError) {
-        return res.status(CONFLICT).json({
-          status: getReasonPhrase(CONFLICT),
-          reason: 'ASSET_EXISTS',
-          message: err.message,
-          timestamp: new Date().toISOString(),
-        });
-      }
 
       return res.status(INTERNAL_SERVER_ERROR).json({
         status: getReasonPhrase(INTERNAL_SERVER_ERROR),
@@ -152,7 +143,7 @@ assetsRouter.options('/:assetId', async (req: Request, res: Response) => {
     }
   } catch (err) {
     logger.error(
-      err,
+      { err },
       'Error processing asset options request for asset ID %s',
       assetId
     );
@@ -177,7 +168,7 @@ assetsRouter.get('/:assetId', async (req: Request, res: Response) => {
     return res.status(OK).json(asset);
   } catch (err) {
     logger.error(
-      err,
+      { err },
       'Error processing read asset request for asset ID %s',
       assetId
     );
@@ -228,14 +219,12 @@ assetsRouter.put(
     }
 
     const mspId = req.user as string;
-    const contract = req.app.get(mspId).assetContract as Contract;
-    const redis = req.app.get('redis') as Redis;
     const assetId = req.params.assetId;
 
     try {
-      const transactionId = await submitTransaction(
-        contract,
-        redis,
+      const submitQueue = req.app.get('jobq') as Queue;
+      const jobId = await addSubmitTransactionJob(
+        submitQueue,
         mspId,
         'UpdateAsset',
         assetId,
@@ -247,23 +236,15 @@ assetsRouter.put(
 
       return res.status(ACCEPTED).json({
         status: getReasonPhrase(ACCEPTED),
-        transactionId: transactionId,
+        jobId: jobId,
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
       logger.error(
-        err,
-        'Error processing update asset request for asset ID %s with transaction ID %s',
-        assetId,
-        err.transactionId
+        { err },
+        'Error processing update asset request for asset ID %s',
+        assetId
       );
-
-      if (err instanceof AssetNotFoundError) {
-        return res.status(NOT_FOUND).json({
-          status: getReasonPhrase(NOT_FOUND),
-          timestamp: new Date().toISOString(),
-        });
-      }
 
       return res.status(INTERNAL_SERVER_ERROR).json({
         status: getReasonPhrase(INTERNAL_SERVER_ERROR),
@@ -299,15 +280,13 @@ assetsRouter.patch(
     }
 
     const mspId = req.user as string;
-    const contract = req.app.get(mspId).assetContract as Contract;
-    const redis = req.app.get('redis') as Redis;
     const assetId = req.params.assetId;
     const newOwner = req.body[0].value;
 
     try {
-      const transactionId = await submitTransaction(
-        contract,
-        redis,
+      const submitQueue = req.app.get('jobq') as Queue;
+      const jobId = await addSubmitTransactionJob(
+        submitQueue,
         mspId,
         'TransferAsset',
         assetId,
@@ -316,23 +295,15 @@ assetsRouter.patch(
 
       return res.status(ACCEPTED).json({
         status: getReasonPhrase(ACCEPTED),
-        transactionId: transactionId,
+        jobId: jobId,
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
       logger.error(
-        err,
-        'Error processing update asset request for asset ID %s with transaction ID %s',
-        req.params.assetId,
-        err.transactionId
+        { err },
+        'Error processing update asset request for asset ID %s',
+        req.params.assetId
       );
-
-      if (err instanceof AssetNotFoundError) {
-        return res.status(NOT_FOUND).json({
-          status: getReasonPhrase(NOT_FOUND),
-          timestamp: new Date().toISOString(),
-        });
-      }
 
       return res.status(INTERNAL_SERVER_ERROR).json({
         status: getReasonPhrase(INTERNAL_SERVER_ERROR),
@@ -346,14 +317,12 @@ assetsRouter.delete('/:assetId', async (req: Request, res: Response) => {
   logger.debug(req.body, 'Delete asset request received');
 
   const mspId = req.user as string;
-  const contract = req.app.get(mspId).assetContract as Contract;
-  const redis = req.app.get('redis') as Redis;
   const assetId = req.params.assetId;
 
   try {
-    const transactionId = await submitTransaction(
-      contract,
-      redis,
+    const submitQueue = req.app.get('jobq') as Queue;
+    const jobId = await addSubmitTransactionJob(
+      submitQueue,
       mspId,
       'DeleteAsset',
       assetId
@@ -361,23 +330,15 @@ assetsRouter.delete('/:assetId', async (req: Request, res: Response) => {
 
     return res.status(ACCEPTED).json({
       status: getReasonPhrase(ACCEPTED),
-      transactionId: transactionId,
+      jobId: jobId,
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
     logger.error(
-      err,
-      'Error processing delete asset request for asset ID %s with transaction ID %s',
-      assetId,
-      err.transactionId
+      { err },
+      'Error processing delete asset request for asset ID %s',
+      assetId
     );
-
-    if (err instanceof AssetNotFoundError) {
-      return res.status(NOT_FOUND).json({
-        status: getReasonPhrase(NOT_FOUND),
-        timestamp: new Date().toISOString(),
-      });
-    }
 
     return res.status(INTERNAL_SERVER_ERROR).json({
       status: getReasonPhrase(INTERNAL_SERVER_ERROR),

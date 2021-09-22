@@ -2,20 +2,53 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-jest.mock('fabric-network');
-jest.mock('ioredis', () => require('ioredis-mock/jest'));
-
-import { createServer } from '../server';
+import { Job, Queue } from 'bullmq';
 import { Application } from 'express';
+import { Contract, Transaction } from 'fabric-network';
+import * as fabricProtos from 'fabric-protos';
+import { mock, MockProxy } from 'jest-mock-extended';
+import { mocked } from 'ts-jest/utils';
 import request from 'supertest';
+import * as config from '../config';
+import { createServer } from '../server';
+
+jest.mock('../config');
+jest.mock('bullmq');
+
+const mockAsset1 = {
+  ID: 'asset1',
+  Color: 'blue',
+  Size: 5,
+  Owner: 'Tomoko',
+  AppraisedValue: 300,
+};
+const mockAsset1Buffer = Buffer.from(JSON.stringify(mockAsset1));
+
+const mockAsset2 = {
+  ID: 'asset2',
+  Color: 'red',
+  Size: 5,
+  Owner: 'Brad',
+  AppraisedValue: 400,
+};
+
+const mockAllAssetsBuffer = Buffer.from(
+  JSON.stringify([mockAsset1, mockAsset2])
+);
 
 // TODO add tests for server errors
-// TODO implement 405 Method Not Allowed where appropriate and add tests
 describe('Asset Transfer Besic REST API', () => {
   let app: Application;
+  let mockJobQueue: MockProxy<Queue>;
 
   beforeEach(async () => {
     app = await createServer();
+
+    const mockJob = mock<Job>();
+    mockJob.id = '1';
+    mockJobQueue = mock<Queue>();
+    mockJobQueue.add.mockResolvedValue(mockJob);
+    app.set('jobq', mockJobQueue);
   });
 
   describe('/ready', () => {
@@ -35,6 +68,31 @@ describe('Asset Transfer Besic REST API', () => {
 
   describe('/live', () => {
     it('GET should respond with 200 OK json', async () => {
+      const mockBlockchainInfoProto =
+        fabricProtos.common.BlockchainInfo.create();
+      mockBlockchainInfoProto.height = 42;
+      const mockBlockchainInfoBuffer = Buffer.from(
+        fabricProtos.common.BlockchainInfo.encode(
+          mockBlockchainInfoProto
+        ).finish()
+      );
+
+      const mockOrg1QsccContract = mock<Contract>();
+      mockOrg1QsccContract.evaluateTransaction
+        .calledWith('GetChainInfo')
+        .mockResolvedValue(mockBlockchainInfoBuffer);
+      app.set(config.mspIdOrg1, {
+        qsccContract: mockOrg1QsccContract,
+      });
+
+      const mockOrg2QsccContract = mock<Contract>();
+      mockOrg2QsccContract.evaluateTransaction
+        .calledWith('GetChainInfo')
+        .mockResolvedValue(mockBlockchainInfoBuffer);
+      app.set(config.mspIdOrg2, {
+        qsccContract: mockOrg2QsccContract,
+      });
+
       const response = await request(app).get('/live');
       expect(response.statusCode).toEqual(200);
       expect(response.header).toHaveProperty(
@@ -49,6 +107,19 @@ describe('Asset Transfer Besic REST API', () => {
   });
 
   describe('/api/assets', () => {
+    let mockGetAllAssetsTransaction: MockProxy<Transaction>;
+
+    beforeEach(() => {
+      mockGetAllAssetsTransaction = mock<Transaction>();
+      const mockBasicContract = mock<Contract>();
+      mockBasicContract.createTransaction
+        .calledWith('GetAllAssets')
+        .mockReturnValue(mockGetAllAssetsTransaction);
+      app.set(config.mspIdOrg1, {
+        assetContract: mockBasicContract,
+      });
+    });
+
     it('GET should respond with 401 unauthorized json when an invalid API key is specified', async () => {
       const response = await request(app)
         .get('/api/assets')
@@ -66,8 +137,8 @@ describe('Asset Transfer Besic REST API', () => {
     });
 
     it('GET should respond with an empty json array when there are no assets', async () => {
-      // NOTE: only the first mocked GetAllAssets with return no assets
-      // TODO find a better alternative so that test order does not matter
+      mockGetAllAssetsTransaction.evaluate.mockResolvedValue(Buffer.from(''));
+
       const response = await request(app)
         .get('/api/assets')
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
@@ -80,8 +151,10 @@ describe('Asset Transfer Besic REST API', () => {
     });
 
     it('GET should respond with json array of assets', async () => {
-      // NOTE: only the second mocked GetAllAssets with return no assets
-      // TODO find a better alternative so that test order does not matter
+      mockGetAllAssetsTransaction.evaluate.mockResolvedValue(
+        mockAllAssetsBuffer
+      );
+
       const response = await request(app)
         .get('/api/assets')
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
@@ -180,37 +253,34 @@ describe('Asset Transfer Besic REST API', () => {
       );
       expect(response.body).toEqual({
         status: 'Accepted',
-        transactionId: 'txn1',
-        timestamp: expect.any(String),
-      });
-    });
-
-    it('POST should respond with 409 conflict json when asset already exists', async () => {
-      const response = await request(app)
-        .post('/api/assets')
-        .send({
-          id: 'asset1',
-          color: 'blue',
-          size: 5,
-          owner: 'Tomoko',
-          appraisedValue: 300,
-        })
-        .set('X-Api-Key', 'ORG1MOCKAPIKEY');
-      expect(response.statusCode).toEqual(409);
-      expect(response.header).toHaveProperty(
-        'content-type',
-        'application/json; charset=utf-8'
-      );
-      expect(response.body).toEqual({
-        status: 'Conflict',
-        reason: 'ASSET_EXISTS',
-        message: 'the asset asset1 already exists',
+        jobId: '1',
         timestamp: expect.any(String),
       });
     });
   });
 
   describe('/api/assets/:id', () => {
+    let mockAssetExistsTransaction: MockProxy<Transaction>;
+    let mockReadAssetTransaction: MockProxy<Transaction>;
+
+    beforeEach(() => {
+      const mockBasicContract = mock<Contract>();
+
+      mockAssetExistsTransaction = mock<Transaction>();
+      mockBasicContract.createTransaction
+        .calledWith('AssetExists')
+        .mockReturnValue(mockAssetExistsTransaction);
+
+      mockReadAssetTransaction = mock<Transaction>();
+      mockBasicContract.createTransaction
+        .calledWith('ReadAsset')
+        .mockReturnValue(mockReadAssetTransaction);
+
+      app.set(config.mspIdOrg1, {
+        assetContract: mockBasicContract,
+      });
+    });
+
     it('OPTIONS should respond with 401 unauthorized json when an invalid API key is specified', async () => {
       const response = await request(app)
         .options('/api/assets/asset1')
@@ -228,6 +298,10 @@ describe('Asset Transfer Besic REST API', () => {
     });
 
     it('OPTIONS should respond with 404 not found json without the allow header when there is no asset with the specified ID', async () => {
+      mockAssetExistsTransaction.evaluate
+        .calledWith('asset3')
+        .mockResolvedValue(Buffer.from('false'));
+
       const response = await request(app)
         .options('/api/assets/asset3')
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
@@ -244,6 +318,10 @@ describe('Asset Transfer Besic REST API', () => {
     });
 
     it('OPTIONS should respond with 200 OK json with the allow header', async () => {
+      mockAssetExistsTransaction.evaluate
+        .calledWith('asset1')
+        .mockResolvedValue(Buffer.from('true'));
+
       const response = await request(app)
         .options('/api/assets/asset1')
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
@@ -279,6 +357,10 @@ describe('Asset Transfer Besic REST API', () => {
     });
 
     it('GET should respond with 404 not found json when there is no asset with the specified ID', async () => {
+      mockReadAssetTransaction.evaluate
+        .calledWith('asset3')
+        .mockRejectedValue(new Error('the asset asset3 does not exist'));
+
       const response = await request(app)
         .get('/api/assets/asset3')
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
@@ -294,6 +376,10 @@ describe('Asset Transfer Besic REST API', () => {
     });
 
     it('GET should respond with the asset json when the asset exists', async () => {
+      mockReadAssetTransaction.evaluate
+        .calledWith('asset1')
+        .mockResolvedValue(mockAsset1Buffer);
+
       const response = await request(app)
         .get('/api/assets/asset1')
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
@@ -330,28 +416,6 @@ describe('Asset Transfer Besic REST API', () => {
       expect(response.body).toEqual({
         reason: 'NO_VALID_APIKEY',
         status: 'Unauthorized',
-        timestamp: expect.any(String),
-      });
-    });
-
-    it('PUT should respond with 404 not found json when there is no asset with the specified ID', async () => {
-      const response = await request(app)
-        .put('/api/assets/asset3')
-        .send({
-          id: 'asset3',
-          color: 'red',
-          size: 5,
-          owner: 'Brad',
-          appraisedValue: 400,
-        })
-        .set('X-Api-Key', 'ORG1MOCKAPIKEY');
-      expect(response.statusCode).toEqual(404);
-      expect(response.header).toHaveProperty(
-        'content-type',
-        'application/json; charset=utf-8'
-      );
-      expect(response.body).toEqual({
-        status: 'Not Found',
         timestamp: expect.any(String),
       });
     });
@@ -429,7 +493,7 @@ describe('Asset Transfer Besic REST API', () => {
       );
       expect(response.body).toEqual({
         status: 'Accepted',
-        transactionId: 'txn1',
+        jobId: '1',
         timestamp: expect.any(String),
       });
     });
@@ -447,22 +511,6 @@ describe('Asset Transfer Besic REST API', () => {
       expect(response.body).toEqual({
         reason: 'NO_VALID_APIKEY',
         status: 'Unauthorized',
-        timestamp: expect.any(String),
-      });
-    });
-
-    it('PATCH should respond with 404 not found json when there is no asset with the specified ID', async () => {
-      const response = await request(app)
-        .patch('/api/assets/asset3')
-        .send([{ op: 'replace', path: '/owner', value: 'Ashleigh' }])
-        .set('X-Api-Key', 'ORG1MOCKAPIKEY');
-      expect(response.statusCode).toEqual(404);
-      expect(response.header).toHaveProperty(
-        'content-type',
-        'application/json; charset=utf-8'
-      );
-      expect(response.body).toEqual({
-        status: 'Not Found',
         timestamp: expect.any(String),
       });
     });
@@ -505,7 +553,7 @@ describe('Asset Transfer Besic REST API', () => {
       );
       expect(response.body).toEqual({
         status: 'Accepted',
-        transactionId: 'txn1',
+        jobId: '1',
         timestamp: expect.any(String),
       });
     });
@@ -526,9 +574,45 @@ describe('Asset Transfer Besic REST API', () => {
       });
     });
 
-    it('DELETE should respond with 404 not found json when there is no asset with the specified ID', async () => {
+    it('DELETE should respond with 202 accepted json', async () => {
       const response = await request(app)
-        .delete('/api/assets/asset3')
+        .delete('/api/assets/asset1')
+        .set('X-Api-Key', 'ORG1MOCKAPIKEY');
+      expect(response.statusCode).toEqual(202);
+      expect(response.header).toHaveProperty(
+        'content-type',
+        'application/json; charset=utf-8'
+      );
+      expect(response.body).toEqual({
+        status: 'Accepted',
+        jobId: '1',
+        timestamp: expect.any(String),
+      });
+    });
+  });
+
+  describe('/api/jobs/:id', () => {
+    it('GET should respond with 401 unauthorized json when an invalid API key is specified', async () => {
+      const response = await request(app)
+        .get('/api/jobs/1')
+        .set('X-Api-Key', 'NOTTHERIGHTAPIKEY');
+      expect(response.statusCode).toEqual(401);
+      expect(response.header).toHaveProperty(
+        'content-type',
+        'application/json; charset=utf-8'
+      );
+      expect(response.body).toEqual({
+        reason: 'NO_VALID_APIKEY',
+        status: 'Unauthorized',
+        timestamp: expect.any(String),
+      });
+    });
+
+    it('GET should respond with 404 not found json when there is no job with the specified ID', async () => {
+      mocked(Job.fromId).mockResolvedValue(undefined);
+
+      const response = await request(app)
+        .get('/api/jobs/3')
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
       expect(response.statusCode).toEqual(404);
       expect(response.header).toHaveProperty(
@@ -541,24 +625,49 @@ describe('Asset Transfer Besic REST API', () => {
       });
     });
 
-    it('DELETE should respond with 202 accepted json', async () => {
+    it('GET should respond with json details for the specified job ID', async () => {
+      const mockJob = mock<Job>();
+      mockJob.id = '2';
+      mockJob.data = {
+        transactionIds: ['txn1', 'txn2'],
+      };
+      mockJob.returnvalue = {
+        transactionError: 'Mock error',
+        transactionPayload: Buffer.from('Mock payload'),
+      };
+      mockJobQueue.getJob.calledWith('2').mockResolvedValue(mockJob);
+
       const response = await request(app)
-        .delete('/api/assets/asset1')
+        .get('/api/jobs/2')
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
-      expect(response.statusCode).toEqual(202);
+      expect(response.statusCode).toEqual(200);
       expect(response.header).toHaveProperty(
         'content-type',
         'application/json; charset=utf-8'
       );
       expect(response.body).toEqual({
-        status: 'Accepted',
-        transactionId: 'txn1',
-        timestamp: expect.any(String),
+        jobId: '2',
+        transactionIds: ['txn1', 'txn2'],
+        transactionError: 'Mock error',
+        transactionPayload: 'Mock payload',
       });
     });
   });
 
   describe('/api/transactions/:id', () => {
+    let mockGetTransactionByIDTransaction: MockProxy<Transaction>;
+
+    beforeEach(() => {
+      mockGetTransactionByIDTransaction = mock<Transaction>();
+      const mockQsccContract = mock<Contract>();
+      mockQsccContract.createTransaction
+        .calledWith('GetTransactionByID')
+        .mockReturnValue(mockGetTransactionByIDTransaction);
+      app.set(config.mspIdOrg1, {
+        qsccContract: mockQsccContract,
+      });
+    });
+
     it('GET should respond with 401 unauthorized json when an invalid API key is specified', async () => {
       const response = await request(app)
         .get('/api/transactions/txn1')
@@ -576,6 +685,14 @@ describe('Asset Transfer Besic REST API', () => {
     });
 
     it('GET should respond with 404 not found json when there is no transaction with the specified ID', async () => {
+      mockGetTransactionByIDTransaction.evaluate
+        .calledWith('mychannel', 'txn3')
+        .mockRejectedValue(
+          new Error(
+            'Failed to get transaction with id txn3, error Entry not found in index'
+          )
+        );
+
       const response = await request(app)
         .get('/api/transactions/txn3')
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
@@ -591,6 +708,19 @@ describe('Asset Transfer Besic REST API', () => {
     });
 
     it('GET should respond with json details for the specified transaction ID', async () => {
+      const processedTransactionProto =
+        fabricProtos.protos.ProcessedTransaction.create();
+      processedTransactionProto.validationCode =
+        fabricProtos.protos.TxValidationCode.VALID;
+      const processedTransactionBuffer = Buffer.from(
+        fabricProtos.protos.ProcessedTransaction.encode(
+          processedTransactionProto
+        ).finish()
+      );
+      mockGetTransactionByIDTransaction.evaluate
+        .calledWith('mychannel', 'txn2')
+        .mockResolvedValue(processedTransactionBuffer);
+
       const response = await request(app)
         .get('/api/transactions/txn2')
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
@@ -600,10 +730,8 @@ describe('Asset Transfer Besic REST API', () => {
         'application/json; charset=utf-8'
       );
       expect(response.body).toEqual({
-        status: 'OK',
-        progress: 'DONE',
+        transactionId: 'txn2',
         validationCode: 'VALID',
-        timestamp: expect.any(String),
       });
     });
   });

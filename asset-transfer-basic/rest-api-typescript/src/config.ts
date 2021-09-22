@@ -7,6 +7,8 @@ import * as env from 'env-var';
 export const ORG1 = 'Org1';
 export const ORG2 = 'Org2';
 
+export const JOB_QUEUE_NAME = 'submit';
+
 /*
  * Log level for the REST server
  */
@@ -25,22 +27,68 @@ export const port = env
   .asPortNumber();
 
 /*
- * The delay between each retry attempt in milliseconds
+ * The type of backoff to use for retrying failed submit jobs
  */
-export const retryDelay = env
-  .get('RETRY_DELAY')
+export const submitJobBackoffType = env
+  .get('SUBMIT_JOB_BACKOFF_TYPE')
+  .default('fixed')
+  .asEnum(['fixed', 'exponential']);
+
+/*
+ * Backoff delay for retrying failed submit jobs in milliseconds
+ */
+export const submitJobBackoffDelay = env
+  .get('SUBMIT_JOB_BACKOFF_DELAY')
   .default('3000')
   .example('3000')
   .asIntPositive();
 
 /*
- * The maximum number of times to retry a failing transaction
+ * The total number of attempts to try a submit job until it completes
  */
-export const maxRetryCount = env
-  .get('MAX_RETRY_COUNT')
+export const submitJobAttempts = env
+  .get('SUBMIT_JOB_ATTEMPTS')
   .default('5')
   .example('5')
   .asIntPositive();
+
+/*
+ * The maximum number of submit jobs that can be processed in parallel
+ */
+export const submitJobConcurrency = env
+  .get('SUBMIT_JOB_CONCURRENCY')
+  .default('5')
+  .example('5')
+  .asIntPositive();
+
+/*
+ * The number of completed submit jobs to keep
+ */
+export const maxCompletedSubmitJobs = env
+  .get('MAX_COMPLETED_SUBMIT_JOBS')
+  .default('1000')
+  .example('1000')
+  .asIntPositive();
+
+/*
+ * The number of failed submit jobs to keep
+ */
+export const maxFailedSubmitJobs = env
+  .get('MAX_FAILED_SUBMIT_JOBS')
+  .default('1000')
+  .example('1000')
+  .asIntPositive();
+
+/*
+ * Whether to initialise a scheduler for the submit job queue
+ * There must be at least on queue scheduler to handle retries and you may want
+ * more than one for redundancy
+ */
+export const submitJobQueueScheduler = env
+  .get('SUBMIT_JOB_QUEUE_SCHEDULER')
+  .default('true')
+  .example('true')
+  .asBoolStrict();
 
 /*
  * Whether to convert discovered host addresses to be 'localhost'
@@ -70,14 +118,6 @@ export const mspIdOrg2 = env
   .default(`${ORG2}MSP`)
   .example(`${ORG2}MSP`)
   .asString();
-
-/*
- * The block listener org
- */
-export const blockListenerOrg = env
-  .get('HLF_BLOCK_LISTENER_ORG')
-  .default(ORG1)
-  .asEnum([ORG1, ORG2]);
 
 /*
  * Name of the channel which the basic asset sample chaincode has been installed on
@@ -205,7 +245,7 @@ export const redisPort = env
  */
 export const redisUsername = env
   .get('REDIS_USERNAME')
-  .example('conga')
+  .example('fabric')
   .asString();
 
 /*

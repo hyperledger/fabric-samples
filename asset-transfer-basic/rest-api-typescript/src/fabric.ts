@@ -10,23 +10,20 @@ import {
   GatewayOptions,
   Wallets,
   Network,
-  BlockListener,
-  BlockEvent,
-  TransactionEvent,
+  TimeoutError,
+  Transaction,
   Wallet,
 } from 'fabric-network';
-import { Redis } from 'ioredis';
 import * as config from './config';
 import { logger } from './logger';
 import {
-  storeTransactionDetails,
-  getRetryTransactionDetails,
-  clearTransactionDetails,
-  incrementRetryCount,
-  TransactionDetails,
-} from './redis';
-import { handleError, isDuplicateTransactionError } from './errors';
-import protos from 'fabric-protos';
+  handleError,
+  isContractError,
+  isDuplicateTransactionError,
+} from './errors';
+import * as protos from 'fabric-protos';
+import { Job } from 'bullmq';
+import { JobData, JobResult, updateJobData } from './jobs';
 
 /*
  * Creates an in memory wallet to hold credentials for an Org1 and Org2 user
@@ -124,55 +121,119 @@ export const getContracts = async (
 };
 
 /*
- * Starts a timer to retry transactions at regular intervals
+ * Process a submit transaction request from the job queue
  *
- * Note: there is check for whether the transaction has successfully completed
- * since it could succeed between any check and the retry, so the additional
- * transaction to get the status is unlikely to be worthwhile
+ * For this sample transactions are retried if they fail with any error,
+ * except for errors from the smart contract, or duplicate transaction
+ * errors
+ *
+ * You might decide to retry transactions which fail with specific errors
+ * instead, for example:
+ *   MVCC_READ_CONFLICT
+ *   PHANTOM_READ_CONFLICT
+ *   ENDORSEMENT_POLICY_FAILURE
+ *   CHAINCODE_VERSION_CONFLICT
+ *   EXPIRED_CHAINCODE
  */
-export const startRetryLoop = (
+export const processSubmitTransactionJob = async (
   contracts: Map<string, Contract>,
-  redis: Redis
-): void => {
-  const retryInterval = setInterval(
-    async (contracts, redis) => {
-      if (logger.isLevelEnabled('debug')) {
-        try {
-          const pendingTransactionCount = await (redis as Redis).zcard(
-            'index:txn:timestamp'
-          );
-          logger.debug(
-            '%d transactions awaiting retry',
-            pendingTransactionCount
-          );
-        } catch (err) {
-          logger.warn({ err }, 'Error getting pending transaction count');
-        }
+  job: Job<JobData, JobResult>
+): Promise<JobResult> => {
+  logger.debug({ jobId: job.id, jobName: job.name }, 'Processing job');
+
+  const contract = contracts.get(job.data.mspid);
+  if (contract === undefined) {
+    logger.error(
+      { jobId: job.id, jobName: job.name },
+      'Contract not found for MSP ID %s',
+      job.data.mspid
+    );
+
+    // Retrying will not work, so give up with an unsuccessful result
+    return {
+      transactionError: undefined,
+      transactionPayload: undefined,
+    };
+  }
+
+  let transaction: Transaction;
+  if (job.data.transactionState) {
+    const savedState = job.data.transactionState;
+    logger.debug(
+      {
+        jobId: job.id,
+        jobName: job.name,
+        savedState,
+      },
+      'Using previously saved transaction state'
+    );
+
+    transaction = contract.deserializeTransaction(savedState);
+  } else {
+    logger.debug(
+      {
+        jobId: job.id,
+        jobName: job.name,
+      },
+      'Using new transaction'
+    );
+
+    transaction = contract.createTransaction(job.data.transactionName);
+    await updateJobData(job, transaction);
+  }
+
+  try {
+    logger.debug(
+      {
+        jobId: job.id,
+        jobName: job.name,
+        transactionId: transaction.getTransactionId(),
+      },
+      'Submitting transaction'
+    );
+    const args = job.data.transactionArgs;
+    const payload = await submitTransaction(transaction, ...args);
+
+    return {
+      transactionError: undefined,
+      transactionPayload: payload,
+    };
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      (isContractError(err) || isDuplicateTransactionError(err))
+    ) {
+      logger.error(
+        { jobId: job.id, jobName: job.name, err },
+        'Fatal transaction error occurred'
+      );
+
+      // Return a job result to stop retrying
+      return {
+        transactionError: err.toString(),
+        transactionPayload: undefined,
+      };
+    } else {
+      logger.warn(
+        { jobId: job.id, jobName: job.name, err },
+        'Retryable transaction error occurred'
+      );
+
+      // The original transaction may eventually get committed in the case of
+      // a timeout error, so keep the same transaction ID to protect against
+      // unintended duplicate transactions
+      if (!(err instanceof TimeoutError)) {
+        logger.debug(
+          { jobId: job.id, jobName: job.name },
+          'Clearing saved transaction state'
+        );
+        await updateJobData(job, undefined);
       }
 
-      const savedTransaction = await getRetryTransactionDetails(redis);
-
-      if (savedTransaction) {
-        const contract = contracts.get(savedTransaction.mspId);
-
-        if (contract) {
-          await retryTransaction(contract, redis, savedTransaction);
-        } else {
-          clearTransactionDetails(redis, savedTransaction.transactionId);
-          logger.error(
-            'No contract found for %s to retry transaction %s',
-            savedTransaction.mspId,
-            savedTransaction.transactionId
-          );
-        }
-      }
-    },
-    config.retryDelay,
-    contracts,
-    redis
-  );
-
-  retryInterval.unref();
+      // Rethrow the error to keep retrying
+      throw err;
+    }
+  }
 };
 
 /*
@@ -183,14 +244,37 @@ export const evatuateTransaction = async (
   transactionName: string,
   ...transactionArgs: string[]
 ): Promise<Buffer> => {
-  const txn = contract.createTransaction(transactionName);
-  const txnId = txn.getTransactionId();
+  const transaction = contract.createTransaction(transactionName);
+  const transactionId = transaction.getTransactionId();
+  logger.trace({ transaction }, 'Evaluating transaction');
 
   try {
-    const payload = await txn.evaluate(...transactionArgs);
-    logger.debug(
-      { transactionId: txnId, payload: payload.toString() },
+    const payload = await transaction.evaluate(...transactionArgs);
+    logger.trace(
+      { transactionId: transactionId, payload: payload.toString() },
       'Evaluate transaction response received'
+    );
+    return payload;
+  } catch (err) {
+    throw handleError(transactionId, err);
+  }
+};
+
+/*
+ * Submit a transaction and handle any errors
+ */
+export const submitTransaction = async (
+  transaction: Transaction,
+  ...transactionArgs: string[]
+): Promise<Buffer> => {
+  logger.trace({ transaction }, 'Submitting transaction');
+  const txnId = transaction.getTransactionId();
+
+  try {
+    const payload = await transaction.submit(...transactionArgs);
+    logger.trace(
+      { transactionId: txnId, payload: payload.toString() },
+      'Submit transaction response received'
     );
     return payload;
   } catch (err) {
@@ -199,130 +283,25 @@ export const evatuateTransaction = async (
 };
 
 /*
- * Submit a transaction and handle any errors
- *
- * Transaction details are saved before being submitted so that they can be
- * retried if any errors occur
+ * Get the validation code of the specified transaction
  */
-export const submitTransaction = async (
-  contract: Contract,
-  redis: Redis,
-  mspId: string,
-  transactionName: string,
-  ...transactionArgs: string[]
+export const getTransactionValidationCode = async (
+  qsccContract: Contract,
+  transactionId: string
 ): Promise<string> => {
-  const txn = contract.createTransaction(transactionName);
-  const txnId = txn.getTransactionId();
-  const txnState = txn.serialize();
-  const txnArgs = JSON.stringify(transactionArgs);
-  const timestamp = Date.now();
+  const data = await evatuateTransaction(
+    qsccContract,
+    'GetTransactionByID',
+    config.channelName,
+    transactionId
+  );
 
-  try {
-    // Store the transaction details and set the event handler in case there
-    // are problems later with commiting the transaction
-    await storeTransactionDetails(
-      redis,
-      txnId,
-      mspId,
-      txnState,
-      txnArgs,
-      timestamp
-    );
-    txn.setEventHandler(DefaultEventHandlerStrategies.NONE);
-    await txn.submit(...transactionArgs);
-  } catch (err) {
-    // If the transaction failed to endorse, there is no point attempting
-    // to retry it later so clear the transaction details
-    // TODO will this always catch endorsement errors or can they
-    // arrive later?
-    await clearTransactionDetails(redis, txnId);
-    throw handleError(txnId, err);
-  }
+  const processedTransaction = protos.protos.ProcessedTransaction.decode(data);
+  const validationCode =
+    protos.protos.TxValidationCode[processedTransaction.validationCode];
 
-  return txnId;
-};
-
-/*
- * Retry a transaction
- *
- * The saved transaction details include a retry count which is used to ensure
- * failing transactions are not retried indefinitely
- */
-const retryTransaction = async (
-  contract: Contract,
-  redis: Redis,
-  savedTransaction: TransactionDetails
-): Promise<void> => {
-  logger.debug('Retrying transaction %s', savedTransaction.transactionId);
-
-  try {
-    const transaction = contract.deserializeTransaction(
-      savedTransaction.transactionState
-    );
-    const args: string[] = JSON.parse(savedTransaction.transactionArgs);
-
-    const payload = await transaction.submit(...args);
-    logger.debug(
-      {
-        transactionId: savedTransaction.transactionId,
-        payload: payload.toString(),
-      },
-      'Retry transaction response received'
-    );
-
-    await clearTransactionDetails(redis, savedTransaction.transactionId);
-  } catch (err) {
-    if (isDuplicateTransactionError(err)) {
-      logger.warn(
-        'Transaction %s has already been committed',
-        savedTransaction.transactionId
-      );
-      await clearTransactionDetails(redis, savedTransaction.transactionId);
-    } else {
-      logger.warn(
-        err,
-        'Retry %d failed for transaction %s',
-        savedTransaction.retries,
-        savedTransaction.transactionId
-      );
-
-      if (savedTransaction.retries < config.maxRetryCount) {
-        await incrementRetryCount(redis, savedTransaction.transactionId);
-      } else {
-        await clearTransactionDetails(redis, savedTransaction.transactionId);
-      }
-    }
-  }
-};
-
-/*
- * Block event listener to handle successful transactions
- *
- * Transaction details are saved before being submitted so that they can be
- * retried, and this listener deletes those transaction details for any
- * successful transactions
- *
- * Transactions can be submitted using one of two identities however one one
- * of those identities is used to listen for block events
- */
-export const blockEventHandler = (redis: Redis): BlockListener => {
-  const blockListener = async (event: BlockEvent) => {
-    logger.debug(
-      { blockNumber: event.blockNumber.toString() },
-      'Block event received'
-    );
-    const transactionEvents: Array<TransactionEvent> =
-      event.getTransactionEvents();
-
-    for (const event of transactionEvents) {
-      if (event && event.isValid) {
-        logger.debug('Remove transation with txnId %s', event.transactionId);
-        await clearTransactionDetails(redis, event.transactionId);
-      }
-    }
-  };
-
-  return blockListener;
+  logger.debug({ transactionId }, 'Validation code: %s', validationCode);
+  return validationCode;
 };
 
 /*
@@ -340,6 +319,7 @@ export const getBlockHeight = async (
   );
   const info = protos.common.BlockchainInfo.decode(data);
   const blockHeight = info.height;
+
   logger.debug('Current block height: %d', blockHeight);
   return blockHeight;
 };

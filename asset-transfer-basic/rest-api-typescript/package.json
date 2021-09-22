@@ -4,6 +4,7 @@
   "description": "Asset Transfer Basic REST API implemented in TypeScript",
   "main": "dist/index.js",
   "dependencies": {
+    "bullmq": "^1.47.2",
     "dotenv": "^10.0.0",
     "env-var": "^7.0.1",
     "express": "^4.17.1",
@@ -11,7 +12,7 @@
     "fabric-network": "^2.2.8",
     "helmet": "^4.6.0",
     "http-status-codes": "^2.1.4",
-    "ioredis": "^4.27.6",
+    "ioredis": "^4.27.8",
     "passport": "^0.4.1",
     "passport-headerapikey": "^1.2.2",
     "pino": "^6.11.3",
@@ -53,7 +54,7 @@
     "start": "node --require source-map-support/register ./dist",
     "start:dotenv": "node --require source-map-support/register --require dotenv/config ./dist",
     "start:dev": "node --require source-map-support/register --require dotenv/config ./dist | pino-pretty",
-    "start:redis": "docker run -p 6379:6379 --name fabric-sample-redis -d redis",
+    "start:redis": "docker run -p 6379:6379 --name fabric-sample-redis -d redis --maxmemory-policy noeviction",
     "test": "jest"
   },
   "author": "Hyperledger",

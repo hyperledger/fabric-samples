@@ -60,46 +60,156 @@ describe('Config values', () => {
     });
   });
 
-  describe('retryDelay', () => {
-    it('defaults to "3000"', () => {
+  describe('submitJobBackoffType', () => {
+    it('defaults to "fixed"', () => {
       const config = require('./config');
-      expect(config.retryDelay).toBe(3000);
+      expect(config.submitJobBackoffType).toBe('fixed');
     });
 
-    it('can be configured using the "RETRY_DELAY" environment variable', () => {
-      process.env.RETRY_DELAY = '9999';
+    it('can be configured using the "SUBMIT_JOB_BACKOFF_TYPE" environment variable', () => {
+      process.env.SUBMIT_JOB_BACKOFF_TYPE = 'exponential';
       const config = require('./config');
-      expect(config.retryDelay).toBe(9999);
+      expect(config.submitJobBackoffType).toBe('exponential');
     });
 
-    it('throws an error when the "RETRY_DELAY" environment variable has an invalid number', () => {
-      process.env.RETRY_DELAY = 'short';
+    it('throws an error when the "LOG_LEVEL" environment variable has an invalid log level', () => {
+      process.env.SUBMIT_JOB_BACKOFF_TYPE = 'jitter';
       expect(() => {
         require('./config');
       }).toThrow(
-        'env-var: "RETRY_DELAY" should be a valid integer. An example of a valid value would be: 3000'
+        'env-var: "SUBMIT_JOB_BACKOFF_TYPE" should be one of [fixed, exponential]'
       );
     });
   });
 
-  describe('maxRetryCount', () => {
-    it('defaults to "5"', () => {
+  describe('submitJobBackoffDelay', () => {
+    it('defaults to "3000"', () => {
       const config = require('./config');
-      expect(config.maxRetryCount).toBe(5);
+      expect(config.submitJobBackoffDelay).toBe(3000);
     });
 
-    it('can be configured using the "MAX_RETRY_COUNT" environment variable', () => {
-      process.env.MAX_RETRY_COUNT = '9999';
+    it('can be configured using the "SUBMIT_JOB_BACKOFF_DELAY" environment variable', () => {
+      process.env.SUBMIT_JOB_BACKOFF_DELAY = '9999';
       const config = require('./config');
-      expect(config.maxRetryCount).toBe(9999);
+      expect(config.submitJobBackoffDelay).toBe(9999);
     });
 
-    it('throws an error when the "MAX_RETRY_COUNT" environment variable has an invalid number', () => {
-      process.env.MAX_RETRY_COUNT = 'lots';
+    it('throws an error when the "SUBMIT_JOB_BACKOFF_DELAY" environment variable has an invalid number', () => {
+      process.env.SUBMIT_JOB_BACKOFF_DELAY = 'short';
       expect(() => {
         require('./config');
       }).toThrow(
-        'env-var: "MAX_RETRY_COUNT" should be a valid integer. An example of a valid value would be: 5'
+        'env-var: "SUBMIT_JOB_BACKOFF_DELAY" should be a valid integer. An example of a valid value would be: 3000'
+      );
+    });
+  });
+
+  describe('submitJobAttempts', () => {
+    it('defaults to "5"', () => {
+      const config = require('./config');
+      expect(config.submitJobAttempts).toBe(5);
+    });
+
+    it('can be configured using the "SUBMIT_JOB_ATTEMPTS" environment variable', () => {
+      process.env.SUBMIT_JOB_ATTEMPTS = '9999';
+      const config = require('./config');
+      expect(config.submitJobAttempts).toBe(9999);
+    });
+
+    it('throws an error when the "SUBMIT_JOB_ATTEMPTS" environment variable has an invalid number', () => {
+      process.env.SUBMIT_JOB_ATTEMPTS = 'lots';
+      expect(() => {
+        require('./config');
+      }).toThrow(
+        'env-var: "SUBMIT_JOB_ATTEMPTS" should be a valid integer. An example of a valid value would be: 5'
+      );
+    });
+  });
+
+  describe('submitJobConcurrency', () => {
+    it('defaults to "5"', () => {
+      const config = require('./config');
+      expect(config.submitJobConcurrency).toBe(5);
+    });
+
+    it('can be configured using the "SUBMIT_JOB_CONCURRENCY" environment variable', () => {
+      process.env.SUBMIT_JOB_CONCURRENCY = '9999';
+      const config = require('./config');
+      expect(config.submitJobConcurrency).toBe(9999);
+    });
+
+    it('throws an error when the "SUBMIT_JOB_CONCURRENCY" environment variable has an invalid number', () => {
+      process.env.SUBMIT_JOB_CONCURRENCY = 'lots';
+      expect(() => {
+        require('./config');
+      }).toThrow(
+        'env-var: "SUBMIT_JOB_CONCURRENCY" should be a valid integer. An example of a valid value would be: 5'
+      );
+    });
+  });
+
+  describe('maxCompletedSubmitJobs', () => {
+    it('defaults to "1000"', () => {
+      const config = require('./config');
+      expect(config.maxCompletedSubmitJobs).toBe(1000);
+    });
+
+    it('can be configured using the "MAX_COMPLETED_SUBMIT_JOBS" environment variable', () => {
+      process.env.MAX_COMPLETED_SUBMIT_JOBS = '9999';
+      const config = require('./config');
+      expect(config.maxCompletedSubmitJobs).toBe(9999);
+    });
+
+    it('throws an error when the "MAX_COMPLETED_SUBMIT_JOBS" environment variable has an invalid number', () => {
+      process.env.MAX_COMPLETED_SUBMIT_JOBS = 'lots';
+      expect(() => {
+        require('./config');
+      }).toThrow(
+        'env-var: "MAX_COMPLETED_SUBMIT_JOBS" should be a valid integer. An example of a valid value would be: 1000'
+      );
+    });
+  });
+
+  describe('maxFailedSubmitJobs', () => {
+    it('defaults to "1000"', () => {
+      const config = require('./config');
+      expect(config.maxFailedSubmitJobs).toBe(1000);
+    });
+
+    it('can be configured using the "MAX_FAILED_SUBMIT_JOBS" environment variable', () => {
+      process.env.MAX_FAILED_SUBMIT_JOBS = '9999';
+      const config = require('./config');
+      expect(config.maxFailedSubmitJobs).toBe(9999);
+    });
+
+    it('throws an error when the "MAX_FAILED_SUBMIT_JOBS" environment variable has an invalid number', () => {
+      process.env.MAX_FAILED_SUBMIT_JOBS = 'lots';
+      expect(() => {
+        require('./config');
+      }).toThrow(
+        'env-var: "MAX_FAILED_SUBMIT_JOBS" should be a valid integer. An example of a valid value would be: 1000'
+      );
+    });
+  });
+
+  describe('submitJobQueueScheduler', () => {
+    it('defaults to "true"', () => {
+      const config = require('./config');
+      expect(config.submitJobQueueScheduler).toBe(true);
+    });
+
+    it('can be configured using the "SUBMIT_JOB_QUEUE_SCHEDULER" environment variable', () => {
+      process.env.SUBMIT_JOB_QUEUE_SCHEDULER = 'false';
+      const config = require('./config');
+      expect(config.submitJobQueueScheduler).toBe(false);
+    });
+
+    it('throws an error when the "SUBMIT_JOB_QUEUE_SCHEDULER" environment variable has an invalid boolean value', () => {
+      process.env.SUBMIT_JOB_QUEUE_SCHEDULER = '11';
+      expect(() => {
+        require('./config');
+      }).toThrow(
+        'env-var: "SUBMIT_JOB_QUEUE_SCHEDULER" should be either "true", "false", "TRUE", or "FALSE". An example of a valid value would be: true'
       );
     });
   });
@@ -149,28 +259,6 @@ describe('Config values', () => {
       process.env.HLF_MSP_ID_ORG2 = 'Test2MSP';
       const config = require('./config');
       expect(config.mspIdOrg2).toBe('Test2MSP');
-    });
-  });
-
-  describe('blockListenerOrg', () => {
-    it('defaults to "Org1"', () => {
-      const config = require('./config');
-      expect(config.blockListenerOrg).toBe('Org1');
-    });
-
-    it('can be configured using the "HLF_BLOCK_LISTENER_ORG" environment variable', () => {
-      process.env.HLF_BLOCK_LISTENER_ORG = 'Org2';
-      const config = require('./config');
-      expect(config.blockListenerOrg).toBe('Org2');
-    });
-
-    it('throws an error when the "HLF_BLOCK_LISTENER_ORG" environment variable has an invalid value', () => {
-      process.env.HLF_BLOCK_LISTENER_ORG = 'Org3';
-      expect(() => {
-        require('./config');
-      }).toThrow(
-        'env-var: "HLF_BLOCK_LISTENER_ORG" should be one of [Org1, Org2]'
-      );
     });
   });
 
