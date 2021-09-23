@@ -6,11 +6,18 @@
         "node": ">=12",
         "npm": ">=5"
     },
+    "scripts": {
+        "lint": "eslint *.js",
+        "pretest": "npm run lint"
+    },
     "engineStrict": true,
     "author": "Hyperledger",
     "license": "Apache-2.0",
     "dependencies": {
         "fabric-ca-client": "^2.2.4",
         "fabric-network": "^2.2.4"
+    },
+    "devDependencies": {
+        "eslint": "^7.32.0"
     }
 }
