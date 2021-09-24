@@ -86,7 +86,7 @@ exports.processBlockEvent = async function (channelname, block, use_couchdb, nan
                 for (var record in rwSet) {
 
                     // ignore lscc events
-                    if (rwSet[record].namespace != '_lifecycle') {
+                    if (rwSet[record].namespace != 'lscc' && rwSet[record].namespace != '_lifecycle') {
                         // create object to store properties
                         const writeObject = new Object();
                         writeObject.blocknumber = blockNumber;
