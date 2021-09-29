@@ -9,6 +9,7 @@ package chaincode
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -101,6 +102,8 @@ type URI struct {
 	ID    uint64 `json:"id"`
 }
 
+// To represents recipient address
+// ID represents token ID
 type ToID struct {
 	To string
 	ID uint64
@@ -160,8 +163,12 @@ func (s *SmartContract) MintBatch(ctx contractapi.TransactionContextInterface, a
 		amountToSend[ids[i]] += amounts[i]
 	}
 
+	// Copy the map keys and sort it. This is necessary because iterating maps in Go is not deterministic
+	amountToSendKeys := sortedKeys(amountToSend)
+
 	// Mint tokens
-	for id, amount := range amountToSend {
+	for _, id := range amountToSendKeys {
+		amount := amountToSend[id]
 		err = mintHelper(ctx, operator, account, id, amount)
 		if err != nil {
 			return err
@@ -328,8 +335,12 @@ func (s *SmartContract) BatchTransferFrom(ctx contractapi.TransactionContextInte
 		amountToSend[ids[i]] += amounts[i]
 	}
 
+	// Copy the map keys and sort it. This is necessary because iterating maps in Go is not deterministic
+	amountToSendKeys := sortedKeys(amountToSend)
+
 	// Deposit the funds to the recipient address
-	for id, amount := range amountToSend {
+	for _, id := range amountToSendKeys {
+		amount := amountToSend[id]
 		err = addBalance(ctx, sender, recipient, id, amount)
 		if err != nil {
 			return err
@@ -385,11 +396,16 @@ func (s *SmartContract) BatchTransferFromMultiRecipient(ctx contractapi.Transact
 		amountToSend[ToID{recipients[i], ids[i]}] += amounts[i]
 	}
 
+	// Copy the map keys and sort it. This is necessary because iterating maps in Go is not deterministic
+	amountToSendKeys := sortedKeysToID(amountToSend)
+
 	// Deposit the funds to the recipient addresses
-	for key, amount := range amountToSend {
+	for _, key := range amountToSendKeys {
 		if key.To == "0x0" {
 			return fmt.Errorf("transfer to the zero address")
 		}
+
+		amount := amountToSend[key]
 
 		err = addBalance(ctx, sender, key.To, key.ID, amount)
 		if err != nil {
@@ -665,8 +681,12 @@ func removeBalance(ctx contractapi.TransactionContextInterface, sender string, i
 		necessaryFunds[ids[i]] += amounts[i]
 	}
 
+	// Copy the map keys and sort it. This is necessary because iterating maps in Go is not deterministic
+	necessaryFundsKeys := sortedKeys(necessaryFunds)
+
 	// Check whether the sender has the necessary funds and withdraw them from the account
-	for tokenId, neededAmount := range necessaryFunds {
+	for _, tokenId := range necessaryFundsKeys {
+		neededAmount := necessaryFunds[tokenId]
 		idString := strconv.FormatUint(uint64(tokenId), 10)
 
 		var partialBalance uint64
@@ -805,4 +825,37 @@ func balanceOfHelper(ctx contractapi.TransactionContextInterface, account string
 	}
 
 	return balance, nil
+}
+
+// Returns the sorted slice ([]uint64) copied from the keys of map[uint64]uint64
+func sortedKeys(m map[uint64]uint64) []uint64 {
+	// Copy map keys to slice
+	keys := make([]uint64, len(m))
+	i := 0
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	// Sort the slice
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+	return keys
+}
+
+// Returns the sorted slice ([]ToID) copied from the keys of map[ToID]uint64
+func sortedKeysToID(m map[ToID]uint64) []ToID {
+	// Copy map keys to slice
+	keys := make([]ToID, len(m))
+	i := 0
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	// Sort the slice first according to ID if equal then sort by recipient ("To" field)
+	sort.Slice(keys, func(i, j int) bool {
+		if keys[i].ID != keys[j].ID {
+			return keys[i].To < keys[j].To
+		}
+		return keys[i].ID < keys[j].ID
+	})
+	return keys
 }
