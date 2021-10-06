@@ -1,3 +1,4 @@
+#!/bin/bash
 set -euo pipefail
 
 function print() {
@@ -9,7 +10,7 @@ function print() {
 
 dirs=("$(find . -name "*-go" -o -name "*-java" -o -name "*-javascript" -o -name "*-typescript")")
 for dir in $dirs; do
-  if [[ -d $dir ]]; then
+  if [[ -d $dir ]] && [[ ! $dir =~ node_modules  ]]; then
     print "Linting $dir"
     pushd $dir
     if [[ "$dir" =~ "-go" ]]; then
