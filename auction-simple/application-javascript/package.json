@@ -9,8 +9,14 @@
     "engineStrict": true,
     "author": "Hyperledger",
     "license": "Apache-2.0",
+    "scripts": {
+        "lint": "eslint *.js"
+    },
     "dependencies": {
         "fabric-ca-client": "^2.2.4",
         "fabric-network": "^2.2.4"
+    },
+    "devDependencies": {
+        "eslint": "^7.32.0"
     }
 }

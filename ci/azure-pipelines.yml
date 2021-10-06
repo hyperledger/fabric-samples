@@ -85,8 +85,6 @@ jobs:
         inputs:
           versionSpec: $(NODE_VER)
         displayName: Install Node.js
-      - script: npm install -g typescript eslint tslint
-        displayName: Install Javascript Linting Deps
       - script: ./ci/scripts/lint.sh
         displayName: Lint Code
 

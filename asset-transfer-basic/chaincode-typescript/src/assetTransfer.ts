@@ -2,9 +2,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 // Deterministic JSON.stringify()
+import {Context, Contract, Info, Returns, Transaction} from 'fabric-contract-api';
 import * as stringify from 'json-stringify-deterministic';
 import * as sortKeysRecursive from 'sort-keys-recursive';
-import {Context, Contract, Info, Returns, Transaction} from 'fabric-contract-api';
 import {Asset} from './asset';
 
 @Info({title: 'AssetTransfer', description: 'Smart contract for trading assets'})
