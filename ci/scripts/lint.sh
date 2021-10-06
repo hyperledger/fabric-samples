@@ -29,13 +29,11 @@ for dir in $dirs; do
         print "The following files contain import errors, please run 'goimports -l -w <path>' to fix these issues:"
         echo "${output}"
       fi
-    elif [[ "$dir" =~ "-javascript" ]]; then
-      print "Running ESLint"
-      if [[ "$dir" =~ "chaincode" ]]; then
-        eslint *.js */**.js
-      else
-        eslint *.js
-      fi
+    elif [[ "$dir" =~ "-javascript" || "$dir" =~ "-typescript" ]]; then
+      print "Installing node modules"
+      npm install
+      print "Running Lint"
+      npm run lint
     elif [[ "$dir" =~ "-java" ]]; then
       if [[ -f "pom.xml" ]]; then
         print "Running Maven Build"
@@ -44,9 +42,6 @@ for dir in $dirs; do
         print "Running Gradle Build"
         ./gradlew build
       fi
-    elif [[ "$dir" =~ "-typescript" ]]; then
-      print "Running TSLint"
-      tslint --project .
     fi
     popd
   fi
