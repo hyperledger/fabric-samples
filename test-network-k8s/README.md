@@ -76,4 +76,3 @@ Tear down the cluster:
 - [ ] Address any of the 20+ todo: notes in network.sh
 - [ ] Implement mutual TLS across peers, orderers, and clients. 
 - [ ] Caliper?  
-
