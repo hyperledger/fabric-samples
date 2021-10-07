@@ -11,7 +11,7 @@
 // peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["CreateAsset","asset2","red","50","Tom","150"]}'
 // peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["CreateAsset","asset3","blue","70","Tom","200"]}'
 // peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["TransferAsset","asset2","jerry"]}'
-// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["TransferAssetsBasedOnColor","blue","jerry"]}'
+// peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["TransferAssetByColor","blue","jerry"]}'
 // peer chaincode invoke -C CHANNEL_NAME -n asset_transfer -c '{"Args":["DeleteAsset","asset1"]}'
 
 // ==== Query assets ====
@@ -186,7 +186,7 @@ class Chaincode extends Contract {
 		return JSON.stringify(results);
 	}
 
-	// TransferAssetBasedOnColor will transfer assets of a given color to a certain new owner.
+	// TransferAssetByColor will transfer assets of a given color to a certain new owner.
 	// Uses a GetStateByPartialCompositeKey (range query) against color~name 'index'.
 	// Committing peers will re-execute range queries to guarantee that result sets are stable
 	// between endorsement time and commit time. The transaction is invalidated by the
