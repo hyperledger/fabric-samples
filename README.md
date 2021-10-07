@@ -15,6 +15,13 @@ Organization peers and an ordering service node. You can use it on your local ma
 You can also use it to deploy and test your own Fabric chaincodes and applications. To get started, see
 the [test network tutorial](https://hyperledger-fabric.readthedocs.io/en/latest/test_network.html).
 
+The [Kubernetes Test Network](test-network-k8s) sample builds upon the Compose network, constructing a Fabric 
+network with peer, orderer, and CA infrastructure nodes running on Kubernetes.  In addition to providing a sample 
+Kubernetes guide, the Kube test network can be used as a platform to author and debug _cloud ready_ Fabric Client 
+applications on a development or CI workstation. 
+
+
+
 ## Asset transfer samples and tutorials
 
 The asset transfer series provides a series of sample smart contracts and applications to demonstrate how to store and transfer assets using Hyperledger Fabric.
