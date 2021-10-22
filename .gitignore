@@ -20,3 +20,7 @@ node_modules/
 build
 package-lock.json
 external-chaincode/
+
+# Eclipse
+.classpath
+.settings
