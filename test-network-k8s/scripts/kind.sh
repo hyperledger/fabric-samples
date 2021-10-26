@@ -5,16 +5,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-function pull_docker_images() {
-  push_fn "Pulling docker images for Fabric ${FABRIC_VERSION}"
-
-  docker pull hyperledger/fabric-ca:$FABRIC_CA_VERSION
-  docker pull hyperledger/fabric-orderer:$FABRIC_VERSION
-  docker pull hyperledger/fabric-peer:$FABRIC_VERSION
-  docker pull hyperledger/fabric-tools:$FABRIC_VERSION
-
-  pop_fn
-}
 
 function apply_nginx_ingress() {
   push_fn "Launching Nginx ingress controller"
@@ -80,7 +70,7 @@ function launch_docker_registry() {
   running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)"
   if [ "${running}" != 'true' ]; then
     docker run \
-      -d --restart=always -p "127.0.0.1:${reg_port}:5000" --name "${reg_name}" \
+      -d --restart=always --rm -p "127.0.0.1:${reg_port}:5000" --name "${reg_name}" \
       registry:2
   fi
 
@@ -123,7 +113,6 @@ function kind_init() {
   # todo: how to pass this through to push_fn ?
   set -o errexit
 
-  pull_docker_images
   kind_create
   apply_nginx_ingress
   launch_docker_registry

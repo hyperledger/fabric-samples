@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: hyperledger/fabric-peer:{{FABRIC_VERSION}}
+          image: localhost:5000/fabric-peer:kind
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:

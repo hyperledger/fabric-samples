@@ -7,6 +7,33 @@
 
 # todo: oof this is rough.
 
+function pull_docker_images() {
+  local registry
+   push_fn "Pulling docker images for Fabric ${FABRIC_VERSION}"
+  
+  if [ "${FABRIC_VERSION}" = "amd64-latest" ]; then
+    FABRIC_CA_VERSION=${FABRIC_VERSION}
+    registry=hyperledger-fabric.jfrog.io
+  else
+    registry=hyperledger
+  fi
+
+  for image in peer orderer tools; do
+      local fullname=$registry/fabric-${image}:$FABRIC_VERSION
+      docker pull ${fullname}
+      docker tag ${fullname} "localhost:5000/fabric-${image}:kind"
+      docker push "localhost:5000/fabric-${image}:kind"
+  done
+
+  local cafullname=$registry/fabric-ca:$FABRIC_CA_VERSION
+  docker pull ${cafullname}
+  docker tag ${cafullname} "localhost:5000/fabric-ca:kind"
+  docker push "localhost:5000/fabric-ca:kind"
+
+
+  pop_fn
+
+}
 
 function launch() {
   local yaml=$1
@@ -204,6 +231,9 @@ function create_local_MSP() {
 }
 
 function network_up() {
+
+  # get the fabric docker images pushed to the local repository
+  pull_docker_images
 
   # Kube config
   init_namespace

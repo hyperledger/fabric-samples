@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: hyperledger/fabric-tools:{{FABRIC_VERSION}}
+          image: localhost:5000/fabric-tools:kind
           imagePullPolicy: IfNotPresent
           env:
             - name: FABRIC_CFG_PATH
