@@ -43,8 +43,8 @@ spec:
     spec:
       containers:
         - name: main
-          image: hyperledger/fabric-orderer:{{FABRIC_VERSION}}
-          imagePullPolicy: IfNotPresent
+          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-orderer:{{FABRIC_VERSION}}
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: org0-orderer3-env

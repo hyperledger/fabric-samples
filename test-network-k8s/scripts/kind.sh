@@ -5,17 +5,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-function pull_docker_images() {
-  push_fn "Pulling docker images for Fabric ${FABRIC_VERSION}"
-
-  docker pull hyperledger/fabric-ca:$FABRIC_CA_VERSION
-  docker pull hyperledger/fabric-orderer:$FABRIC_VERSION
-  docker pull hyperledger/fabric-peer:$FABRIC_VERSION
-  docker pull hyperledger/fabric-tools:$FABRIC_VERSION
-
-  pop_fn
-}
-
 function apply_nginx_ingress() {
   push_fn "Launching Nginx ingress controller"
 
@@ -34,8 +23,8 @@ function kind_create() {
   # todo: always delete?  Maybe return no-op if the cluster already exists?
   kind delete cluster --name $CLUSTER_NAME
 
-  local reg_name=${CONTAINER_REGISTRY_NAME}
-  local reg_port=${CONTAINER_REGISTRY_PORT}
+  local reg_name=${LOCAL_REGISTRY_NAME}
+  local reg_port=${LOCAL_REGISTRY_PORT}
   local ingress_http_port=${NGINX_HTTP_PORT}
   local ingress_https_port=${NGINX_HTTPS_PORT}
 
@@ -71,11 +60,11 @@ EOF
 }
 
 function launch_docker_registry() {
-  push_fn "Launching container registry \"${CONTAINER_REGISTRY_NAME}\" at localhost:${CONTAINER_REGISTRY_PORT}"
+  push_fn "Launching container registry \"${LOCAL_REGISTRY_NAME}\" at localhost:${LOCAL_REGISTRY_PORT}"
 
   # create registry container unless it already exists
-  local reg_name=${CONTAINER_REGISTRY_NAME}
-  local reg_port=${CONTAINER_REGISTRY_PORT}
+  local reg_name=${LOCAL_REGISTRY_NAME}
+  local reg_port=${LOCAL_REGISTRY_PORT}
 
   running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)"
   if [ "${running}" != 'true' ]; then
@@ -123,7 +112,6 @@ function kind_init() {
   # todo: how to pass this through to push_fn ?
   set -o errexit
 
-  pull_docker_images
   kind_create
   apply_nginx_ingress
   launch_docker_registry

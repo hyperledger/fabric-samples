@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: hyperledger/fabric-ca:1.5.2
+          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-ca:{{FABRIC_CA_VERSION}}
           env:
             - name: FABRIC_CA_SERVER_CA_NAME
               value: "org0-ecert-ca"
