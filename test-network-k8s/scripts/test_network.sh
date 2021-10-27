@@ -11,7 +11,7 @@
 function launch() {
   local yaml=$1
   cat ${yaml} \
-    | sed 's,{{FABRIC_CONTAINER_REGISTRY}},'${FABRIC_CONTAINER_REGISTRY}',g' \
+    | sed 's,{{LOCAL_CONTAINER_REGISTRY}},'${LOCAL_CONTAINER_REGISTRY}',g' \
     | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' \
     | kubectl -n $NS apply -f -
 }
@@ -247,6 +247,9 @@ function stop_services() {
 
 function scrub_org_volumes() {
   push_fn "Scrubbing Fabric volumes"
+  
+  # clean job to make this function can be rerun
+  kubectl -n $NS delete jobs --all
 
   # scrub all pv contents
   kubectl -n $NS create -f kube/job-scrub-fabric-volumes.yaml

@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-tools:{{FABRIC_VERSION}}
+          image: {{LOCAL_CONTAINER_REGISTRY}}/fabric-tools:{{FABRIC_VERSION}}
           imagePullPolicy: Always
           env:
             - name: FABRIC_CFG_PATH

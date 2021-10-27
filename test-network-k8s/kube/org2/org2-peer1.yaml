@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-peer:{{FABRIC_VERSION}}
+          image: {{LOCAL_CONTAINER_REGISTRY}}/fabric-peer:{{FABRIC_VERSION}}
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
@@ -66,7 +66,7 @@ spec:
       # load the external chaincode builder into the peer image prior to peer launch.
       initContainers:
         - name: fabric-ccs-builder
-          image: ghcr.io/hyperledgendary/fabric-ccs-builder
+          image: {{LOCAL_CONTAINER_REGISTRY}}/fabric-ccs-builder
           imagePullPolicy: IfNotPresent
           command: [sh, -c]
           args: ["cp /go/bin/* /var/hyperledger/fabric/chaincode/ccs-builder/bin/"]

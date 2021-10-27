@@ -8,7 +8,7 @@
 function launch_CA() {
   local yaml=$1
   cat ${yaml} \
-    | sed 's,{{FABRIC_CONTAINER_REGISTRY}},'${FABRIC_CONTAINER_REGISTRY}',g' \
+    | sed 's,{{LOCAL_CONTAINER_REGISTRY}},'${LOCAL_CONTAINER_REGISTRY}',g' \
     | sed 's,{{FABRIC_CA_VERSION}},'${FABRIC_CA_VERSION}',g' \
     | kubectl -n $NS apply -f -
 }
