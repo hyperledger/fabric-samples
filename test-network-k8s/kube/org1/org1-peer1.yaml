@@ -46,8 +46,8 @@ spec:
     spec:
       containers:
         - name: main
-          image: hyperledger/fabric-peer:{{FABRIC_VERSION}}
-          imagePullPolicy: IfNotPresent
+          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-peer:{{FABRIC_VERSION}}
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: org1-peer1-config
@@ -67,7 +67,7 @@ spec:
       initContainers:
         - name: fabric-ccs-builder
           image: ghcr.io/hyperledgendary/fabric-ccs-builder
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           command: [sh, -c]
           args: ["cp /go/bin/* /var/hyperledger/fabric/chaincode/ccs-builder/bin/"]
           volumeMounts:

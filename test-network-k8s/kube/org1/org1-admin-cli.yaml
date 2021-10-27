@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
         - name: main
-          image: hyperledger/fabric-tools:{{FABRIC_VERSION}}
-          imagePullPolicy: IfNotPresent
+          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-tools:{{FABRIC_VERSION}}
+          imagePullPolicy: Always
           env:
             - name: FABRIC_CFG_PATH
               value: /var/hyperledger/fabric/config

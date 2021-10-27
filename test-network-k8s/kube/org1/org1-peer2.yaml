@@ -46,8 +46,8 @@ spec:
     spec:
       containers:
         - name: main
-          image: hyperledger/fabric-peer:{{FABRIC_VERSION}}
-          imagePullPolicy: IfNotPresent
+          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-peer:{{FABRIC_VERSION}}
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: org1-peer2-config

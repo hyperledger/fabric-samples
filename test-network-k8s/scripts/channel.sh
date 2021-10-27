@@ -69,9 +69,9 @@ function aggregate_channel_MSP() {
 function launch_admin_CLIs() {
   push_fn "Launching admin CLIs"
 
-  cat kube/org0/org0-admin-cli.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS apply -f -
-  cat kube/org1/org1-admin-cli.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS apply -f -
-  cat kube/org2/org2-admin-cli.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS apply -f -
+  launch kube/org0/org0-admin-cli.yaml
+  launch kube/org1/org1-admin-cli.yaml
+  launch kube/org2/org2-admin-cli.yaml
 
   kubectl -n $NS rollout status deploy/org0-admin-cli
   kubectl -n $NS rollout status deploy/org1-admin-cli

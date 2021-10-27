@@ -10,7 +10,10 @@
 
 function launch() {
   local yaml=$1
-  cat ${yaml} | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS apply -f -
+  cat ${yaml} \
+    | sed 's,{{FABRIC_CONTAINER_REGISTRY}},'${FABRIC_CONTAINER_REGISTRY}',g' \
+    | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' \
+    | kubectl -n $NS apply -f -
 }
 
 function launch_orderers() {

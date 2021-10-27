@@ -5,12 +5,20 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+function launch_CA() {
+  local yaml=$1
+  cat ${yaml} \
+    | sed 's,{{FABRIC_CONTAINER_REGISTRY}},'${FABRIC_CONTAINER_REGISTRY}',g' \
+    | sed 's,{{FABRIC_CA_VERSION}},'${FABRIC_CA_VERSION}',g' \
+    | kubectl -n $NS apply -f -
+}
+
 function launch_TLS_CAs() {
   push_fn "Launching TLS CAs"
 
-  kubectl -n $NS apply -f kube/org0/org0-tls-ca.yaml
-  kubectl -n $NS apply -f kube/org1/org1-tls-ca.yaml
-  kubectl -n $NS apply -f kube/org2/org2-tls-ca.yaml
+  launch_CA kube/org0/org0-tls-ca.yaml
+  launch_CA kube/org1/org1-tls-ca.yaml
+  launch_CA kube/org2/org2-tls-ca.yaml
 
   kubectl -n $NS rollout status deploy/org0-tls-ca
   kubectl -n $NS rollout status deploy/org1-tls-ca
@@ -25,9 +33,9 @@ function launch_TLS_CAs() {
 function launch_ECert_CAs() {
   push_fn "Launching ECert CAs"
 
-  kubectl -n $NS apply -f kube/org0/org0-ecert-ca.yaml
-  kubectl -n $NS apply -f kube/org1/org1-ecert-ca.yaml
-  kubectl -n $NS apply -f kube/org2/org2-ecert-ca.yaml
+  launch_CA kube/org0/org0-ecert-ca.yaml
+  launch_CA kube/org1/org1-ecert-ca.yaml
+  launch_CA kube/org2/org2-ecert-ca.yaml
 
   kubectl -n $NS rollout status deploy/org0-ecert-ca
   kubectl -n $NS rollout status deploy/org1-ecert-ca
