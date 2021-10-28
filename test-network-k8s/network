@@ -44,28 +44,28 @@ RCAADMIN_AUTH=rcaadmin:rcaadminpw
 function print_help() {
   log
   log "--- Fabric Information"
-  log "Fabric Version is      \t ${FABRIC_VERSION}"
-  log "Fabric CA Version is   \t  ${FABRIC_CA_VERSION}"
-  log "Container Registry is  \t  ${FABRIC_CONTAINER_REGISTRY}"
-  log "Network name is        \t  ${NETWORK_NAME}"
-  log "Channel name is        \t  ${CHANNEL_NAME}"
+  log "Fabric Version     \t\t: ${FABRIC_VERSION}"
+  log "Fabric CA Version    \t: ${FABRIC_CA_VERSION}"
+  log "Container Registry   \t: ${FABRIC_CONTAINER_REGISTRY}"
+  log "Network name       \t\t: ${NETWORK_NAME}"
+  log "Channel name       \t\t: ${CHANNEL_NAME}"
   log
-  log "--- Targetted Chaincode Information"
-  log "Chaincode name is      \t  ${CHAINCODE_NAME}"
-  log "Chaincode image is     \t  ${CHAINCODE_IMAGE}"
-  log "Chaincode lavel is     \t  ${CHAINCODE_LABEL}"
+  log "--- Chaincode Information"
+  log "Chaincode name      \t\t: ${CHAINCODE_NAME}"
+  log "Chaincode image      \t: ${CHAINCODE_IMAGE}"
+  log "Chaincode label      \t: ${CHAINCODE_LABEL}"
   log
   log "--- Cluster Information"
-  log "Cluster name is        \t  ${CLUSTER_NAME}"
-  log "Cluster namespace is   \t  ${NS}"
-  log "Local Registry is      \t  ${LOCAL_REGISTRY_NAME}"
-  log "Local Registry port is \t  ${LOCAL_REGISTRY_PORT}"
-  log "nginx http port is     \t  ${NGINX_HTTP_PORT}"
-  log "nginx https port is    \t  ${NGINX_HTTP2_PORT}"
+  log "Cluster name       \t\t: ${CLUSTER_NAME}"
+  log "Cluster namespace    \t: ${NS}"
+  log "Local Registry     \t\t: ${LOCAL_REGISTRY_NAME}"
+  log "Local Registry port  \t: ${LOCAL_REGISTRY_PORT}"
+  log "nginx http port      \t: ${NGINX_HTTP_PORT}"
+  log "nginx https port     \t: ${NGINX_HTTPS_PORT}"
   log
   log "--- Script Information"
-  log "Log file written to    \t  ${LOG_FILE}"
-  log "Debug log written to   \t  ${DEBUG_FILE}"
+  log "Log file           \t\t: ${LOG_FILE}"
+  log "Debug log file     \t\t: ${DEBUG_FILE}"
   log
 
 
