@@ -17,6 +17,10 @@ function logging_init() {
 
   # Send stdout and stderr from child programs to the debug log file
   exec 1>>${DEBUG_FILE} 2>>${DEBUG_FILE}
+
+  # There can be a race between the tail starting and the next log statement
+  # write nothing to the file to kill a (very small) bit of time
+  echo -ne >>${LOG_FILE}
 }
 
 function exit_fn() {

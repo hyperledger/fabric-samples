@@ -57,7 +57,11 @@ function construct_application_configmap() {
   ca_pem=build/msp/organizations/peerOrganizations/org2.example.com/msp/cacerts/org2-ecert-ca.pem
 
   echo "$(json_ccp 2 $peer_pem $ca_pem)" > build/application/gateways/org2_ccp.json
-  
+
+  pop_fn
+
+  push_fn "Getting Application Identities"
+
   local cert=build/msp/organizations/peerOrganizations/org1.example.com/users/Admin\@org1.example.com/msp/signcerts/cert.pem
   local pk=build/msp/organizations/peerOrganizations/org1.example.com/users/Admin\@org1.example.com/msp/keystore/server.key
 
@@ -68,14 +72,24 @@ function construct_application_configmap() {
 
   echo "$(app_id Org2MSP $cert $pk)" > build/application/wallet/appuser_org2.id
 
-  kubectl -n $NS delete configmap app-fabric-tls-v1-map || log "app-fabric-tls-v1-map not present"
+  pop_fn
+
+  push_fn "Creating ConfigMap \"app-fabric-tls-v1-map\" with TLS certificates for the application"
+  kubectl -n $NS delete configmap app-fabric-tls-v1-map || true
   kubectl -n $NS create configmap app-fabric-tls-v1-map --from-file=./build/msp/organizations/peerOrganizations/org1.example.com/msp/tlscacerts
+  pop_fn
 
-  kubectl -n $NS delete configmap app-fabric-ids-v1-map || log "app-fabric-id-v1-map not present"
+  push_fn "Creating ConfigMap \"app-fabric-ids-v1-map\" with identities for the application"
+  kubectl -n $NS delete configmap app-fabric-ids-v1-map || true
   kubectl -n $NS create configmap app-fabric-ids-v1-map --from-file=./build/application/wallet
+  pop_fn
 
-  kubectl -n $NS delete configmap app-fabric-ccp-v1-map || log "app-fabric-id-v1-map not present"
+  push_fn "Creating ConfigMap \"app-fabric-ccp-v1-map\" with ConnectionProfile for the application"
+  kubectl -n $NS delete configmap app-fabric-ccp-v1-map || true
   kubectl -n $NS create configmap app-fabric-ccp-v1-map --from-file=./build/application/gateways
+  pop_fn
+
+  push_fn "Creating ConfigMap \"app-fabric-org1-v1-map\" with Organization 1 information for the application"
 
 cat <<EOF > build/app-fabric-org1-v1-map.yaml
 apiVersion: v1
@@ -104,11 +118,16 @@ function application_connection() {
 
  construct_application_configmap
 
- log ""
+log
+ log "For k8s applications:"
  log "Config Maps created for the application"
  log "To deploy your application updated the image name and issue these commands"
  log ""
  log "kubectl -n $NS apply -f kube/application-deployment.yaml"
  log "kubectl -n $NS rollout status deploy/application-deployment"
-
+ log
+ log "For non-k8s applications:"
+ log "ConnectionPrfiles are in ${PWD}/build/application/gateways"
+ log "Identities are in  ${PWD}/build/application/wallets"
+ log
 }
