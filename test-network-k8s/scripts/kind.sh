@@ -5,6 +5,38 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+function pull_docker_images() {
+  push_fn "Pulling docker images for Fabric ${FABRIC_VERSION}"
+
+  docker pull ${FABRIC_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION
+  docker pull ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
+  docker pull ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:$FABRIC_VERSION
+  docker pull ${FABRIC_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
+  docker pull ghcr.io/hyperledgendary/fabric-ccs-builder:latest
+  docker pull ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest
+
+  pop_fn
+}
+
+function push_images_to_local() {
+  push_fn "Push docker images to local image repository"
+
+  docker tag ${FABRIC_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION ${LOCAL_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION
+  docker push ${LOCAL_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION
+  docker tag ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION ${LOCAL_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
+  docker push ${LOCAL_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
+  docker tag ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:$FABRIC_VERSION ${LOCAL_CONTAINER_REGISTRY}/fabric-peer:$FABRIC_VERSION
+  docker push ${LOCAL_CONTAINER_REGISTRY}/fabric-peer:$FABRIC_VERSION
+  docker tag ${FABRIC_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION ${LOCAL_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
+  docker push ${LOCAL_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
+  docker tag ghcr.io/hyperledgendary/fabric-ccs-builder:latest ${LOCAL_CONTAINER_REGISTRY}/fabric-ccs-builder:latest
+  docker push ${LOCAL_CONTAINER_REGISTRY}/fabric-ccs-builder:latest
+  docker tag ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest ${LOCAL_CONTAINER_REGISTRY}/fabric-ccaas-asset-transfer-basic:latest
+  docker push ${LOCAL_CONTAINER_REGISTRY}/fabric-ccaas-asset-transfer-basic:latest
+
+  pop_fn
+}
+
 function apply_nginx_ingress() {
   push_fn "Launching Nginx ingress controller"
 
@@ -95,11 +127,6 @@ EOF
   pop_fn
 }
 
-function load_kind_image_plane() {
-  push_fn "Ensuring fabric node images"
-  pop_fn
-}
-
 function kind_delete() {
   push_fn "Deleting KIND cluster ${CLUSTER_NAME}"
 
@@ -115,6 +142,9 @@ function kind_init() {
   kind_create
   apply_nginx_ingress
   launch_docker_registry
+
+  pull_docker_images
+  push_images_to_local
 }
 
 function kind_unkind() {
