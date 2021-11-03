@@ -11,7 +11,7 @@
 function launch() {
   local yaml=$1
   cat ${yaml} \
-    | sed 's,{{LOCAL_CONTAINER_REGISTRY}},'${LOCAL_CONTAINER_REGISTRY}',g' \
+    | sed 's,{{FABRIC_CONTAINER_REGISTRY}},'${FABRIC_CONTAINER_REGISTRY}',g' \
     | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' \
     | kubectl -n $NS apply -f -
 }

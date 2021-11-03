@@ -18,23 +18,17 @@ function pull_docker_images() {
   pop_fn
 }
 
-function push_images_to_local() {
-  push_fn "Push docker images to local image repository"
+function load_docker_images() {
+  push_fn "Loading docker images to KIND control plane"
 
-  docker tag ${FABRIC_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION ${LOCAL_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION
-  docker push ${LOCAL_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION
-  docker tag ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION ${LOCAL_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
-  docker push ${LOCAL_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
-  docker tag ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:$FABRIC_VERSION ${LOCAL_CONTAINER_REGISTRY}/fabric-peer:$FABRIC_VERSION
-  docker push ${LOCAL_CONTAINER_REGISTRY}/fabric-peer:$FABRIC_VERSION
-  docker tag ${FABRIC_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION ${LOCAL_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
-  docker push ${LOCAL_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
-  docker tag ghcr.io/hyperledgendary/fabric-ccs-builder:latest ${LOCAL_CONTAINER_REGISTRY}/fabric-ccs-builder:latest
-  docker push ${LOCAL_CONTAINER_REGISTRY}/fabric-ccs-builder:latest
-  docker tag ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest ${LOCAL_CONTAINER_REGISTRY}/fabric-ccaas-asset-transfer-basic:latest
-  docker push ${LOCAL_CONTAINER_REGISTRY}/fabric-ccaas-asset-transfer-basic:latest
-
-  pop_fn
+  kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION
+  kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
+  kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:$FABRIC_VERSION
+  kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
+  kind load docker-image ghcr.io/hyperledgendary/fabric-ccs-builder:latest
+  kind load docker-image ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest
+  
+  pop_fn 
 }
 
 function apply_nginx_ingress() {
@@ -143,8 +137,10 @@ function kind_init() {
   apply_nginx_ingress
   launch_docker_registry
 
-  pull_docker_images
-  push_images_to_local
+  if [ "${STAGE_DOCKER_IMAGES}" == true ]; then
+    pull_docker_images 
+    load_docker_images 
+  fi 
 }
 
 function kind_unkind() {
