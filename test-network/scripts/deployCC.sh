@@ -44,8 +44,8 @@ elif [ -z "$CC_SRC_LANGUAGE" ] || [ "$CC_SRC_LANGUAGE" = "NA" ]; then
   fatalln "No chaincode language was provided. Valid call example: ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-go -ccl go"
 
 ## Make sure that the path to the chaincode exists
-elif [ ! -d "$CC_SRC_PATH" ]; then
-  fatalln "Path to chaincode does not exist. Please provide different path."
+elif [ ! -d "$CC_SRC_PATH" ] && [ ! -f "$CC_SRC_PATH" ]; then
+  fatalln "dfghPath to chaincode does not exist. Please provide different path."
 fi
 
 CC_SRC_LANGUAGE=$(echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:])

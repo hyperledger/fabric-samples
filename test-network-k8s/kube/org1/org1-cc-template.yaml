@@ -7,16 +7,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: org1-cc-{{CHAINCODE_NAME}}
+  name: org1{{PEER_NAME}}-cc-{{CHAINCODE_NAME}}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: org1-cc-{{CHAINCODE_NAME}}
+      app: org1{{PEER_NAME}}-cc-{{CHAINCODE_NAME}}
   template:
     metadata:
       labels:
-        app: org1-cc-{{CHAINCODE_NAME}}
+        app: org1{{PEER_NAME}}-cc-{{CHAINCODE_NAME}}
     spec:
       containers:
         - name: main
@@ -35,11 +35,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: org1-cc-{{CHAINCODE_NAME}}
+  name: org1{{PEER_NAME}}-cc-{{CHAINCODE_NAME}}
 spec:
   ports:
     - name: chaincode
       port: 9999
       protocol: TCP
   selector:
-    app: org1-cc-{{CHAINCODE_NAME}}
+    app: org1{{PEER_NAME}}-cc-{{CHAINCODE_NAME}}

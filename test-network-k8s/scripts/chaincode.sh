@@ -36,11 +36,12 @@ function transfer_chaincode_archive_for() {
 
 function install_chaincode_for() {
   local org=$1
-  push_fn "Installing chaincode for org ${org}"
+  local peer=$2
+  push_fn "Installing chaincode for org ${org}  peer ${peer}"
 
   # Install the chaincode
   echo 'set -x
-  export CORE_PEER_ADDRESS='${org}'-peer1:7051
+  export CORE_PEER_ADDRESS='${org}'-'${peer}':7051
   peer lifecycle chaincode install build/chaincode/'${CHAINCODE_NAME}'.tgz
   ' | exec kubectl -n $NS exec deploy/${org}-admin-cli -c main -i -- /bin/bash
 
@@ -51,6 +52,7 @@ function launch_chaincode_service() {
   local org=$1
   local cc_id=$2
   local cc_image=$3
+  local peer=$4
   push_fn "Launching chaincode container \"${cc_image}\""
 
   # The chaincode endpoint needs to have the generated chaincode ID available in the environment.
@@ -60,9 +62,10 @@ function launch_chaincode_service() {
     | sed 's,{{CHAINCODE_NAME}},'${CHAINCODE_NAME}',g' \
     | sed 's,{{CHAINCODE_ID}},'${cc_id}',g' \
     | sed 's,{{CHAINCODE_IMAGE}},'${cc_image}',g' \
+    | sed 's,{{PEER_NAME}},'${peer}',g' \
     | exec kubectl -n $NS apply -f -
 
-  kubectl -n $NS rollout status deploy/${org}-cc-${CHAINCODE_NAME}
+  kubectl -n $NS rollout status deploy/${org}${peer}-cc-${CHAINCODE_NAME}
 
   pop_fn
 }
@@ -124,14 +127,6 @@ function query_chaincode_metadata() {
   peer chaincode query -n '${CHAINCODE_NAME}' -C '${CHANNEL_NAME}' -c '"'$args'"'
   ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
 
-  log ''
-  log 'Org1-Peer-SVC:'
-  echo '
-  export CORE_PEER_ADDRESS=org1-peer-svc:7051
-  peer chaincode query -n '${CHAINCODE_NAME}' -C '${CHANNEL_NAME}' -c '"'$args'"'
-  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
-
-
 }
 
 function invoke_chaincode() {
@@ -168,7 +163,8 @@ function install_chaincode() {
 
   package_chaincode_for ${org}
   transfer_chaincode_archive_for ${org}
-  install_chaincode_for ${org}
+  install_chaincode_for ${org} peer1
+  install_chaincode_for ${org} peer2
 
   set_chaincode_id
 }
@@ -186,7 +182,8 @@ function deploy_chaincode() {
   set -x
 
   install_chaincode
-  launch_chaincode_service org1 $CHAINCODE_ID $CHAINCODE_IMAGE
+  launch_chaincode_service org1 $CHAINCODE_ID $CHAINCODE_IMAGE peer1
+  launch_chaincode_service org1 $CHAINCODE_ID $CHAINCODE_IMAGE peer2
   activate_chaincode
 }
 
