@@ -3,8 +3,8 @@
  */
 // Deterministic JSON.stringify()
 import {Context, Contract, Info, Returns, Transaction} from 'fabric-contract-api';
-import * as stringify from 'json-stringify-deterministic';
-import * as sortKeysRecursive from 'sort-keys-recursive';
+import stringify from 'json-stringify-deterministic';
+import sortKeysRecursive from 'sort-keys-recursive';
 import {Asset} from './asset';
 
 @Info({title: 'AssetTransfer', description: 'Smart contract for trading assets'})
