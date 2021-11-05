@@ -3,6 +3,11 @@
  */
 
 import {Context, Contract, Info, Returns, Transaction} from 'fabric-contract-api';
+<<<<<<< HEAD
+=======
+import stringify from 'json-stringify-deterministic';
+import sortKeysRecursive from 'sort-keys-recursive';
+>>>>>>> 8c1c36a (Fix type error when using the latest sort-keys-recursive)
 import {Asset} from './asset';
 
 @Info({title: 'AssetTransfer', description: 'Smart contract for trading assets'})
