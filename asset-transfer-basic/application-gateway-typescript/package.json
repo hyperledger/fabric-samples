@@ -20,7 +20,7 @@
     "author": "Hyperledger",
     "license": "Apache-2.0",
     "dependencies": {
-        "fabric-gateway": "0.1.0-dev.20211006.12"
+        "@hyperledger/fabric-gateway": "^0.1.0"
     },
     "devDependencies": {
         "@tsconfig/node12": "^1.0.9",

@@ -6,7 +6,7 @@
 
 import * as grpc from '@grpc/grpc-js';
 import * as crypto from 'crypto';
-import { connect, Identity, Signer, signers ,Contract} from 'fabric-gateway';
+import { connect, Identity, Signer, signers ,Contract} from '@hyperledger/fabric-gateway';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 
