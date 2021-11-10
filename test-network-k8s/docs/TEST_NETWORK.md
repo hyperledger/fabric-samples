@@ -135,7 +135,7 @@ from a public container registry, copying the external builders into the target 
 ```yaml
       initContainers:
         - name: fabric-ccs-builder
-          image: {{LOCAL_CONTAINER_REGISTRY}}/fabric-ccs-builder
+          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-ccs-builder
           command: [sh, -c]
           args: ["cp /go/bin/* /var/hyperledger/fabric/chaincode/ccs-builder/bin/"]
           volumeMounts:

@@ -20,7 +20,8 @@ spec:
     spec:
       containers:
         - name: main
-          image: {{LOCAL_CONTAINER_REGISTRY}}/fabric-ca:{{FABRIC_CA_VERSION}}
+          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-ca:{{FABRIC_CA_VERSION}}
+          imagePullPolicy: IfNotPresent
           env:
             - name: FABRIC_CA_SERVER_CA_NAME
               value: "org2-ecert-ca"
