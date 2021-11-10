@@ -47,17 +47,23 @@ function log() {
 function pop_fn() {
 #  echo exiting ${FUNCNAME[1]}
 
-  local res=$1
   if [ $# -eq 0 ]; then
     echo -ne "\r✅"  >> ${LOG_FILE}
+    echo "" >> ${LOG_FILE}
+    return
+  fi
 
-  elif [ $res -eq 0 ]; then
+  local res=$1
+  if [ $res -eq 0 ]; then
     echo -ne "\r✅"  >> ${LOG_FILE}
 
   elif [ $res -eq 1 ]; then
     echo -ne "\r⚠️" >> ${LOG_FILE}
 
   elif [ $res -eq 2 ]; then
+    echo -ne "\r☠️" >> ${LOG_FILE}
+
+  elif [ $res -eq 127 ]; then
     echo -ne "\r☠️" >> ${LOG_FILE}
 
   else

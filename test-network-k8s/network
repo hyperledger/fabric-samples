@@ -35,7 +35,7 @@ STAGE_DOCKER_IMAGES=${TEST_NETWORK_STAGE_DOCKER_IMAGES:-false}
 NGINX_HTTP_PORT=${TEST_NETWORK_INGRESS_HTTP_PORT:-80}
 NGINX_HTTPS_PORT=${TEST_NETWORK_INGRESS_HTTPS_PORT:-443}
 CHAINCODE_NAME=${TEST_NETWORK_CHAINCODE_NAME:-asset-transfer-basic}
-CHAINCODE_IMAGE=${TEST_NETWORK_CHAINCODE_IMAGE:-localhost:5000/fabric-ccaas-asset-transfer-basic}
+CHAINCODE_IMAGE=${TEST_NETWORK_CHAINCODE_IMAGE:-ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest}
 CHAINCODE_LABEL=${TEST_NETWORK_CHAINCODE_LABEL:-basic_1.0}
 
 # todo: more complicated config, as these bleed into the yaml descriptors (sed? kustomize? helm (no)? tkn? ansible?...) or other script locations
@@ -59,6 +59,7 @@ function print_help() {
   log "--- Cluster Information"
   log "Cluster name       \t\t: ${CLUSTER_NAME}"
   log "Cluster namespace    \t: ${NS}"
+  log "Fabric Registry      \t: ${FABRIC_CONTAINER_REGISTRY}"
   log "Local Registry     \t\t: ${LOCAL_REGISTRY_NAME}"
   log "Local Registry port  \t: ${LOCAL_REGISTRY_PORT}"
   log "nginx http port      \t: ${NGINX_HTTP_PORT}"
@@ -68,6 +69,7 @@ function print_help() {
   log "Log file           \t\t: ${LOG_FILE}"
   log "Debug log file     \t\t: ${DEBUG_FILE}"
   log
+
 
 
   echo todo: help output, parse mode, flags, env, etc.
