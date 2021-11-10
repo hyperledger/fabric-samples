@@ -54,6 +54,8 @@ function kind_create() {
   local ingress_http_port=${NGINX_HTTP_PORT}
   local ingress_https_port=${NGINX_HTTPS_PORT}
 
+  # the 'ipvs'proxy mode permits better HA abilities
+
   cat <<EOF | kind create cluster --name $CLUSTER_NAME --config=-
 ---
 kind: Cluster
@@ -73,6 +75,8 @@ nodes:
       - containerPort: 443
         hostPort: ${ingress_https_port}
         protocol: TCP
+networking:
+  kubeProxyMode: "ipvs"
 
 # create a cluster with the local registry enabled in containerd
 containerdConfigPatches:
