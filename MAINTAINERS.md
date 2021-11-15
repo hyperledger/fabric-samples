@@ -7,6 +7,7 @@ fabric-samples uses a non-author code review policy, requiring a single approval
 |---------------------------|------------------|----------------|-------------------------------------|
 | Arnaud Le Hors            | lehors           | lehors         | lehors@us.ibm.com                   |
 | Dave Enyeart              | denyeart         | dave.enyeart   | enyeart@us.ibm.com                  |
+| Josh Kneubuhl             | jkneubuh         | jkneubuhl      | jkneubuh@us.ibm.com                 |
 | Matthew B White           | mbwhite          | mbwhite        | whitemat@uk.ibm.com                 |
 | Nikhil Gupta              | nikhil550        | negupta        | nikhilg550@gmail.com                |
 
