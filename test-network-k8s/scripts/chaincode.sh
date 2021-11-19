@@ -154,7 +154,8 @@ function invoke_chaincode() {
 # Normally the chaincode ID is emitted by the peer install command.  In this case, we'll generate the
 # package ID as the sha-256 checksum of the chaincode archive.
 function set_chaincode_id() {
-  local cc_sha256=$(shasum -a 256 build/chaincode/${CHAINCODE_NAME}.tgz | tr -s ' ' | cut -d ' ' -f 1)
+  local cc_package=build/chaincode/${CHAINCODE_NAME}.tgz
+  cc_sha256=$(shasum -a 256 ${cc_package} | tr -s ' ' | cut -d ' ' -f 1)
 
   CHAINCODE_ID=${CHAINCODE_LABEL}:${cc_sha256}
 }

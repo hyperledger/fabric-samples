@@ -131,8 +131,45 @@ to Pods deployed to the local cluster.
 
 For dev/test/CI based flows using an external registry, the traditional Kubernetes practice of 
 [Adding ImagePullSecrets to a service account](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#add-imagepullsecrets-to-a-service-account) 
-still applies. 
+still applies.
 
+In some environments, KIND may encounter issues loading the Fabric docker images from the public container 
+registries.  In addition, for Fabric development it can be advantageous to work with Docker images built 
+locally, bypassing the public images entirely.  For these scenarios, images may also be [directly loaded](https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster)
+into the KIND image plane, bypassing the container registry.
+
+The `./network` script supports these additional modes via: 
+
+1.  For network-constrained environments, pull all images to the local docker cache and load to KIND: 
+```shell
+export TEST_NETWORK_STAGE_DOCKER_IMAGES=true 
+
+./network kind 
+./network up  
+```
+
+2.  For alternate registries (e.g. local or Fabric CI/CD builds): 
+```shell
+./network kind 
+
+export TEST_NETWORK_FABRIC_CONTAINER_REGISTRY=hyperledger-fabric.jfrog.io
+export TEST_NETWORK_FABRIC_VERSION=amd64-latest 
+export TEST_NETWORK_FABRIC_CA_VERSION=amd64-latest
+
+./network up  
+```
+
+3.  For working with Fabric images built locally: 
+```shell
+./network kind 
+
+make docker    # in hyperledger/fabric 
+
+export TEST_NETWORK_FABRIC_VERSION=2.4.0
+
+./network load-images 
+./network up 
+```
 
 ## Cloud Vendors 
 
