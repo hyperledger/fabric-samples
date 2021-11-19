@@ -4,9 +4,6 @@
 .#*
 # Vim file artifacts
 .*.sw*
-# installed platform-specific binaries
-bin
-/config
 .DS_Store
 .project
 # omit Go vendor directories
@@ -19,8 +16,14 @@ node_modules/
 # Ignore Gradle build output directory
 build
 package-lock.json
-external-chaincode/
 
 # Eclipse
 .classpath
 .settings
+
+# installed Fabric binaries etc.
+bin/
+builders/
+config/
+external-chaincode/
+install-fabric.sh
