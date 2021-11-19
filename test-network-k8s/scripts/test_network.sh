@@ -108,8 +108,8 @@ function create_org1_local_MSP() {
   fabric-ca-client register --id.name org1-peer2 --id.secret peerpw --id.type peer --url https://org1-ecert-ca --mspdir $FABRIC_CA_CLIENT_HOME/org1-ecert-ca/rcaadmin/msp
   fabric-ca-client register --id.name org1-admin --id.secret org1adminpw  --id.type admin   --url https://org1-ecert-ca --mspdir $FABRIC_CA_CLIENT_HOME/org1-ecert-ca/rcaadmin/msp --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
 
-  fabric-ca-client enroll --url https://org1-peer1:peerpw@org1-ecert-ca --csr.hosts org1-peer1 --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/msp
-  fabric-ca-client enroll --url https://org1-peer2:peerpw@org1-ecert-ca --csr.hosts org1-peer2 --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer2.org1.example.com/msp
+  fabric-ca-client enroll --url https://org1-peer1:peerpw@org1-ecert-ca --csr.hosts org1-peer1,org1-peer-gateway-svc --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/msp
+  fabric-ca-client enroll --url https://org1-peer2:peerpw@org1-ecert-ca --csr.hosts org1-peer2,org1-peer-gateway-svc --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer2.org1.example.com/msp
   fabric-ca-client enroll --url https://org1-admin:org1adminpw@org1-ecert-ca  --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
 
   # Each node in the network needs a TLS registration and enrollment.
@@ -158,8 +158,8 @@ function create_org2_local_MSP() {
   fabric-ca-client register --id.name org2-peer2 --id.secret peerpw --id.type peer --url https://org2-ecert-ca --mspdir $FABRIC_CA_CLIENT_HOME/org2-ecert-ca/rcaadmin/msp
   fabric-ca-client register --id.name org2-admin --id.secret org2adminpw  --id.type admin   --url https://org2-ecert-ca --mspdir $FABRIC_CA_CLIENT_HOME/org2-ecert-ca/rcaadmin/msp --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
 
-  fabric-ca-client enroll --url https://org2-peer1:peerpw@org2-ecert-ca --csr.hosts org2-peer1 --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer1.org2.example.com/msp
-  fabric-ca-client enroll --url https://org2-peer2:peerpw@org2-ecert-ca --csr.hosts org2-peer2 --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer2.org2.example.com/msp
+  fabric-ca-client enroll --url https://org2-peer1:peerpw@org2-ecert-ca --csr.hosts org2-peer1,org2-peer-gateway-svc --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer1.org2.example.com/msp
+  fabric-ca-client enroll --url https://org2-peer2:peerpw@org2-ecert-ca --csr.hosts org2-peer2,org2-peer-gateway-svc --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer2.org2.example.com/msp
   fabric-ca-client enroll --url https://org2-admin:org2adminpw@org2-ecert-ca  --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
 
   # Each node in the network needs a TLS registration and enrollment.

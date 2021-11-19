@@ -43,6 +43,7 @@ spec:
     metadata:
       labels:
         app: org1-peer2
+        org: org1
     spec:
       containers:
         - name: main

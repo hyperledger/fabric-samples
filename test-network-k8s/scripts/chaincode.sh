@@ -111,10 +111,27 @@ function query_chaincode_metadata() {
   set -x
   local args='{"Args":["org.hyperledger.fabric:GetMetadata"]}'
   # todo: mangle additional $@ parameters with bash escape quotations
+  log 'Org1-Peer1:'
   echo '
   export CORE_PEER_ADDRESS=org1-peer1:7051
   peer chaincode query -n '${CHAINCODE_NAME}' -C '${CHANNEL_NAME}' -c '"'$args'"'
   ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
+
+  log ''
+  log 'Org1-Peer2:'
+  echo '
+  export CORE_PEER_ADDRESS=org1-peer2:7051
+  peer chaincode query -n '${CHAINCODE_NAME}' -C '${CHANNEL_NAME}' -c '"'$args'"'
+  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
+
+  log ''
+  log 'Org1-Peer-SVC:'
+  echo '
+  export CORE_PEER_ADDRESS=org1-peer-svc:7051
+  peer chaincode query -n '${CHAINCODE_NAME}' -C '${CHANNEL_NAME}' -c '"'$args'"'
+  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
+
+
 }
 
 function invoke_chaincode() {
