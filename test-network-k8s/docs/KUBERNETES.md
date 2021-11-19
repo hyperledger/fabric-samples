@@ -165,6 +165,8 @@ export TEST_NETWORK_FABRIC_CA_VERSION=amd64-latest
 
 make docker    # in hyperledger/fabric 
 
+export TEST_NETWORK_FABRIC_VERSION=2.4.0
+
 ./network load-images 
 ./network up 
 ```
