@@ -157,7 +157,9 @@ function set_chaincode_id() {
   local cc_package=build/chaincode/${CHAINCODE_NAME}.tgz
   cc_sha256=$(shasum -a 256 ${cc_package} | tr -s ' ' | cut -d ' ' -f 1)
 
-  CHAINCODE_ID=${CHAINCODE_LABEL}:${cc_sha256}
+  label=$( jq -r '.label' chaincode/${CHAINCODE_NAME}/metadata.json)
+
+  CHAINCODE_ID=${label}:${cc_sha256}
 }
 
 # Package and install the chaincode, but do not activate.
