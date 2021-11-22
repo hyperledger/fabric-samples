@@ -5,7 +5,7 @@
     "main": "dist/index.js",
     "typings": "dist/index.d.ts",
     "engines": {
-        "node": ">=12",
+        "node": ">=14",
         "npm": ">=5"
     },
     "scripts": {
@@ -20,10 +20,10 @@
     "author": "Hyperledger",
     "license": "Apache-2.0",
     "dependencies": {
-        "@hyperledger/fabric-gateway": "^0.1.0"
+        "@hyperledger/fabric-gateway": "unstable"
     },
     "devDependencies": {
-        "@tsconfig/node12": "^1.0.9",
+        "@tsconfig/node14": "^1.0.1",
         "@typescript-eslint/eslint-plugin": "^4.31.2",
         "@typescript-eslint/parser": "^4.31.2",
         "eslint": "^7.32.0",
