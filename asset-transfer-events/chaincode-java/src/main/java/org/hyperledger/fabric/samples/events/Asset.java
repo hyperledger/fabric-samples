@@ -13,7 +13,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import org.hyperledger.fabric.contract.annotation.DataType;
 import org.hyperledger.fabric.contract.annotation.Property;
 
-
 import org.json.JSONObject;
 
 @DataType()
@@ -34,8 +33,7 @@ public final class Asset {
     @Property()
     private int appraisedValue;
 
-    public Asset(final String assetID, final String color,
-                 final int size, final String owner, final int value) {
+    public Asset(final String assetID, final String color, final int size, final String owner, final int value) {
 
         this.assetID = assetID;
         this.color = color;
@@ -86,7 +84,7 @@ public final class Asset {
     }
 
     public String serialize(final String privateProps) {
-        Map<String, Object> tMap = new HashMap();
+        Map<String, Object> tMap = new HashMap<String, Object>();
         tMap.put("ID", assetID);
         tMap.put("Color",  color);
         tMap.put("Owner",  owner);
@@ -134,13 +132,10 @@ public final class Asset {
 
         Asset other = (Asset) obj;
 
-        return Objects.deepEquals(
-                new String[]{getAssetID(), getColor(), getOwner()},
-                new String[]{other.getAssetID(), other.getColor(), other.getOwner()})
-                &&
-                Objects.deepEquals(
-                        new int[]{getSize(), getAppraisedValue()},
-                        new int[]{other.getSize(), other.getAppraisedValue()});
+        return Objects.deepEquals(new String[] { getAssetID(), getColor(), getOwner() },
+                new String[] { other.getAssetID(), other.getColor(), other.getOwner() })
+                && Objects.deepEquals(new int[] { getSize(), getAppraisedValue() },
+                        new int[] { other.getSize(), other.getAppraisedValue() });
     }
 
     @Override
@@ -150,9 +145,9 @@ public final class Asset {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + "@" + Integer.toHexString(hashCode())
-                + " [assetID=" + assetID + ", appraisedValue=" + appraisedValue + ", color="
-                + color + ", size=" + size + ", owner=" + owner + "]";
+        return this.getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + " [assetID=" + assetID
+                + ", appraisedValue=" + appraisedValue + ", color=" + color + ", size=" + size + ", owner=" + owner
+                + "]";
     }
 
 }

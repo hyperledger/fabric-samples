@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
-
+//CHECKSTYLE:OFF: checkstyle:magicnumber
 package org.hyperledger.fabric.samples.assettransfer;
 
 import java.util.ArrayList;
@@ -53,8 +53,6 @@ public final class AssetTransfer implements ContractInterface {
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public void InitLedger(final Context ctx) {
-        ChaincodeStub stub = ctx.getStub();
-
         CreateAsset(ctx, "asset1", "blue", 5, "Tomoko", 300);
         CreateAsset(ctx, "asset2", "red", 5, "Brad", 400);
         CreateAsset(ctx, "asset3", "green", 10, "Jin Soo", 500);
