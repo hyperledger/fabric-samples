@@ -10,6 +10,7 @@
     "author": "Hyperledger",
     "license": "Apache-2.0",
     "scripts": {
+        "run": "node app.js",
         "lint": "eslint *.js"
     },
     "dependencies": {

@@ -62,10 +62,10 @@
 // curl -i -X POST -H "Content-Type: application/json" -d "{\"index\":{\"fields\":[{\"size\":\"desc\"},{\"docType\":\"desc\"},{\"owner\":\"desc\"}]},\"ddoc\":\"indexSizeSortDoc\", \"name\":\"indexSizeSortDesc\",\"type\":\"json\"}" http://hostname:port/myc1_assets/_index
 
 // Rich Query with index design doc and index name specified (Only supported if CouchDB is used as state database):
-//   peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["QueryAssets","{\"selector\":{\"docType\":\"asset\",\"owner\":\"Tom\"}, \"use_index\":[\"_design/indexOwnerDoc\", \"indexOwner\"]}"]}'
+//   peer chaincode query -C CHANNEL_NAME -n ledger -c '{"Args":["QueryAssets","{\"selector\":{\"docType\":\"asset\",\"owner\":\"Tom\"}, \"use_index\":[\"_design/indexOwnerDoc\", \"indexOwner\"]}"]}'
 
 // Rich Query with index design doc specified only (Only supported if CouchDB is used as state database):
-//   peer chaincode query -C CHANNEL_NAME -n asset_transfer -c '{"Args":["QueryAssets","{\"selector\":{\"docType\":{\"$eq\":\"asset\"},\"owner\":{\"$eq\":\"Tom\"},\"size\":{\"$gt\":0}},\"fields\":[\"docType\",\"owner\",\"size\"],\"sort\":[{\"size\":\"desc\"}],\"use_index\":\"_design/indexSizeSortDoc\"}"]}'
+//   peer chaincode query -C CHANNEL_NAME -n ledger -c '{"Args":["QueryAssets","{\"selector\":{\"docType\":{\"$eq\":\"asset\"},\"owner\":{\"$eq\":\"Tom\"},\"size\":{\"$gt\":0}},\"fields\":[\"docType\",\"owner\",\"size\"],\"sort\":[{\"size\":\"desc\"}],\"use_index\":\"_design/indexSizeSortDoc\"}"]}'
 
 'use strict';
 
@@ -262,12 +262,15 @@ class Chaincode extends Contract {
 	async GetAssetsByRangeWithPagination(ctx, startKey, endKey, pageSize, bookmark) {
 
 		const {iterator, metadata} = await ctx.stub.getStateByRangeWithPagination(startKey, endKey, pageSize, bookmark);
-		const results = await this._GetAllResults(iterator, false);
+		let results = {};
+
+		results.results = await this._GetAllResults(iterator, false);
 
 		results.ResponseMetadata = {
-			RecordsCount: metadata.fetched_records_count,
+			RecordsCount: metadata.fetchedRecordsCount,
 			Bookmark: metadata.bookmark,
 		};
+
 		return JSON.stringify(results);
 	}
 
@@ -282,10 +285,12 @@ class Chaincode extends Contract {
 	async QueryAssetsWithPagination(ctx, queryString, pageSize, bookmark) {
 
 		const {iterator, metadata} = await ctx.stub.getQueryResultWithPagination(queryString, pageSize, bookmark);
-		const results = await this._GetAllResults(iterator, false);
+		let results = {};
+
+		results.results = await this._GetAllResults(iterator, false);
 
 		results.ResponseMetadata = {
-			RecordsCount: metadata.fetched_records_count,
+			RecordsCount: metadata.fetchedRecordsCount,
 			Bookmark: metadata.bookmark,
 		};
 
