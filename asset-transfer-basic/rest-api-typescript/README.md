@@ -6,7 +6,7 @@ The primary aim of this sample is to show how to write a long running client app
 
 The REST API is intended to work with the [basic asset transfer example](https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic)
 
-To install the basic asset transfer chaincode on a local Fabric network, follow the [Using the Fabric test network](https://hyperledger-fabric.readthedocs.io/en/release-2.2/test_network.html) tutorial
+To install the basic asset transfer chaincode on a local Fabric network, follow the [Using the Fabric test network](https://hyperledger-fabric.readthedocs.io/en/release-2.4/test_network.html) tutorial
 
 ## Overview
 
@@ -25,7 +25,7 @@ Alternatively you might prefer to modify the sample to only retry transactions w
 
 ## Usage
 
-**Note:** these instructions should work with the release-2.2 branch of `fabric-samples` but later versions require some changes
+**Note:** these instructions should work with the main branch of `fabric-samples`
 
 To build and start the sample REST server, you'll need to [download and install an LTS version of node](https://nodejs.org/en/download/)
 
