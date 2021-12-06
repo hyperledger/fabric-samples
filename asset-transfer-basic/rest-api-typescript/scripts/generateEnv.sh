@@ -17,13 +17,13 @@ ${AS_LOCAL_HOST:=true}
 
 
 cat << ENV_END > .env
+# Generated .env file
+# See src/config.ts for details of all the available configuration variables
+#
+
 LOG_LEVEL=info
 
 PORT=3000
-
-RETRY_DELAY=3000
-
-MAX_RETRY_COUNT=5
 
 HLF_CERTIFICATE_ORG1="$(cat ${CERTIFICATE_FILE_ORG1} | sed -e 's/$/\\n/' | tr -d '\r\n')"
 
@@ -32,12 +32,6 @@ HLF_PRIVATE_KEY_ORG1="$(cat ${PRIVATE_KEY_FILE_ORG1} | sed -e 's/$/\\n/' | tr -d
 HLF_CERTIFICATE_ORG2="$(cat ${CERTIFICATE_FILE_ORG2} | sed -e 's/$/\\n/' | tr -d '\r\n')"
 
 HLF_PRIVATE_KEY_ORG2="$(cat ${PRIVATE_KEY_FILE_ORG2} | sed -e 's/$/\\n/' | tr -d '\r\n')"
-
-HLF_COMMIT_TIMEOUT=3000
-
-HLF_ENDORSE_TIMEOUT=30
-
-HLF_QUERY_TIMEOUT=3
 
 REDIS_PORT=6379
 

@@ -1,5 +1,16 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * The sample REST server can be configured using the environment variables
+ * documented below
+ * 
+ * In a local development environment, these variables can be loaded from a
+ * .env file by starting the server with the following command:
+ * 
+ *   npm start:dev
+ * 
+ * The scripts/generateEnv.sh script can be used to generate a suitable .env
+ * file for the Fabric Test Network
  */
 
 import * as env from 'env-var';
@@ -142,8 +153,8 @@ export const chaincodeName = env
  */
 export const commitTimeout = env
   .get('HLF_COMMIT_TIMEOUT')
-  .default('3000')
-  .example('3000')
+  .default('300')
+  .example('300')
   .asIntPositive();
 
 /*
@@ -176,7 +187,7 @@ export const connectionProfileOrg1 = env
   .asJsonObject() as Record<string, unknown>;
 
 /*
- * Certificate for the Org1 identity
+ * Certificate for an Org1 identity to evaluate and submit transactions
  */
 export const certificateOrg1 = env
   .get('HLF_CERTIFICATE_ORG1')
@@ -185,7 +196,7 @@ export const certificateOrg1 = env
   .asString();
 
 /*
- * Private key for the Org1 identity
+ * Private key for an Org1 identity to evaluate and submit transactions
  */
 export const privateKeyOrg1 = env
   .get('HLF_PRIVATE_KEY_ORG1')
@@ -205,7 +216,7 @@ export const connectionProfileOrg2 = env
   .asJsonObject() as Record<string, unknown>;
 
 /*
- * Certificate for the Org2 identity
+ * Certificate for an Org2 identity to evaluate and submit transactions
  */
 export const certificateOrg2 = env
   .get('HLF_CERTIFICATE_ORG2')
@@ -214,7 +225,7 @@ export const certificateOrg2 = env
   .asString();
 
 /*
- * Private key for the Org2 identity
+ * Private key for an Org2 identity to evaluate and submit transactions
  */
 export const privateKeyOrg2 = env
   .get('HLF_PRIVATE_KEY_ORG2')

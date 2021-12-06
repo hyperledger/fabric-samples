@@ -1,5 +1,14 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * This is the main entrypoint for the sample REST server, which is responsible
+ * for connecting to the Fabric network and setting up a job queue for
+ * processing submit transactions
+ * 
+ * You can find details of other aspects of the sample in the following files:
+ * 
+ *   - config.ts
+ *     descriptions of all the available configuration environment variables
  */
 
 import { Contract } from 'fabric-network';

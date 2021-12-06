@@ -23,6 +23,8 @@ Alternatively you might prefer to modify the sample to only retry transactions w
 - CHAINCODE_VERSION_CONFLICT
 - EXPIRED_CHAINCODE
 
+See [src/index.ts](src/index.ts) for a description of the sample code structure, and [src/config.ts](src/config.ts) for details of configuring the sample using environment variables. 
+
 ## Usage
 
 **Note:** these instructions should work with the main branch of `fabric-samples`
