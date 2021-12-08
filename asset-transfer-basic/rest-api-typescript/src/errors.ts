@@ -1,9 +1,18 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * This file contains all the error handling for Fabric transactions, including
+ * whether a transaction should be retried.
  */
 
+import { TimeoutError, TransactionError } from 'fabric-network';
 import { logger } from './logger';
 
+/*
+ * Base type for errors from the smart contract.
+ *
+ * These errors will not be retried.
+ */
 export class ContractError extends Error {
   transactionId: string;
 
@@ -16,18 +25,23 @@ export class ContractError extends Error {
   }
 }
 
+/*
+ * Represents the error which occurs when the transaction being submitted or
+ * evaluated is not implemented in a smart contract.
+ */
 export class TransactionNotFoundError extends ContractError {
-  transactionId: string;
-
   constructor(message: string, transactionId: string) {
     super(message, transactionId);
     Object.setPrototypeOf(this, TransactionNotFoundError.prototype);
 
     this.name = 'TransactionNotFoundError';
-    this.transactionId = transactionId;
   }
 }
 
+/*
+ * Represents the error which occurs in the basic asset transfer smart contract
+ * implementation when an asset already exists.
+ */
 export class AssetExistsError extends ContractError {
   constructor(message: string, transactionId: string) {
     super(message, transactionId);
@@ -37,6 +51,10 @@ export class AssetExistsError extends ContractError {
   }
 }
 
+/*
+ * Represents the error which occurs in the basic asset transfer smart contract
+ * implementation when an asset does not exist.
+ */
 export class AssetNotFoundError extends ContractError {
   constructor(message: string, transactionId: string) {
     super(message, transactionId);
@@ -46,18 +64,53 @@ export class AssetNotFoundError extends ContractError {
   }
 }
 
-export class JobNotFoundError extends Error {
-  jobId: string;
-
-  constructor(message: string, jobId: string) {
-    super(message);
-    Object.setPrototypeOf(this, JobNotFoundError.prototype);
-
-    this.name = 'JobNotFoundError';
-    this.jobId = jobId;
-  }
+/*
+ * Enumeration of possible retry actions.
+ *
+ * WithExistingTransactionId - transactions should be retried using the same
+ * transaction ID to protect against duplicate transactions being committed if
+ * a timeout error occurs
+ *
+ * WithNewTransactionId - transactions which could not be committed due to
+ * other errors require a new transaction ID when retrying
+ *
+ * None - transactions that failed due to a duplicate transaction error, or
+ * errors from the smart contract, should not be retried
+ */
+export enum RetryAction {
+  WithExistingTransactionId,
+  WithNewTransactionId,
+  None,
 }
 
+/*
+ * Get the required transaction retry action for an error.
+ *
+ * For this sample transactions are considered retriable if they fail with any
+ * error, *except* for duplicate transaction errors, or errors from the smart
+ * contract.
+ *
+ * You might decide to retry transactions which fail with specific errors
+ * instead, for example:
+ *   MVCC_READ_CONFLICT
+ *   PHANTOM_READ_CONFLICT
+ *   ENDORSEMENT_POLICY_FAILURE
+ *   CHAINCODE_VERSION_CONFLICT
+ *   EXPIRED_CHAINCODE
+ */
+export const getRetryAction = (err: unknown): RetryAction => {
+  if (isDuplicateTransactionError(err) || err instanceof ContractError) {
+    return RetryAction.None;
+  } else if (err instanceof TimeoutError) {
+    return RetryAction.WithExistingTransactionId;
+  }
+
+  return RetryAction.WithNewTransactionId;
+};
+
+/*
+ * Type guard to make catching unknown errors easier
+ */
 export const isErrorLike = (err: unknown): err is Error => {
   return (
     err != undefined &&
@@ -72,23 +125,32 @@ export const isErrorLike = (err: unknown): err is Error => {
 /*
  * Checks whether an error was caused by a duplicate transaction.
  *
- * Checking error strings like this is not ideal, unfortunately it appears to
- * be the only option. In this case it would be better to check for the
- * DUPLICATE_TXID TxValidationCode somehow but that does not seem to be
- * possible.
+ * This is ...painful.
  */
 export const isDuplicateTransactionError = (err: unknown): boolean => {
+  logger.debug({ err }, 'Checking for duplicate transaction error');
+
   if (err === undefined || err === null) return false;
 
-  const endorsementError = err as {
-    errors: { endorsements: { details: string }[] }[];
-  };
+  let isDuplicate;
+  if (typeof (err as TransactionError).transactionCode === 'string') {
+    // Checking whether a commit failure is caused by a duplicate transaction
+    // is straightforward because the transaction code should be available
+    isDuplicate =
+      (err as TransactionError).transactionCode === 'DUPLICATE_TXID';
+  } else {
+    // Checking whether an endorsement failure is caused by a duplicate
+    // transaction is only possible by processing error strings, which is not ideal.
+    const endorsementError = err as {
+      errors: { endorsements: { details: string }[] }[];
+    };
 
-  const isDuplicate = endorsementError?.errors?.some((err) =>
-    err?.endorsements?.some((endorsement) =>
-      endorsement?.details?.startsWith('duplicate transaction found')
-    )
-  );
+    isDuplicate = endorsementError?.errors?.some((err) =>
+      err?.endorsements?.some((endorsement) =>
+        endorsement?.details?.startsWith('duplicate transaction found')
+      )
+    );
+  }
 
   return isDuplicate === true;
 };
@@ -167,27 +229,18 @@ const matchTransactionDoesNotExistMessage = (
   return null;
 };
 
-export const isContractError = (err: unknown): boolean => {
-  if (
-    err instanceof AssetExistsError ||
-    err instanceof AssetNotFoundError ||
-    err instanceof TransactionNotFoundError
-  ) {
-    return true;
-  }
-
-  return false;
-};
-
 /*
  * Handles errors from evaluating and submitting transactions.
  *
- * As with duplicate transaction errors, checking error strings like this is
- * not ideal. Unfortunately the chaincode samples do not use error codes so
- * again it's the only option. The error message text is not even the same for
- * the Go, Java, and Javascript implementations of the chaincode!
+ * Smart contract errors from the the basic asset transfer samples do not use
+ * error codes so matching strings is the only option, which is not ideal.
+ * Note: the error message text is not the same for the Go, Java, and
+ * Javascript implementations of the chaincode!
  */
-export const handleError = (transactionId: string, err: unknown): Error => {
+export const handleError = (
+  transactionId: string,
+  err: unknown
+): Error | unknown => {
   logger.debug({ transactionId: transactionId, err }, 'Processing error');
 
   if (isErrorLike(err)) {
@@ -210,9 +263,7 @@ export const handleError = (transactionId: string, err: unknown): Error => {
         transactionId
       );
     }
-
-    return err;
   }
 
-  return new Error(`Unhandled error: ${err}`);
+  return err;
 };

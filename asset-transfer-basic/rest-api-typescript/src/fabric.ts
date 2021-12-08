@@ -10,20 +10,13 @@ import {
   GatewayOptions,
   Wallets,
   Network,
-  TimeoutError,
   Transaction,
   Wallet,
 } from 'fabric-network';
 import * as config from './config';
 import { logger } from './logger';
-import {
-  handleError,
-  isContractError,
-  isDuplicateTransactionError,
-} from './errors';
+import { handleError } from './errors';
 import * as protos from 'fabric-protos';
-import { Job } from 'bullmq';
-import { JobData, JobResult, updateJobData } from './jobs';
 
 /*
  * Creates an in memory wallet to hold credentials for an Org1 and Org2 user
@@ -118,122 +111,6 @@ export const getContracts = async (
   const assetContract = network.getContract(config.chaincodeName);
   const qsccContract = network.getContract('qscc');
   return { assetContract, qsccContract };
-};
-
-/*
- * Process a submit transaction request from the job queue
- *
- * For this sample transactions are retried if they fail with any error,
- * except for errors from the smart contract, or duplicate transaction
- * errors
- *
- * You might decide to retry transactions which fail with specific errors
- * instead, for example:
- *   MVCC_READ_CONFLICT
- *   PHANTOM_READ_CONFLICT
- *   ENDORSEMENT_POLICY_FAILURE
- *   CHAINCODE_VERSION_CONFLICT
- *   EXPIRED_CHAINCODE
- */
-export const processSubmitTransactionJob = async (
-  contracts: Map<string, Contract>,
-  job: Job<JobData, JobResult>
-): Promise<JobResult> => {
-  logger.debug({ jobId: job.id, jobName: job.name }, 'Processing job');
-
-  const contract = contracts.get(job.data.mspid);
-  if (contract === undefined) {
-    logger.error(
-      { jobId: job.id, jobName: job.name },
-      'Contract not found for MSP ID %s',
-      job.data.mspid
-    );
-
-    // Retrying will not work, so give up with an unsuccessful result
-    return {
-      transactionError: undefined,
-      transactionPayload: undefined,
-    };
-  }
-
-  let transaction: Transaction;
-  if (job.data.transactionState) {
-    const savedState = job.data.transactionState;
-    logger.debug(
-      {
-        jobId: job.id,
-        jobName: job.name,
-        savedState,
-      },
-      'Using previously saved transaction state'
-    );
-
-    transaction = contract.deserializeTransaction(savedState);
-  } else {
-    logger.debug(
-      {
-        jobId: job.id,
-        jobName: job.name,
-      },
-      'Using new transaction'
-    );
-
-    transaction = contract.createTransaction(job.data.transactionName);
-    await updateJobData(job, transaction);
-  }
-
-  try {
-    logger.debug(
-      {
-        jobId: job.id,
-        jobName: job.name,
-        transactionId: transaction.getTransactionId(),
-      },
-      'Submitting transaction'
-    );
-    const args = job.data.transactionArgs;
-    const payload = await submitTransaction(transaction, ...args);
-
-    return {
-      transactionError: undefined,
-      transactionPayload: payload,
-    };
-  } catch (err) {
-    if (
-      err instanceof Error &&
-      (isContractError(err) || isDuplicateTransactionError(err))
-    ) {
-      logger.error(
-        { jobId: job.id, jobName: job.name, err },
-        'Fatal transaction error occurred'
-      );
-
-      // Return a job result to stop retrying
-      return {
-        transactionError: err.toString(),
-        transactionPayload: undefined,
-      };
-    } else {
-      logger.warn(
-        { jobId: job.id, jobName: job.name, err },
-        'Retryable transaction error occurred'
-      );
-
-      // The original transaction may eventually get committed in the case of
-      // a timeout error, so keep the same transaction ID to protect against
-      // unintended duplicate transactions
-      if (!(err instanceof TimeoutError)) {
-        logger.debug(
-          { jobId: job.id, jobName: job.name },
-          'Clearing saved transaction state'
-        );
-        await updateJobData(job, undefined);
-      }
-
-      // Rethrow the error to keep retrying
-      throw err;
-    }
-  }
 };
 
 /*

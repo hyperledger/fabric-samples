@@ -289,9 +289,9 @@ describe('Config values', () => {
   });
 
   describe('commitTimeout', () => {
-    it('defaults to "3000"', () => {
+    it('defaults to "300"', () => {
       const config = require('./config');
-      expect(config.commitTimeout).toBe(3000);
+      expect(config.commitTimeout).toBe(300);
     });
 
     it('can be configured using the "HLF_COMMIT_TIMEOUT" environment variable', () => {
@@ -305,7 +305,7 @@ describe('Config values', () => {
       expect(() => {
         require('./config');
       }).toThrow(
-        'env-var: "HLF_COMMIT_TIMEOUT" should be a valid integer. An example of a valid value would be: 3000'
+        'env-var: "HLF_COMMIT_TIMEOUT" should be a valid integer. An example of a valid value would be: 300'
       );
     });
   });

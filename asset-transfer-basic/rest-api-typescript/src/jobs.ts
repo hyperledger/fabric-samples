@@ -3,17 +3,13 @@
  *
  * This sample uses BullMQ jobs to process submit transactions, which includes
  * retry support for failing jobs
- *
- * Important: BullMQ requires the following setting in redis
- *   maxmemory-policy=noeviction
- * For details, see: https://docs.bullmq.io/guide/connections
  */
 
 import { ConnectionOptions, Job, Queue, QueueScheduler, Worker } from 'bullmq';
 import { Contract, Transaction } from 'fabric-network';
 import * as config from './config';
-import { JobNotFoundError } from './errors';
-import { processSubmitTransactionJob } from './fabric';
+import { getRetryAction, RetryAction } from './errors';
+import { submitTransaction } from './fabric';
 import { logger } from './logger';
 
 export type JobData = {
@@ -36,6 +32,18 @@ export type JobSummary = {
   transactionPayload?: string;
   transactionError?: string;
 };
+
+export class JobNotFoundError extends Error {
+  jobId: string;
+
+  constructor(message: string, jobId: string) {
+    super(message);
+    Object.setPrototypeOf(this, JobNotFoundError.prototype);
+
+    this.name = 'JobNotFoundError';
+    this.jobId = jobId;
+  }
+}
 
 const connection: ConnectionOptions = {
   port: config.redisPort,
@@ -213,4 +221,109 @@ export const getJobCounts = async (
   logger.debug({ jobCounts }, 'Current job counts');
 
   return jobCounts;
+};
+
+/*
+ * Process a submit transaction request from the job queue
+ *
+ * The job will be retried if this function throws an error
+ */
+export const processSubmitTransactionJob = async (
+  contracts: Map<string, Contract>,
+  job: Job<JobData, JobResult>
+): Promise<JobResult> => {
+  logger.debug({ jobId: job.id, jobName: job.name }, 'Processing job');
+
+  const contract = contracts.get(job.data.mspid);
+  if (contract === undefined) {
+    logger.error(
+      { jobId: job.id, jobName: job.name },
+      'Contract not found for MSP ID %s',
+      job.data.mspid
+    );
+
+    // Retrying will never work without a contract, so give up with an
+    // empty job result
+    return {
+      transactionError: undefined,
+      transactionPayload: undefined,
+    };
+  }
+
+  const args = job.data.transactionArgs;
+  let transaction: Transaction;
+
+  if (job.data.transactionState) {
+    const savedState = job.data.transactionState;
+    logger.debug(
+      {
+        jobId: job.id,
+        jobName: job.name,
+        savedState,
+      },
+      'Reusing previously saved transaction state'
+    );
+
+    transaction = contract.deserializeTransaction(savedState);
+  } else {
+    logger.debug(
+      {
+        jobId: job.id,
+        jobName: job.name,
+      },
+      'Using new transaction'
+    );
+
+    transaction = contract.createTransaction(job.data.transactionName);
+    await updateJobData(job, transaction);
+  }
+
+  logger.debug(
+    {
+      jobId: job.id,
+      jobName: job.name,
+      transactionId: transaction.getTransactionId(),
+    },
+    'Submitting transaction'
+  );
+
+  try {
+    const payload = await submitTransaction(transaction, ...args);
+
+    return {
+      transactionError: undefined,
+      transactionPayload: payload,
+    };
+  } catch (err) {
+    const retryAction = getRetryAction(err);
+
+    if (retryAction === RetryAction.None) {
+      logger.error(
+        { jobId: job.id, jobName: job.name, err },
+        'Fatal transaction error occurred'
+      );
+
+      // Not retriable so return a job result with the error details
+      return {
+        transactionError: `${err}`,
+        transactionPayload: undefined,
+      };
+    }
+
+    logger.warn(
+      { jobId: job.id, jobName: job.name, err },
+      'Retryable transaction error occurred'
+    );
+
+    if (retryAction === RetryAction.WithNewTransactionId) {
+      logger.debug(
+        { jobId: job.id, jobName: job.name },
+        'Clearing saved transaction state'
+      );
+      await updateJobData(job, undefined);
+    }
+
+    // Rethrow the error to keep retrying
+    throw err;
+  }
 };

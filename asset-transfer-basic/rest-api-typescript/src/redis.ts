@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  *
- * TBC
+ * This sample uses the BullMQ queue system, which is built on top of Redis
  */
 
 import IORedis, { Redis, RedisOptions } from 'ioredis';

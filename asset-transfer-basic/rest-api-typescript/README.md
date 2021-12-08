@@ -51,7 +51,7 @@ Create a `.env` file to configure the server for the test network (make sure TES
 TEST_NETWORK_HOME=$HOME/fabric-samples/test-network npm run generateEnv
 ```
 
-Start a Redis server
+Start a Redis server (Redis is used to store the queue of submit transactions)
 
 ```shell
 npm run start:redis

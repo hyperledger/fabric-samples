@@ -4,11 +4,32 @@
  * This is the main entrypoint for the sample REST server, which is responsible
  * for connecting to the Fabric network and setting up a job queue for
  * processing submit transactions
+ *
+ * You can find more details related to the Fabric aspects of the sample in the
+ * following files:
+ *
+ *   - errors.ts
+ *     Fabric transaction error handling and retry logic
+ *   - fabric.ts
+ *     all the sample code which interacts with the Fabric SDK
  * 
- * You can find details of other aspects of the sample in the following files:
+ * The remaining files are related to the REST server aspects of the sample,
+ * rather than Fabric itself:
  * 
+ *   - *.router.ts
+ *     details of the REST endpoints provided by the sample
+ *   - auth.ts
+ *     basic API key authentication strategy used for the sample
  *   - config.ts
  *     descriptions of all the available configuration environment variables
+ *   - jobs.ts
+ *     job queue implementation details
+ *   - logger.ts
+ *     logging implementation details
+ *   - redis.ts
+ *     redis implementation details
+ *   - server.ts
+ *     express server implementation details
  */
 
 import { Contract } from 'fabric-network';
