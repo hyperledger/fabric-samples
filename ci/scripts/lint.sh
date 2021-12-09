@@ -8,13 +8,14 @@ function print() {
 	echo -e "${GREEN}${1}${NC}"
 }
 
+go install golang.org/x/tools/cmd/goimports@latest
+
 dirs=("$(find . -name "*-go" -o -name "*-java" -o -name "*-javascript" -o -name "*-typescript")")
 for dir in $dirs; do
   if [[ -d $dir ]] && [[ ! $dir =~ node_modules  ]]; then
     print "Linting $dir"
     pushd $dir
     if [[ "$dir" =~ "-go" ]]; then
-      go get golang.org/x/tools/cmd/goimports
       print "Running go vet"
       go vet ./...
       print "Running gofmt"
