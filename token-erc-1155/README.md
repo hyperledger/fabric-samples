@@ -263,3 +263,7 @@ When you are finished, you can bring down the test network. This command will br
 ```bash
 ./network.sh down
 ```
+
+## Acknowledgement
+
+This work has been carried out at Boğaziçi University and has received funding from the European Union’s Horizon 2020 Research and Innovation programme under Grant Agreement No. 856632.
