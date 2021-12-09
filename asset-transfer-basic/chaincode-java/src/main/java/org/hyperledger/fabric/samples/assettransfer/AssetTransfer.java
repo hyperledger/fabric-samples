@@ -185,10 +185,10 @@ public final class AssetTransfer implements ContractInterface {
      * @param ctx the transaction context
      * @param assetID the ID of the asset being transferred
      * @param newOwner the new owner
-     * @return the updated asset
+     * @return the old owner
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public Asset TransferAsset(final Context ctx, final String assetID, final String newOwner) {
+    public String TransferAsset(final Context ctx, final String assetID, final String newOwner) {
         ChaincodeStub stub = ctx.getStub();
         String assetJSON = stub.getStringState(assetID);
 
@@ -205,7 +205,7 @@ public final class AssetTransfer implements ContractInterface {
         String sortedJson = genson.serialize(newAsset);
         stub.putStringState(assetID, sortedJson);
 
-        return newAsset;
+        return asset.getOwner();
     }
 
     /**

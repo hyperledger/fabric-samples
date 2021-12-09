@@ -31,6 +31,7 @@ const tlsCertPath = path.resolve(cryptoPath, 'peers', 'peer0.org1.example.com', 
 const peerEndpoint = 'localhost:7051';
 
 const utf8Decoder = new TextDecoder();
+const assetId = `asset${Date.now()}`;
 
 async function main(): Promise<void> {
     // The gRPC client connection should be shared by all Gateway connections to this endpoint.
@@ -59,7 +60,7 @@ async function main(): Promise<void> {
         await createAsset(contract);
 
         // Update an existing asset asynchronously.
-        await updateAssetAsync(contract);
+        await transferAssetAsync(contract);
 
         // Get the asset details by assetID.
         await readAssetByID(contract);
@@ -124,9 +125,8 @@ async function getAllAssets(contract: Contract): Promise<void> {
  * Submit a transaction synchronously, blocking until it has been committed to the ledger.
  */
 async function createAsset(contract: Contract): Promise<void> {
-    console.log('\n--> Submit Transaction: CreateAsset, creates new asset with ID, color, owner, size, and appraisedValue arguments');
+    console.log('\n--> Submit Transaction: CreateAsset, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments');
 
-    const assetId = `asset${Date.now()}`;
     await contract.submitTransaction(
         'CreateAsset',
         assetId,
@@ -143,14 +143,15 @@ async function createAsset(contract: Contract): Promise<void> {
  * Submit transaction asynchronously, allowing the application to process the smart contract response (e.g. update a UI)
  * while waiting for the commit notification.
  */
-async function updateAssetAsync(contract: Contract): Promise<void> {
-    console.log('\n--> Async Submit Transaction: UpdateAsset, updates existing asset with ID, color, owner, size, and appraisedValue arguments');
+async function transferAssetAsync(contract: Contract): Promise<void> {
+    console.log('\n--> Async Submit Transaction: TransferAsset, updates existing asset owner');
 
-    const commit = await contract.submitAsync('UpdateAsset', {
-        arguments: ['asset1', 'blue', '5', 'Tomoko', '400'],
+    const commit = await contract.submitAsync('TransferAsset', {
+        arguments: [assetId, 'Saptha'],
     });
+    const oldOwner = utf8Decoder.decode(commit.getResult());
 
-    console.log('*** Transaction submitted successfully');
+    console.log(`*** Successfully submitted transaction to transfer ownership from ${oldOwner} to Saptha`);
     console.log('*** Waiting for transaction commit');
 
     const status = await commit.getStatus();
@@ -162,9 +163,9 @@ async function updateAssetAsync(contract: Contract): Promise<void> {
 }
 
 async function readAssetByID(contract: Contract): Promise<void> {
-    console.log('\n--> Evaluate Transaction: ReadAsset, function returns "asset1" attributes');
+    console.log('\n--> Evaluate Transaction: ReadAsset, function returns asset attributes');
 
-    const resultBytes = await contract.evaluateTransaction('ReadAsset', 'asset1');
+    const resultBytes = await contract.evaluateTransaction('ReadAsset', assetId);
 
     const resultJson = utf8Decoder.decode(resultBytes);
     const result = JSON.parse(resultJson);

@@ -143,11 +143,11 @@ func TestTransferAsset(t *testing.T) {
 
 	chaincodeStub.GetStateReturns(bytes, nil)
 	assetTransfer := chaincode.SmartContract{}
-	err = assetTransfer.TransferAsset(transactionContext, "", "")
+	_, err = assetTransfer.TransferAsset(transactionContext, "", "")
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = assetTransfer.TransferAsset(transactionContext, "", "")
+	_, err = assetTransfer.TransferAsset(transactionContext, "", "")
 	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
 }
 

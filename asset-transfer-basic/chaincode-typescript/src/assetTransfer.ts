@@ -135,14 +135,16 @@ export class AssetTransferContract extends Contract {
         return assetJSON && assetJSON.length > 0;
     }
 
-    // TransferAsset updates the owner field of asset with given id in the world state.
+    // TransferAsset updates the owner field of asset with given id in the world state, and returns the old owner.
     @Transaction()
-    public async TransferAsset(ctx: Context, id: string, newOwner: string): Promise<void> {
+    public async TransferAsset(ctx: Context, id: string, newOwner: string): Promise<string> {
         const assetString = await this.ReadAsset(ctx, id);
         const asset = JSON.parse(assetString);
+        const oldOwner = asset.Owner;
         asset.Owner = newOwner;
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
         await ctx.stub.putState(id, Buffer.from(stringify(sortKeysRecursive(asset))));
+        return oldOwner;
     }
 
     // GetAllAssets returns all assets found in the world state.
