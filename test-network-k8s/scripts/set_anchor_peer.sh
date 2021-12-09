@@ -34,19 +34,19 @@ function create_config_update() {
   local modified=$2
   local output=$3
 
-  configtxlator proto_encode --input "${original}" --type common.Config > original_config.pb
-  configtxlator proto_encode --input "${modified}" --type common.Config > modified_config.pb
+  configtxlator proto_encode --input "${original}" --type common.Config --output original_config.pb
+  configtxlator proto_encode --input "${modified}" --type common.Config --output modified_config.pb
 
   # returns non-zero if no updates were detected between current and new config
-  configtxlator compute_update --channel_id "${CHANNEL_NAME}" --original original_config.pb --updated modified_config.pb > config_update.pb
+  configtxlator compute_update --channel_id "${CHANNEL_NAME}" --original original_config.pb --updated modified_config.pb --output config_update.pb
   if [ $? -ne 0 ]; then
     echo "Anchor peer has already been set to ${ANCHOR_PEER_HOST}:${ANCHOR_PEER_PORT} - no update required."
     return 1
   fi
 
-  configtxlator proto_decode --input config_update.pb --type common.ConfigUpdate > config_update.json
+  configtxlator proto_decode --input config_update.pb --type common.ConfigUpdate --output config_update.json
   echo '{"payload":{"header":{"channel_header":{"channel_id":"'${CHANNEL_NAME}'", "type":2}},"data":{"config_update":'$(cat config_update.json)'}}}' | jq . > config_update_in_envelope.json
-  configtxlator proto_encode --input config_update_in_envelope.json --type common.Envelope > ${output}
+  configtxlator proto_encode --input config_update_in_envelope.json --type common.Envelope --output ${output}
 
   return 0
 }
@@ -60,7 +60,7 @@ function create_anchor_peer_update() {
   jq '.channel_group.groups.Application.groups.'${CORE_PEER_LOCALMSPID}'.values += {"AnchorPeers":{"mod_policy": "Admins","value":{"anchor_peers": [{"host": "'${ANCHOR_PEER_HOST}'","port": '${ANCHOR_PEER_PORT}'}]},"version": "0"}}' config.json > modified_config.json
   { set +x; } 2>/dev/null
 
-  # Compute a config update, based on the differences between 
+  # Compute a config update, based on the differences between
   # config.json and modified_config.json, write
   # it as a transaction to anchors.tx
   create_config_update config.json modified_config.json anchors.tx
