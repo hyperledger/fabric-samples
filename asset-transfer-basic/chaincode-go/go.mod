@@ -8,5 +8,5 @@ require (
 	github.com/hyperledger/fabric-contract-api-go v1.1.0
 	github.com/hyperledger/fabric-protos-go v0.0.0-20200424173316-dd554ba3746e
 	github.com/stretchr/testify v1.5.1
-	golang.org/x/tools v0.1.7 // indirect
+	golang.org/x/tools v0.1.8 // indirect
 )
