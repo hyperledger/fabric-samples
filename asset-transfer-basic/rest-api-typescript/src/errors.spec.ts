@@ -204,7 +204,10 @@ describe('Errors', () => {
     });
 
     it('returns RetryAction.None for a TransactionNotFoundError', () => {
-      const mockTransactionNotFoundError = new TransactionNotFoundError('Failed to get transaction with id txn, error Entry not found in index', 'txn1');
+      const mockTransactionNotFoundError = new TransactionNotFoundError(
+        'Failed to get transaction with id txn, error Entry not found in index',
+        'txn1'
+      );
 
       expect(getRetryAction(mockTransactionNotFoundError)).toBe(
         RetryAction.None
@@ -212,19 +215,21 @@ describe('Errors', () => {
     });
 
     it('returns RetryAction.None for an AssetExistsError', () => {
-      const mockAssetExistsError = new AssetExistsError('The asset MOCK_ASSET already exists', 'txn1');
-
-      expect(getRetryAction(mockAssetExistsError)).toBe(
-        RetryAction.None
+      const mockAssetExistsError = new AssetExistsError(
+        'The asset MOCK_ASSET already exists',
+        'txn1'
       );
+
+      expect(getRetryAction(mockAssetExistsError)).toBe(RetryAction.None);
     });
 
     it('returns RetryAction.None for an AssetNotFoundError', () => {
-      const mockAssetNotFoundError = new AssetNotFoundError('the asset MOCK_ASSET does not exist', 'txn1');
-
-      expect(getRetryAction(mockAssetNotFoundError)).toBe(
-        RetryAction.None
+      const mockAssetNotFoundError = new AssetNotFoundError(
+        'the asset MOCK_ASSET does not exist',
+        'txn1'
       );
+
+      expect(getRetryAction(mockAssetNotFoundError)).toBe(RetryAction.None);
     });
 
     it('returns RetryAction.WithExistingTransactionId for a TimeoutError', () => {
@@ -247,17 +252,13 @@ describe('Errors', () => {
     it('returns RetryAction.WithNewTransactionId for an Error', () => {
       const mockError = new Error('MOCK ERROR');
 
-      expect(getRetryAction(mockError)).toBe(
-        RetryAction.WithNewTransactionId
-      );
+      expect(getRetryAction(mockError)).toBe(RetryAction.WithNewTransactionId);
     });
 
     it('returns RetryAction.WithNewTransactionId for a string error', () => {
       const mockError = 'MOCK ERROR';
 
-      expect(getRetryAction(mockError)).toBe(
-        RetryAction.WithNewTransactionId
-      );
+      expect(getRetryAction(mockError)).toBe(RetryAction.WithNewTransactionId);
     });
   });
 

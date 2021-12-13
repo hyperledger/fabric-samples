@@ -3,7 +3,12 @@
  */
 
 import { Job, Queue } from 'bullmq';
-import { getJobCounts, getJobSummary, processSubmitTransactionJob, JobNotFoundError } from './jobs';
+import {
+  getJobCounts,
+  getJobSummary,
+  processSubmitTransactionJob,
+  JobNotFoundError,
+} from './jobs';
 import { Contract, Transaction } from 'fabric-network';
 import { mock, MockProxy } from 'jest-mock-extended';
 

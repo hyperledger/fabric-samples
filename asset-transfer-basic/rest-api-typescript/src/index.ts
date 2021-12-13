@@ -12,10 +12,10 @@
  *     Fabric transaction error handling and retry logic
  *   - fabric.ts
  *     all the sample code which interacts with the Fabric SDK
- * 
+ *
  * The remaining files are related to the REST server aspects of the sample,
  * rather than Fabric itself:
- * 
+ *
  *   - *.router.ts
  *     details of the REST endpoints provided by the sample
  *   - auth.ts
