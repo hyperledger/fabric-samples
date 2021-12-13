@@ -20,5 +20,11 @@ You can then set up the environment variables for each organization. The `./setO
 export $(./setOrgEnv.sh Org2 | xargs)
 ```
 
+(Note bash v4 is required for the scripts)
+
 You will now be able to run the `peer` commands in the context of Org2. If a different command prompt you can run the same command with Org1 instead.
 The `setOrgEnv` script outputs a series of `<name>=<value>` strings. These can then be fed into the export command for your current shell
+
+## Chaincode-as-a-service
+
+To learn more about how to use the improvements to the Chaincode-as-a-service please see this [tutorial](./test-network/../CHAINCODE_AS_A_SERVICE_TUTORIAL.md). It is expected that this will move to augment the tutorial in the [Hyperledger Fabric ReadTheDocs](https://hyperledger-fabric.readthedocs.io/en/release-2.4/cc_service.html)
