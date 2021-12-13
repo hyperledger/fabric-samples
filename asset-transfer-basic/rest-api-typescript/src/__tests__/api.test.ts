@@ -48,7 +48,7 @@ describe('Asset Transfer Besic REST API', () => {
     mockJob.id = '1';
     mockJobQueue = mock<Queue>();
     mockJobQueue.add.mockResolvedValue(mockJob);
-    app.set('jobq', mockJobQueue);
+    app.locals.jobq = mockJobQueue;
   });
 
   describe('/ready', () => {
@@ -81,17 +81,17 @@ describe('Asset Transfer Besic REST API', () => {
       mockOrg1QsccContract.evaluateTransaction
         .calledWith('GetChainInfo')
         .mockResolvedValue(mockBlockchainInfoBuffer);
-      app.set(config.mspIdOrg1, {
+      app.locals[config.mspIdOrg1] = {
         qsccContract: mockOrg1QsccContract,
-      });
+      };
 
       const mockOrg2QsccContract = mock<Contract>();
       mockOrg2QsccContract.evaluateTransaction
         .calledWith('GetChainInfo')
         .mockResolvedValue(mockBlockchainInfoBuffer);
-      app.set(config.mspIdOrg2, {
+      app.locals[config.mspIdOrg2] = {
         qsccContract: mockOrg2QsccContract,
-      });
+      };
 
       const response = await request(app).get('/live');
       expect(response.statusCode).toEqual(200);
@@ -115,9 +115,9 @@ describe('Asset Transfer Besic REST API', () => {
       mockBasicContract.createTransaction
         .calledWith('GetAllAssets')
         .mockReturnValue(mockGetAllAssetsTransaction);
-      app.set(config.mspIdOrg1, {
+      app.locals[config.mspIdOrg1] = {
         assetContract: mockBasicContract,
-      });
+      };
     });
 
     it('GET should respond with 401 unauthorized json when an invalid API key is specified', async () => {
@@ -276,9 +276,9 @@ describe('Asset Transfer Besic REST API', () => {
         .calledWith('ReadAsset')
         .mockReturnValue(mockReadAssetTransaction);
 
-      app.set(config.mspIdOrg1, {
+      app.locals[config.mspIdOrg1] = {
         assetContract: mockBasicContract,
-      });
+      };
     });
 
     it('OPTIONS should respond with 401 unauthorized json when an invalid API key is specified', async () => {
@@ -663,9 +663,9 @@ describe('Asset Transfer Besic REST API', () => {
       mockQsccContract.createTransaction
         .calledWith('GetTransactionByID')
         .mockReturnValue(mockGetTransactionByIDTransaction);
-      app.set(config.mspIdOrg1, {
+      app.locals[config.mspIdOrg1] = {
         qsccContract: mockQsccContract,
-      });
+      };
     });
 
     it('GET should respond with 401 unauthorized json when an invalid API key is specified', async () => {

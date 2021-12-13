@@ -6,6 +6,7 @@
  */
 
 import { ConnectionOptions, Job, Queue, QueueScheduler, Worker } from 'bullmq';
+import { Application } from 'express';
 import { Contract, Transaction } from 'fabric-network';
 import * as config from './config';
 import { getRetryAction, RetryAction } from './errors';
@@ -69,13 +70,11 @@ export const initJobQueue = (): Queue => {
   return submitQueue;
 };
 
-export const initJobQueueWorker = (
-  contracts: Map<string, Contract>
-): Worker => {
+export const initJobQueueWorker = (app: Application): Worker => {
   const worker = new Worker<JobData, JobResult>(
     config.JOB_QUEUE_NAME,
     async (job): Promise<JobResult> => {
-      return await processSubmitTransactionJob(contracts, job);
+      return await processSubmitTransactionJob(app, job);
     },
     { connection, concurrency: config.submitJobConcurrency }
   );
@@ -229,12 +228,12 @@ export const getJobCounts = async (
  * The job will be retried if this function throws an error
  */
 export const processSubmitTransactionJob = async (
-  contracts: Map<string, Contract>,
+  app: Application,
   job: Job<JobData, JobResult>
 ): Promise<JobResult> => {
   logger.debug({ jobId: job.id, jobName: job.name }, 'Processing job');
 
-  const contract = contracts.get(job.data.mspid);
+  const contract = app.locals[job.data.mspid]?.assetContract as Contract;
   if (contract === undefined) {
     logger.error(
       { jobId: job.id, jobName: job.name },

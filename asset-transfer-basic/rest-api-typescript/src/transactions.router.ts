@@ -21,7 +21,7 @@ transactionsRouter.get(
     logger.debug('Read request received for transaction ID %s', transactionId);
 
     try {
-      const qsccContract = req.app.get(mspId).qsccContract as Contract;
+      const qsccContract = req.app.locals[mspId]?.qsccContract as Contract;
 
       const validationCode = await getTransactionValidationCode(
         qsccContract,

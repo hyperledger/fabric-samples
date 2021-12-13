@@ -38,7 +38,7 @@ assetsRouter.get('/', async (req: Request, res: Response) => {
 
   try {
     const mspId = req.user as string;
-    const contract = req.app.get(mspId).assetContract as Contract;
+    const contract = req.app.locals[mspId]?.assetContract as Contract;
 
     const data = await evatuateTransaction(contract, 'GetAllAssets');
     let assets = [];
@@ -82,7 +82,7 @@ assetsRouter.post(
     const assetId = req.body.id;
 
     try {
-      const submitQueue = req.app.get('jobq') as Queue;
+      const submitQueue = req.app.locals.jobq as Queue;
       const jobId = await addSubmitTransactionJob(
         submitQueue,
         mspId,
@@ -120,7 +120,7 @@ assetsRouter.options('/:assetId', async (req: Request, res: Response) => {
 
   try {
     const mspId = req.user as string;
-    const contract = req.app.get(mspId).assetContract as Contract;
+    const contract = req.app.locals[mspId]?.assetContract as Contract;
 
     const data = await evatuateTransaction(contract, 'AssetExists', assetId);
     const exists = data.toString() === 'true';
@@ -160,7 +160,7 @@ assetsRouter.get('/:assetId', async (req: Request, res: Response) => {
 
   try {
     const mspId = req.user as string;
-    const contract = req.app.get(mspId).assetContract as Contract;
+    const contract = req.app.locals[mspId]?.assetContract as Contract;
 
     const data = await evatuateTransaction(contract, 'ReadAsset', assetId);
     const asset = JSON.parse(data.toString());
@@ -222,7 +222,7 @@ assetsRouter.put(
     const assetId = req.params.assetId;
 
     try {
-      const submitQueue = req.app.get('jobq') as Queue;
+      const submitQueue = req.app.locals.jobq as Queue;
       const jobId = await addSubmitTransactionJob(
         submitQueue,
         mspId,
@@ -284,7 +284,7 @@ assetsRouter.patch(
     const newOwner = req.body[0].value;
 
     try {
-      const submitQueue = req.app.get('jobq') as Queue;
+      const submitQueue = req.app.locals.jobq as Queue;
       const jobId = await addSubmitTransactionJob(
         submitQueue,
         mspId,
@@ -320,7 +320,7 @@ assetsRouter.delete('/:assetId', async (req: Request, res: Response) => {
   const assetId = req.params.assetId;
 
   try {
-    const submitQueue = req.app.get('jobq') as Queue;
+    const submitQueue = req.app.locals.jobq as Queue;
     const jobId = await addSubmitTransactionJob(
       submitQueue,
       mspId,

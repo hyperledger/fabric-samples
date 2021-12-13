@@ -32,7 +32,6 @@
  *     express server implementation details
  */
 
-import { Contract } from 'fabric-network';
 import * as config from './config';
 import {
   createGateway,
@@ -62,7 +61,10 @@ async function main() {
     );
   }
 
-  logger.info('Connecting to Fabric network');
+  logger.info('Creating REST server');
+  const app = await createServer();
+
+  logger.info('Connecting to Fabric network with org1 mspid');
   const wallet = await createWallet();
 
   const gatewayOrg1 = await createGateway(
@@ -73,6 +75,9 @@ async function main() {
   const networkOrg1 = await getNetwork(gatewayOrg1);
   const contractsOrg1 = await getContracts(networkOrg1);
 
+  app.locals[config.mspIdOrg1] = contractsOrg1;
+
+  logger.info('Connecting to Fabric network with org2 mspid');
   const gatewayOrg2 = await createGateway(
     config.connectionProfileOrg2,
     config.mspIdOrg2,
@@ -81,24 +86,18 @@ async function main() {
   const networkOrg2 = await getNetwork(gatewayOrg2);
   const contractsOrg2 = await getContracts(networkOrg2);
 
-  const assetContracts = new Map<string, Contract>();
-  assetContracts.set(config.mspIdOrg1, contractsOrg1.assetContract);
-  assetContracts.set(config.mspIdOrg2, contractsOrg2.assetContract);
+  app.locals[config.mspIdOrg2] = contractsOrg2;
 
   logger.info('Initialising submit job queue');
   jobQueue = initJobQueue();
-  jobQueueWorker = initJobQueueWorker(assetContracts);
+  jobQueueWorker = initJobQueueWorker(app);
   if (config.submitJobQueueScheduler === true) {
     logger.info('Initialising submit job queue scheduler');
     jobQueueScheduler = initJobQueueScheduler();
   }
+  app.locals.jobq = jobQueue;
 
-  logger.info('Creating REST server');
-  const app = await createServer();
-  app.set(config.mspIdOrg1, contractsOrg1);
-  app.set(config.mspIdOrg2, contractsOrg2);
-  app.set('jobq', jobQueue);
-
+  logger.info('Starting REST server');
   app.listen(config.port, () => {
     logger.info('REST server started on port: %d', config.port);
   });

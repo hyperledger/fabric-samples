@@ -11,6 +11,7 @@ import {
 } from './jobs';
 import { Contract, Transaction } from 'fabric-network';
 import { mock, MockProxy } from 'jest-mock-extended';
+import { Application } from 'express';
 
 describe('initJobQueue', () => {
   it.todo('write tests');
@@ -164,6 +165,7 @@ describe('getJobCounts', () => {
     const mockSavedState = Buffer.from('MOCK SAVED STATE');
     let mockTransaction: MockProxy<Transaction>;
     let mockContract: MockProxy<Contract>;
+    let mockApplication: MockProxy<Application>;
     let mockJob: MockProxy<Job>;
 
     beforeEach(() => {
@@ -179,6 +181,9 @@ describe('getJobCounts', () => {
         .mockReturnValue(mockTransaction);
       mockContracts.set('mockMspid', mockContract);
 
+      mockApplication = mock<Application>();
+      mockApplication.locals.mockMspid = { assetContract: mockContract };
+
       mockJob = mock<Job>();
     });
 
@@ -188,7 +193,7 @@ describe('getJobCounts', () => {
       };
 
       const jobResult = await processSubmitTransactionJob(
-        mockContracts,
+        mockApplication,
         mockJob
       );
 
@@ -209,7 +214,7 @@ describe('getJobCounts', () => {
         .mockResolvedValue(mockPayload);
 
       const jobResult = await processSubmitTransactionJob(
-        mockContracts,
+        mockApplication,
         mockJob
       );
 
@@ -231,7 +236,7 @@ describe('getJobCounts', () => {
         .mockResolvedValue(mockPayload);
 
       const jobResult = await processSubmitTransactionJob(
-        mockContracts,
+        mockApplication,
         mockJob
       );
 
@@ -257,7 +262,7 @@ describe('getJobCounts', () => {
         );
 
       const jobResult = await processSubmitTransactionJob(
-        mockContracts,
+        mockApplication,
         mockJob
       );
 
@@ -280,7 +285,7 @@ describe('getJobCounts', () => {
         .mockRejectedValue(new Error('MOCK ERROR'));
 
       await expect(async () => {
-        await processSubmitTransactionJob(mockContracts, mockJob);
+        await processSubmitTransactionJob(mockApplication, mockJob);
       }).rejects.toThrow('MOCK ERROR');
     });
   });

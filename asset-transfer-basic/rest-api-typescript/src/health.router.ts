@@ -30,9 +30,9 @@ healthRouter.get('/live', async (req: Request, res: Response) => {
   logger.debug(req.body, 'Liveness request received');
 
   try {
-    const submitQueue = req.app.get('jobq') as Queue;
-    const qsccOrg1 = req.app.get(config.mspIdOrg1).qsccContract as Contract;
-    const qsccOrg2 = req.app.get(config.mspIdOrg2).qsccContract as Contract;
+    const submitQueue = req.app.locals.jobq as Queue;
+    const qsccOrg1 = req.app.locals[config.mspIdOrg1]?.qsccContract as Contract;
+    const qsccOrg2 = req.app.locals[config.mspIdOrg2]?.qsccContract as Contract;
 
     await Promise.all([
       getBlockHeight(qsccOrg1),

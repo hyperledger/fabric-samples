@@ -17,7 +17,7 @@ jobsRouter.get('/:jobId', async (req: Request, res: Response) => {
   logger.debug('Read request received for job ID %s', jobId);
 
   try {
-    const submitQueue = req.app.get('jobq') as Queue;
+    const submitQueue = req.app.locals.jobq as Queue;
 
     const jobSummary = await getJobSummary(submitQueue, jobId);
 
