@@ -27,11 +27,11 @@ See [src/index.ts](src/index.ts) for a description of the sample code structure,
 
 ## Usage
 
-**Note:** these instructions should work with the main branch of `fabric-samples`
-
 To build and start the sample REST server, you'll need to [download and install an LTS version of node](https://nodejs.org/en/download/)
 
-Clone this repository and change to the `fabric-rest-sample/asset-transfer-basic/rest-api-typescript` directory before running the following commands
+Clone the `fabric-samples` repository and change to the `fabric-samples/asset-transfer-basic/rest-api-typescript` directory before running the following commands
+
+**Note:** these instructions should work with the main branch of `fabric-samples`
 
 Install dependencies
 
