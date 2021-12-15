@@ -53,7 +53,7 @@ const connection: ConnectionOptions = {
 };
 
 /*
- * Set up the queue for submit jobs 
+ * Set up the queue for submit jobs
  */
 export const initJobQueue = (): Queue => {
   const submitQueue = new Queue(config.JOB_QUEUE_NAME, {
@@ -276,7 +276,7 @@ export const updateJobData = async (
 
 /*
  * Gets a job summary
- * 
+ *
  * This function is used for the jobs REST endpoint
  */
 export const getJobSummary = async (

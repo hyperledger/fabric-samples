@@ -4,29 +4,54 @@
 
 import { Job, Queue } from 'bullmq';
 import {
+  addSubmitTransactionJob,
   getJobCounts,
   getJobSummary,
   processSubmitTransactionJob,
   JobNotFoundError,
+  updateJobData,
 } from './jobs';
 import { Contract, Transaction } from 'fabric-network';
 import { mock, MockProxy } from 'jest-mock-extended';
 import { Application } from 'express';
 
-describe('initJobQueue', () => {
-  it.todo('write tests');
-});
-
-describe('initJobQueueWorker', () => {
-  it.todo('write tests');
-});
-
-describe('initJobQueueScheduler', () => {
-  it.todo('write tests');
-});
-
 describe('addSubmitTransactionJob', () => {
-  it.todo('write tests');
+  let mockJob: MockProxy<Job>;
+  let mockQueue: MockProxy<Queue>;
+
+  beforeEach(() => {
+    mockJob = mock<Job>();
+    mockQueue = mock<Queue>();
+    mockQueue.add.mockResolvedValue(mockJob);
+  });
+
+  it('returns the new job ID', async () => {
+    mockJob.id = 'mockJobId';
+
+    const jobid = await addSubmitTransactionJob(
+      mockQueue,
+      'mockMspId',
+      'txn',
+      'arg1',
+      'arg2'
+    );
+
+    expect(jobid).toBe('mockJobId');
+  });
+
+  it('throws an error if there is no job ID', async () => {
+    mockJob.id = undefined;
+
+    await expect(async () => {
+      await addSubmitTransactionJob(
+        mockQueue,
+        'mockMspId',
+        'txn',
+        'arg1',
+        'arg2'
+      );
+    }).rejects.toThrowError('Submit transaction job ID not available');
+  });
 });
 
 describe('getJobSummary', () => {
@@ -133,8 +158,40 @@ describe('getJobSummary', () => {
   });
 });
 
-describe('updateSubmitTransactionJobStateData', () => {
-  it.todo('write tests');
+describe('updateJobData', () => {
+  let mockJob: MockProxy<Job>;
+
+  beforeEach(() => {
+    mockJob = mock<Job>();
+    mockJob.data = {
+      transactionIds: ['txn1'],
+    };
+  });
+
+  it('stores the serialized state in the job data if a transaction is specified', async () => {
+    const mockSavedState = Buffer.from('MOCK SAVED STATE');
+    const mockTransaction = mock<Transaction>();
+    mockTransaction.getTransactionId.mockReturnValue('txn2');
+    mockTransaction.serialize.mockReturnValue(mockSavedState);
+
+    await updateJobData(mockJob, mockTransaction);
+
+    expect(mockJob.update).toBeCalledTimes(1);
+    expect(mockJob.update).toBeCalledWith({
+      transactionIds: ['txn1', 'txn2'],
+      transactionState: mockSavedState,
+    });
+  });
+
+  it('removes the serialized state from the job data if a transaction is not specified', async () => {
+    await updateJobData(mockJob, undefined);
+
+    expect(mockJob.update).toBeCalledTimes(1);
+    expect(mockJob.update).toBeCalledWith({
+      transactionIds: ['txn1'],
+      transactionState: undefined,
+    });
+  });
 });
 
 describe('getJobCounts', () => {
