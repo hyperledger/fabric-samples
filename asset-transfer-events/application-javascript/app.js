@@ -47,13 +47,13 @@
 //         ./network.sh deployCC -ccn events -ccp ../asset-transfer-events/chaincode-javascript/ -ccl javascript -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
 //
 // - Be sure that node.js is installed
-//         ===> from directory asset-transfer-sbe/application-javascript
+//         ===> from directory asset-transfer-events/application-javascript
 //         node -v
 // - npm installed code dependencies
-//         ===> from directory asset-transfer-sbe/application-javascript
+//         ===> from directory asset-transfer-events/application-javascript
 //         npm install
 // - to run this test application
-//         ===> from directory asset-transfer-sbe/application-javascript
+//         ===> from directory asset-transfer-events/application-javascript
 //         node app.js
 
 // NOTE: If you see an error like these:
