@@ -43,12 +43,12 @@ Note that the asset transfer implemented by the smart contract is a simplified s
 Like other samples, the Fabric test network is used to deploy and run this sample. Follow these steps in order:
 
 1. Create the test network and a channel (from the `test-network` folder).
-   ``` 
+   ```
    ./network.sh up createChannel -c mychannel -ca
    ```
 
 1. Deploy one of the smart contract implementations (from the `test-network` folder).
-   ``` 
+   ```
    # To deploy the JavaScript chaincode implementation
    ./network.sh deployCC -ccn events -ccp ../asset-transfer-events/chaincode-javascript/ -ccl javascript -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
 
@@ -61,6 +61,11 @@ Like other samples, the Fabric test network is used to deploy and run this sampl
    # To run the Go sample application
    cd application-gateway-go
    go run .
+
+   # To run the Typescript sample application
+   cd application-gateway-typescript
+   npm install
+   npm start
    ```
 
 ## Clean up
