@@ -5,7 +5,7 @@
 # Vim file artifacts
 .*.sw*
 # installed platform-specific binaries
-/bin
+bin
 /config
 .DS_Store
 .project
