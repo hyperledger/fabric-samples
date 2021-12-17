@@ -28,7 +28,7 @@ data:
   CORE_OPERATIONS_LISTENADDRESS: 0.0.0.0:9443
   CORE_PEER_FILESYSTEMPATH: /var/hyperledger/fabric/data/org2-peer1.org2.example.com
   CORE_LEDGER_SNAPSHOTS_ROOTDIR: /var/hyperledger/fabric/data/org2-peer1.org2.example.com/snapshots
-
+  CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG: "{\"peername\":\"org2peer1\"}"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -61,20 +61,6 @@ spec:
               mountPath: /var/hyperledger
             - name: fabric-config
               mountPath: /var/hyperledger/fabric/config
-            - name: ccs-builder
-              mountPath: /var/hyperledger/fabric/chaincode/ccs-builder/bin
-
-      # load the external chaincode builder into the peer image prior to peer launch.
-      initContainers:
-        - name: fabric-ccs-builder
-          image: ghcr.io/hyperledgendary/fabric-ccs-builder
-          imagePullPolicy: IfNotPresent
-          command: [sh, -c]
-          args: ["cp /go/bin/* /var/hyperledger/fabric/chaincode/ccs-builder/bin/"]
-          volumeMounts:
-            - name: ccs-builder
-              mountPath: /var/hyperledger/fabric/chaincode/ccs-builder/bin
-
       volumes:
         - name: fabric-volume
           persistentVolumeClaim:
@@ -82,8 +68,6 @@ spec:
         - name: fabric-config
           configMap:
             name: org2-config
-        - name: ccs-builder
-          emptyDir: {}
 
 ---
 apiVersion: v1

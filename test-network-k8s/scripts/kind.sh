@@ -12,7 +12,6 @@ function pull_docker_images() {
   docker pull ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
   docker pull ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:$FABRIC_VERSION
   docker pull ${FABRIC_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
-  docker pull ghcr.io/hyperledgendary/fabric-ccs-builder:latest
   docker pull ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest
 
   pop_fn
@@ -25,7 +24,6 @@ function load_docker_images() {
   kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
   kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:$FABRIC_VERSION
   kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
-  kind load docker-image ghcr.io/hyperledgendary/fabric-ccs-builder:latest
   kind load docker-image ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest
   
   pop_fn 

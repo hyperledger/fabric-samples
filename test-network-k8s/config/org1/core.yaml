@@ -474,7 +474,7 @@ vm:
     # unix:///var/run/docker.sock
     # http://localhost:2375
     # https://localhost:2376
-    endpoint: unix:///var/run/docker.sock
+    # endpoint: unix:///var/run/docker.sock
 
     # settings for docker vms
     docker:
@@ -558,12 +558,11 @@ chaincode:
     # chaincode. The external builder detection processing will iterate over the
     # builders in the order specified below.
     externalBuilders:
-      - path: /var/hyperledger/fabric/chaincode/ccs-builder
-        name: ccs-builder
-        propagateEnvironment:
-          - HOME
-          - CORE_PEER_ID
-          - CORE_PEER_LOCALMSPID
+       - name: ccaas_builder
+         path: /opt/hyperledger/ccaas_builder
+         propagateEnvironment:
+           - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG
+
 
     # The maximum duration to wait for the chaincode build and install process
     # to complete.

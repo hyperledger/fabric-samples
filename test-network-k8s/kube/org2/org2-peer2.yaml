@@ -28,7 +28,7 @@ data:
   CORE_OPERATIONS_LISTENADDRESS: 0.0.0.0:9443
   CORE_PEER_FILESYSTEMPATH: /var/hyperledger/fabric/data/org2-peer2.org2.example.com
   CORE_LEDGER_SNAPSHOTS_ROOTDIR: /var/hyperledger/fabric/data/org2-peer2.org2.example.com/snapshots
-
+  CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG: "{\"peername\":\"org2peer2\"}"
 ---
 apiVersion: apps/v1
 kind: Deployment

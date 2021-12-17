@@ -103,52 +103,38 @@ Running Fabric in Kubernetes places some unique constraints on the Chaincode lif
 
 - For cloud-ready development, test, validation, CI/CD, and production practices, the use of the 
   [Chaincode as a Service](https://hyperledger-fabric.readthedocs.io/en/latest/cc_service.html) pattern provides a 
-  _vastly superior user experience_.  However, with the current (2.3) Fabric builds, the configuration of [External 
-  Chaincode Builders](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html) is non-trivial and 
-  includes some real complexity for deployment to Kubernetes.
+  _vastly superior user experience_.  
   
 
 - Running Chaincode builds in Docker in Docker, running in Kubernetes in Docker is ... interesting.  Let's 
   step back and _keep it simple_. 
 
 
-  
-For the Kube Test Network, we've configured the peer nodes to launch with the [fabric-ccs-builder](https://github.com/hyperledgendary/fabric-ccs-builder) 
-External Chaincode Builders pre-bundled into the network.  When chaincode is installed on the peers, the external 
-builder binaries will be invoked, bypassing the reliance on a local Docker daemon running in Kubernetes.
+In the Kubernetes Test Network, we've incorporated the default `ccaas` external builder
+(See [fabric #2884](https://github.com/hyperledger/fabric/issues/2884)) as an accelerator for working with 
+Chaincode-as-a-Service on Kubernetes.  For `ccaas` smart contracts, when chaincode is installed on a peer, the 
+external builder binaries will be invoked, bypassing the reliance on a local Docker daemon running in Kubernetes.
 
 This configuration is accomplished by registering an external builder in the peer core.yaml: 
 
 ```yaml
     externalBuilders:
-      - path: /var/hyperledger/fabric/chaincode/ccs-builder
-        name: ccs-builder
+      - name: ccaas_builder
+        path: /opt/hyperledger/ccaas_builder
         propagateEnvironment:
-          - HOME
-          - CORE_PEER_ID
-          - CORE_PEER_LOCALMSPID
-```
-  
-At launch time, the Kubernetes deployment includes an init container that will load the fabric-ccs-builder binaries 
-from a public container registry, copying the external builders into the target volume in the peer: 
-
-```yaml
-      initContainers:
-        - name: fabric-ccs-builder
-          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-ccs-builder
-          command: [sh, -c]
-          args: ["cp /go/bin/* /var/hyperledger/fabric/chaincode/ccs-builder/bin/"]
-          volumeMounts:
-            - name: ccs-builder
-              mountPath: /var/hyperledger/fabric/chaincode/ccs-builder/bin
+          - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG
 ```
 
-With this configuration we eliminate the reliance on Docker daemon, fully supporting the _Chaincode-as-a-Service_ 
-pattern for building smart contracts in a cloud-native environment.
+To trigger the external builder for a chaincode service, set the metadata.json `type` attribute to `ccaas`.  E.g.:  
+```json
+{
+  "type": "ccaas",
+  "label": "basic_1.0"
+}
+```
 
 - [x] Pro tip: Use the companion container registry at `localhost:5000` to deploy custom chaincode into the test network. 
-- [x] Pro tip: Deploy a chaincode with `address: host.docker.internal:9999` and run your chaincode in a debugger. 
-- [ ] Note: An external chaincode builder will be included in future releases of Fabric.
+- [x] Pro tip: Deploy a chaincode with `address: host.docker.internal:9999` and attach your chaincode in a debugger. 
 
 
 ## Starting Peers and Orderers 
