@@ -174,7 +174,7 @@ function createOrgs() {
 
     . organizations/fabric-ca/registerEnroll.sh
 
-  while :
+    while :
     do
       if [ ! -f "organizations/fabric-ca/org1/tls-cert.pem" ]; then
         sleep 1
@@ -478,7 +478,7 @@ elif [ "$MODE" == "deployCC" ]; then
   infoln "deploying chaincode on channel '${CHANNEL_NAME}'"
   deployCC
 elif [ "$MODE" == "deployCCAAS" ]; then
-  infoln "deploying chaincode-as-a-service on channel '${CHANNEL_NAME}'"  
+  infoln "deploying chaincode-as-a-service on channel '${CHANNEL_NAME}'"
   deployCCAAS
 else
   printHelp
