@@ -32,3 +32,16 @@ print "Executing app.js"
 node app.js
 popd
 stopNetwork
+
+
+# Run typescript gateway application
+createNetwork
+print "Initializing typescript application"
+pushd ../asset-transfer-private-data/application-gateway-typescript
+npm install
+print "Build typescript app"
+npm run build
+print "Executing app.js"
+npm start
+popd
+stopNetwork
