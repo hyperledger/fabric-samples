@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	"github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract-go/commercial-paper"
+	commercialpaper "github.com/hyperledger/fabric-samples/commercial-paper/organization/magnetocorp/contract-go/commercial-paper"
 )
 
 func main() {

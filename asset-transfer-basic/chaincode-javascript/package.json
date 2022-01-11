@@ -8,7 +8,7 @@
         "npm": ">=5"
     },
     "scripts": {
-        "lint": "eslint .",
+        "lint": "eslint *.js */**.js",
         "pretest": "npm run lint",
         "test": "nyc mocha --recursive",
         "start": "fabric-chaincode-node start"
@@ -18,7 +18,9 @@
     "license": "Apache-2.0",
     "dependencies": {
         "fabric-contract-api": "^2.0.0",
-        "fabric-shim": "^2.0.0"
+        "fabric-shim": "^2.0.0",
+        "json-stringify-deterministic": "^1.0.1",
+        "sort-keys-recursive": "^2.1.2"
     },
     "devDependencies": {
         "chai": "^4.1.2",

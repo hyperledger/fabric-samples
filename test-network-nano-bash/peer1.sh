@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ "$(uname)" == "Linux" ] ; then
+  CCADDR="127.0.0.1"
+else
+  CCADDR="host.docker.internal"
+fi
+
 # look for binaries in local dev environment /build/bin directory and then in local samples /bin directory
 export PATH="${PWD}"/../../fabric/build/bin:"${PWD}"/../bin:"$PATH"
 export FABRIC_CFG_PATH="${PWD}"/../config
@@ -13,7 +19,7 @@ export CORE_PEER_TLS_ROOTCERT_FILE="${PWD}"/crypto-config/peerOrganizations/org1
 export CORE_PEER_ID=peer0.org1.example.com
 export CORE_PEER_ADDRESS=127.0.0.1:7051
 export CORE_PEER_LISTENADDRESS=127.0.0.1:7051
-export CORE_PEER_CHAINCODEADDRESS=host.docker.internal:7052
+export CORE_PEER_CHAINCODEADDRESS="${CCADDR}":7052
 export CORE_PEER_CHAINCODELISTENADDRESS=127.0.0.1:7052
 # bootstrap peer is the other peer in the same org
 export CORE_PEER_GOSSIP_BOOTSTRAP=127.0.0.1:7053

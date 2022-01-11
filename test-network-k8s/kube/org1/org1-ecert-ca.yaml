@@ -1,0 +1,70 @@
+#
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: org1-ecert-ca
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: org1-ecert-ca
+  template:
+    metadata:
+      labels:
+        app: org1-ecert-ca
+    spec:
+      containers:
+        - name: main
+          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-ca:{{FABRIC_CA_VERSION}}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: FABRIC_CA_SERVER_CA_NAME
+              value: "org1-ecert-ca"
+            - name: FABRIC_CA_SERVER_DEBUG
+              value: "false"
+            - name: FABRIC_CA_SERVER_HOME
+              value: "/var/hyperledger/fabric-ca-server"
+            - name: FABRIC_CA_SERVER_TLS_CERTFILE
+              value: "/var/hyperledger/fabric-ca-client/tls-ca/rcaadmin/msp/signcerts/cert.pem"
+            - name: FABRIC_CA_SERVER_TLS_KEYFILE
+              value: "/var/hyperledger/fabric-ca-client/tls-ca/rcaadmin/msp/keystore/key.pem"
+            - name: FABRIC_CA_CLIENT_HOME
+              value: "/var/hyperledger/fabric-ca-client"
+          ports:
+            - containerPort: 443
+          volumeMounts:
+            - name: fabric-volume
+              mountPath: /var/hyperledger
+            - name: fabric-config
+              mountPath: /var/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml
+              subPath: fabric-ecert-ca-server-config.yaml
+          readinessProbe:
+            tcpSocket:
+              port: 443
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: fabric-volume
+          persistentVolumeClaim:
+            claimName: fabric-org1
+        - name: fabric-config
+          configMap:
+            name: org1-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: org1-ecert-ca
+spec:
+  ports:
+    - name: tls
+      port: 443
+      protocol: TCP
+  selector:
+    app: org1-ecert-ca

@@ -5,12 +5,13 @@
 trigger:
   - main
   - release-1.4
+  - release-2.2
 
 variables:
   FABRIC_VERSION: 2.4
   GO_BIN: $(Build.Repository.LocalPath)/bin
-  GO_VER: 1.14.6
-  NODE_VER: 12.x
+  GO_VER: 1.16.7
+  NODE_VER: 16.x
   PATH: $(Build.Repository.LocalPath)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
 jobs:
@@ -84,8 +85,6 @@ jobs:
         inputs:
           versionSpec: $(NODE_VER)
         displayName: Install Node.js
-      - script: npm install -g typescript eslint tslint
-        displayName: Install Javascript Linting Deps
       - script: ./ci/scripts/lint.sh
         displayName: Lint Code
 

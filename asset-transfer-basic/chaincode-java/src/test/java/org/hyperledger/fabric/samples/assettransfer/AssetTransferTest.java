@@ -224,9 +224,9 @@ public final class AssetTransferTest {
             when(stub.getStringState("asset1"))
                     .thenReturn("{ \"assetID\": \"asset1\", \"color\": \"blue\", \"size\": 5, \"owner\": \"Tomoko\", \"appraisedValue\": 300 }");
 
-            Asset asset = contract.TransferAsset(ctx, "asset1", "Dr Evil");
+            String oldOwner = contract.TransferAsset(ctx, "asset1", "Dr Evil");
 
-            assertThat(asset).isEqualTo(new Asset("asset1", "blue", 5, "Dr Evil", 300));
+            assertThat(oldOwner).isEqualTo("Tomoko");
         }
 
         @Test

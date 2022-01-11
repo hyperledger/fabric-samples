@@ -2,6 +2,8 @@
 
 # Hyperledger Fabric Samples
 
+[![Build Status](https://dev.azure.com/Hyperledger/Fabric-Samples/_apis/build/status/Fabric-Samples?branchName=main)](https://dev.azure.com/Hyperledger/Fabric-Samples/_build/latest?definitionId=28&branchName=main)
+
 You can use Fabric samples to get started working with Hyperledger Fabric, explore important Fabric features, and learn how to build applications that can interact with blockchain networks using the Fabric SDKs. To learn more about Hyperledger Fabric, visit the [Fabric documentation](https://hyperledger-fabric.readthedocs.io/en/latest).
 
 ## Getting started with the Fabric samples
@@ -14,6 +16,13 @@ The [Fabric test network](test-network) in the samples repository provides a Doc
 Organization peers and an ordering service node. You can use it on your local machine to run the samples listed below.
 You can also use it to deploy and test your own Fabric chaincodes and applications. To get started, see
 the [test network tutorial](https://hyperledger-fabric.readthedocs.io/en/latest/test_network.html).
+
+The [Kubernetes Test Network](test-network-k8s) sample builds upon the Compose network, constructing a Fabric 
+network with peer, orderer, and CA infrastructure nodes running on Kubernetes.  In addition to providing a sample 
+Kubernetes guide, the Kube test network can be used as a platform to author and debug _cloud ready_ Fabric Client 
+applications on a development or CI workstation. 
+
+
 
 ## Asset transfer samples and tutorials
 
