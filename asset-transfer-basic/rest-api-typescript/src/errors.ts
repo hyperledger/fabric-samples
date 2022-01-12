@@ -164,7 +164,6 @@ export const isDuplicateTransactionError = (err: unknown): boolean => {
  *   "Asset %s already exists"
  */
 const matchAssetAlreadyExistsMessage = (message: string): string | null => {
-  //
   const assetAlreadyExistsRegex = /([tT]he )?[aA]sset \w* already exists/g;
   const assetAlreadyExistsMatch = message.match(assetAlreadyExistsRegex);
   logger.debug(
