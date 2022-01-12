@@ -90,3 +90,12 @@ print "Running the output app"
 node dist/app.js
 popd
 stopNetwork
+
+# Run Go gateway application
+createNetwork
+print "Initializing Go gateway application"
+pushd ../asset-transfer-basic/application-gateway-go
+print "Executing AssetTransfer.go"
+go run .
+popd
+stopNetwork
