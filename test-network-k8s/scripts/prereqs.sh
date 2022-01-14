@@ -25,4 +25,10 @@ function check_prereqs() {
     echo "No 'kubectl' binary available? (https://kubernetes.io/docs/tasks/tools/)"
     exit 1
   fi
+
+  jq --version > /dev/null
+  if [[ $? -ne 0 ]]; then
+    echo "No 'jq' binary available? (https://stedolan.github.io/jq/)"
+    exit 1
+  fi
 }

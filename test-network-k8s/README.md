@@ -20,7 +20,7 @@ _Fabric, Ahoy!_
 - [Docker](https://www.docker.com)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
-
+- [jq](https://stedolan.github.io/jq/)
 
 ## Quickstart
 
