@@ -113,7 +113,7 @@ function join_org_peers() {
     --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem
 
   # Join peer1 to the channel.
-  CORE_PEER_ADDRESS='${org}'-peer1:7051 \
+  export CORE_PEER_ADDRESS='${org}'-peer1:7051 
   peer channel \
     join \
     -b genesis_block.pb \
@@ -121,7 +121,7 @@ function join_org_peers() {
     --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem
 
   # Join peer2 to the channel.
-  CORE_PEER_ADDRESS='${org}'-peer2:7051 \
+  export CORE_PEER_ADDRESS='${org}'-peer2:7051 
   peer channel \
     join \
     -b genesis_block.pb \
