@@ -441,7 +441,6 @@ while [[ $# -ge 1 ]] ; do
     ;;
   -verbose )
     VERBOSE=true
-    shift
     ;;
   * )
     errorln "Unknown flag: $key"
