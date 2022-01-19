@@ -7,9 +7,9 @@ steps:
     workingDirectory: fabcar
     displayName: Start Fabric
   - task: GoTool@0
-    displayName: 'Use Go 1.14.2'
+    displayName: 'Use Go 1.16.7'
     inputs:
-      version: '1.14.2'
+      version: '1.16.7'
   - task: Go@0
     displayName: 'go build'
     inputs:

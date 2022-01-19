@@ -3,5 +3,5 @@
     "channelid": "mychannel",
     "use_couchdb":true,
     "create_history_log":true,
-    "couchdb_address": "http://localhost:5990"
+    "couchdb_address": "http://admin:password@localhost:5990"
 }

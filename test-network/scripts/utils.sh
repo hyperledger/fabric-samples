@@ -69,6 +69,29 @@ function printHelp() {
     println " Examples:"
     println "   network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ ./ -ccl javascript"
     println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
+  elif [ "$USAGE" == "deployCCAAS" ]; then
+    println "Usage: "
+    println "  network.sh \033[0;32mdeployCCAAS\033[0m [Flags]"
+    println
+    println "    Flags:"
+    println "    -c <channel name> - Name of channel to deploy chaincode to"
+    println "    -ccn <name> - Chaincode name."
+    println "    -ccv <version>  - Chaincode version. 1.0 (default), v2, version3.x, etc"
+    println "    -ccs <sequence>  - Chaincode definition sequence. Must be an integer, 1 (default), 2, 3, etc"
+    println "    -ccp <path>  - File path to the chaincode. (used to find the dockerfile for building the docker image only)"
+    println "    -ccep <policy>  - (Optional) Chaincode endorsement policy using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
+    println "    -cccg <collection-config>  - (Optional) File path to private data collections configuration file"
+    println "    -cci <fcn name>  - (Optional) Name of chaincode initialization function. When a function is provided, the execution of init will be requested and the function will be invoked."
+    println "    -ccaasdocker <true|false>  - (Optional) Default is true; the chaincode docker image will be built and containers started automatically. Set to false to control this manually"
+    println
+    println "    -h - Print this message"
+    println
+    println " Possible Mode and flag combinations"
+    println "   \033[0;32mdeployCC\033[0m -ccn -ccv -ccs -ccp -cci -r -d -verbose"
+    println
+    println " Examples:"
+    println "   network.sh deployCCAAS  -ccn basicj -ccp ../asset-transfer-basic/chaincode-java"
+    println "   network.sh deployCCAAS  -ccn basict -ccp ../asset-transfer-basic/chaincode-typescript -ccaasdocker false"  
   else
     println "Usage: "
     println "  network.sh <Mode> [Flags]"

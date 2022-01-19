@@ -191,7 +191,14 @@ async function main() {
 
 			// Rich Query with Pagination (Only supported if CouchDB is used as state database)
 			console.log('\n--> Evaluate Transaction: QueryAssetsWithPagination, function returns "Tom" assets');
-			result = await contract.evaluateTransaction('QueryAssetsWithPagination', '{"selector":{"docType":"asset","owner":"Tom"}, "use_index":["_design/indexOwnerDoc", "indexOwner"]}', '3', '');
+			result = await contract.evaluateTransaction('QueryAssetsWithPagination', '{"selector":{"docType":"asset","owner":"Tom"}, "use_index":["_design/indexOwnerDoc", "indexOwner"]}', '1', '');
+			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
+
+			// Recover the bookmark from previous query. Normally it will be inside a variable.
+			const resultJson = JSON.parse(result.toString());
+
+			console.log('\n--> Evaluate Transaction: QueryAssetsWithPagination, function returns "Tom" assets next page');
+			result = await contract.evaluateTransaction('QueryAssetsWithPagination', '{"selector":{"docType":"asset","owner":"Tom"}, "use_index":["_design/indexOwnerDoc", "indexOwner"]}', '1', resultJson.ResponseMetadata.Bookmark);
 			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
 			console.log('\n--> Submit Transaction: TransferAssetByColor, transfer all yellow assets to new owner(Michel)');

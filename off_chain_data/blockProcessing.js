@@ -86,7 +86,7 @@ exports.processBlockEvent = async function (channelname, block, use_couchdb, nan
                 for (var record in rwSet) {
 
                     // ignore lscc events
-                    if (rwSet[record].namespace != 'lscc') {
+                    if (rwSet[record].namespace != 'lscc' && rwSet[record].namespace != '_lifecycle') {
                         // create object to store properties
                         const writeObject = new Object();
                         writeObject.blocknumber = blockNumber;
@@ -108,7 +108,7 @@ exports.processBlockEvent = async function (channelname, block, use_couchdb, nan
                             try {
                                 await writeValuesToCouchDBP(nano, channelname, writeObject);
                             } catch (error) {
-
+                                 
                             }
                         }
                     }
@@ -136,14 +136,14 @@ async function writeValuesToCouchDBP(nano, channelname, writeObject) {
             const historydbname = channelname + '_' + writeObject.chaincodeid + '_history';
             // set values to the array of values received
             const values = writeObject.values;
-
+            
             try {
                 for (var sequence in values) {
                     let keyvalue =
                         values[
                         sequence
                         ];
-
+                    
                     if (
                         keyvalue.is_delete ==
                         true
@@ -159,6 +159,7 @@ async function writeValuesToCouchDBP(nano, channelname, writeObject) {
                                 keyvalue.value
                             )
                         ) {
+                            
                             //  insert or update value by key - this emulates world state behavior
                             await couchdbutil.writeToCouchDB(
                                 nano,

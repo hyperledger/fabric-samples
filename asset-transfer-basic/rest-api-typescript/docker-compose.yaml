@@ -1,0 +1,24 @@
+version: '3'
+# Replace network name with the fabric test-network name 
+services:
+  redis: 
+    image: 'redis'
+    ports:
+      - 6379:6379
+    networks:
+      - fabric_test
+  
+  nodeapp:
+    image: 'fabric-rest-sample'
+    command: ['start:dotenv']
+    ports:
+        - 3000:3000
+    env_file:
+        - ./.env
+    networks:
+        - fabric_test
+
+
+networks:
+  fabric_test:
+    external: true 

@@ -37,7 +37,7 @@ exports.writeToCouchDB = async function (nano, dbname, key, value) {
         try {
             await this.createDatabaseIfNotExists(nano, dbname);
         } catch (error) {
-
+            console.log("Error creating the database-"+error)
         }
 
         const db = nano.use(dbname);
@@ -82,7 +82,7 @@ exports.deleteRecord = async function (nano, dbname, key) {
         try {
             await this.createDatabaseIfNotExists(nano, dbname);
         } catch (error) {
-
+            console.log("Error creating the database-"+error)
         }
 
         const db = nano.use(dbname);

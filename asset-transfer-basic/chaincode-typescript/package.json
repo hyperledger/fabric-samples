@@ -12,17 +12,24 @@
         "lint": "tslint -c tslint.json 'src/**/*.ts'",
         "pretest": "npm run lint",
         "test": "nyc mocha -r ts-node/register src/**/*.spec.ts",
-        "start": "fabric-chaincode-node start",
+        "start": "set -x && fabric-chaincode-node start",
         "build": "tsc",
         "build:watch": "tsc -w",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build",
+        "docker": "docker build -f ./Dockerfile -t asset-transfer-basic .",
+        "package": "npm run build && npm shrinkwrap",
+        "start:server-nontls": "set -x && fabric-chaincode-node server --chaincode-address=$CHAINCODE_SERVER_ADDRESS --chaincode-id=$CHAINCODE_ID",
+        "start:server-debug": "set -x && NODE_OPTIONS='--inspect=0.0.0.0:9229' fabric-chaincode-node server --chaincode-address=$CHAINCODE_SERVER_ADDRESS --chaincode-id=$CHAINCODE_ID",
+        "start:server": "set -x && fabric-chaincode-node server --chaincode-address=$CHAINCODE_SERVER_ADDRESS --chaincode-id=$CHAINCODE_ID --chaincode-tls-key-file=/hyperledger/privatekey.pem --chaincode-tls-client-cacert-file=/hyperledger/rootcert.pem --chaincode-tls-cert-file=/hyperledger/cert.pem"
     },
     "engineStrict": true,
     "author": "Hyperledger",
     "license": "Apache-2.0",
     "dependencies": {
-        "fabric-contract-api": "^2.0.0",
-        "fabric-shim": "^2.0.0"
+        "fabric-contract-api": "^2.4.0",
+        "fabric-shim": "^2.4.0",
+        "json-stringify-deterministic": "^1.0.1",
+        "sort-keys-recursive": "^2.1.2"
     },
     "devDependencies": {
         "@types/chai": "^4.1.7",
