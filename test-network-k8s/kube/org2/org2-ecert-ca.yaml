@@ -30,9 +30,9 @@ spec:
             - name: FABRIC_CA_SERVER_HOME
               value: "/var/hyperledger/fabric-ca-server"
             - name: FABRIC_CA_SERVER_TLS_CERTFILE
-              value: "/var/hyperledger/fabric-ca-client/tls-ca/rcaadmin/msp/signcerts/cert.pem"
+              value: "/var/hyperledger/fabric-ca-server/tls/tls.crt"
             - name: FABRIC_CA_SERVER_TLS_KEYFILE
-              value: "/var/hyperledger/fabric-ca-client/tls-ca/rcaadmin/msp/keystore/key.pem"
+              value: "/var/hyperledger/fabric-ca-server/tls/tls.key"
             - name: FABRIC_CA_CLIENT_HOME
               value: "/var/hyperledger/fabric-ca-client"
           ports:
@@ -43,6 +43,9 @@ spec:
             - name: fabric-config
               mountPath: /var/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml
               subPath: fabric-ecert-ca-server-config.yaml
+            - name: tls-cert-volume
+              mountPath: /var/hyperledger/fabric-ca-server/tls
+              readOnly: true
           readinessProbe:
             tcpSocket:
               port: 443
@@ -55,7 +58,9 @@ spec:
         - name: fabric-config
           configMap:
             name: org2-config
-
+        - name: tls-cert-volume
+          secret:
+            secretName: org2-ecert-ca-tls-cert
 ---
 apiVersion: v1
 kind: Service

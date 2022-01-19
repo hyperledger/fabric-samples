@@ -47,6 +47,46 @@ function launch_ECert_CAs() {
   pop_fn
 }
 
+# experimental: create TLS CA issuers using cert-manager for each org.
+function init_tls_cert_issuers() {
+  push_fn "Initializing TLS certificate issuers"
+
+  # todo: secret needs to be created before the issuer - the lag will cause an error on the first init for the issuer.
+  kubectl -n $NS delete -f kube/org0/org0-tls-cert-issuer-secret.yaml || true
+  kubectl -n $NS delete -f kube/org1/org1-tls-cert-issuer-secret.yaml || true
+  kubectl -n $NS delete -f kube/org2/org2-tls-cert-issuer-secret.yaml || true
+
+  kubectl -n $NS create -f kube/org0/org0-tls-cert-issuer-secret.yaml
+  kubectl -n $NS create -f kube/org1/org1-tls-cert-issuer-secret.yaml
+  kubectl -n $NS create -f kube/org2/org2-tls-cert-issuer-secret.yaml
+
+  # todo: find a better way to wait for the secret to be created.
+  # sleep 10
+
+  kubectl -n $NS apply -f kube/org0/org0-tls-cert-issuer.yaml
+  kubectl -n $NS apply -f kube/org1/org1-tls-cert-issuer.yaml
+  kubectl -n $NS apply -f kube/org2/org2-tls-cert-issuer.yaml
+
+  kubectl -n $NS wait --timeout=30s --for=condition=Ready issuer/org0-tls-cert-issuer
+  kubectl -n $NS wait --timeout=30s --for=condition=Ready issuer/org1-tls-cert-issuer
+  kubectl -n $NS wait --timeout=30s --for=condition=Ready issuer/org2-tls-cert-issuer
+
+  pop_fn
+}
+
+# use cert-manager to issue ECDSA TLS certificates for the ecert CA.  Replaces the bootstrap ecert user enrollment in the TLS CA
+function issue_ECert_CA_tls_certs() {
+
+  kubectl -n $NS apply -f kube/org0/org0-ecert-ca-tls-cert.yaml
+  kubectl -n $NS apply -f kube/org1/org1-ecert-ca-tls-cert.yaml
+  kubectl -n $NS apply -f kube/org2/org2-ecert-ca-tls-cert.yaml
+
+  kubectl -n $NS wait --timeout=30s --for=condition=Ready cert/org0-ecert-ca-tls-cert
+  kubectl -n $NS wait --timeout=30s --for=condition=Ready cert/org1-ecert-ca-tls-cert
+  kubectl -n $NS wait --timeout=30s --for=condition=Ready cert/org2-ecert-ca-tls-cert
+}
+
+
 # Enroll bootstrap user with TLS CA
 # https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/cadeploy.html#enroll-bootstrap-user-with-tls-ca
 function enroll_bootstrap_TLS_CA_user() {
@@ -128,7 +168,7 @@ function enroll_bootstrap_ECert_CA_user() {
 
   fabric-ca-client enroll \
     --url https://'${auth}'@'${ecert_ca}' \
-    --tls.certfiles $FABRIC_CA_CLIENT_HOME/tls-root-cert/tls-ca-cert.pem \
+    --tls.certfiles /var/hyperledger/fabric-ca-server/tls/ca.crt \
     --mspdir $FABRIC_CA_CLIENT_HOME/'${ecert_ca}'/rcaadmin/msp
 
   ' | exec kubectl -n $NS exec deploy/${ecert_ca} -i -- /bin/sh
