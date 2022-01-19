@@ -8,9 +8,9 @@
 # Double check that kind, kubectl, docker, and all required images are present.
 function check_prereqs() {
 
-  docker version > /dev/null
+  ${CONTAINER_CLI} version > /dev/null
   if [[ $? -ne 0 ]]; then
-    echo "No 'docker' binary available? (https://www.docker.com)"
+    echo "No '${CONTAINER_CLI}' binary available?"
     exit 1
   fi
 

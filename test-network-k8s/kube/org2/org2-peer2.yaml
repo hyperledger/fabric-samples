@@ -4,6 +4,27 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 ---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: org2-peer2-tls-cert
+  namespace: test-network
+spec:
+  isCA: false
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  dnsNames:
+    - localhost
+    - org2-peer2
+    - org2-peer2.test-network.svc.cluster.local
+  ipAddresses:
+    - 127.0.0.1
+  secretName: org2-peer2-tls-cert
+  issuerRef:
+    name: org2-tls-cert-issuer
+
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -12,9 +33,9 @@ data:
   FABRIC_CFG_PATH: /var/hyperledger/fabric/config
   FABRIC_LOGGING_SPEC: "debug:cauthdsl,policies,msp,grpc,peer.gossip.mcs,gossip,leveldbhelper=info"
   CORE_PEER_TLS_ENABLED: "true"
-  CORE_PEER_TLS_CERT_FILE: /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer2.org2.example.com/tls/signcerts/cert.pem
-  CORE_PEER_TLS_KEY_FILE: /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer2.org2.example.com/tls/keystore/server.key
-  CORE_PEER_TLS_ROOTCERT_FILE: /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer2.org2.example.com/tls/cacerts/org2-tls-ca.pem
+  CORE_PEER_TLS_CERT_FILE: /var/hyperledger/fabric/config/tls/tls.crt
+  CORE_PEER_TLS_KEY_FILE: /var/hyperledger/fabric/config/tls/tls.key
+  CORE_PEER_TLS_ROOTCERT_FILE: /var/hyperledger/fabric/config/tls/ca.crt
   CORE_PEER_ID: org2-peer2.org2.example.com
   CORE_PEER_ADDRESS: org2-peer2:7051
   CORE_PEER_LISTENADDRESS: 0.0.0.0:7051
@@ -61,7 +82,9 @@ spec:
               mountPath: /var/hyperledger
             - name: fabric-config
               mountPath: /var/hyperledger/fabric/config
-
+            - name: tls-cert-volume
+              mountPath: /var/hyperledger/fabric/config/tls
+              readOnly: true
       volumes:
         - name: fabric-volume
           persistentVolumeClaim:
@@ -69,7 +92,9 @@ spec:
         - name: fabric-config
           configMap:
             name: org2-config
-
+        - name: tls-cert-volume
+          secret:
+            secretName: org2-peer2-tls-cert
 ---
 apiVersion: v1
 kind: Service

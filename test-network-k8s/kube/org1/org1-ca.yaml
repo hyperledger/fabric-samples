@@ -4,19 +4,39 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 ---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: org1-ca-tls-cert
+spec:
+  isCA: false
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  dnsNames:
+    - localhost
+    - org1-ca
+    - org1-ca.test-network.svc.cluster.local
+  ipAddresses:
+    - 127.0.0.1
+  secretName: org1-ca-tls-cert
+  issuerRef:
+    name: org1-tls-cert-issuer
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: org2-ecert-ca
+  name: org1-ca
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: org2-ecert-ca
+      app: org1-ca
   template:
     metadata:
       labels:
-        app: org2-ecert-ca
+        app: org1-ca
     spec:
       containers:
         - name: main
@@ -24,15 +44,15 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: FABRIC_CA_SERVER_CA_NAME
-              value: "org2-ecert-ca"
+              value: "org1-ca"
             - name: FABRIC_CA_SERVER_DEBUG
               value: "false"
             - name: FABRIC_CA_SERVER_HOME
               value: "/var/hyperledger/fabric-ca-server"
             - name: FABRIC_CA_SERVER_TLS_CERTFILE
-              value: "/var/hyperledger/fabric-ca-client/tls-ca/rcaadmin/msp/signcerts/cert.pem"
+              value: "/var/hyperledger/fabric/config/tls/tls.crt"
             - name: FABRIC_CA_SERVER_TLS_KEYFILE
-              value: "/var/hyperledger/fabric-ca-client/tls-ca/rcaadmin/msp/keystore/key.pem"
+              value: "/var/hyperledger/fabric/config/tls/tls.key"
             - name: FABRIC_CA_CLIENT_HOME
               value: "/var/hyperledger/fabric-ca-client"
           ports:
@@ -42,7 +62,10 @@ spec:
               mountPath: /var/hyperledger
             - name: fabric-config
               mountPath: /var/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml
-              subPath: fabric-ecert-ca-server-config.yaml
+              subPath: fabric-ca-server-config.yaml
+            - name: tls-cert-volume
+              mountPath: /var/hyperledger/fabric/config/tls
+              readOnly: true
           readinessProbe:
             tcpSocket:
               port: 443
@@ -51,20 +74,22 @@ spec:
       volumes:
         - name: fabric-volume
           persistentVolumeClaim:
-            claimName: fabric-org2
+            claimName: fabric-org1
         - name: fabric-config
           configMap:
-            name: org2-config
-
+            name: org1-config
+        - name: tls-cert-volume
+          secret:
+            secretName: org1-ca-tls-cert
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: org2-ecert-ca
+  name: org1-ca
 spec:
   ports:
     - name: tls
       port: 443
       protocol: TCP
   selector:
-    app: org2-ecert-ca
+    app: org1-ca

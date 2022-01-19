@@ -86,7 +86,7 @@ tls:
 #############################################################################
 ca:
   # Name of this CA
-  name: org2-ecert-ca
+  name: org2-ca
   # Key file (is only used to import a private key into BCCSP)
   keyfile:
   # Certificate file (default: ca-cert.pem)
@@ -320,8 +320,8 @@ csr:
   hosts:
     - localhost
     - 127.0.0.1
-    - org2-ecert-ca
-    - org2-ecert-ca.test-network.svc.cluster.local
+    - org2-ca
+    - org2-ca.test-network.svc.cluster.local
   ca:
     expiry: 131400h
     pathlength: 1
