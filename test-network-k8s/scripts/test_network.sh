@@ -170,6 +170,30 @@ function create_local_MSP() {
   pop_fn
 }
 
+function extract_orderer_tls_cert() {
+  local orderer=$1
+
+  echo 'set -x
+
+  mkdir -p /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/'${orderer}'.org0.example.com/tls/signcerts/
+
+  cp \
+    var/hyperledger/fabric-ca-server/tls/tls.crt \
+    /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/'${orderer}'.org0.example.com/tls/signcerts/cert.pem
+
+  ' | exec kubectl -n $NS exec deploy/${orderer} -i -c main -- /bin/sh
+}
+
+function extract_orderer_tls_certs() {
+  push_fn "Extracting orderer TLS certs to local MSP folder"
+
+  extract_orderer_tls_cert org0-orderer1
+  extract_orderer_tls_cert org0-orderer2
+  extract_orderer_tls_cert org0-orderer3
+
+  pop_fn
+}
+
 function network_up() {
 
   # Kube config
@@ -191,6 +215,8 @@ function network_up() {
 
   launch_orderers
   launch_peers
+
+  extract_orderer_tls_certs
 }
 
 function stop_services() {
@@ -205,6 +231,8 @@ function stop_services() {
   kubectl -n $NS delete pod --all
   kubectl -n $NS delete service --all
   kubectl -n $NS delete configmap --all
+  kubectl -n $NS delete cert --all
+  kubectl -n $NS delete issuer --all
   kubectl -n $NS delete secret --all
 
   pop_fn

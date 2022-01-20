@@ -16,12 +16,12 @@ function create_channel_org_MSP() {
   cp \
     $FABRIC_CA_CLIENT_HOME/'${ecert_ca}'/rcaadmin/msp/cacerts/'${ecert_ca}'.pem \
     /var/hyperledger/fabric/organizations/'${org_type}'Organizations/'${org}'.example.com/msp/cacerts
-  
+
   mkdir -p /var/hyperledger/fabric/organizations/'${org_type}'Organizations/'${org}'.example.com/msp/tlscacerts
   cp \
-    $FABRIC_CA_CLIENT_HOME/tls-ca/tlsadmin/msp/cacerts/'${org}'-tls-ca.pem \
-    /var/hyperledger/fabric/organizations/'${org_type}'Organizations/'${org}'.example.com/msp/tlscacerts
-  
+    /var/hyperledger/fabric-ca-server/tls/ca.crt \
+    /var/hyperledger/fabric/organizations/'${org_type}'Organizations/'${org}'.example.com/msp/tlscacerts/'${org}'-tls-ca.pem
+
   echo "NodeOUs:
     Enable: true
     ClientOUIdentifier:

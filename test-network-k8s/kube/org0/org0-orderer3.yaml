@@ -90,7 +90,7 @@ spec:
             name: org0-config
         - name: tls-cert-volume
           secret:
-            secretName: org0-orderer2-tls-cert
+            secretName: org0-orderer3-tls-cert
 ---
 apiVersion: v1
 kind: Service
