@@ -2,7 +2,7 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: org2-ecert-ca-tls-cert
+  name: org0-ca-tls-cert
   namespace: test-network
 spec:
   isCA: false
@@ -11,10 +11,10 @@ spec:
     size: 256
   dnsNames:
     - localhost
-    - org2-ecert-ca
-    - org2-ecert-ca.test-network.svc.cluster.local
+    - org0-ca
+    - org0-ca.test-network.svc.cluster.local
   ipAddresses:
     - 127.0.0.1
-  secretName: org2-ecert-ca-tls-cert
+  secretName: org0-ca-tls-cert
   issuerRef:
-    name: org2-tls-cert-issuer
+    name: org0-tls-cert-issuer

@@ -8,7 +8,7 @@
 function create_channel_org_MSP() {
   local org=$1
   local org_type=$2
-  local ecert_ca=${org}-ecert-ca 
+  local ecert_ca=${org}-ca
   
   echo 'set -x
  
@@ -56,9 +56,9 @@ function aggregate_channel_MSP() {
   rm -rf ./build/msp/
   mkdir -p ./build/msp
   
-  kubectl -n $NS exec deploy/org0-ecert-ca -- tar zcvf - -C /var/hyperledger/fabric organizations/ordererOrganizations/org0.example.com/msp > build/msp/msp-org0.example.com.tgz
-  kubectl -n $NS exec deploy/org1-ecert-ca -- tar zcvf - -C /var/hyperledger/fabric organizations/peerOrganizations/org1.example.com/msp > build/msp/msp-org1.example.com.tgz
-  kubectl -n $NS exec deploy/org2-ecert-ca -- tar zcvf - -C /var/hyperledger/fabric organizations/peerOrganizations/org2.example.com/msp > build/msp/msp-org2.example.com.tgz
+  kubectl -n $NS exec deploy/org0-ca -- tar zcvf - -C /var/hyperledger/fabric organizations/ordererOrganizations/org0.example.com/msp > build/msp/msp-org0.example.com.tgz
+  kubectl -n $NS exec deploy/org1-ca -- tar zcvf - -C /var/hyperledger/fabric organizations/peerOrganizations/org1.example.com/msp > build/msp/msp-org1.example.com.tgz
+  kubectl -n $NS exec deploy/org2-ca -- tar zcvf - -C /var/hyperledger/fabric organizations/peerOrganizations/org2.example.com/msp > build/msp/msp-org2.example.com.tgz
 
   kubectl -n $NS delete configmap msp-config || true
   kubectl -n $NS create configmap msp-config --from-file=build/msp/

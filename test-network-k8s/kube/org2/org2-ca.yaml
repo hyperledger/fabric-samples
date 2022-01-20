@@ -7,16 +7,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: org2-tls-ca
+  name: org2-ca
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: org2-tls-ca
+      app: org2-ca
   template:
     metadata:
       labels:
-        app: org2-tls-ca
+        app: org2-ca
     spec:
       containers:
         - name: main
@@ -24,11 +24,15 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: FABRIC_CA_SERVER_CA_NAME
-              value: "org2-tls-ca"
+              value: "org2-ca"
             - name: FABRIC_CA_SERVER_DEBUG
               value: "false"
             - name: FABRIC_CA_SERVER_HOME
-              value: "/var/hyperledger/fabric-tls-ca-server"
+              value: "/var/hyperledger/fabric-ca-server"
+            - name: FABRIC_CA_SERVER_TLS_CERTFILE
+              value: "/var/hyperledger/fabric-ca-server/tls/tls.crt"
+            - name: FABRIC_CA_SERVER_TLS_KEYFILE
+              value: "/var/hyperledger/fabric-ca-server/tls/tls.key"
             - name: FABRIC_CA_CLIENT_HOME
               value: "/var/hyperledger/fabric-ca-client"
           ports:
@@ -37,8 +41,11 @@ spec:
             - name: fabric-volume
               mountPath: /var/hyperledger
             - name: fabric-config
-              mountPath: /var/hyperledger/fabric-tls-ca-server/fabric-ca-server-config.yaml
-              subPath: fabric-tls-ca-server-config.yaml
+              mountPath: /var/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml
+              subPath: fabric-ca-server-config.yaml
+            - name: tls-cert-volume
+              mountPath: /var/hyperledger/fabric-ca-server/tls
+              readOnly: true
           readinessProbe:
             tcpSocket:
               port: 443
@@ -51,16 +58,18 @@ spec:
         - name: fabric-config
           configMap:
             name: org2-config
-
+        - name: tls-cert-volume
+          secret:
+            secretName: org2-ca-tls-cert
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: org2-tls-ca
+  name: org2-ca
 spec:
   ports:
     - name: tls
       port: 443
       protocol: TCP
   selector:
-    app: org2-tls-ca
+    app: org2-ca

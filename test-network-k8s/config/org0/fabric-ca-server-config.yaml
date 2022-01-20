@@ -86,7 +86,7 @@ tls:
 #############################################################################
 ca:
   # Name of this CA
-  name: org2-tls-ca
+  name: org0-ca
   # Key file (is only used to import a private key into BCCSP)
   keyfile:
   # Certificate file (default: ca-cert.pem)
@@ -129,8 +129,8 @@ registry:
 
   # Contains identity information which is used when LDAP is disabled
   identities:
-    - name: tlsadmin
-      pass: tlsadminpw
+    - name: rcaadmin
+      pass: rcaadminpw
       type: client
       affiliation: ""
       attrs:
@@ -267,16 +267,26 @@ affiliations:
 #############################################################################
 signing:
   default:
-    authremote: {}
-    caconstraint: {}
-    expiry: 8760h
     usage:
-      - signing
-      - key encipherment
-      - server auth
-      - client auth
-      - key agreement
-  profiles: null
+      - digital signature
+    expiry: 8760h
+  profiles:
+    ca:
+      usage:
+        - cert sign
+        - crl sign
+      expiry: 43800h
+      caconstraint:
+        isca: true
+        maxpathlen: 0
+    tls:
+      usage:
+        - signing
+        - key encipherment
+        - server auth
+        - client auth
+        - key agreement
+      expiry: 8760h
 
 ###########################################################################
 #  Certificate Signing Request (CSR) section.
@@ -310,8 +320,8 @@ csr:
   hosts:
     - localhost
     - 127.0.0.1
-    - org2-tls-ca
-    - org2-tls-ca.test-network.svc.cluster.local
+    - org0-ca
+    - org0-ca.test-network.svc.cluster.local
   ca:
     expiry: 131400h
     pathlength: 1
@@ -449,7 +459,7 @@ cfg:
 ###############################################################################
 operations:
   # host and port for the operations server
-  listenAddress: 127.0.0.1:9444
+  listenAddress: 127.0.0.1:9443
 
   # TLS configuration for the operations endpoint
   tls:

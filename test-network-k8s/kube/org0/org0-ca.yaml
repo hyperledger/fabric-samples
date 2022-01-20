@@ -7,16 +7,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: org2-ecert-ca
+  name: org0-ca
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: org2-ecert-ca
+      app: org0-ca
   template:
     metadata:
       labels:
-        app: org2-ecert-ca
+        app: org0-ca
     spec:
       containers:
         - name: main
@@ -24,7 +24,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: FABRIC_CA_SERVER_CA_NAME
-              value: "org2-ecert-ca"
+              value: "org0-ca"
             - name: FABRIC_CA_SERVER_DEBUG
               value: "false"
             - name: FABRIC_CA_SERVER_HOME
@@ -42,7 +42,7 @@ spec:
               mountPath: /var/hyperledger
             - name: fabric-config
               mountPath: /var/hyperledger/fabric-ca-server/fabric-ca-server-config.yaml
-              subPath: fabric-ecert-ca-server-config.yaml
+              subPath: fabric-ca-server-config.yaml
             - name: tls-cert-volume
               mountPath: /var/hyperledger/fabric-ca-server/tls
               readOnly: true
@@ -54,22 +54,23 @@ spec:
       volumes:
         - name: fabric-volume
           persistentVolumeClaim:
-            claimName: fabric-org2
+            claimName: fabric-org0
         - name: fabric-config
           configMap:
-            name: org2-config
+            name: org0-config
         - name: tls-cert-volume
           secret:
-            secretName: org2-ecert-ca-tls-cert
+            secretName: org0-ca-tls-cert
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: org2-ecert-ca
+  name: org0-ca
 spec:
   ports:
     - name: tls
       port: 443
       protocol: TCP
   selector:
-    app: org2-ecert-ca
+    app: org0-ca
