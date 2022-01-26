@@ -34,3 +34,12 @@ popd
 stopNetwork
 print "Remove wallet storage"
 rm -R ../asset-transfer-events/application-javascript/wallet
+
+# Run Go gateway application
+createNetwork
+print "Initializing Go gateway application"
+pushd ../asset-transfer-events/application-gateway-go
+print "Executing AssetTransferEvents.go"
+go run .
+popd
+stopNetwork
