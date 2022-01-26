@@ -1,6 +1,6 @@
 # the first stage 
 FROM gradle:jdk11 AS GRADLE_BUILD
-ARG CC_SERVER_PORT
+ARG CC_SERVER_PORT=9999
 
 # copy the build.gradle and src code to the container
 COPY src/ src/
@@ -24,8 +24,8 @@ RUN addgroup --system javauser && useradd -g javauser javauser
 COPY --chown=javauser:javauser --from=GRADLE_BUILD /home/gradle/build/libs/chaincode.jar /chaincode.jar
 COPY --chown=javauser:javauser docker/docker-entrypoint.sh /docker-entrypoint.sh 
 
-ENV PORT $CC_SERVER_PORT
-EXPOSE $CC_SERVER_PORT
+ENV PORT 9999
+EXPOSE 9999
 
 USER javauser
 ENTRYPOINT [ "/tini", "--", "/docker-entrypoint.sh" ]
