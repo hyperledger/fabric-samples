@@ -41,6 +41,15 @@ gradle run
 popd
 stopNetwork
 
+# Run Java application using gateway
+createNetwork
+print "Initializing Java application"
+pushd ../asset-transfer-basic/application-gateway-java
+print "Executing Gradle Run"
+gradle run
+popd
+stopNetwork
+
 # Run Javascript application
 createNetwork
 print "Initializing Javascript application"
