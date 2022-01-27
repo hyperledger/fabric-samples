@@ -39,7 +39,7 @@ rm -R ../asset-transfer-events/application-javascript/wallet
 createNetwork
 print "Initializing Go gateway application"
 pushd ../asset-transfer-events/application-gateway-go
-print "Executing AssetTransferEvents.go"
+print "Executing application"
 go run .
 popd
 stopNetwork
