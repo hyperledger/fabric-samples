@@ -71,7 +71,7 @@ var getBlockByNumber = async function(peer, channelName, blockNumber, username, 
 			throw new Error(message);
 		}
 
-		let response_payload = await channel.queryBlock(parseInt(blockNumber, peer));
+		let response_payload = await channel.queryBlock(parseInt(blockNumber), peer);
 		if (response_payload) {
 			logger.debug(response_payload);
 			return response_payload;
