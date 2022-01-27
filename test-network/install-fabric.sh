@@ -48,7 +48,7 @@ begins_with_short_option()
 print_help()
 {
 	printf 'Usage: %s [-f|--fabric-version <arg>] [-c|--ca-version <arg>] <comp-1> [<comp-2>] ... [<comp-n>] ...\n' "$0"
-	printf '\t%s\n' "<comp>: Component to install one or more of  d[ocker]|b[inary]|s[amples]|p[podman]. If none specified, all will be installed"
+	printf '\t%s\n' "<comp>: Component to install one or more of d[ocker]|b[inary]|s[amples]|p[podman]|n[nerdctl]. If none specified, all will be installed"
 	printf '\t%s\n' "-f, --fabric-version: FabricVersion (default: '2.4.0')"
 	printf '\t%s\n' "-c, --ca-version: Fabric CA Version (default: '1.5.2')"
 }
@@ -292,6 +292,14 @@ if [[ "${_arg_comp[@]}" =~ p(odman)? ]]; then
         echo "Pull Hyperledger Fabric podman images"
         echo
         CONTAINER_CLI=podman
+        pullImages
+fi
+
+if [[ "${_arg_comp[@]}" =~ n(erdctl)? ]]; then
+        echo
+        echo "Pull Hyperledger Fabric images into containerd"
+        echo
+        CONTAINER_CLI=nerdctl
         pullImages
 fi
 
