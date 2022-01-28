@@ -23,6 +23,10 @@ VERBOSE=${12:-"false"}
 
 CCAAS_SERVER_PORT=9999
 
+: ${CONTAINER_CLI:="docker"}
+: ${CONTAINER_CLI_COMPOSE:="${CONTAINER_CLI}-compose"}
+infoln "Using ${CONTAINER_CLI} and ${CONTAINER_CLI_COMPOSE}"
+
 println "executing with the following"
 println "- CHANNEL_NAME: ${C_GREEN}${CHANNEL_NAME}${C_RESET}"
 println "- CC_NAME: ${C_GREEN}${CC_NAME}${C_RESET}"
