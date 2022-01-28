@@ -174,7 +174,7 @@ function createOrgs() {
   # Create crypto material using Fabric CA
   if [ "$CRYPTO" == "Certificate Authorities" ]; then
     infoln "Generating certificates using Fabric CA"
-    ${CONTAINER_CLI_COMPOSE} -f $COMPOSE_FILE_CA up -d 2>&1
+    ${CONTAINER_CLI_COMPOSE} -f compose/$COMPOSE_FILE_CA -f compose/$CONTAINER_CLI/${CONTAINER_CLI}-$COMPOSE_FILE_CA up -d 2>&1
 
     . organizations/fabric-ca/registerEnroll.sh
 
@@ -240,10 +240,12 @@ function networkUp() {
     createOrgs
   fi
   echo "============done orgs"
-  COMPOSE_FILES="-f ${COMPOSE_FILE_BASE}"
+  #COMPOSE_FILES="-f compose/${COMPOSE_FILE_BASE} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_BASE}"
+  COMPOSE_FILES="-f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_BASE}"
+
 
   if [ "${DATABASE}" == "couchdb" ]; then
-    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_COUCH}"
+    COMPOSE_FILES="${COMPOSE_FILES} -f compose/${COMPOSE_FILE_COUCH} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_COUCH}"
   fi
 
   DOCKER_SOCK="${DOCKER_SOCK}" ${CONTAINER_CLI_COMPOSE} ${COMPOSE_FILES} up -d 2>&1
@@ -292,10 +294,10 @@ function deployCCAAS() {
 function networkDown() {
 
   # stop org3 containers also in addition to org1 and org2, in case we were running sample to add org3
-  for descriptor in $COMPOSE_FILE_BASE $COMPOSE_FILE_COUCH $COMPOSE_FILE_CA $COMPOSE_FILE_COUCH_ORG3 $COMPOSE_FILE_ORG3
+  for descriptor in $COMPOSE_FILE_BASE $COMPOSE_FILE_COUCH $COMPOSE_FILE_CA #$COMPOSE_FILE_COUCH_ORG3 $COMPOSE_FILE_ORG3
   do
     infoln "Decomposing $descriptor"
-    DOCKER_SOCK=$DOCKER_SOCK ${CONTAINER_CLI_COMPOSE} -f $descriptor down --volumes #--remove-orphans
+    DOCKER_SOCK=$DOCKER_SOCK ${CONTAINER_CLI_COMPOSE} -f compose/$descriptor -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${descriptor} down --volumes #--remove-orphans
   done
 
   # Don't remove the generated artifacts -- note, the ledgers are always removed
@@ -340,11 +342,11 @@ CC_COLL_CONFIG="NA"
 # chaincode init function defaults to "NA"
 CC_INIT_FCN="NA"
 # use this as the default docker-compose yaml definition
-COMPOSE_FILE_BASE=${CONTAINER_CLI}/docker-compose-test-net.yaml
+COMPOSE_FILE_BASE=compose-test-net.yaml
 # docker-compose.yaml file if you are using couchdb
-COMPOSE_FILE_COUCH=${CONTAINER_CLI}/docker-compose-couch.yaml
+COMPOSE_FILE_COUCH=compose-couch.yaml
 # certificate authorities compose file
-COMPOSE_FILE_CA=${CONTAINER_CLI}/docker-compose-ca.yaml
+COMPOSE_FILE_CA=compose-ca.yaml
 # use this as the docker compose couch file for org3
 COMPOSE_FILE_COUCH_ORG3=addOrg3/${CONTAINER_CLI}/docker-compose-couch-org3.yaml
 # use this as the default docker-compose yaml definition for org3

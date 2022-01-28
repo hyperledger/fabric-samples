@@ -280,14 +280,14 @@ if [[ "${_arg_comp[@]}" =~ s(amples)? ]]; then
         cloneSamplesRepo
 fi
 
-if [[ "${_arg_comp[@]}" =~ b(inary)? ]]; then
+if [[ "${_arg_comp[@]}" =~ ^b(inary)? ]]; then
         echo
         echo "Pull Hyperledger Fabric binaries"
         echo
         pullBinaries
 fi
 
-if [[ "${_arg_comp[@]}" =~ p(odman)? ]]; then
+if [[ "${_arg_comp[@]}" =~ ^p(odman)? ]]; then
         echo
         echo "Pull Hyperledger Fabric podman images"
         echo
@@ -295,7 +295,7 @@ if [[ "${_arg_comp[@]}" =~ p(odman)? ]]; then
         pullImages
 fi
 
-if [[ "${_arg_comp[@]}" =~ n(erdctl)? ]]; then
+if [[ "${_arg_comp[@]}" =~ ^n(erdctl)? ]]; then
         echo
         echo "Pull Hyperledger Fabric images into containerd"
         echo
@@ -303,7 +303,7 @@ if [[ "${_arg_comp[@]}" =~ n(erdctl)? ]]; then
         pullImages
 fi
 
-if [[ "${_arg_comp[@]}" =~ d(ocker)? ]]; then
+if [[ "${_arg_comp[@]}" =~ ^d(ocker)? ]]; then
         echo
         echo "Pull Hyperledger Fabric docker images"
         echo
