@@ -116,8 +116,8 @@ function create_org1_local_MSP() {
   fabric-ca-client register --id.name org1-peer1 --id.secret peerpw --id.type peer --url https://org1-tls-ca --mspdir $FABRIC_CA_CLIENT_HOME/tls-ca/tlsadmin/msp
   fabric-ca-client register --id.name org1-peer2 --id.secret peerpw --id.type peer --url https://org1-tls-ca --mspdir $FABRIC_CA_CLIENT_HOME/tls-ca/tlsadmin/msp
 
-  fabric-ca-client enroll --url https://org1-peer1:peerpw@org1-tls-ca --csr.hosts org1-peer1 --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/tls
-  fabric-ca-client enroll --url https://org1-peer2:peerpw@org1-tls-ca --csr.hosts org1-peer2 --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer2.org1.example.com/tls
+  fabric-ca-client enroll --url https://org1-peer1:peerpw@org1-tls-ca --csr.hosts localhost,org1-peer1 --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/tls
+  fabric-ca-client enroll --url https://org1-peer2:peerpw@org1-tls-ca --csr.hosts localhost,org1-peer2 --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer2.org1.example.com/tls
 
   # Copy the TLS signing keys to a fixed path for convenience when launching the peers
   cp /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/tls/keystore/*_sk /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/tls/keystore/server.key
@@ -145,7 +145,6 @@ function create_org1_local_MSP() {
   cp /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/msp/config.yaml /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer2.org1.example.com/msp/config.yaml
   cp /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/msp/config.yaml /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/config.yaml
   ' | exec kubectl -n $NS exec deploy/org1-ecert-ca -i -- /bin/sh
-
 }
 
 function create_org2_local_MSP() {
@@ -166,8 +165,8 @@ function create_org2_local_MSP() {
   fabric-ca-client register --id.name org2-peer1 --id.secret peerpw --id.type peer --url https://org2-tls-ca --mspdir $FABRIC_CA_CLIENT_HOME/tls-ca/tlsadmin/msp
   fabric-ca-client register --id.name org2-peer2 --id.secret peerpw --id.type peer --url https://org2-tls-ca --mspdir $FABRIC_CA_CLIENT_HOME/tls-ca/tlsadmin/msp
 
-  fabric-ca-client enroll --url https://org2-peer1:peerpw@org2-tls-ca --csr.hosts org2-peer1 --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer1.org2.example.com/tls
-  fabric-ca-client enroll --url https://org2-peer2:peerpw@org2-tls-ca --csr.hosts org2-peer2 --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer2.org2.example.com/tls
+  fabric-ca-client enroll --url https://org2-peer1:peerpw@org2-tls-ca --csr.hosts localhost,org2-peer1 --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer1.org2.example.com/tls
+  fabric-ca-client enroll --url https://org2-peer2:peerpw@org2-tls-ca --csr.hosts localhost,org2-peer2 --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer2.org2.example.com/tls
 
   # Copy the TLS signing keys to a fixed path for convenience when launching the peers
   cp /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer1.org2.example.com/tls/keystore/*_sk /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer1.org2.example.com/tls/keystore/server.key

@@ -20,6 +20,7 @@ set -o errexit
 # todo: track down a nasty bug whereby the CA service endpoints (kube services) will occasionally reject TCP connections after network down/up.  This is patched by introducing a 10s sleep after the deployments are up...
 # todo: refactor query/invoke to specify chaincode name (-n param)
 
+CONTAINER_CLI=${CONTAINER_CLI:-docker}
 FABRIC_VERSION=${TEST_NETWORK_FABRIC_VERSION:-2.4.1}
 FABRIC_CA_VERSION=${TEST_NETWORK_FABRIC_CA_VERSION:-1.5.2}
 FABRIC_CONTAINER_REGISTRY=${TEST_NETWORK_FABRIC_CONTAINER_REGISTRY:-hyperledger}
