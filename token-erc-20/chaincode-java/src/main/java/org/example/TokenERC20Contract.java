@@ -1,9 +1,7 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
-
 package org.example;
-
 
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.contract.ContractInterface;
@@ -16,504 +14,451 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import org.json.JSONObject;
 
+import com.google.common.base.Strings;
+
 @Contract(name = "TokenERC20Contract", info = @Info(title = "TokenERC20Contract", description = "A java chaincode for erc20 token", version = "0.0.1-SNAPSHOT"))
 
 @Default
 public final class TokenERC20Contract implements ContractInterface {
 
- 
-    final private String balancePrefix = "balance";
-    final private String allowancePrefix = "allowance";
-    final private String nameKey = "name";
-    final private String symbolKey = "symbol";
-    final private String decimalsKey = "decimals";
-    final private String totalSupplyKey = "totalSupply";
+  private static final String BALANCE_PREFIX = "balance";
+  private static final String ALLOWANCE_PREFIX = "allowance";
+  private static final String NAME_KEY = "name";
+  private static final String SYMBOL_KEY = "symbol";
+  private static final String DECIMALS_KEY = "decimals";
+  private static final String TOTAL_SUPPLY_KEY = "totalSupply";
+  private static final String TRANSFER_EVENT = "Transfer";
+  private static final String FROM = "from";
+  private static final String TO = "to";
+  private static final String VALUE= "value";
+  private static final String ERC20_OWNER_MSPID= "Org1MSP";
+  
 
-    /**
-     * Return the name of the token - e.g. "MyToken". The original function name is
-     * `name` in ERC20 specification. However, 'name' conflicts with a parameter
-     * `name` in `Contract` class. As a work around, we use `TokenName` as an
-     * alternative function name.
-     *
-     * @param {Context} ctx the transaction context
-     * @returns {String} Returns the name of the token
-     */
-    @Transaction()
-    public String tokenName(final Context ctx) {
+  /**
+   * @Desc Return the name of the token - e.g. "MyToken". The original function name is `name` in
+   * ERC20 specification. However, 'name' conflicts with a parameter `name` in `Contract` class. As
+   * a work around, we use `TokenName` as an alternative function name.
+   * @param ctx the transaction context
+   * @returns Returns the name of the token
+   */
 
-        ChaincodeStub stub = ctx.getStub();
-        String tokenName = stub.getStringState(nameKey);
-        if (tokenName.isEmpty()) {
+  @Transaction()
+  public String tokenName(final Context ctx) {
 
-            throw new ChaincodeException("Sorry ! Token name not found");
-        }
+    String tokenName = ctx.getStub().getStringState(NAME_KEY);
 
-        return tokenName;
+    if (Strings.isNullOrEmpty(tokenName)) {
+
+      throw new ChaincodeException("Sorry ! Token name not found.");
+    }
+
+    return tokenName;
+
+  }
+
+  /**
+   * @Desc Return the symbol of the token. E.g. “HIX�??.
+   * @param ctx the transaction context
+   * @returns Returns the symbol of the token
+   */
+  @Transaction()
+  public String tokenSymbol(final Context ctx) {
+    String tokenSymbol = ctx.getStub().getStringState(SYMBOL_KEY);
+    if (Strings.isNullOrEmpty(tokenSymbol)) {
+      throw new ChaincodeException("Sorry ! Token symbol not found.");
+    }
+
+    return tokenSymbol;
+
+  }
+
+  /**
+   * @Desc Return the number of decimals the token uses e.g. 8, means to divide the token amount by
+   * 100000000 to get its user representation.
+   * @param ctx the transaction context
+   * @returns Returns the number of decimals
+   */
+  @Transaction()
+  public int decimals(final Context ctx) {
+
+    String decimals = ctx.getStub().getStringState(DECIMALS_KEY);
+    if (Strings.isNullOrEmpty(decimals)) {
+
+      throw new ChaincodeException("Sorry ! Decimal not found.");
+    }
+    return Integer.parseInt(decimals);
+  }
+
+  /**
+   * @Desc Return the total token supply.
+   * @param ctx the transaction context
+   * @returns Returns the total token supply
+   */
+  @Transaction()
+  public long totalSupply(final Context ctx) {
+
+    String totalSupply = ctx.getStub().getStringState(TOTAL_SUPPLY_KEY);
+    if (Strings.isNullOrEmpty(totalSupply)) {
+
+      throw new ChaincodeException("Sorry ! Total Supply  not found.");
+    }
+    return Long.parseLong(totalSupply);
+  }
+
+  /**
+   * BalanceOf returns the balance of the given account.
+   * 
+   * @param ctx the transaction context
+   * @param owner The owner from which the balance will be retrieved
+   * @returns Returns the account balance
+   */
+  @Transaction()
+  public long balanceOf(final Context ctx, final String owner) {
+
+    ChaincodeStub stub = ctx.getStub();
+    CompositeKey balanceKey = ctx.getStub().createCompositeKey(BALANCE_PREFIX, owner);
+    String balance = stub.getStringState(balanceKey.toString());
+    if (Strings.isNullOrEmpty(balance)) {
+      String errorMessage = String.format("Balance of the owner  %s not exists", owner);
+      throw new ChaincodeException(errorMessage);
+    }
+    return Long.parseLong(balance);
+
+  }
+
+  /**
+   * @Desc Transfer transfers tokens from client account to recipient account. recipient account
+   * must be a valid clientID as returned by the ClientAccountID() function.
+   * 
+   * @param ctx the transaction context
+   * @param to The recipient
+   * @param value The amount of token to be transferred
+   * @returns Return whether the transfer was successful or not
+   */
+  @Transaction()
+  public void transfer(final Context ctx, final String to, long _value) {
+
+    String from = ctx.getClientIdentity().getId();
+    this.doTransfer(ctx, from, to, _value);
+    ctx.getStub().setEvent(TRANSFER_EVENT,  new JSONObject().put(FROM, from).put(TO, to)
+        .put(VALUE, _value).toString().getBytes(UTF_8));
+
+  }
+
+  /**
+   * Transfer `value` amount of tokens from `from` to `to`.
+   *
+   * @param ctx the transaction context
+   * @param from The sender
+   * @param to The recipient
+   * @param value The amount of token to be transferred
+   * @returns Return whether the transfer was successful or not
+   */
+  @Transaction()
+  public void transferFrom(Context ctx, final String from, final String to, String _value) {
+
+    String spender = ctx.getClientIdentity().getId();
+    ChaincodeStub stub = ctx.getStub();
+    // Retrieve the allowance of the spender
+    CompositeKey allowanceKey = stub.createCompositeKey(ALLOWANCE_PREFIX, from, spender);
+    String currentAllowanceStr = stub.getStringState(allowanceKey.toString());
+    if (Strings.isNullOrEmpty(currentAllowanceStr)) {
+      String errorMessage = String.format("Spender %s has no allowance from %s", spender, from);
+      throw new ChaincodeException(errorMessage);
+    }
+    long currentAllowance = Long.parseLong(currentAllowanceStr);
+
+    // Convert value from string to int
+    long valueInt = Long.parseLong(_value);
+
+    // Check if the transferred value is less than the allowance
+    if (currentAllowance < valueInt) {
+
+      String errorMessage = String.format("The spender does not have enough allowance to spend.");
+      throw new ChaincodeException(errorMessage);
 
     }
 
-    /**
-     * Return the symbol of the token. E.g. “HIX”.
-     *
-     * @param {Context} ctx the transaction context
-     * @returns {String} Returns the symbol of the token
-     */
-    @Transaction()
-    public String tokenSymbol(final Context ctx) {
-        ChaincodeStub stub = ctx.getStub();
-        String tokenSymbol = stub.getStringState(symbolKey);
-        if (tokenSymbol.isEmpty()) {
+    this.doTransfer(ctx, from, to, valueInt);
 
-            throw new ChaincodeException("Sorry ! Token symbol not found");
-        }
+    // Decrease the allowance
+    long updatedAllowance = currentAllowance - valueInt;
+    stub.putStringState(allowanceKey.toString(), String.valueOf(updatedAllowance));
+    stub.setEvent(TRANSFER_EVENT, new JSONObject().put(FROM, from).put(TO, to)
+        .put(VALUE, valueInt).toString().getBytes(UTF_8));
 
-        return tokenSymbol;
+  }
+
+  private void doTransfer(final Context ctx, final String _from, final String _to, long _value) {
+
+    if (_from.equalsIgnoreCase(_to)) {
+      throw new ChaincodeException("cannot transfer to and from same client account");
+    }
+
+    if (_value < 0) { // transfer of 0 is allowed in ERC20, so just validate against negative
+      // amounts
+      throw new ChaincodeException("transfer amount cannot be negative");
+    }
+
+    ChaincodeStub stub = ctx.getStub();
+    // Retrieve the current balance of the sender
+    CompositeKey fromBalanceKey = stub.createCompositeKey(BALANCE_PREFIX, _from);
+
+    String fromCurrentBalance = stub.getStringState(fromBalanceKey.toString());
+
+    if (Strings.isNullOrEmpty(fromCurrentBalance)) {
+      String errorMessage = String.format("client account %s has no balance", _from);
+      throw new ChaincodeException(errorMessage);
 
     }
 
-    /**
-     * Return the number of decimals the token uses e.g. 8, means to divide the
-     * token amount by 100000000 to get its user representation.
-     *
-     * @param {Context} ctx the transaction context
-     * @returns {Number} Returns the number of decimals
-     */
-    @Transaction()
-    public Integer decimals(final Context ctx) {
+    long _fromCurrentBalance = Long.parseLong(fromCurrentBalance.toString());
 
-        ChaincodeStub stub = ctx.getStub();
-        String decimals = stub.getStringState(decimalsKey);
-        if (decimals.isEmpty()) {
-
-            throw new ChaincodeException("Sorry ! Decimal not found");
-        }
-        return Integer.parseInt(decimals);
+    // Check if the sender has enough tokens to spend.
+    if (_fromCurrentBalance < _value) {
+      String errorMessage = String.format("client account %s has insufficient funds", _from);
+      throw new ChaincodeException(errorMessage);
     }
 
-    /**
-     * Return the total token supply.
-     *
-     * @param {Context} ctx the transaction context
-     * @returns {Number} Returns the total token supply
-     */
-    @Transaction()
-    public Long totalSupply(final Context ctx) {
-        ChaincodeStub stub = ctx.getStub();
-        String totalSupply = stub.getStringState(totalSupplyKey);
-        if (totalSupply.isEmpty()) {
+    // Retrieve the current balance of the recepient
+    CompositeKey toBalanceKey = stub.createCompositeKey(BALANCE_PREFIX, _to);
+    String toCurrentBalance = stub.getStringState(toBalanceKey.toString());
 
-            throw new ChaincodeException("Sorry ! Total Supply  not found");
-        }
-        return Long.parseLong(totalSupply);
+    long _toCurrentBalance = 0;
+    // If recipient current balance doesn't yet exist, we'll create it with a
+    // current balance of 0
+    if (Strings.isNullOrEmpty(toCurrentBalance)) {
+      _toCurrentBalance = 0;
+    } else {
+      _toCurrentBalance = Long.parseLong(toCurrentBalance.trim());
     }
 
-    /**
-     * BalanceOf returns the balance of the given account.
-     *
-     * @param {Context} ctx the transaction context
-     * @param {String}  owner The owner from which the balance will be retrieved
-     * @returns {Number} Returns the account balance
-     */
-    @Transaction()
-    public long balanceOf(final Context ctx, final String owner) {
+    // Update the balance
+    long fromUpdatedBalance = _fromCurrentBalance - _value;
+    long toUpdatedBalance = _toCurrentBalance + _value;
 
-        ChaincodeStub stub = ctx.getStub();
-        CompositeKey balanceKey = stub.createCompositeKey(balancePrefix, owner);
+    stub.putStringState(fromBalanceKey.toString(), String.valueOf(fromUpdatedBalance));
 
-        String balance = stub.getStringState(balanceKey.toString().trim());
-        if (balance == null || balance.isEmpty() || balance.length() == 0) {
-            String errorMessage = String.format("Balance of the owner  %s not exists", owner);
-            System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage);
-        }
+    stub.putStringState(toBalanceKey.toString(), String.valueOf(toUpdatedBalance));
 
-        return Long.parseLong(balance.toString());
+  }
 
+  /**
+   * @Desc Allows `spender` to spend `value` amount of tokens from the owner.
+   *
+   * @param ctx the transaction context
+   * @param spender The spender
+   * @param value The amount of tokens to be approved for transfer
+   * @returns Return whether the approval was successful or not
+   */
+  @Transaction()
+  public void approve(final Context ctx, final String spender, final String value) {
+
+    String owner = ctx.getClientIdentity().getId();
+    ChaincodeStub stub = ctx.getStub();
+    CompositeKey allowanceKey = stub.createCompositeKey(ALLOWANCE_PREFIX, owner, spender);
+    long valueInt = Long.parseLong(value);
+    stub.putStringState(allowanceKey.toString(), String.valueOf(valueInt));
+    stub.setEvent("Approval",  new JSONObject().put("owner", owner).put("spender", spender)
+        .put(VALUE, valueInt).toString().getBytes(UTF_8));
+
+  }
+
+  /**
+   * @Desc Returns the amount of tokens which `spender` is allowed to withdraw from `owner`.
+   *
+   * @param ctx the transaction context
+   * @param owner The owner of tokens
+   * @param spender The spender who are able to transfer the tokens
+   * @returns Return the amount of remaining tokens allowed to spent
+   */
+
+  @Transaction()
+  public long allowance(final Context ctx, final String owner, final String spender) {
+
+    ChaincodeStub stub = ctx.getStub();
+
+    CompositeKey allowanceKey = stub.createCompositeKey(ALLOWANCE_PREFIX, owner, spender);
+    String allowanceBytes = stub.getStringState(allowanceKey.toString());
+
+    if (Strings.isNullOrEmpty(allowanceBytes)) {
+
+      String errorMessage = String.format("spender account %s has no allowance from", spender,
+          owner);
+      throw new ChaincodeException(errorMessage);
     }
 
-    /**
-     * Transfer transfers tokens from client account to recipient account. recipient
-     * account must be a valid clientID as returned by the ClientAccountID()
-     * function.
-     *
-     * @param {Context} ctx the transaction context
-     * @param {String}  to The recipient
-     * @param {Integer} value The amount of token to be transferred
-     * @returns {Boolean} Return whether the transfer was successful or not
-     */
-    @Transaction()
-    public boolean transfer(final Context ctx, final String to, String _value) {
+    long allowance = Long.parseLong(allowanceBytes);
+    return allowance;
+  }
 
-        String from = ctx.getClientIdentity().getId();
-        long value = Long.parseLong(_value.trim());
-        boolean transferResp = this.doTransfer(ctx, from, to, value);
+  /**
+   * @Desc Set optional information for a token.
+   *
+   * @param ctx the transaction context
+   * @param name The name of the token
+   * @param symbol The symbol of the token
+   * @param decimals The decimals of the token
+   * @param totalSupply The totalSupply of the token
+   */
+  @Transaction()
+  public void setOptions(final Context ctx, final String name, final String symbol,
+      final String decimals) {
+    ChaincodeStub stub = ctx.getStub();
+    stub.putStringState(NAME_KEY, name);
+    stub.putStringState(SYMBOL_KEY, symbol);
+    stub.putStringState(DECIMALS_KEY, decimals);
 
-        if (!transferResp) {
-            String errorMessage = String.format("Cannot transfer to and from same client account");
-            System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage);
-        }
+  }
 
-        ChaincodeStub stub = ctx.getStub();
-        JSONObject obj = new JSONObject();
-        obj.put("from", from);
-        obj.put("to", to);
-        obj.put("value", value);
-        stub.setEvent("Transfer", this.serialize(obj));
-        return true;
+  /**
+   * Mint creates new tokens and adds them to minter's account balance
+   *
+   * @param ctx the transaction context
+   * @param amount amount of tokens to be minted
+   * @returns The balance
+   */
+  @Transaction()
+  public void mint(final Context ctx, final String amount) {
 
+    // Check minter authorization - this sample assumes Org1 is the central banker
+    // with privilege to mint new tokens
+
+    String clientMSPID = ctx.getClientIdentity().getMSPID();
+    ChaincodeStub stub = ctx.getStub();
+    if (!clientMSPID.equalsIgnoreCase(ERC20_OWNER_MSPID)) {
+      throw new ChaincodeException("Client is not authorized to mint new tokens");
     }
 
-    /**
-     * Transfer `value` amount of tokens from `from` to `to`.
-     *
-     * @param {Context} ctx the transaction context
-     * @param {String}  from The sender
-     * @param {String}  to The recipient
-     * @param {Integer} value The amount of token to be transferred
-     * @returns {Boolean} Return whether the transfer was successful or not
-     */
-    @Transaction()
-    public boolean transferFrom(Context ctx, final String from, final String to, String _value) {
-
-        String spender = ctx.getClientIdentity().getId();
-        ChaincodeStub stub = ctx.getStub();
-        // Retrieve the allowance of the spender
-        CompositeKey allowanceKey = stub.createCompositeKey(allowancePrefix, from, spender);
-        String currentAllowanceStr = stub.getStringState(allowanceKey.toString().trim());
-        if (currentAllowanceStr.isBlank() || currentAllowanceStr.length() == 0) {
-            String errorMessage = String.format("Spender %s has no allowance from %s", spender, from);
-            System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage);
-        }
-        long currentAllowance = Long.parseLong(currentAllowanceStr.toString());
-
-        // Convert value from string to int
-        Long valueInt = Long.parseLong(_value);
-
-        // Check if the transferred value is less than the allowance
-        if (currentAllowance < valueInt) {
-
-            String errorMessage = String.format("The spender does not have enough allowance to spend.");
-            System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage);
-
-        }
-
-        boolean transferResp = this.doTransfer(ctx, from, to, valueInt);
-
-        if (!transferResp) {
-            throw new ChaincodeException("Failed to transfer");
-        }
-
-        // Decrease the allowance
-        long updatedAllowance = currentAllowance - valueInt;
-        stub.putStringState(allowanceKey.toString().trim(), String.valueOf(updatedAllowance));
-        System.out.printf("spender %s allowance updated from %d to %d", spender, currentAllowance, updatedAllowance);
-
-        JSONObject obj = new JSONObject();
-        obj.put("from", from);
-        obj.put("to", to);
-        obj.put("value", valueInt);
-        stub.setEvent("Transfer", this.serialize(obj));
-        System.out.println("transferFrom ended successfully");
-
-        return true;
+    // Get ID of submitting client identity
+    String minter = ctx.getClientIdentity().getId();
+    long amountInt = Long.parseLong(amount.trim());
+    if (amountInt <= 0) {
+      throw new ChaincodeException("Mint amount must be a positive integer");
     }
 
-    @Transaction()
-    private boolean doTransfer(final Context ctx, final String _from, final String _to, long _value) {
+    CompositeKey balanceKey = stub.createCompositeKey(BALANCE_PREFIX, minter);
 
-        if (_from.equalsIgnoreCase(_to)) {
-            throw new ChaincodeException("cannot transfer to and from same client account");
-        }
+    String currentBalanceBytes = stub.getStringState(balanceKey.toString());
+    // If minter current balance doesn't yet exist, we'll create it with a current
+    // balance of 0
+    long currentBalance = 0;
 
-        if (_value < 0) { // transfer of 0 is allowed in ERC20, so just validate against negative amounts
-            throw new ChaincodeException("transfer amount cannot be negative");
-        }
+    if (Strings.isNullOrEmpty(currentBalanceBytes)) {
 
-        ChaincodeStub stub = ctx.getStub();
-        // Retrieve the current balance of the sender
-        CompositeKey fromBalanceKey = stub.createCompositeKey(balancePrefix, _from.trim());
-        String fromCurrentBalance = stub.getStringState(fromBalanceKey.toString().trim());
-        if (fromCurrentBalance.isBlank() || fromCurrentBalance.length() == 0) {
-            String errorMessage = String.format("client account %s has no balance", _from);
-            throw new ChaincodeException(errorMessage);
+      currentBalance = 0;
 
-        }
+    } else {
 
-        long _fromCurrentBalance = Long.parseLong(fromCurrentBalance.toString().trim());
-
-        // Check if the sender has enough tokens to spend.
-        if (_fromCurrentBalance < _value) {
-            String errorMessage = String.format("client account %s has insufficient funds", _from);
-            throw new ChaincodeException(errorMessage);
-        }
-
-        // Retrieve the current balance of the recepient
-        CompositeKey toBalanceKey = stub.createCompositeKey(balancePrefix, _to);
-        String toCurrentBalance = stub.getStringState(toBalanceKey.toString().trim());
-
-        long _toCurrentBalance = 0;
-        // If recipient current balance doesn't yet exist, we'll create it with a
-        // current balance of 0
-        if (toCurrentBalance.isBlank() || toCurrentBalance.length() == 0) {
-            _toCurrentBalance = 0;
-        } else {
-            _toCurrentBalance = Long.parseLong(toCurrentBalance.trim());
-        }
-
-        // Update the balance
-        long fromUpdatedBalance = _fromCurrentBalance - _value;
-        long toUpdatedBalance = _toCurrentBalance + _value;
-
-        stub.putStringState(fromBalanceKey.toString().trim(), String.valueOf(fromUpdatedBalance));
-
-        stub.putStringState(toBalanceKey.toString().trim(), String.valueOf(toUpdatedBalance));
-
-        System.out.printf("client %s balance updated from  %d to %d", _from, _fromCurrentBalance, fromUpdatedBalance);
-        System.out.printf("recipient %s balance updated from  %d to %d", _to, _toCurrentBalance, toUpdatedBalance);
-
-        return true;
-    }
-
-    /**
-     * Allows `spender` to spend `value` amount of tokens from the owner.
-     *
-     * @param {Context} ctx the transaction context
-     * @param {String}  spender The spender
-     * @param {Integer} value The amount of tokens to be approved for transfer
-     * @returns {Boolean} Return whether the approval was successful or not
-     */
-    @Transaction()
-    public boolean approve(final Context ctx, final String spender, final String value) {
-
-        String owner = ctx.getClientIdentity().getId();
-        ChaincodeStub stub = ctx.getStub();
-        CompositeKey allowanceKey = stub.createCompositeKey(allowancePrefix, owner, spender);
-        long valueInt = Long.parseLong(value);
-        stub.putStringState(allowanceKey.toString().trim(), String.valueOf(valueInt));
-        JSONObject obj = new JSONObject();
-        obj.put("owner", owner);
-        obj.put("spender", spender);
-        obj.put("value", valueInt);
-        stub.setEvent("Approval", this.serialize(obj));
-        System.out.println("Approve ended successfully");
-
-        return true;
+      currentBalance = Long.parseLong(currentBalanceBytes);
 
     }
+    long updatedBalance = currentBalance + amountInt;
 
-    /**
-     * Returns the amount of tokens which `spender` is allowed to withdraw from
-     * `owner`.
-     *
-     * @param {Context} ctx the transaction context
-     * @param {String}  owner The owner of tokens
-     * @param {String}  spender The spender who are able to transfer the tokens
-     * @returns {Number} Return the amount of remaining tokens allowed to spent
-     */
+    stub.putStringState(balanceKey.toString(), String.valueOf(updatedBalance));
 
-    @Transaction()
-    public long allowance(final Context ctx, final String owner, final String spender) {
+    // Increase totalSupply
+    String totalSupplyBytes = stub.getStringState(TOTAL_SUPPLY_KEY);
+    long totalSupply = 0;
+    if (Strings.isNullOrEmpty(totalSupplyBytes)) {
 
-        ChaincodeStub stub = ctx.getStub();
+      totalSupply = 0;
 
-        CompositeKey allowanceKey = stub.createCompositeKey(allowancePrefix, owner, spender);
-        String allowanceBytes = stub.getStringState(allowanceKey.toString().trim());
+    } else {
 
-        if (allowanceBytes.isBlank() || allowanceBytes.length() == 0) {
-
-            String errorMessage = String.format("spender account %s has no allowance from", spender, owner);
-            throw new ChaincodeException(errorMessage);
-        }
-
-        long allowance = Long.parseLong(allowanceBytes.toString().trim());
-        return allowance;
+      totalSupply = Long.parseLong(totalSupplyBytes.toString());
     }
 
-    /**
-     * Set optional infomation for a token.
-     *
-     * @param {Context} ctx the transaction context
-     * @param {String}  name The name of the token
-     * @param {String}  symbol The symbol of the token
-     * @param {String}  decimals The decimals of the token
-     * @param {String}  totalSupply The totalSupply of the token
-     */
-    @Transaction()
-    public boolean setOptions(final Context ctx, final String name, final String symbol, final String decimals) {
-        ChaincodeStub stub = ctx.getStub();
-        stub.putStringState(nameKey, name);
-        stub.putStringState(symbolKey, symbol);
-        stub.putStringState(decimalsKey, decimals);
+    totalSupply = totalSupply + amountInt;
+    stub.putStringState(TOTAL_SUPPLY_KEY, String.valueOf(totalSupply));
+    stub.setEvent(TRANSFER_EVENT,  new JSONObject().put(FROM, "0x0").put(TO, minter)
+        .put(VALUE, amountInt).toString().getBytes(UTF_8));
 
-        System.out.printf("name:%s, symbol: %s, decimals: %s", name, symbol, decimals);
-        return true;
+  }
+
+  /**
+   * @Desc Burn redeem tokens from minter's account balance.
+   * @param ctx the transaction context
+   * @param amount amount of tokens to be burned
+   * @returns The balance
+   */
+  @Transaction()
+  public void burn(final Context ctx, final String amount) {
+
+    // Check minter authorization - this sample assumes Org1 is the central banker
+    // with privilege to burn tokens
+    String clientMSPID = ctx.getClientIdentity().getMSPID();
+    ChaincodeStub stub = ctx.getStub();
+    if (!clientMSPID.equalsIgnoreCase(ERC20_OWNER_MSPID)) {
+      throw new ChaincodeException("client is not authorized to mint new tokens");
     }
 
-    /**
-     * Mint creates new tokens and adds them to minter's account balance
-     *
-     * @param {Context} ctx the transaction context
-     * @param {Integer} amount amount of tokens to be minted
-     * @returns {Object} The balance
-     */
-    @Transaction()
-    public boolean mint(final Context ctx, final String amount) {
+    String minter = ctx.getClientIdentity().getId();
 
-        // Check minter authorization - this sample assumes Org1 is the central banker
-        // with privilege to mint new tokens
+    long amountInt = Long.parseLong(amount);
 
-        String clientMSPID = ctx.getClientIdentity().getMSPID();
-        ChaincodeStub stub = ctx.getStub();
-        if (!clientMSPID.equalsIgnoreCase("Org1MSP")) {
-            throw new ChaincodeException("client is not authorized to mint new tokens");
-        }
+    CompositeKey balanceKey = stub.createCompositeKey(BALANCE_PREFIX, minter);
 
-        // Get ID of submitting client identity
-        String minter = ctx.getClientIdentity().getId();
-        long amountInt = Long.parseLong(amount.trim());
-        if (amountInt <= 0) {
-            throw new ChaincodeException("mint amount must be a positive integer");
-        }
-
-        CompositeKey balanceKey = stub.createCompositeKey(balancePrefix, minter);
-
-        String currentBalanceBytes = stub.getStringState(balanceKey.toString().trim());
-        // If minter current balance doesn't yet exist, we'll create it with a current
-        // balance of 0
-        long currentBalance = 0;
-
-        if (currentBalanceBytes.isBlank() || currentBalanceBytes.length() == 0) {
-
-            currentBalance = 0;
-
-        } else {
-
-            currentBalance = Long.parseLong(currentBalanceBytes.toString());
-
-        }
-        long updatedBalance = currentBalance + amountInt;
-
-        stub.putStringState(balanceKey.toString().trim(), String.valueOf(updatedBalance));
-
-        // Increase totalSupply
-        String totalSupplyBytes = stub.getStringState(totalSupplyKey.trim());
-        long totalSupply = 0;
-        if (totalSupplyBytes.isBlank() || totalSupplyBytes.length() == 0) {
-            System.out.println("Initialize the tokenSupply");
-            totalSupply = 0;
-
-        } else {
-
-            totalSupply = Long.parseLong(totalSupplyBytes.toString());
-        }
-
-        totalSupply = totalSupply + amountInt;
-        stub.putStringState(totalSupplyKey.trim(), String.valueOf(totalSupply));
-
-        JSONObject obj = new JSONObject();
-        obj.put("from", "0x0");
-        obj.put("to", minter);
-        obj.put("value", amountInt);
-        stub.setEvent("Transfer", this.serialize(obj));
-
-        // System.out.printf("minter account %s balance updated from %d to %d",minter,
-        // currentBalance ,updatedBalance);
-        return true;
+    String currentBalanceBytes = stub.getStringState(balanceKey.toString());
+    if (Strings.isNullOrEmpty(currentBalanceBytes)) {
+      throw new ChaincodeException("The balance does not exist");
     }
+    long currentBalance = Long.valueOf(currentBalanceBytes);
+    long updatedBalance = currentBalance - amountInt;
 
-    /**
-     * Burn redeem tokens from minter's account balance
-     *
-     * @param {Context} ctx the transaction context
-     * @param {Integer} amount amount of tokens to be burned
-     * @returns {Object} The balance
-     */
-    @Transaction()
-    public boolean burn(final Context ctx, final String amount) {
+    stub.putStringState(balanceKey.toString(), String.valueOf(updatedBalance));
 
-        // Check minter authorization - this sample assumes Org1 is the central banker
-        // with privilege to burn tokens
-        String clientMSPID = ctx.getClientIdentity().getMSPID();
-        ChaincodeStub stub = ctx.getStub();
-        if (!clientMSPID.equalsIgnoreCase("Org1MSP")) {
-            throw new ChaincodeException("client is not authorized to mint new tokens");
-        }
-
-        String minter = ctx.getClientIdentity().getId();
-
-        long amountInt = Long.parseLong(amount);
-
-        CompositeKey balanceKey = stub.createCompositeKey(balancePrefix, minter);
-
-        String currentBalanceBytes = stub.getStringState(balanceKey.toString().trim());
-        if (currentBalanceBytes.isBlank() || currentBalanceBytes.length() == 0) {
-            throw new ChaincodeException("The balance does not exist");
-        }
-        long currentBalance = Long.valueOf(currentBalanceBytes.toString());
-        long updatedBalance = currentBalance - amountInt;
-
-        stub.putStringState(balanceKey.toString().trim(), String.valueOf(updatedBalance));
-
-        // Decrease totalSupply
-        String totalSupplyBytes = stub.getStringState(totalSupplyKey.toString().trim());
-        if (totalSupplyBytes.isBlank() || totalSupplyBytes.length() == 0) {
-            throw new ChaincodeException("totalSupply does not exist.");
-        }
-        long totalSupply = Long.parseLong(totalSupplyBytes.toString()) - amountInt;
-        stub.putStringState(totalSupplyKey.toString().trim(), String.valueOf(totalSupply));
-
-        // Emit the Transfer event
-
-        JSONObject obj = new JSONObject();
-        obj.put("from", minter);
-        obj.put("to", "0x0");
-        obj.put("value", amountInt);
-        stub.setEvent("Transfer", this.serialize(obj));
-        System.out.printf("minter account %s balance updated from %d to %d", minter, currentBalance, updatedBalance);
-        return true;
+    // Decrease totalSupply
+    String totalSupplyBytes = stub.getStringState(TOTAL_SUPPLY_KEY);
+    if (Strings.isNullOrEmpty(totalSupplyBytes)) {
+      throw new ChaincodeException("totalSupply does not exist.");
     }
+    long totalSupply = Long.parseLong(totalSupplyBytes.toString()) - amountInt;
+    stub.putStringState(TOTAL_SUPPLY_KEY, String.valueOf(totalSupply));
 
-    /**
-     * ClientAccountBalance returns the balance of the requesting client's account.
-     *
-     * @param {Context} ctx the transaction context
-     * @returns {Number} Returns the account balance
-     */
+    // Emit the Transfer event
 
-    @Transaction()
-    public long getClientAccountBalance(final Context ctx) {
-        // Get ID of submitting client identity
-        ChaincodeStub stub = ctx.getStub();
-        String clientAccountID = ctx.getClientIdentity().getId();
-        CompositeKey balanceKey = stub.createCompositeKey(balancePrefix, clientAccountID);
-        String balanceBytes = stub.getStringState(balanceKey.toString().trim());
-        if (balanceBytes.isBlank() || balanceBytes.length() == 0) {
+    stub.setEvent(TRANSFER_EVENT, new JSONObject().put(FROM, minter).put(TO, "0x0")
+        .put(VALUE, amountInt).toString().getBytes(UTF_8));
 
-            String errorMessage = String.format("the account  %s does not exist", clientAccountID);
-            throw new ChaincodeException(errorMessage);
-        }
-        long balance = Long.parseLong(balanceBytes.trim());
+  }
 
-        return balance;
+  /**
+   * @Desc: ClientAccountBalance returns the balance of the requesting client's account.
+   *
+   * @param ctx the transaction context
+   * @returns Returns the account balance
+   */
+
+  @Transaction()
+  public long getClientAccountBalance(final Context ctx) {
+    // Get ID of submitting client identity
+    ChaincodeStub stub = ctx.getStub();
+    String clientAccountID = ctx.getClientIdentity().getId();
+    CompositeKey balanceKey = stub.createCompositeKey(BALANCE_PREFIX, clientAccountID);
+    String balanceBytes = stub.getStringState(balanceKey.toString());
+    if (Strings.isNullOrEmpty(balanceBytes)) {
+
+      String errorMessage = String.format("the account  %s does not exist", clientAccountID);
+      throw new ChaincodeException(errorMessage);
     }
+    long balance = Long.parseLong(balanceBytes);
 
-    // ClientAccountID returns the id of the requesting client's account.
-    // In this implementation, the client account ID is the clientId itself.
-    // Users can use this function to get their own account id, which they can then
-    // give to others as the payment address
-    @Transaction()
-    public String getClientAccountID(final Context ctx) {
-        // Get ID of submitting client identity
-        String clientAccountID = ctx.getClientIdentity().getId();
-        return clientAccountID;
-    }
+    return balance;
+  }
 
-    private byte[] serialize(Object object) {
-        String jsonStr = new JSONObject(object).toString();
-        return jsonStr.getBytes(UTF_8);
-    }
+  /**
+   * @Desc: ClientAccountID returns the id of the requesting client's account. In this
+   * implementation, the client account ID is the clientId itself. Users can use this function to
+   * get their own account id, which they can then give to others as the payment address.
+   * 
+   */
+
+  @Transaction()
+  public String getClientAccountID(final Context ctx) {
+    // Get ID of submitting client identity
+    String clientAccountID = ctx.getClientIdentity().getId();
+    return clientAccountID;
+  }
 
 }

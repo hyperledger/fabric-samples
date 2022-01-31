@@ -24,10 +24,7 @@ dependencies {
 }
 
 repositories {
-    maven {
-        url "https://hyperledger.jfrog.io/hyperledger/fabric-maven"
-    }
-    jcenter()
+    mavenCentral()
     maven {
         url 'https://jitpack.io'
     }

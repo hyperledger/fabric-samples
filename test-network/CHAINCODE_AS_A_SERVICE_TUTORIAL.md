@@ -1,6 +1,6 @@
 # Running Chaincode as Service with the Test Network
 
-The chaincode-as-a-service feature is a very useful and practical way to run 'Smart Contracts'. Traditionally the Fabric Peer has taken on the role of orchestrating the complete lifecycle of the chaincode. It required access to the Docker Daemon to create images, and start containers. Java, NodeJS and Go chaincode frameworks were explicitly known to the peer including how they should be built and started.
+The chaincode-as-a-service feature is a very useful and practical way to run 'Smart Contracts'. Traditionally the Fabric Peer has taken on the role of orchestrating the complete lifecycle of the chaincode. It required access to the Docker Daemon to create images, and start containers. Java, Node.js and Go chaincode frameworks were explicitly known to the peer including how they should be built and started.
 
 As a result this makes it very hard to deploy into Kubernetes (K8S) style environments, or to run in any form of debug mode. Additionally, the code is being rebuilt by the peer therefore there is some degree of uncertainty about what dependencies have been pulled in.
 
@@ -12,7 +12,7 @@ We need to use the latest 2.4.1 release as this contains some improvements to ma
 
 - The docker image for the peer contains a builder for chaincode-as-a-service preconfigured. This is named 'ccaasbuilder'. This removes the need to build your own external builder and repackage and configure the peer
 - The `ccaasbuilder` applications are included in the binary tgz archive download for use in other circumstances. The `sampleconfig/core.yaml` is updated as well to refer to 'ccaasbuilder'
-- The 2.4.1 Java Chaincode release has been updated to remove the need to write a custom bootstrap main class, similar  to the NodeJS Chaincode. It is intended that this will be added to the go chaincode as well.
+- The 2.4.1 Java Chaincode release has been updated to remove the need to write a custom bootstrap main class, similar  to the Node.js Chaincode. It is intended that this will be added to the go chaincode as well.
 
 ## End-to-end with the the test-network
 
@@ -20,7 +20,7 @@ The `test-network` and some of the chaincodes have been updated to support runni
 
 It's useful to have two terminal windows open, one for starting the Fabric Network, and a second for monitoring all the docker containers.
 
-In your 'monitoring' window, run this to watch all activity from the all the docker containers on the `fabric_test` network; this will monitor all the docker containers that are added to the `fabric-test` network. The network is usually created by the `./network.sh up` command, so remember to delay running this until at lest the network is created. It is possible to precreate the network with `docker network create fabric-test` if you wish.
+In your 'monitoring' window, run this to watch all activity from the all the docker containers on the `fabric_test` network; this will monitor all the docker containers that are added to the `fabric-test` network. The network is usually created by the `./network.sh up` command, so remember to delay running this until at least the network is created. It is possible to precreate the network with `docker network create fabric-test` if you wish.
 
 ```bash
 # from the fabric-samples repo
@@ -50,7 +50,7 @@ This sequence can be run as follows
 
 This is very similar to the `deployCC` command, it needs the name, and path. But also needs to have the port the chaincode container is going use. As each container is on the `fabric-test` network, you might wish to alter this so there are no collisions with other chaincode containers.
 
-You should be able to see the contract starting in the monitoring window. There will be two containers running, one for org1 and one for org2. The container names contain the organzation/peer and the name of the chaincode.
+You should be able to see the contract starting in the monitoring window. There will be two containers running, one for org1 and one for org2. The container names contain the organization/peer and the name of the chaincode.
 
 To test things are working you can invoke the 'Contract Metadata' function. For information on how to work as different organizations see [Interacting with the network](https://hyperledger-fabric.readthedocs.io/en/latest/test_network.html#interacting-with-the-network)
 
@@ -62,6 +62,7 @@ export CORE_PEER_LOCALMSPID="Org1MSP"
 export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
 export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
 export CORE_PEER_ADDRESS=localhost:7051
+export FABRIC_CFG_PATH=${PWD}/../config
 
 # invoke the function
 peer chaincode query -C mychannel -n basicts -c '{"Args":["org.hyperledger.fabric:GetMetadata"]}' | jq
@@ -78,7 +79,7 @@ To run the Java example, change the `deployCCAAS` command as follows, This will 
 
 ### Troubleshooting
 
-If the JSON structure passed in is badly formatted JSON this error will be in the peer log
+If the JSON structure passed in is badly formatted JSON this error will be in the peer log:
 
 ```
 ::Error: Failed to unmarshal json: cannot unmarshal string into Go value of type map[string]interface {} command=build
@@ -103,9 +104,9 @@ A sample docker run command could be as follows. The two key variables that are 
                    assettx_ccaas_image:latest
 ```
 
-### Nodejs
+### Node.js
 
-For NodeJS (JavaScript or TypeScript) chaincode, typically the `package.json` has `fabric-chaincode-node start` as the main start command. To run in the '-as-a-service' mode change this to `fabric-chaincode-node server --chaincode-address=$CHAINCODE_SERVER_ADDRESS --chaincode-id=$CHAINCODE_ID`
+For Node.js (JavaScript or TypeScript) chaincode, typically the `package.json` has `fabric-chaincode-node start` as the main start command. To run in the '-as-a-service' mode change this to `fabric-chaincode-node server --chaincode-address=$CHAINCODE_SERVER_ADDRESS --chaincode-id=$CHAINCODE_ID`
 
 ### Golang
 
@@ -131,7 +132,7 @@ Not starting docker containers; these are the commands we would have run
 Depending on your directory, and what you need to debug you might need to adjust these commands. 
 
 ### Building the docker image
-The first thing needed is to build the docker image. Remember that so long as the peer can connect to the hostname:port given in the `connection.json` the actual packaging of the chaincode is not important to the peer. You are at liberty to adjust the dockerfiles given hgere.
+The first thing needed is to build the docker image. Remember that so long as the peer can connect to the hostname:port given in the `connection.json` the actual packaging of the chaincode is not important to the peer. You are at liberty to adjust the dockerfiles given here.
 
 To manually build the docker image for the `asset-transfer-basic/chaincode-java`
 
@@ -164,7 +165,7 @@ For all languages please note:
 
 For Node.js please note:
 
-- Port 9229 is forwarded however - this is the debug port used by NodeJS
+- Port 9229 is forwarded however - this is the debug port used by Node.js
 - `-e DEBUG=true` will trigger the node runtime to be started in debug mode. This is encoded in the `docker/docker-entrypoint.sh` script - this is an example and you may wish to remove this in production images for security
 - If you are using typescript, ensure that the typescript has been compiled with sourcemaps, otherwise a debugger will struggle matching up the source code.
 
@@ -199,6 +200,6 @@ CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG="{\"peername\":\"org1peer1\"}"
 
 The external builder will then resolve this address to be `org1peer1_assettransfer_ccaas:9999` for the peer to use.
 
-Each peer can have there own separate configuration, and therefore different addresses. The JSON string that is set can have any structure, so long as the templates (in golang template syntax) match.
+Each peer can have their own separate configuration, and therefore different addresses. The JSON string that is set can have any structure, so long as the templates (in golang template syntax) match.
 
 Any value in the `connection.json` can be templated - but only the values and not the keys.
