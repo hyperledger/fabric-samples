@@ -8,7 +8,7 @@
 import { TimeoutError, TransactionError } from 'fabric-network';
 import { logger } from './logger';
 
-/*
+/**
  * Base type for errors from the smart contract.
  *
  * These errors will not be retried.
@@ -25,7 +25,7 @@ export class ContractError extends Error {
   }
 }
 
-/*
+/**
  * Represents the error which occurs when the transaction being submitted or
  * evaluated is not implemented in a smart contract.
  */
@@ -38,7 +38,7 @@ export class TransactionNotFoundError extends ContractError {
   }
 }
 
-/*
+/**
  * Represents the error which occurs in the basic asset transfer smart contract
  * implementation when an asset already exists.
  */
@@ -51,7 +51,7 @@ export class AssetExistsError extends ContractError {
   }
 }
 
-/*
+/**
  * Represents the error which occurs in the basic asset transfer smart contract
  * implementation when an asset does not exist.
  */
@@ -64,26 +64,30 @@ export class AssetNotFoundError extends ContractError {
   }
 }
 
-/*
+/**
  * Enumeration of possible retry actions.
- *
- * WithExistingTransactionId - transactions should be retried using the same
- * transaction ID to protect against duplicate transactions being committed if
- * a timeout error occurs
- *
- * WithNewTransactionId - transactions which could not be committed due to
- * other errors require a new transaction ID when retrying
- *
- * None - transactions that failed due to a duplicate transaction error, or
- * errors from the smart contract, should not be retried
  */
 export enum RetryAction {
+  /**
+   * Transactions should be retried using the same transaction ID to protect
+   * against duplicate transactions being committed if a timeout error occurs
+   */
   WithExistingTransactionId,
+
+  /**
+   * Transactions which could not be committed due to other errors require a
+   * new transaction ID when retrying
+   */
   WithNewTransactionId,
+
+  /**
+   * Transactions that failed due to a duplicate transaction error, or errors
+   * from the smart contract, should not be retried
+   */
   None,
 }
 
-/*
+/**
  * Get the required transaction retry action for an error.
  *
  * For this sample transactions are considered retriable if they fail with any
@@ -92,11 +96,11 @@ export enum RetryAction {
  *
  * You might decide to retry transactions which fail with specific errors
  * instead, for example:
- *   MVCC_READ_CONFLICT
- *   PHANTOM_READ_CONFLICT
- *   ENDORSEMENT_POLICY_FAILURE
- *   CHAINCODE_VERSION_CONFLICT
- *   EXPIRED_CHAINCODE
+ *   - MVCC_READ_CONFLICT
+ *   - PHANTOM_READ_CONFLICT
+ *   - ENDORSEMENT_POLICY_FAILURE
+ *   - CHAINCODE_VERSION_CONFLICT
+ *   - EXPIRED_CHAINCODE
  */
 export const getRetryAction = (err: unknown): RetryAction => {
   if (isDuplicateTransactionError(err) || err instanceof ContractError) {
@@ -108,7 +112,7 @@ export const getRetryAction = (err: unknown): RetryAction => {
   return RetryAction.WithNewTransactionId;
 };
 
-/*
+/**
  * Type guard to make catching unknown errors easier
  */
 export const isErrorLike = (err: unknown): err is Error => {
@@ -122,7 +126,7 @@ export const isErrorLike = (err: unknown): err is Error => {
   );
 };
 
-/*
+/**
  * Checks whether an error was caused by a duplicate transaction.
  *
  * This is ...painful.
@@ -155,13 +159,13 @@ export const isDuplicateTransactionError = (err: unknown): boolean => {
   return isDuplicate === true;
 };
 
-/*
+/**
  * Matches asset already exists error strings from the asset contract
  *
  * The regex needs to match the following error messages:
- *   "the asset %s already exists"
- *   "The asset ${id} already exists"
- *   "Asset %s already exists"
+ *   - "the asset %s already exists"
+ *   - "The asset ${id} already exists"
+ *   - "Asset %s already exists"
  */
 const matchAssetAlreadyExistsMessage = (message: string): string | null => {
   const assetAlreadyExistsRegex = /([tT]he )?[aA]sset \w* already exists/g;
@@ -178,13 +182,13 @@ const matchAssetAlreadyExistsMessage = (message: string): string | null => {
   return null;
 };
 
-/*
+/**
  * Matches asset does not exist error strings from the asset contract
  *
  * The regex needs to match the following error messages:
- *   "the asset %s does not exist"
- *   "The asset ${id} does not exist"
- *   "Asset %s does not exist"
+ *   - "the asset %s does not exist"
+ *   - "The asset ${id} does not exist"
+ *   - "Asset %s does not exist"
  */
 const matchAssetDoesNotExistMessage = (message: string): string | null => {
   const assetDoesNotExistRegex = /([tT]he )?[aA]sset \w* does not exist/g;
@@ -201,12 +205,12 @@ const matchAssetDoesNotExistMessage = (message: string): string | null => {
   return null;
 };
 
-/*
+/**
  * Matches transaction does not exist error strings from the contract API
  *
  * The regex needs to match the following error messages:
- *   "Failed to get transaction with id %s, error Entry not found in index"
- *   "Failed to get transaction with id %s, error no such transaction ID [%s] in index"
+ *   - "Failed to get transaction with id %s, error Entry not found in index"
+ *   - "Failed to get transaction with id %s, error no such transaction ID [%s] in index"
  */
 const matchTransactionDoesNotExistMessage = (
   message: string
@@ -228,11 +232,12 @@ const matchTransactionDoesNotExistMessage = (
   return null;
 };
 
-/*
+/**
  * Handles errors from evaluating and submitting transactions.
  *
- * Smart contract errors from the the basic asset transfer samples do not use
+ * Smart contract errors from the basic asset transfer samples do not use
  * error codes so matching strings is the only option, which is not ideal.
+ *
  * Note: the error message text is not the same for the Go, Java, and
  * Javascript implementations of the chaincode!
  */

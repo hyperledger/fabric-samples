@@ -52,7 +52,7 @@ const connection: ConnectionOptions = {
   password: config.redisPassword,
 };
 
-/*
+/**
  * Set up the queue for submit jobs
  */
 export const initJobQueue = (): Queue => {
@@ -72,7 +72,7 @@ export const initJobQueue = (): Queue => {
   return submitQueue;
 };
 
-/*
+/**
  * Set up a worker to process submit jobs on the queue, using the
  * processSubmitTransactionJob function below
  */
@@ -104,7 +104,7 @@ export const initJobQueueWorker = (app: Application): Worker => {
   return worker;
 };
 
-/*
+/**
  * Process a submit transaction request from the job queue
  *
  * The job will be retried if this function throws an error
@@ -209,7 +209,7 @@ export const processSubmitTransactionJob = async (
   }
 };
 
-/*
+/**
  * Set up a scheduler for the submit job queue
  *
  * This manages stalled and delayed jobs and is required for retries with backoff
@@ -226,7 +226,7 @@ export const initJobQueueScheduler = (): QueueScheduler => {
   return queueScheduler;
 };
 
-/*
+/**
  * Helper to add a new submit transaction job to the queue
  */
 export const addSubmitTransactionJob = async (
@@ -250,7 +250,7 @@ export const addSubmitTransactionJob = async (
   return job.id;
 };
 
-/*
+/**
  * Helper to update the data for an existing job
  */
 export const updateJobData = async (
@@ -274,7 +274,7 @@ export const updateJobData = async (
   await job.update(newData);
 };
 
-/*
+/**
  * Gets a job summary
  *
  * This function is used for the jobs REST endpoint
@@ -325,7 +325,7 @@ export const getJobSummary = async (
   return jobSummary;
 };
 
-/*
+/**
  * Get the current job counts
  *
  * This function is used for the liveness REST endpoint
