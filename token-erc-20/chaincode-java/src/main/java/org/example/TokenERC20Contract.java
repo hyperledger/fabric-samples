@@ -57,7 +57,7 @@ public final class TokenERC20Contract implements ContractInterface {
   }
 
   /**
-   * @Desc Return the symbol of the token. E.g. âHIXâ??.
+   * @Desc Return the symbol of the token. E.g. “HIX�??.
    * @param ctx the transaction context
    * @returns Returns the symbol of the token
    */
