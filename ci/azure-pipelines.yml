@@ -15,6 +15,13 @@ variables:
   PATH: $(Build.Repository.LocalPath)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
 jobs:
+  - job: REST_Sample
+    displayName: REST Server Sample
+    pool:
+      vmImage: ubuntu-20.04
+    steps:
+      - template: templates/asset-transfer-basic/azure-pipelines-rest.yml
+
   - job: CommercialPaper_Go
     displayName: Commercial Paper (Go)
     pool:
