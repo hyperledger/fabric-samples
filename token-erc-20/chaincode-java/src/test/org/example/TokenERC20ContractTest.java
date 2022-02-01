@@ -299,15 +299,7 @@ public class TokenERC20ContractTest {
     @Test
     public void allowanceTransferFromTest() throws Exception {
 
-      /*
-       * ChaincodeStub localStub = new ChaincodeStubNaiveImpl(); ((ChaincodeStubNaiveImpl)
-       * localStub).setCertificate(ChaincodeStubNaiveImpl.CERT_WITH_DNS); Context localCtx =
-       * mock(Context.class); ClientIdentity localidentity = new ClientIdentity(localStub);
-       * when(localCtx.getClientIdentity()).thenReturn(localidentity);
-       * when(localCtx.getStub()).thenReturn(localStub);
-       */
-
-      String spender = "x509::CN=User1@org2.example.com, L=San Francisco, ST=California,"
+     String spender = "x509::CN=User1@org2.example.com, L=San Francisco, ST=California,"
           + " C=US::CN=ca.org2.example.com, O=org2.example.com, L=San Francisco, ST=California, C=US";
      
       contract.approve(ctx, spender, "200");

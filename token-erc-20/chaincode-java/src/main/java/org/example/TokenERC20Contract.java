@@ -1,6 +1,7 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package org.example;
 
 import org.hyperledger.fabric.contract.Context;
@@ -35,7 +36,7 @@ public final class TokenERC20Contract implements ContractInterface {
   
 
   /**
-   * @Desc Return the name of the token - e.g. "MyToken". The original function name is `name` in
+   * @Desc: Return the name of the token - e.g. "MyToken". The original function name is `name` in
    * ERC20 specification. However, 'name' conflicts with a parameter `name` in `Contract` class. As
    * a work around, we use `TokenName` as an alternative function name.
    * @param ctx the transaction context
@@ -188,6 +189,14 @@ public final class TokenERC20Contract implements ContractInterface {
         .put(VALUE, valueInt).toString().getBytes(UTF_8));
 
   }
+  
+    /**
+   * 
+   * @param ctx
+   * @param _from
+   * @param _to
+   * @param _value
+   */
 
   private void doTransfer(final Context ctx, final String _from, final String _to, long _value) {
 

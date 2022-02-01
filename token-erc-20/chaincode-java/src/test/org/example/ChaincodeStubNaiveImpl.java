@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-//import org.hyperledger.fabric.samples.fabcar.TestUtil;
 
 import org.hyperledger.fabric.protos.msp.Identities.SerializedIdentity;
 import org.hyperledger.fabric.protos.peer.ChaincodeEventPackage;
