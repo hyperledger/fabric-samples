@@ -23,7 +23,7 @@
 	"fiscalYearStartMonth": 0,
 	"gnetId": 893,
 	"graphTooltip": 1,
-	"iteration": 1642423515757,
+	"iteration": 1643645866197,
 	"links": [],
 	"liveNow": false,
 	"panels": [
@@ -64,7 +64,7 @@
 		  "alertThreshold": true
 		},
 		"percentage": false,
-		"pluginVersion": "8.3.1",
+		"pluginVersion": "8.3.4",
 		"pointradius": 5,
 		"points": false,
 		"renderer": "flot",
@@ -79,77 +79,7 @@
 			  "uid": "PBFA97CFB590B2093"
 			},
 			"exemplar": true,
-			"expr": "sum(rate(container_cpu_system_seconds_total[1m]))/ count(node_cpu_seconds_total{mode=\"idle\"}) without (cpu,mode)",
-			"hide": true,
-			"interval": "",
-			"intervalFactor": 2,
-			"legendFormat": "a",
-			"refId": "B",
-			"step": 120
-		  },
-		  {
-			"datasource": {
-			  "type": "prometheus",
-			  "uid": "PBFA97CFB590B2093"
-			},
-			"exemplar": true,
-			"expr": "sum(rate(container_cpu_system_seconds_total{name=~\".+\"}[1m]))/ count(node_cpu_seconds_total{mode=\"idle\"}) without (cpu,mode)",
-			"hide": true,
-			"interval": "",
-			"intervalFactor": 2,
-			"legendFormat": "nur container",
-			"refId": "F",
-			"step": 10
-		  },
-		  {
-			"datasource": {
-			  "type": "prometheus",
-			  "uid": "PBFA97CFB590B2093"
-			},
-			"exemplar": true,
-			"expr": "sum(rate(container_cpu_system_seconds_total{id=\"/\"}[1m]))/ count(node_cpu_seconds_total{mode=\"idle\"}) without (cpu,mode)",
-			"hide": true,
-			"interval": "",
-			"intervalFactor": 2,
-			"legendFormat": "nur docker host",
-			"metric": "",
-			"refId": "A",
-			"step": 20
-		  },
-		  {
-			"datasource": {
-			  "type": "prometheus",
-			  "uid": "PBFA97CFB590B2093"
-			},
-			"exemplar": true,
-			"expr": "sum(rate(process_cpu_seconds_total[$interval]))/ count(node_cpu_seconds_total{mode=\"idle\"}) without (cpu,mode) * 100",
-			"hide": true,
-			"interval": "",
-			"intervalFactor": 2,
-			"legendFormat": "host",
-			"metric": "",
-			"refId": "C",
-			"step": 600
-		  },
-		  {
-			"datasource": {
-			  "type": "prometheus",
-			  "uid": "PBFA97CFB590B2093"
-			},
-			"expr": "sum(rate(container_cpu_system_seconds_total{name=~\".+\"}[1m])) + sum(rate(container_cpu_system_seconds_total{id=\"/\"}[1m])) + sum(rate(process_cpu_seconds_total[1m]))",
-			"hide": true,
-			"intervalFactor": 2,
-			"legendFormat": "",
-			"refId": "D",
-			"step": 120
-		  },
-		  {
-			"datasource": {
-			  "type": "prometheus",
-			  "uid": "PBFA97CFB590B2093"
-			},
-			"exemplar": true,
-			"expr": "sum(rate(container_cpu_usage_seconds_total{name=~\".+\"}[$interval]))/ count(node_cpu_seconds_total{mode=\"idle\"}) without (cpu,mode) * 100",
+			"expr": "100 - (avg(rate(node_cpu_seconds_total{job=\"node\",mode=\"idle\"}[$__interval])) * 100)",
 			"hide": false,
 			"interval": "",
 			"legendFormat": "",
@@ -158,7 +88,7 @@
 		],
 		"thresholds": [],
 		"timeRegions": [],
-		"title": "CPU Usage",
+		"title": "System CPU Usage",
 		"tooltip": {
 		  "msResolution": true,
 		  "shared": true,
@@ -195,10 +125,6 @@
 		"bars": false,
 		"dashLength": 10,
 		"dashes": false,
-		"datasource": {
-		  "type": "prometheus",
-		  "uid": "PBFA97CFB590B2093"
-		},
 		"editable": true,
 		"error": false,
 		"fieldConfig": {
@@ -260,7 +186,7 @@
 		  "alertThreshold": true
 		},
 		"percentage": false,
-		"pluginVersion": "8.3.1",
+		"pluginVersion": "8.3.4",
 		"pointradius": 5,
 		"points": false,
 		"renderer": "flot",
@@ -270,29 +196,21 @@
 		"steppedLine": false,
 		"targets": [
 		  {
+			"datasource": {
+			  "type": "prometheus",
+			  "uid": "PBFA97CFB590B2093"
+			},
 			"exemplar": true,
-			"expr": "sum(container_memory_rss{name=~\".+\"}) by (name)",
-			"hide": true,
-			"interval": "",
-			"intervalFactor": 2,
-			"legendFormat": "{{name}}",
-			"refId": "A",
-			"step": 240
-		  },
-		  {
-			"exemplar": true,
-			"expr": "sum(container_memory_usage_bytes{name=~\".+\"} - container_memory_cache{name=~\".+\"})",
+			"expr": "sum(container_memory_usage_bytes{name=~\".+\"}) - sum(container_memory_cache{name=~\".+\"})",
 			"hide": false,
 			"interval": "",
-			"intervalFactor": 2,
 			"legendFormat": "",
-			"refId": "B",
-			"step": 240
+			"refId": "A"
 		  }
 		],
 		"thresholds": [],
 		"timeRegions": [],
-		"title": "Total Memory Usage per Container",
+		"title": "Total Memory Usage by all containers",
 		"tooltip": {
 		  "msResolution": true,
 		  "shared": true,
@@ -325,10 +243,6 @@
 		}
 	  },
 	  {
-		"datasource": {
-		  "type": "prometheus",
-		  "uid": "PBFA97CFB590B2093"
-		},
 		"fieldConfig": {
 		  "defaults": {
 			"color": {
@@ -386,11 +300,18 @@
 		  "text": {},
 		  "textMode": "auto"
 		},
-		"pluginVersion": "8.3.1",
+		"pluginVersion": "8.3.4",
 		"targets": [
 		  {
-			"expr": "count(rate(container_last_seen{name=~\".+\"}[$interval]))",
+			"datasource": {
+			  "type": "prometheus",
+			  "uid": "PBFA97CFB590B2093"
+			},
+			"exemplar": true,
+			"expr": "count(container_last_seen{name=~\".+\"})",
+			"interval": "",
 			"intervalFactor": 2,
+			"legendFormat": "",
 			"refId": "A",
 			"step": 1800
 		  }
@@ -399,10 +320,6 @@
 		"type": "stat"
 	  },
 	  {
-		"datasource": {
-		  "type": "prometheus",
-		  "uid": "PBFA97CFB590B2093"
-		},
 		"fieldConfig": {
 		  "defaults": {
 			"color": {
@@ -465,11 +382,15 @@
 		  "showThresholdMarkers": true,
 		  "text": {}
 		},
-		"pluginVersion": "8.3.1",
+		"pluginVersion": "8.3.4",
 		"targets": [
 		  {
+			"datasource": {
+			  "type": "prometheus",
+			  "uid": "PBFA97CFB590B2093"
+			},
 			"exemplar": true,
-			"expr": "min((node_filesystem_size_bytes{fstype=~\"xfs|tmpfs\"} - node_filesystem_free_bytes{fstype=~\"xfs|tmpfs\"} )/ node_filesystem_size_bytes{fstype=~\"xfs|tmpfs\"})",
+			"expr": "min((node_filesystem_size_bytes - node_filesystem_free_bytes )/ node_filesystem_size_bytes)",
 			"hide": false,
 			"interval": "",
 			"intervalFactor": 2,
@@ -482,10 +403,6 @@
 		"type": "gauge"
 	  },
 	  {
-		"datasource": {
-		  "type": "prometheus",
-		  "uid": "PBFA97CFB590B2093"
-		},
 		"fieldConfig": {
 		  "defaults": {
 			"color": {
@@ -548,11 +465,15 @@
 		  "showThresholdMarkers": true,
 		  "text": {}
 		},
-		"pluginVersion": "8.3.1",
+		"pluginVersion": "8.3.4",
 		"targets": [
 		  {
+			"datasource": {
+			  "type": "prometheus",
+			  "uid": "PBFA97CFB590B2093"
+			},
 			"exemplar": true,
-			"expr": "((node_memory_MemTotal_bytes{} - node_memory_MemAvailable_bytes{}) / node_memory_MemTotal_bytes{}) * 100",
+			"expr": "((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100",
 			"interval": "",
 			"intervalFactor": 2,
 			"legendFormat": "",
@@ -642,7 +563,7 @@
 		  "alertThreshold": true
 		},
 		"percentage": false,
-		"pluginVersion": "8.3.1",
+		"pluginVersion": "8.3.4",
 		"pointradius": 5,
 		"points": false,
 		"renderer": "flot",
@@ -657,14 +578,11 @@
 			  "uid": "PBFA97CFB590B2093"
 			},
 			"exemplar": true,
-			"expr": "sum(rate(container_cpu_usage_seconds_total{name=~\".+\"}[$interval])) by (name)/ count(node_cpu_seconds_total{mode=\"idle\"}) without (cpu,mode) * 100",
+			"expr": "avg by (name)(rate(container_cpu_usage_seconds_total{name!~\"cadvisor|node-exporter|grafana|prometheus||\"}[$__interval])) * 100",
 			"hide": false,
 			"interval": "",
-			"intervalFactor": 2,
 			"legendFormat": "{{name}}",
-			"metric": "",
-			"refId": "F",
-			"step": 240
+			"refId": "A"
 		  }
 		],
 		"thresholds": [],
@@ -702,98 +620,87 @@
 		}
 	  },
 	  {
-		"aliasColors": {},
-		"bars": false,
-		"dashLength": 10,
-		"dashes": false,
-		"datasource": {
-		  "type": "prometheus",
-		  "uid": "PBFA97CFB590B2093"
-		},
-		"editable": true,
-		"error": false,
 		"fieldConfig": {
-		  "defaults": {},
-		  "overrides": [
-			{
-			  "matcher": {
-				"id": "byRegexp",
-				"options": "dev-peer0.org1.example.com-fixed-asset-.*"
+		  "defaults": {
+			"color": {
+			  "mode": "palette-classic"
+			},
+			"custom": {
+			  "axisLabel": "",
+			  "axisPlacement": "auto",
+			  "barAlignment": 0,
+			  "drawStyle": "line",
+			  "fillOpacity": 30,
+			  "gradientMode": "none",
+			  "hideFrom": {
+				"legend": false,
+				"tooltip": false,
+				"viz": false
 			  },
-			  "properties": [
+			  "lineInterpolation": "linear",
+			  "lineWidth": 2,
+			  "pointSize": 5,
+			  "scaleDistribution": {
+				"type": "linear"
+			  },
+			  "showPoints": "never",
+			  "spanNulls": false,
+			  "stacking": {
+				"group": "A",
+				"mode": "normal"
+			  },
+			  "thresholdsStyle": {
+				"mode": "off"
+			  }
+			},
+			"mappings": [],
+			"thresholds": {
+			  "mode": "absolute",
+			  "steps": [
 				{
-				  "id": "displayName",
-				  "value": "dev-peer0.org1.example.com-fixed-asset"
+				  "color": "green",
+				  "value": null
+				},
+				{
+				  "color": "red",
+				  "value": 80
 				}
 			  ]
 			},
-			{
-			  "matcher": {
-				"id": "byRegexp",
-				"options": "dev-peer0.org2.example.com-fixed-asset-.*"
-			  },
-			  "properties": [
-				{
-				  "id": "displayName",
-				  "value": "dev-peer0.org2.example.com-fixed-asset"
-				}
-			  ]
-			}
-		  ]
+			"unit": "decbytes"
+		  },
+		  "overrides": []
 		},
-		"fill": 3,
-		"fillGradient": 0,
-		"grid": {},
 		"gridPos": {
 		  "h": 10,
 		  "w": 12,
 		  "x": 12,
 		  "y": 7
 		},
-		"hiddenSeries": false,
 		"id": 10,
-		"legend": {
-		  "alignAsTable": true,
-		  "avg": false,
-		  "current": false,
-		  "max": false,
-		  "min": false,
-		  "rightSide": true,
-		  "show": true,
-		  "total": false,
-		  "values": false
-		},
-		"lines": true,
-		"linewidth": 2,
 		"links": [],
-		"nullPointMode": "null as zero",
 		"options": {
-		  "alertThreshold": true
+		  "legend": {
+			"calcs": [],
+			"displayMode": "table",
+			"placement": "right"
+		  },
+		  "tooltip": {
+			"mode": "single"
+		  }
 		},
-		"percentage": false,
-		"pluginVersion": "8.3.1",
-		"pointradius": 5,
-		"points": false,
-		"renderer": "flot",
-		"seriesOverrides": [],
-		"spaceLength": 10,
-		"stack": true,
-		"steppedLine": false,
+		"pluginVersion": "8.3.4",
 		"targets": [
 		  {
+			"datasource": {
+			  "type": "prometheus",
+			  "uid": "PBFA97CFB590B2093"
+			},
 			"exemplar": true,
-			"expr": "sum(container_memory_rss{name=~\".+\"}) by (name)",
-			"hide": true,
-			"interval": "",
-			"intervalFactor": 2,
-			"legendFormat": "{{name}}",
-			"refId": "A",
-			"step": 240
-		  },
-		  {
-			"exemplar": true,
-			"expr": "sum(container_memory_usage_bytes{name=~\".+\"} - container_memory_cache{name=~\".+\"}) by (name)",
+			"expr": "container_memory_usage_bytes{name!~\"cadvisor|node-exporter|grafana|prometheus||\"} - container_memory_cache{name!~\"cadvisor|node-exporter|grafana|prometheus||\"}",
+			"format": "time_series",
 			"hide": false,
+			"instant": false,
 			"interval": "",
 			"intervalFactor": 2,
 			"legendFormat": "{{name}}",
@@ -801,39 +708,8 @@
 			"step": 240
 		  }
 		],
-		"thresholds": [],
-		"timeRegions": [],
 		"title": "Total Memory Usage per Container",
-		"tooltip": {
-		  "msResolution": true,
-		  "shared": true,
-		  "sort": 0,
-		  "value_type": "individual"
-		},
-		"type": "graph",
-		"xaxis": {
-		  "mode": "time",
-		  "show": true,
-		  "values": []
-		},
-		"yaxes": [
-		  {
-			"$$hashKey": "object:1101",
-			"format": "decbytes",
-			"label": "",
-			"logBase": 1,
-			"show": true
-		  },
-		  {
-			"$$hashKey": "object:1102",
-			"format": "short",
-			"logBase": 1,
-			"show": true
-		  }
-		],
-		"yaxis": {
-		  "align": false
-		}
+		"type": "timeseries"
 	  },
 	  {
 		"fieldConfig": {
@@ -886,26 +762,13 @@
 		  },
 		  "showHeader": true
 		},
-		"pluginVersion": "8.3.1",
+		"pluginVersion": "8.3.4",
 		"targets": [
 		  {
-			"expr": "sum(container_spec_memory_limit_bytes{name=~\".+\"} - container_memory_usage_bytes{name=~\".+\"}) by (name) ",
-			"hide": true,
-			"intervalFactor": 2,
-			"legendFormat": "{{name}}",
-			"metric": "",
-			"refId": "A",
-			"step": 240
-		  },
-		  {
-			"expr": "sum(container_spec_memory_limit_bytes{name=~\".+\"}) by (name) ",
-			"hide": true,
-			"intervalFactor": 2,
-			"legendFormat": "{{name}}",
-			"refId": "B",
-			"step": 240
-		  },
-		  {
+			"datasource": {
+			  "type": "prometheus",
+			  "uid": "PBFA97CFB590B2093"
+			},
 			"exemplar": true,
 			"expr": "container_memory_usage_bytes{name!~\"prometheus|cadvisor|grafana|node-exporter\", name=~\".+\"} - container_memory_cache{name!~\"prometheus|cadvisor|grafana|node-exporter\", name=~\".+\"}",
 			"hide": false,
@@ -937,35 +800,6 @@
 		"dashes": false,
 		"editable": true,
 		"error": false,
-		"fieldConfig": {
-		  "defaults": {},
-		  "overrides": [
-			{
-			  "matcher": {
-				"id": "byRegexp",
-				"options": "dev-peer0.org1.example.com-fixed-asset-.*"
-			  },
-			  "properties": [
-				{
-				  "id": "displayName",
-				  "value": "dev-peer0.org1.example.com-fixed-asset"
-				}
-			  ]
-			},
-			{
-			  "matcher": {
-				"id": "byRegexp",
-				"options": "dev-peer0.org2.example.com-fixed-asset-.*"
-			  },
-			  "properties": [
-				{
-				  "id": "displayName",
-				  "value": "dev-peer0.org2.example.com-fixed-asset"
-				}
-			  ]
-			}
-		  ]
-		},
 		"fill": 0,
 		"fillGradient": 0,
 		"grid": {},
@@ -996,7 +830,7 @@
 		  "alertThreshold": true
 		},
 		"percentage": false,
-		"pluginVersion": "8.3.1",
+		"pluginVersion": "8.3.4",
 		"pointradius": 5,
 		"points": false,
 		"renderer": "flot",
@@ -1011,15 +845,11 @@
 			  "uid": "PBFA97CFB590B2093"
 			},
 			"exemplar": true,
-			"expr": "sum(rate(container_cpu_usage_seconds_total{name!~\"prometheus|cadvisor|grafana|node-exporter|\"}[$interval])) by (name) / count(node_cpu_seconds_total{mode=\"idle\"}) without (cpu,mode) * 100",
+			"expr": "avg by (name)(rate(container_cpu_usage_seconds_total{name!~\"cadvisor|node-exporter|grafana|prometheus||\"}[$__interval])) * 100",
 			"hide": false,
-			"instant": false,
 			"interval": "",
-			"intervalFactor": 2,
 			"legendFormat": "{{name}}",
-			"metric": "",
-			"refId": "F",
-			"step": 240
+			"refId": "A"
 		  }
 		],
 		"thresholds": [],
@@ -1061,10 +891,6 @@
 		"bars": false,
 		"dashLength": 10,
 		"dashes": false,
-		"datasource": {
-		  "type": "prometheus",
-		  "uid": "PBFA97CFB590B2093"
-		},
 		"editable": true,
 		"error": false,
 		"fieldConfig": {
@@ -1126,7 +952,7 @@
 		  "alertThreshold": true
 		},
 		"percentage": false,
-		"pluginVersion": "8.3.1",
+		"pluginVersion": "8.3.4",
 		"pointradius": 5,
 		"points": false,
 		"renderer": "flot",
@@ -1136,18 +962,12 @@
 		"steppedLine": false,
 		"targets": [
 		  {
+			"datasource": {
+			  "type": "prometheus",
+			  "uid": "PBFA97CFB590B2093"
+			},
 			"exemplar": true,
-			"expr": "sum(container_memory_rss{name!~\"prometheus|cadvisor|grafana|node-exporter|\"}) by (name)",
-			"hide": true,
-			"interval": "",
-			"intervalFactor": 2,
-			"legendFormat": "{{name}}",
-			"refId": "A",
-			"step": 240
-		  },
-		  {
-			"exemplar": true,
-			"expr": "sum(container_memory_usage_bytes{name!~\"prometheus|cadvisor|grafana|node-exporter|\"}-container_memory_cache{name!~\"prometheus|cadvisor|grafana|node-exporter|\"}) by (name)",
+			"expr": "sum by (name) (container_memory_usage_bytes{name!~\"prometheus|cadvisor|grafana|node-exporter|\"}-container_memory_cache{name!~\"prometheus|cadvisor|grafana|node-exporter|\"})",
 			"hide": false,
 			"interval": "",
 			"intervalFactor": 2,
@@ -1253,7 +1073,32 @@
 			},
 			"unit": "s"
 		  },
-		  "overrides": []
+		  "overrides": [
+			{
+			  "__systemRef": "hideSeriesFrom",
+			  "matcher": {
+				"id": "byNames",
+				"options": {
+				  "mode": "exclude",
+				  "names": [
+					" peer0_org2 fixed-asset_1.0:a8a7611b4fb90446320b6bcf140ec68be0e14321f176dde56ac2418c584a3250"
+				  ],
+				  "prefix": "All except:",
+				  "readOnly": true
+				}
+			  },
+			  "properties": [
+				{
+				  "id": "custom.hideFrom",
+				  "value": {
+					"legend": false,
+					"tooltip": false,
+					"viz": true
+				  }
+				}
+			  ]
+			}
+		  ]
 		},
 		"gridPos": {
 		  "h": 11,
@@ -1279,35 +1124,11 @@
 			  "uid": "PBFA97CFB590B2093"
 			},
 			"exemplar": true,
-			"expr": "rate(chaincode_shim_request_duration_sum{chaincode!~\"_.*\"}[$interval])",
+			"expr": "sum by(job, chaincode) (rate(chaincode_shim_request_duration_sum{chaincode!~\"_.*\"}[$__interval]) / rate(chaincode_shim_request_duration_count{chaincode!~\"_.*\"}[$__interval]))",
 			"hide": false,
 			"interval": "0.01m",
-			"legendFormat": "{{chaincode}} {{instance}}",
+			"legendFormat": " {{job}} {{chaincode}}",
 			"refId": "A"
-		  },
-		  {
-			"datasource": {
-			  "type": "prometheus",
-			  "uid": "PBFA97CFB590B2093"
-			},
-			"exemplar": true,
-			"expr": "chaincode_shim_request_duration_count{chaincode!~\"_.*\"}",
-			"hide": true,
-			"interval": "",
-			"legendFormat": "{{chaincode}} {{instance}}",
-			"refId": "B"
-		  },
-		  {
-			"datasource": {
-			  "type": "prometheus",
-			  "uid": "PBFA97CFB590B2093"
-			},
-			"exemplar": true,
-			"expr": "chaincode_shim_request_duration_bucket{chaincode=~\"_.*\"}",
-			"hide": true,
-			"interval": "",
-			"legendFormat": "{{chaincode}} {{instance}}",
-			"refId": "C"
 		  }
 		],
 		"title": "Request Duration",
@@ -1389,10 +1210,10 @@
 			  "uid": "PBFA97CFB590B2093"
 			},
 			"exemplar": true,
-			"expr": "rate(chaincode_shim_requests_received{chaincode!~\"_.*\"}[$interval])",
+			"expr": "sum without(channel,type)(rate(chaincode_shim_requests_received{chaincode!~\"_.*\"}[$__interval]))",
 			"hide": false,
 			"interval": "0.01m",
-			"legendFormat": "{{chaincode}} {{instance}}",
+			"legendFormat": "{{job}} {{chaincode}}",
 			"refId": "A"
 		  }
 		],
@@ -1449,7 +1270,32 @@
 			},
 			"unit": "none"
 		  },
-		  "overrides": []
+		  "overrides": [
+			{
+			  "__systemRef": "hideSeriesFrom",
+			  "matcher": {
+				"id": "byNames",
+				"options": {
+				  "mode": "exclude",
+				  "names": [
+					"peer0_org2 simple_1.0:fa575b6f4cc225b509c579775fdf3f3d96f6420477570cde0b1a27036f7357dd"
+				  ],
+				  "prefix": "All except:",
+				  "readOnly": true
+				}
+			  },
+			  "properties": [
+				{
+				  "id": "custom.hideFrom",
+				  "value": {
+					"legend": false,
+					"tooltip": false,
+					"viz": true
+				  }
+				}
+			  ]
+			}
+		  ]
 		},
 		"gridPos": {
 		  "h": 11,
@@ -1475,10 +1321,10 @@
 			  "uid": "PBFA97CFB590B2093"
 			},
 			"exemplar": true,
-			"expr": "rate(chaincode_shim_requests_completed{chaincode!~\"_.*\"}[$interval])",
+			"expr": "sum without(channel, type, success) (rate(chaincode_shim_requests_completed{chaincode!~\"_.*\"}[$__interval]))",
 			"hide": false,
 			"interval": "0.01m",
-			"legendFormat": "{{chaincode}} {{instance}}",
+			"legendFormat": "{{job}} {{chaincode}}",
 			"refId": "A"
 		  }
 		],
@@ -1599,38 +1445,14 @@
 			  "uid": "PBFA97CFB590B2093"
 			},
 			"exemplar": true,
-			"expr": "rate(endorser_proposal_duration_sum{chaincode=~\"fixed-asset.*\"}[$interval]) / on (instance) rate(endorser_proposals_received{}[$interval])",
+			"expr": "avg without(channel, chaincode) (rate(endorser_proposal_duration_sum{chaincode!~\"cscc|qscc|_lifecycle\",success=\"true\"}[$__interval]) / rate(endorser_proposal_duration_count{chaincode!~\"cscc|qscc|_lifecycle\",success=\"true\"}[$__interval]))",
 			"hide": false,
 			"interval": "0.01m",
-			"legendFormat": "{{chaincode}} {{instance}}",
+			"legendFormat": "{{job}}",
 			"refId": "A"
-		  },
-		  {
-			"datasource": {
-			  "type": "prometheus",
-			  "uid": "PBFA97CFB590B2093"
-			},
-			"exemplar": true,
-			"expr": "endorser_proposal_request_duration_count{chaincode=~\"fixed-asset.*\"}",
-			"hide": true,
-			"interval": "",
-			"legendFormat": "{{chaincode}} {{instance}}",
-			"refId": "B"
-		  },
-		  {
-			"datasource": {
-			  "type": "prometheus",
-			  "uid": "PBFA97CFB590B2093"
-			},
-			"exemplar": true,
-			"expr": "endorser_proposal_request_duration_bucket{chaincode=~\"fixed-asset.*\"}",
-			"hide": true,
-			"interval": "",
-			"legendFormat": "{{chaincode}} {{instance}}",
-			"refId": "C"
 		  }
 		],
-		"title": "Proposal Duration",
+		"title": "Successful Proposal Duration",
 		"type": "timeseries"
 	  },
 	  {
@@ -1729,11 +1551,15 @@
 		},
 		"targets": [
 		  {
+			"datasource": {
+			  "type": "prometheus",
+			  "uid": "PBFA97CFB590B2093"
+			},
 			"exemplar": true,
-			"expr": "rate(endorser_proposals_received{}[$interval])",
+			"expr": "rate(endorser_proposals_received[$__interval])",
 			"hide": false,
 			"interval": "0.01m",
-			"legendFormat": "{{chaincode}} {{instance}}",
+			"legendFormat": "{{job}}",
 			"refId": "A"
 		  }
 		],
@@ -1811,8 +1637,12 @@
 		},
 		"targets": [
 		  {
+			"datasource": {
+			  "type": "prometheus",
+			  "uid": "PBFA97CFB590B2093"
+			},
 			"exemplar": true,
-			"expr": "rate(endorser_successful_proposals{}[$interval])",
+			"expr": "rate(endorser_successful_proposals[$__interval])",
 			"hide": false,
 			"interval": "0.01m",
 			"legendFormat": "{{job}}",
@@ -1906,28 +1736,16 @@
 		},
 		"targets": [
 		  {
+			"datasource": {
+			  "type": "prometheus",
+			  "uid": "PBFA97CFB590B2093"
+			},
 			"exemplar": true,
-			"expr": "rate(ledger_block_processing_time_sum{}[$interval])",
+			"expr": "avg without(channel) (rate(ledger_block_processing_time_sum{}[$__interval]) / rate(ledger_block_processing_time_count[$__interval]))",
 			"hide": false,
 			"interval": "0.01m",
 			"legendFormat": "{{job}}",
 			"refId": "A"
-		  },
-		  {
-			"exemplar": true,
-			"expr": "ledger_block_processing_time_count{}",
-			"hide": true,
-			"interval": "",
-			"legendFormat": "{{job}}",
-			"refId": "B"
-		  },
-		  {
-			"exemplar": true,
-			"expr": "ledger_block_processing_time_bucket{}",
-			"hide": true,
-			"interval": "",
-			"legendFormat": "{{job}}",
-			"refId": "C"
 		  }
 		],
 		"title": "Block Processing Time",
@@ -2009,7 +1827,7 @@
 			  "uid": "PBFA97CFB590B2093"
 			},
 			"exemplar": true,
-			"expr": "rate(ledger_blockstorage_commit_time_sum{}[$interval])",
+			"expr": "avg without(channel) (rate(ledger_blockstorage_commit_time_sum{}[$__interval]) / rate(ledger_blockstorage_commit_time_count[$__interval]))",
 			"hide": false,
 			"interval": "0.01m",
 			"legendFormat": "{{job}}",
@@ -2093,7 +1911,32 @@
 			},
 			"unit": "s"
 		  },
-		  "overrides": []
+		  "overrides": [
+			{
+			  "__systemRef": "hideSeriesFrom",
+			  "matcher": {
+				"id": "byNames",
+				"options": {
+				  "mode": "exclude",
+				  "names": [
+					"peer0_org1"
+				  ],
+				  "prefix": "All except:",
+				  "readOnly": true
+				}
+			  },
+			  "properties": [
+				{
+				  "id": "custom.hideFrom",
+				  "value": {
+					"legend": false,
+					"tooltip": false,
+					"viz": true
+				  }
+				}
+			  ]
+			}
+		  ]
 		},
 		"gridPos": {
 		  "h": 11,
@@ -2114,28 +1957,16 @@
 		},
 		"targets": [
 		  {
+			"datasource": {
+			  "type": "prometheus",
+			  "uid": "PBFA97CFB590B2093"
+			},
 			"exemplar": true,
-			"expr": "rate(ledger_statedb_commit_time_sum{}[$interval])",
+			"expr": "avg without(channel) (rate(ledger_statedb_commit_time_sum{}[$__interval]) / rate(ledger_statedb_commit_time_count[$__interval]))",
 			"hide": false,
 			"interval": "0.01m",
 			"legendFormat": "{{job}}",
 			"refId": "A"
-		  },
-		  {
-			"exemplar": true,
-			"expr": "ledger_statedb_commit_time_count{}",
-			"hide": true,
-			"interval": "",
-			"legendFormat": "{{job}}",
-			"refId": "B"
-		  },
-		  {
-			"exemplar": true,
-			"expr": "ledger_statedb_commit_time_bucket{}",
-			"hide": true,
-			"interval": "",
-			"legendFormat": "{{job}}",
-			"refId": "C"
 		  }
 		],
 		"title": "StateDB Commit Time",
@@ -2190,7 +2021,32 @@
 			  ]
 			}
 		  },
-		  "overrides": []
+		  "overrides": [
+			{
+			  "__systemRef": "hideSeriesFrom",
+			  "matcher": {
+				"id": "byNames",
+				"options": {
+				  "mode": "exclude",
+				  "names": [
+					"peer0_org2"
+				  ],
+				  "prefix": "All except:",
+				  "readOnly": true
+				}
+			  },
+			  "properties": [
+				{
+				  "id": "custom.hideFrom",
+				  "value": {
+					"legend": false,
+					"tooltip": false,
+					"viz": true
+				  }
+				}
+			  ]
+			}
+		  ]
 		},
 		"gridPos": {
 		  "h": 11,
@@ -2227,7 +2083,7 @@
 	  }
 	],
 	"refresh": "5s",
-	"schemaVersion": 33,
+	"schemaVersion": 34,
 	"style": "dark",
 	"tags": [],
 	"templating": {
@@ -2235,9 +2091,13 @@
 		{
 		  "allValue": ".+",
 		  "current": {
-			"selected": false,
-			"text": "All",
-			"value": "$__all"
+			"selected": true,
+			"text": [
+			  "All"
+			],
+			"value": [
+			  "$__all"
+			]
 		  },
 		  "datasource": {
 			"type": "prometheus",
@@ -2358,16 +2218,20 @@
 			}
 		  ],
 		  "query": "30s,1m,2m,3m,5m,7m,10m,30m,1h,6h,12h,1d,7d,14d,30d",
+		  "queryValue": "",
 		  "refresh": 2,
 		  "skipUrlSync": false,
 		  "type": "interval"
 		},
 		{
 		  "current": {
-			"isNone": true,
-			"selected": false,
-			"text": "None",
-			"value": ""
+			"selected": true,
+			"text": [
+			  "None"
+			],
+			"value": [
+			  ""
+			]
 		  },
 		  "datasource": {
 			"type": "prometheus",
@@ -2394,7 +2258,7 @@
 	  ]
 	},
 	"time": {
-	  "from": "now-15m",
+	  "from": "now-30m",
 	  "to": "now"
 	},
 	"timepicker": {
@@ -2425,6 +2289,6 @@
 	"timezone": "browser",
 	"title": "HLF Performances Review",
 	"uid": "UeOYeJpWy",
-	"version": 2,
+	"version": 1,
 	"weekStart": ""
   }
