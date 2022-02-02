@@ -11,29 +11,35 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import { TextDecoder } from 'util';
 
-const channelName = 'mychannel';
-const chaincodeName = 'basic';
-const mspId = 'Org1MSP';
+const channelName = envOrDefault('CHANNEL_NAME', 'mychannel');
+const chaincodeName = envOrDefault('CHAINCODE_NAME', 'basic');
+const mspId = envOrDefault('MSP_ID', 'Org1MSP');
 
 // Path to crypto materials.
-const cryptoPath = path.resolve(__dirname, '..', '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com');
+const cryptoPath = envOrDefault('CRYPTO_PATH', path.resolve(__dirname, '..', '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com'));
 
 // Path to user private key directory.
-const keyDirectoryPath = path.resolve(cryptoPath, 'users', 'User1@org1.example.com', 'msp', 'keystore');
+const keyDirectoryPath = envOrDefault('KEY_DIRECTORY_PATH', path.resolve(cryptoPath, 'users', 'User1@org1.example.com', 'msp', 'keystore'));
 
 // Path to user certificate.
-const certPath = path.resolve(cryptoPath, 'users', 'User1@org1.example.com', 'msp', 'signcerts', 'cert.pem');
+const certPath = envOrDefault('CERT_PATH', path.resolve(cryptoPath, 'users', 'User1@org1.example.com', 'msp', 'signcerts', 'cert.pem'));
 
 // Path to peer tls certificate.
-const tlsCertPath = path.resolve(cryptoPath, 'peers', 'peer0.org1.example.com', 'tls', 'ca.crt');
+const tlsCertPath = envOrDefault('TLS_CERT_PATH', path.resolve(cryptoPath, 'peers', 'peer0.org1.example.com', 'tls', 'ca.crt'));
 
 // Gateway peer endpoint.
-const peerEndpoint = 'localhost:7051';
+const peerEndpoint = envOrDefault('PEER_ENDPOINT', 'localhost:7051');
+
+// Gateway peer SSL host name override.
+const peerHostAlias = envOrDefault('PEER_HOST_ALIAS', 'peer0.org1.example.com');
 
 const utf8Decoder = new TextDecoder();
 const assetId = `asset${Date.now()}`;
 
 async function main(): Promise<void> {
+
+    await displayInputParameters();
+
     // The gRPC client connection should be shared by all Gateway connections to this endpoint.
     const client = await newGrpcConnection();
 
@@ -86,13 +92,16 @@ async function main(): Promise<void> {
     }
 }
 
-main().catch(error => console.error('******** FAILED to run the application:', error));
+main().catch(error => {
+    console.error('******** FAILED to run the application:', error);
+    process.exitCode = 1;
+});
 
 async function newGrpcConnection(): Promise<grpc.Client> {
     const tlsRootCert = await fs.readFile(tlsCertPath);
     const tlsCredentials = grpc.credentials.createSsl(tlsRootCert);
     return new grpc.Client(peerEndpoint, tlsCredentials, {
-        'grpc.ssl_target_name_override': 'peer0.org1.example.com',
+        'grpc.ssl_target_name_override': peerHostAlias,
     });
 }
 
@@ -204,4 +213,26 @@ async function updateNonExistentAsset(contract: Contract): Promise<void>{
     } catch (error) {
         console.log('*** Successfully caught the error: \n', error);
     }
+}
+
+/**
+ * envOrDefault() will return the value of an environment variable, or a default value if the variable is undefined.
+ */
+function envOrDefault(key: string, defaultValue: string): string {
+    return process.env[key] || defaultValue;
+}
+
+/**
+ * displayInputParameters() will print the global scope parameters used by the main driver routine.
+ */
+async function displayInputParameters(): Promise<void> {
+    console.log(`channelName:       ${channelName}`);
+    console.log(`chaincodeName:     ${chaincodeName}`);
+    console.log(`mspId:             ${mspId}`);
+    console.log(`cryptoPath:        ${cryptoPath}`);
+    console.log(`keyDirectoryPath:  ${keyDirectoryPath}`);
+    console.log(`certPath:          ${certPath}`);
+    console.log(`tlsCertPath:       ${tlsCertPath}`);
+    console.log(`peerEndpoint:      ${peerEndpoint}`);
+    console.log(`peerHostAlias:     ${peerHostAlias}`);
 }
