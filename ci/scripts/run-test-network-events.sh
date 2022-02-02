@@ -56,3 +56,12 @@ print "Executing application"
 go run .
 popd
 stopNetwork
+
+# Run Java gateway application
+createNetwork
+print "Initializing Java gateway application"
+pushd ../asset-transfer-events/application-gateway-java
+print "Executing application"
+./gradlew run
+popd
+stopNetwork

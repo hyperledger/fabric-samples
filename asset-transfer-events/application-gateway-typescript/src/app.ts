@@ -134,8 +134,9 @@ async function deleteAssetByID(contract: Contract): Promise<void>{
     console.log('\n*** DeleteAsset committed successfully');
 }
 
-async function replayChaincodeEvents(network: Network, startBlock: bigint): Promise<void>{
-
+async function replayChaincodeEvents(network: Network, startBlock: bigint): Promise<void> {
+    console.log('\n*** Start chaincode event replay');
+    
     const events = await network.getChaincodeEvents(chaincodeName, {
         startBlock,
     });
@@ -146,6 +147,7 @@ async function replayChaincodeEvents(network: Network, startBlock: bigint): Prom
             console.log(`\n<-- Chaincode event replayed: ${event.eventName} -`, payload);
 
             if (event.eventName === 'DeleteAsset') {
+                // Reached the last submitted transaction so break to stop listening for events
                 break;
             }
         }
