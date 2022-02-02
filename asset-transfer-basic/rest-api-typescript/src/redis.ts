@@ -9,7 +9,7 @@ import IORedis, { Redis, RedisOptions } from 'ioredis';
 import * as config from './config';
 import { logger } from './logger';
 
-/*
+/**
  * Check whether the maxmemory-policy config is set to noeviction
  *
  * BullMQ requires this setting in redis
