@@ -1,0 +1,34 @@
+#
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: org0-tls-cert-issuer
+spec:
+  isCA: true
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  commonName: org0.example.com
+  secretName: org0-tls-cert-issuer-secret
+  issuerRef:
+    name: root-tls-cert-issuer
+    kind: Issuer
+    group: cert-manager.io
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: org0-tls-cert-issuer
+spec:
+  ca:
+    secretName: org0-tls-cert-issuer-secret
+
+
+
+

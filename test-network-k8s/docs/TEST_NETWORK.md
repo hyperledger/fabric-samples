@@ -44,44 +44,30 @@ the target usage in the network.
 For example, the ordering organization sets up the node local MSP with: 
 ```shell
 # Each identity in the network needs a registration and enrollment.
-fabric-ca-client register --id.name org0-orderer1 --id.secret ordererpw --id.type orderer --url https://org0-ecert-ca --mspdir $FABRIC_CA_CLIENT_HOME/org0-ecert-ca/rcaadmin/msp
-fabric-ca-client register --id.name org0-orderer2 --id.secret ordererpw --id.type orderer --url https://org0-ecert-ca --mspdir $FABRIC_CA_CLIENT_HOME/org0-ecert-ca/rcaadmin/msp
-fabric-ca-client register --id.name org0-orderer3 --id.secret ordererpw --id.type orderer --url https://org0-ecert-ca --mspdir $FABRIC_CA_CLIENT_HOME/org0-ecert-ca/rcaadmin/msp
-fabric-ca-client register --id.name org0-admin --id.secret org0adminpw  --id.type admin   --url https://org0-ecert-ca --mspdir $FABRIC_CA_CLIENT_HOME/org0-ecert-ca/rcaadmin/msp --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
+fabric-ca-client register --id.name org0-orderer1 --id.secret ordererpw --id.type orderer --url https://org0-ca --mspdir $FABRIC_CA_CLIENT_HOME/org0-ca/rcaadmin/msp
+fabric-ca-client register --id.name org0-orderer2 --id.secret ordererpw --id.type orderer --url https://org0-ca --mspdir $FABRIC_CA_CLIENT_HOME/org0-ca/rcaadmin/msp
+fabric-ca-client register --id.name org0-orderer3 --id.secret ordererpw --id.type orderer --url https://org0-ca --mspdir $FABRIC_CA_CLIENT_HOME/org0-ca/rcaadmin/msp
+fabric-ca-client register --id.name org0-admin --id.secret org0adminpw  --id.type admin   --url https://org0-ca --mspdir $FABRIC_CA_CLIENT_HOME/org0-ca/rcaadmin/msp --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
 
-fabric-ca-client enroll --url https://org0-orderer1:ordererpw@org0-ecert-ca --csr.hosts org0-orderer1 --mspdir /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer1.org0.example.com/msp
-fabric-ca-client enroll --url https://org0-orderer2:ordererpw@org0-ecert-ca --csr.hosts org0-orderer2 --mspdir /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer2.org0.example.com/msp
-fabric-ca-client enroll --url https://org0-orderer3:ordererpw@org0-ecert-ca --csr.hosts org0-orderer3 --mspdir /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer3.org0.example.com/msp
-fabric-ca-client enroll --url https://org0-admin:org0adminpw@org0-ecert-ca --mspdir /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/users/Admin@org0.example.com/msp
-
-# Each node in the network needs a TLS registration and enrollment.
-fabric-ca-client register --id.name org0-orderer1 --id.secret ordererpw --id.type orderer --url https://org0-tls-ca --mspdir $FABRIC_CA_CLIENT_HOME/tls-ca/tlsadmin/msp
-fabric-ca-client register --id.name org0-orderer2 --id.secret ordererpw --id.type orderer --url https://org0-tls-ca --mspdir $FABRIC_CA_CLIENT_HOME/tls-ca/tlsadmin/msp
-fabric-ca-client register --id.name org0-orderer3 --id.secret ordererpw --id.type orderer --url https://org0-tls-ca --mspdir $FABRIC_CA_CLIENT_HOME/tls-ca/tlsadmin/msp
-
-fabric-ca-client enroll --url https://org0-orderer1:ordererpw@org0-tls-ca --csr.hosts org0-orderer1 --mspdir /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer1.org0.example.com/tls
-fabric-ca-client enroll --url https://org0-orderer2:ordererpw@org0-tls-ca --csr.hosts org0-orderer2 --mspdir /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer2.org0.example.com/tls
-fabric-ca-client enroll --url https://org0-orderer3:ordererpw@org0-tls-ca --csr.hosts org0-orderer3 --mspdir /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer3.org0.example.com/tls
-
-# Copy the TLS signing keys to a fixed path for convenience when starting the orderers.
-cp /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer1.org0.example.com/tls/keystore/*_sk /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer1.org0.example.com/tls/keystore/server.key
-cp /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer2.org0.example.com/tls/keystore/*_sk /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer2.org0.example.com/tls/keystore/server.key
-cp /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer3.org0.example.com/tls/keystore/*_sk /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer3.org0.example.com/tls/keystore/server.key
+fabric-ca-client enroll --url https://org0-orderer1:ordererpw@org0-ca --csr.hosts org0-orderer1 --mspdir /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer1.org0.example.com/msp
+fabric-ca-client enroll --url https://org0-orderer2:ordererpw@org0-ca --csr.hosts org0-orderer2 --mspdir /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer2.org0.example.com/msp
+fabric-ca-client enroll --url https://org0-orderer3:ordererpw@org0-ca --csr.hosts org0-orderer3 --mspdir /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer3.org0.example.com/msp
+fabric-ca-client enroll --url https://org0-admin:org0adminpw@org0-ca --mspdir /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/users/Admin@org0.example.com/msp
 
 # Create an MSP config.yaml (why is this not generated by the enrollment by fabric-ca-client?)
 echo "NodeOUs:
   Enable: true
   ClientOUIdentifier:
-    Certificate: cacerts/org0-ecert-ca.pem
+    Certificate: cacerts/org0-ca.pem
     OrganizationalUnitIdentifier: client
   PeerOUIdentifier:
-    Certificate: cacerts/org0-ecert-ca.pem
+    Certificate: cacerts/org0-ca.pem
     OrganizationalUnitIdentifier: peer
   AdminOUIdentifier:
-    Certificate: cacerts/org0-ecert-ca.pem
+    Certificate: cacerts/org0-ca.pem
     OrganizationalUnitIdentifier: admin
   OrdererOUIdentifier:
-    Certificate: cacerts/org0-ecert-ca.pem
+    Certificate: cacerts/org0-ca.pem
     OrganizationalUnitIdentifier: orderer" > /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer1.org0.example.com/msp/config.yaml
 
 cp /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer1.org0.example.com/msp/config.yaml /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer2.org0.example.com/msp/config.yaml
@@ -181,23 +167,20 @@ cat kube/org2/org2-peer2.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g'
 After the peers and orderers have started, the Kube namespace includes pods, deployments, and service bindings for: 
 
 - Org0 (org0.example.com): 
-  - TLS Certificate Authority : https://org0-tls-ca
-  - ECert Certificate Authority : https://org0-ecert-ca
+  - ECert Certificate Authority : https://org0-ca
   - Orderer1 : grpcs://org0-orderer1
   - Orderer2 : grpcs://org0-orderer2
   - Orderer3 : grpcs://org0-orderer3
 
 
 - Org1 (org1.example.com):
-  - TLS Certificate Authority : https://org1-tls-ca
-  - ECert Certificate Authority : https://org1-ecert-ca
+  - ECert Certificate Authority : https://org1-ca
   - Peer Node 1 : grpcs://org1-peer1
   - Peer Node 2 : grpcs://org1-peer2
 
 
 - Org2 (org2.example.com):
-  - TLS Certificate Authority : https://org2-tls-ca
-  - ECert Certificate Authority : https://org2-ecert-ca
+  - ECert Certificate Authority : https://org2-ca
   - Peer Node 1 : grpcs://org2-peer1
   - Peer Node 2 : grpcs://org2-peer2
 
