@@ -35,11 +35,15 @@ stopNetwork
 print "Remove wallet storage"
 rm -R ../asset-transfer-events/application-javascript/wallet
 
-# Run Go gateway application
+
+# Run typescript gateway application
 createNetwork
-print "Initializing Go gateway application"
-pushd ../asset-transfer-events/application-gateway-go
-print "Executing application"
-go run .
+print "Initializing typescript application"
+pushd ../asset-transfer-events/application-gateway-typescript
+npm install
+print "Build app"
+npm run build
+print "Executing dist/app.js"
+npm start
 popd
 stopNetwork
