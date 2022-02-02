@@ -32,7 +32,7 @@ export MSP_ID=${MSP_ID:-Org1MSP}
 export CRYPTO_PATH=${CRYPTO_PATH:-../../test-network-k8s/build/organizations/peerOrganizations/org1.example.com}
 export KEY_DIRECTORY_PATH=${KEY_DIRECTORY_PATH:-../../test-network-k8s/build/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore}
 export CERT_PATH=${CERT_PATH:-../../test-network-k8s/build/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/cert.pem}
-export TLS_CERT_PATH=${TLS_CERT_PATH:-../../test-network-k8s/build/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/tls/cacerts/org1-tls-ca.pem}
+export TLS_CERT_PATH=${TLS_CERT_PATH:-../../test-network-k8s/build/organizations/peerOrganizations/org1.example.com/msp/tlscacerts/org1-tls-ca.pem}
 export PEER_ENDPOINT=${PEER_ENDPOINT:-localhost:7051}
 export PEER_HOST_ALIAS=${PEER_HOST_ALIAS:-org1-peer1}
 
@@ -101,6 +101,9 @@ function stopNetwork() {
 
   print "Stopping network"
   ./network down
+
+  print "Cleaning client certificates"
+  rm -rf ../test-network-k8s/build/
 }
 
 # Set up the suite with a KIND cluster
@@ -113,6 +116,7 @@ print "Inserting and querying assets"
 ( ./network chaincode invoke '{"Args":["InitLedger"]}' \
   && sleep 5 \
   && ./network chaincode query '{"Args":["ReadAsset","asset1"]}' )
+print "OK"
 stopNetwork
 
 # Run the basic-asset-transfer basic application
@@ -121,6 +125,7 @@ print "Running Gateway client application"
 ( pushd ${GATEWAY_CLIENT_APPLICATION_PATH} \
   && npm install \
   && npm start )
+print "OK"
 stopNetwork
 
 # Run additional test ...
