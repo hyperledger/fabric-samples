@@ -9,7 +9,7 @@ Launching fabric-rest-sample application:
 ✅ - Constructing fabric-rest-sample connection profiles ...
 ✅ - Starting fabric-rest-sample ...
 
-The fabric-rest-sample has started. See https://github.com/hyperledgendary/fabric-rest-sample/tree/main/asset-transfer-basic/rest-api-typescript#rest-api for additional usage.
+The fabric-rest-sample has started. See https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic/rest-api-typescript for additional usage.
 To access the endpoint:
 
 export SAMPLE_APIKEY=97834158-3224-4CE7-95F9-A148C886653E
@@ -37,7 +37,7 @@ $ curl -s --header "X-Api-Key: ${SAMPLE_APIKEY}" http://localhost/api/assets | j
   }
 ]
 
-$ open https://github.com/hyperledgendary/fabric-rest-sample/tree/main/asset-transfer-basic/rest-api-typescript#rest-api 
+$ open https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic/rest-api-typescript 
 ```
 
 ## Guide for Gateway Client Applications 

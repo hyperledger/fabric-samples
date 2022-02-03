@@ -82,7 +82,7 @@ function launch_rest_sample() {
   rollout_rest_sample
 
   log ""
-  log "The fabric-rest-sample has started.  See https://github.com/hyperledgendary/fabric-rest-sample/tree/main/asset-transfer-basic/rest-api-typescript#rest-api for additional usage."
+  log "The fabric-rest-sample has started.  See https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic/rest-api-typescript for additional usage."
   log "To access the endpoint:"
   log ""
   log "export SAMPLE_APIKEY=97834158-3224-4CE7-95F9-A148C886653E"
