@@ -132,13 +132,9 @@ npm run start:dev
 
 ### Docker image
 
-Alternatively, run the following commands in the `fabric-rest-sample/asset-transfer-basic/rest-api-typescript` directory to start the sample in a Docker container
+It's also possible to use the [published docker image](https://github.com/hyperledger/fabric-samples/pkgs/container/fabric-rest-sample) to run the sample
 
-Build the Docker image
-
-```shell
-docker build -t fabric-rest-sample .
-```
+Clone the `fabric-samples` repository and change to the `fabric-samples/asset-transfer-basic/rest-api-typescript` directory before running the following commands
 
 Create a `.env` file to configure the server for the test network (make sure `TEST_NETWORK_HOME` is set to the fully qualified `test-network` directory and `AS_LOCAL_HOST` is set to `false` so that the server works inside the Docker Compose network)
 

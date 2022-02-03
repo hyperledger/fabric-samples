@@ -179,7 +179,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: ghcr.io/hyperledgendary/fabric-rest-sample
+          image: ghcr.io/hyperledger/fabric-rest-sample
           imagePullPolicy: IfNotPresent 
           env: 
             - name: LOG_LEVEL

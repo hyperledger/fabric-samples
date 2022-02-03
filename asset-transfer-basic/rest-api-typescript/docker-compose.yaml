@@ -9,7 +9,7 @@ services:
       - fabric_test
   
   nodeapp:
-    image: 'fabric-rest-sample'
+    image: 'ghcr.io/hyperledger/fabric-rest-sample:latest'
     command: ['start:dotenv']
     ports:
         - 3000:3000

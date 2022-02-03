@@ -42,7 +42,7 @@ Invoke and query chaincode:
 ./network chaincode query '{"Args":["ReadAsset","1"]}'
 ```
 
-Access the blockchain with a [REST API](https://github.com/hyperledgendary/fabric-rest-sample/tree/main/asset-transfer-basic/rest-api-typescript#rest-api): 
+Access the blockchain with a [REST API](https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic/rest-api-typescript): 
 ```
 ./network rest-easy
 ```
