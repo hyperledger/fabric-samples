@@ -1,7 +1,7 @@
 {
     "env": {
       "node": true,
-      "es6": true
+      "es2020": true
     },
     "root": true,
     "ignorePatterns": [
@@ -30,15 +30,16 @@
           "sourceType": "module",
           "ecmaFeatures": {
             "impliedStrict": true
-          }
+          },
+          "project": "./tsconfig.json"
         },
         "plugins": [
           "@typescript-eslint"
         ],
         "extends": [
           "eslint:recommended",
-          "plugin:@typescript-eslint/eslint-recommended",
-          "plugin:@typescript-eslint/recommended"
+          "plugin:@typescript-eslint/recommended",
+          "plugin:@typescript-eslint/recommended-requiring-type-checking"
         ]
       }
     ]

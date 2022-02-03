@@ -1,7 +1,7 @@
 {
-    "name": "asset-transfer-basic",
+    "name": "asset-transfer-events",
     "version": "1.0.0",
-    "description": "Asset Transfer Basic Application implemented in typeScript using fabric-gateway",
+    "description": "Asset Transfer Events Application implemented in typeScript using fabric-gateway",
     "main": "dist/index.js",
     "typings": "dist/index.d.ts",
     "engines": {
