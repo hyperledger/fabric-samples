@@ -47,7 +47,7 @@ services:
         - orderer.example.com:/var/hyperledger/production/orderer
     ports:
       - 7050:7050
-      - 17050:17050
+      - 9443:9443
     networks:
       - test
 
@@ -84,7 +84,7 @@ services:
     command: peer node start
     ports:
       - 7051:7051
-      - 17051:17051
+      - 9444:9444
     networks:
       - test
 
@@ -121,7 +121,7 @@ services:
     command: peer node start
     ports:
       - 9051:9051
-      - 19051:19051
+      - 9445:9445
     networks:
       - test
 
