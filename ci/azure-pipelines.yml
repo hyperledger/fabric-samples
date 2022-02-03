@@ -8,11 +8,17 @@ trigger:
   - release-2.2
 
 variables:
-  FABRIC_VERSION: 2.4
-  GO_BIN: $(Build.Repository.LocalPath)/bin
-  GO_VER: 1.16.7
-  NODE_VER: 16.x
-  PATH: $(Build.Repository.LocalPath)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+  - name: FABRIC_VERSION
+    value: 2.4
+  - name: GO_BIN
+    value: $(Build.Repository.LocalPath)/bin
+  - name: GO_VER
+    value: 1.16.7
+  - name: NODE_VER
+    value: 16.x
+  - name: PATH
+    value: $(Build.Repository.LocalPath)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+  - group: credentials
 
 jobs:
   - job: REST_Sample
