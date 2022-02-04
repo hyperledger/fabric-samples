@@ -58,7 +58,7 @@
     "start": "node --require source-map-support/register ./dist",
     "start:dotenv": "node --require source-map-support/register --require dotenv/config ./dist",
     "start:dev": "node --require source-map-support/register --require dotenv/config ./dist | pino-pretty",
-    "start:redis": "docker run -p 6379:6379 --name fabric-sample-redis -d redis --maxmemory-policy noeviction",
+    "start:redis": "docker run -p 6379:6379 --name fabric-sample-redis -d redis --maxmemory-policy noeviction --requirepass \"${REDIS_PASSWORD}\"",
     "test": "jest"
   },
   "author": "Hyperledger",

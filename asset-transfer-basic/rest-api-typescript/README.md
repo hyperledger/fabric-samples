@@ -121,6 +121,7 @@ TEST_NETWORK_HOME=$HOME/fabric-samples/test-network npm run generateEnv
 Start a Redis server (Redis is used to store the queue of submit transactions)
 
 ```shell
+export REDIS_PASSWORD=$(uuidgen)
 npm run start:redis
 ```
 
@@ -147,6 +148,7 @@ TEST_NETWORK_HOME=$HOME/fabric-samples/test-network AS_LOCAL_HOST=false npm run 
 Start the sample REST server and Redis server
 
 ```shell
+export REDIS_PASSWORD=$(uuidgen)
 docker-compose up -d
 ```
 
