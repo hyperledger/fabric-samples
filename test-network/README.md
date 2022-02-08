@@ -33,6 +33,8 @@ To learn more about how to use the improvements to the Chaincode-as-a-service pl
 
 ## Podman
 
+*Note - podman support should be considered experimental. There are issues with volume mounting on MacOS that prevent this working. If wish to use podman a LinuxVM is suggested.*
+
 A copy of the `install_fabric.sh` script is in the `test-network` directory. This has been enhanced to support a `podman` argument; if used it will use the `podman` command to pull down images and tag them rather than docker. The images are the same, just pulled differently
 
 The `network.sh` script has been enhanced so that it can use `podman` and `podman-compose` instead of docker. Ensure that `CONTAINER_CLI` is set as below when running `network.sh` script. 
@@ -42,5 +44,7 @@ CONTAINER_CLI=podman ./network.sh up
 ````
 
 As there is no Docker-Daemon when using podman, only the `./network.sh deployCCAAS` command will work.
+
+
 
 
