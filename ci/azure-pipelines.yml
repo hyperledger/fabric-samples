@@ -127,6 +127,20 @@ jobs:
         workingDirectory: test-network
         displayName: Run Test Network Basic Chaincode
 
+  - job: KubeTestNetworkBasic
+    displayName: Kube Test Network Basic
+    pool:
+      vmImage: ubuntu-20.04
+    strategy:
+      matrix:
+        Docker-Typescript:
+          CLIENT_LANGUAGE: typescript
+    steps:
+      - template: templates/install-k8s-deps.yml
+      - script: ../ci/scripts/run-k8s-test-network-basic.sh
+        workingDirectory: test-network-k8s
+        displayName: Run Kubernetes Test Network Basic Asset Transfer
+
   - job: TestNetworkLedger
     displayName: Test Network
     pool:
