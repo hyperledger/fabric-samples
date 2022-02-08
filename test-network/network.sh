@@ -12,9 +12,19 @@
 #
 # prepending $PWD/../bin to PATH to ensure we are picking up the correct binaries
 # this may be commented out to resolve installed version of tools if desired
-export PATH=${PWD}/../bin:$PATH
+#
+# However using PWD in the path has the side effect that location that 
+# this script is run from is critical. To ease this, get the directory
+# this script is actually in and infer location from there. (putting first)
+
+ROOTDIR=$(cd "$(dirname "$0")" && pwd)
+export PATH=${ROOTDIR}/../bin:${PWD}/../bin:$PATH
 export FABRIC_CFG_PATH=${PWD}/configtx
 export VERBOSE=false
+
+# push to the required directory & set a trap to go back if needed
+pushd ${ROOTDIR} > /dev/null
+trap "popd > /dev/null" EXIT
 
 . scripts/utils.sh
 
@@ -483,4 +493,3 @@ else
   printHelp
   exit 1
 fi
-
