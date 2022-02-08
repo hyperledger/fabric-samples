@@ -4,6 +4,27 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 ---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: org0-orderer2-tls-cert
+  namespace: test-network
+spec:
+  isCA: false
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  dnsNames:
+    - localhost
+    - org0-orderer2
+    - org0-orderer2.test-network.svc.cluster.local
+  ipAddresses:
+    - 127.0.0.1
+  secretName: org0-orderer2-tls-cert
+  issuerRef:
+    name: org0-tls-cert-issuer
+
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -16,9 +37,9 @@ data:
   ORDERER_GENERAL_LOCALMSPID: OrdererMSP
   ORDERER_GENERAL_LOCALMSPDIR: /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer2.org0.example.com/msp
   ORDERER_GENERAL_TLS_ENABLED: "true"
-  ORDERER_GENERAL_TLS_CERTIFICATE: /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer2.org0.example.com/tls/signcerts/cert.pem
-  ORDERER_GENERAL_TLS_ROOTCAS: /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer2.org0.example.com/tls/cacerts/org0-tls-ca.pem
-  ORDERER_GENERAL_TLS_PRIVATEKEY: /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer2.org0.example.com/tls/keystore/server.key
+  ORDERER_GENERAL_TLS_CERTIFICATE: /var/hyperledger/fabric/config/tls/tls.crt
+  ORDERER_GENERAL_TLS_ROOTCAS: /var/hyperledger/fabric/config/tls/ca.crt
+  ORDERER_GENERAL_TLS_PRIVATEKEY: /var/hyperledger/fabric/config/tls/tls.key
   ORDERER_GENERAL_BOOTSTRAPMETHOD: none
   ORDERER_FILELEDGER_LOCATION: /var/hyperledger/fabric/data/orderer2
   ORDERER_CONSENSUS_WALDIR: /var/hyperledger/fabric/data/orderer2/etcdraft/wal
@@ -57,6 +78,9 @@ spec:
               mountPath: /var/hyperledger
             - name: fabric-config
               mountPath: /var/hyperledger/fabric/config
+            - name: tls-cert-volume
+              mountPath: /var/hyperledger/fabric/config/tls
+              readOnly: true
       volumes:
         - name: fabric-volume
           persistentVolumeClaim:
@@ -64,7 +88,9 @@ spec:
         - name: fabric-config
           configMap:
             name: org0-config
-
+        - name: tls-cert-volume
+          secret:
+            secretName: org0-orderer2-tls-cert
 ---
 apiVersion: v1
 kind: Service

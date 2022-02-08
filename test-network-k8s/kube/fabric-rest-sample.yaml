@@ -30,7 +30,7 @@ data:
                     "org1-peer1"
                 ],
                 "certificateAuthorities": [
-                    "org1-ecert"
+                    "org1-ca"
                 ]
             }
         },
@@ -48,9 +48,9 @@ data:
             }
         },
         "certificateAuthorities": {
-            "org1-ecert-ca": {
-                "url": "https://org1-ecert-ca",
-                "caName": "org1-ecert-ca",
+            "org1-ca": {
+                "url": "https://org1-ca",
+                "caName": "org1-ca",
                 "tlsCACerts": {
                     "pem": "TODO"
                 },
@@ -106,7 +106,7 @@ data:
                     "org2-peer1"
                 ],
                 "certificateAuthorities": [
-                    "org2-ecert-ca"
+                    "org2-ca"
                 ]
             }
         },
@@ -123,9 +123,9 @@ data:
             }
         },
         "certificateAuthorities": {
-            "org2-ecert-ca": {
-                "url": "https://org2-ecert-ca",
-                "caName": "org2-ecert-ca",
+            "org2-ca": {
+                "url": "https://org2-ca",
+                "caName": "org2-ca",
                 "tlsCACerts": {
                     "pem": ["-----BEGIN CERTIFICATE-----\\nMIICKDCCAc6gAwIBAgIUJAF4fQK1KsnvdaUjau462D/5HPYwCgYIKoZIzj0EAwIw\\naDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQK\\nEwtIeXBlcmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMt\\nY2Etc2VydmVyMB4XDTIxMDkxOTExMTcwMFoXDTM2MDkxNTExMTcwMFowaDELMAkG\\nA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQKEwtIeXBl\\ncmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMtY2Etc2Vy\\ndmVyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8bLvzagP3YANMGHVomZoGCQD\\nRgM3SenagZQ4IWqNQJSV3yTxzdgAWnPhwc+B/HdAOvAq2Oz54FmiSL9dAJoivqNW\\nMFQwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYE\\nFDdBAwT47jtbj48aXdMfRvMPbD5tMA8GA1UdEQQIMAaHBH8AAAEwCgYIKoZIzj0E\\nAwIDSAAwRQIhAITSk4lYWqu12jZkR94aNoKT36ctaeKHuRvXs7m2qaHSAiAtUPO7\\nXlHtI9SDTRvI4DNSb2O7y7+B3WxVeCx50fivDw==\\n-----END CERTIFICATE-----\\n"]
                 },

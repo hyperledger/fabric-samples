@@ -8,11 +8,11 @@
 function extract_MSP_archives() {
   mkdir -p build/msp
 
-  kubectl -n $NS exec deploy/org1-ecert-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org1.example.com/msp | tar zxf - -C build/msp
-  kubectl -n $NS exec deploy/org2-ecert-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org2.example.com/msp | tar zxf - -C build/msp
+  kubectl -n $NS exec deploy/org1-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org1.example.com/msp | tar zxf - -C build/msp
+  kubectl -n $NS exec deploy/org2-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org2.example.com/msp | tar zxf - -C build/msp
 
-  kubectl -n $NS exec deploy/org1-ecert-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp | tar zxf - -C build/msp
-  kubectl -n $NS exec deploy/org2-ecert-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp | tar zxf - -C build/msp
+  kubectl -n $NS exec deploy/org1-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp | tar zxf - -C build/msp
+  kubectl -n $NS exec deploy/org2-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp | tar zxf - -C build/msp
 }
 
 function one_line_pem {
@@ -37,12 +37,12 @@ function construct_rest_sample_configmap() {
   mkdir -p build/fabric-rest-sample-config
 
   local peer_pem=build/msp/organizations/peerOrganizations/org1.example.com/msp/tlscacerts/org1-tls-ca.pem
-  local ca_pem=build/msp/organizations/peerOrganizations/org1.example.com/msp/cacerts/org1-ecert-ca.pem
+  local ca_pem=build/msp/organizations/peerOrganizations/org1.example.com/msp/cacerts/org1-ca.pem
 
   echo "$(json_ccp 1 $peer_pem $ca_pem)" > build/fabric-rest-sample-config/HLF_CONNECTION_PROFILE_ORG1
   
   peer_pem=build/msp/organizations/peerOrganizations/org2.example.com/msp/tlscacerts/org2-tls-ca.pem
-  ca_pem=build/msp/organizations/peerOrganizations/org2.example.com/msp/cacerts/org2-ecert-ca.pem
+  ca_pem=build/msp/organizations/peerOrganizations/org2.example.com/msp/cacerts/org2-ca.pem
 
   echo "$(json_ccp 2 $peer_pem $ca_pem)" > build/fabric-rest-sample-config/HLF_CONNECTION_PROFILE_ORG2
   

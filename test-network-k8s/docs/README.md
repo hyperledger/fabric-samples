@@ -6,11 +6,9 @@ providing a study guide for operational patterns, the test-network provided a ba
 the Fabric community to quickly get up to speed with a working, local system, author smart contracts, and develop
 simple blockchain applications.
 
-While test-network provided a solid foundation for casual Fabric development, the over-reliance on
-[Docker Compose](https://docs.docker.com/compose/) introduced tremendous, non-trivial complexity when transitioning
-applications to production.  Without belaboring the many issues and anti-patterns present in the Compose-based
-test network, we'll submit that the best path forward is to _align_ the development and production patterns around a
-common orchestration framework - Kubernetes.
+As a supplement to the docker-compose based test-network, this guide presents an equivalent Fabric network 
+suitable for running sample applications and chaincode, developing Gateway and Chaincode-as-a-Service applications, 
+and harmonizing CI and deployment flows with a unified container framework - Kubernetes.
 
 Similar to Fabric, Kubernetes introduces a steep learning curve and presents a dizzying array of operational
 flexibility.  In this guide, we'll outline the design considerations in the [`./network`](../network)
@@ -25,8 +23,7 @@ _Ahoy!_
 The Kube test network establishes as consortium among a dedicated ordering organization and two peer organizations.
 Participation in the network is managed over a channel, and transactions are committed to the blockchain ledgers by
 invoking the [asset-transfer-basic](https://github.com/hyperledgendary/fabric-ccaas-asset-transfer-basic)
-_Chaincode-as-a-Service_ running in a shared Kubernetes namespace.  Each organization maintains indepedendent TLS
-and ECert CAs for management of local, channel, and user MSP contexts.
+_Chaincode-as-a-Service_ running in a shared Kubernetes namespace.
 
 ![Test Network](images/test-network.png)
 
@@ -37,7 +34,7 @@ and ECert CAs for management of local, channel, and user MSP contexts.
 - [Working with Kubernetes](KUBERNETES.md)
 - [Certificate Authorities](CA.md)
   - [Planning for a CA](CA.md#planning-for-a-ca)
-  - [Deploy the TLS CAs](CA.md#deploy-the-tls-cas)
+  - [Deploy the TLS CAs](CA.md#deploy-tls-ca-issuers)
   - [Deploy the ECert CAs](CA.md#deploy-the-organization-ca)
 - [Launching the Test Network](TEST_NETWORK.md)
   - [Registering and Enrolling Identities](CA.md#registering-and-enrolling-identities)

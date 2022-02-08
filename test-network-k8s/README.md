@@ -71,8 +71,8 @@ Tear down the cluster:
 
 ## Areas for Improvement / TODOs
 
+- [ ] Refine the recipe and guidelines for use with `k3s` / `nerdctl` (rancherdesktop.io) as an alternative to Docker / KIND.
 - [ ] Test the recipe with OCP, AWS, gcp, Azure, etc. (These should ONLY differ w.r.t. pvc and ingress)
-- [ ] Implement @celder mechanism for bootstrapping dual-headed CAs w/o poisoning the root CA on expiry.
 - [ ] Address any of the 20+ todo: notes in network.sh
 - [ ] Implement mutual TLS across peers, orderers, and clients. 
 - [ ] Caliper?  
