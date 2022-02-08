@@ -17,6 +17,11 @@ export VERBOSE=false
 
 . ../scripts/utils.sh
 
+: ${CONTAINER_CLI:="docker"}
+: ${CONTAINER_CLI_COMPOSE:="${CONTAINER_CLI}-compose"}
+infoln "Using ${CONTAINER_CLI} and ${CONTAINER_CLI_COMPOSE}"
+
+
 # Print the usage message
 function printHelp () {
   echo "Usage: "
@@ -84,7 +89,7 @@ function generateOrg3() {
     fi
 
     infoln "Generating certificates using Fabric CA"
-    docker-compose -f $COMPOSE_FILE_CA_ORG3 up -d 2>&1
+    ${CONTAINER_CLI_COMPOSE} -f $COMPOSE_FILE_CA_ORG3 up -d 2>&1
 
     . fabric-ca/registerEnroll.sh
 
@@ -118,10 +123,15 @@ function generateOrg3Definition() {
 
 function Org3Up () {
   # start org3 nodes
+
+  if [ "$CONTAINER_CLI" == "podman" ]; then
+    cp ../podman/core.ymal ../../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/
+  fi
+
   if [ "${DATABASE}" == "couchdb" ]; then
-    DOCKER_SOCK=${DOCKER_SOCK} docker-compose -f $COMPOSE_FILE_ORG3 -f $COMPOSE_FILE_COUCH_ORG3 up -d 2>&1
+    DOCKER_SOCK=${DOCKER_SOCK} ${CONTAINER_CLI_COMPOSE} -f $COMPOSE_FILE_ORG3 -f $COMPOSE_FILE_COUCH_ORG3 up -d 2>&1
   else
-    DOCKER_SOCK=${DOCKER_SOCK} docker-compose -f $COMPOSE_FILE_ORG3 up -d 2>&1
+    DOCKER_SOCK=${DOCKER_SOCK} ${CONTAINER_CLI_COMPOSE} -f $COMPOSE_FILE_ORG3 up -d 2>&1
   fi
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to start Org3 network"
@@ -147,13 +157,13 @@ function addOrg3 () {
   # Use the CLI container to create the configuration transaction needed to add
   # Org3 to the network
   infoln "Generating and submitting config tx to add Org3"
-  docker exec cli ./scripts/org3-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  ${CONTAINER_CLI} exec cli ./scripts/org3-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to create config tx"
   fi
 
   infoln "Joining Org3 peers to network"
-  docker exec cli ./scripts/org3-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  ${CONTAINER_CLI} exec cli ./scripts/org3-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to join Org3 peers to network"
   fi
@@ -175,11 +185,11 @@ CLI_DELAY=3
 # channel name defaults to "mychannel"
 CHANNEL_NAME="mychannel"
 # use this as the docker compose couch file
-COMPOSE_FILE_COUCH_ORG3=docker/docker-compose-couch-org3.yaml
+COMPOSE_FILE_COUCH_ORG3=${CONTAINER_CLI}/docker-compose-couch-org3.yaml
 # use this as the default docker-compose yaml definition
-COMPOSE_FILE_ORG3=docker/docker-compose-org3.yaml
+COMPOSE_FILE_ORG3=${CONTAINER_CLI}/docker-compose-org3.yaml
 # certificate authorities compose file
-COMPOSE_FILE_CA_ORG3=docker/docker-compose-ca-org3.yaml
+COMPOSE_FILE_CA_ORG3=${CONTAINER_CLI}/docker-compose-ca-org3.yaml
 # database
 DATABASE="leveldb"
 

@@ -45,10 +45,9 @@ services:
       - ORDERER_ADMIN_LISTENADDRESS=0.0.0.0:7053
       - ORDERER_OPERATIONS_LISTENADDRESS=orderer.example.com:9443
       - ORDERER_METRICS_PROVIDER=prometheus
-    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    working_dir: /root
     command: orderer
     volumes:
-        - ../system-genesis-block/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
         - ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
         - ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/:/var/hyperledger/orderer/tls
         - orderer.example.com:/var/hyperledger/production/orderer
@@ -65,9 +64,7 @@ services:
     labels:
       service: hyperledger-fabric
     environment:
-      #Generic peer variables
-      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric_test
+      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
       - CORE_PEER_TLS_ENABLED=true
@@ -84,16 +81,15 @@ services:
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org1.example.com:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.example.com:7051
       - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
       - CORE_OPERATIONS_LISTENADDRESS=peer0.org1.example.com:9444
       - CORE_METRICS_PROVIDER=prometheus
       - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0org1"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
     volumes:
-        - ${DOCKER_SOCK}:/host/var/run/docker.sock
-        - ../organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/fabric/msp
-        - ../organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls:/etc/hyperledger/fabric/tls
+        - ../organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com:/etc/hyperledger/fabric
         - peer0.org1.example.com:/var/hyperledger/production
-    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    working_dir: /root
     command: peer node start
     ports:
       - 7051:7051
@@ -107,9 +103,7 @@ services:
     labels:
       service: hyperledger-fabric
     environment:
-      #Generic peer variables
-      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric_test
+      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
       - CORE_PEER_TLS_ENABLED=true
@@ -126,16 +120,15 @@ services:
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org2.example.com:9051
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org2.example.com:9051
       - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp      
       - CORE_OPERATIONS_LISTENADDRESS=peer0.org2.example.com:9445
       - CORE_METRICS_PROVIDER=prometheus
       - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0org2"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
     volumes:
-        - ${DOCKER_SOCK}:/host/var/run/docker.sock
-        - ../organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp:/etc/hyperledger/fabric/msp
-        - ../organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls:/etc/hyperledger/fabric/tls
+        - ../organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com:/etc/hyperledger/fabric
         - peer0.org2.example.com:/var/hyperledger/production
-    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    working_dir: /root
     command: peer node start
     ports:
       - 9051:9051
@@ -152,8 +145,8 @@ services:
     stdin_open: true
     environment:
       - GOPATH=/opt/gopath
-      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - FABRIC_LOGGING_SPEC=INFO
+      - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
       #- FABRIC_LOGGING_SPEC=DEBUG
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: /bin/bash
