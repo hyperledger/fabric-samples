@@ -17,6 +17,7 @@ spec:
   dnsNames:
     - localhost
     - org1-peer2
+    - org1-peer-gateway-svc
     - org1-peer2.test-network.svc.cluster.local
   ipAddresses:
     - 127.0.0.1
