@@ -269,7 +269,7 @@ function networkUp() {
 function createChannel() {
   # Bring up the network if it is not already up.
 
-  if [ ! -d "organizations/peerOrganizations" ]; then
+   if [ ! -d "organizations/peerOrganizations" ] || ! $CONTAINER_CLI info > /dev/null 2>&1; then
     infoln "Bringing up network"
     networkUp
   fi
