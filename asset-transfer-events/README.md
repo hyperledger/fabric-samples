@@ -66,6 +66,10 @@ Like other samples, the Fabric test network is used to deploy and run this sampl
    cd application-gateway-typescript
    npm install
    npm start
+
+   # To run the Java sample application
+   cd application-gateway-java
+   ./gradlew run
    ```
 
 ## Clean up

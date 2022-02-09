@@ -66,7 +66,7 @@ func main() {
 }
 
 func startChaincodeEventListening(ctx context.Context, network *client.Network) {
-	fmt.Printf("\n*** Start chaincode event listening\n")
+	fmt.Println("\n*** Start chaincode event listening")
 
 	events, err := network.ChaincodeEvents(ctx, chaincodeName)
 	if err != nil {
@@ -106,7 +106,7 @@ func createAsset(contract *client.Contract) uint64 {
 		panic(fmt.Errorf("failed to commit transaction with status code %v", status.Code))
 	}
 
-	fmt.Printf("\n*** CreateAsset committed successfully\n")
+	fmt.Println("\n*** CreateAsset committed successfully")
 
 	return status.BlockNumber
 }
@@ -119,7 +119,7 @@ func updateAsset(contract *client.Contract) {
 		panic(fmt.Errorf("failed to submit transaction: %w", err))
 	}
 
-	fmt.Printf("\n*** UpdateAsset committed successfully\n")
+	fmt.Println("\n*** UpdateAsset committed successfully")
 }
 
 func transferAsset(contract *client.Contract) {
@@ -130,7 +130,7 @@ func transferAsset(contract *client.Contract) {
 		panic(fmt.Errorf("failed to submit transaction: %w", err))
 	}
 
-	fmt.Printf("\n*** TransferAsset committed successfully\n")
+	fmt.Println("\n*** TransferAsset committed successfully")
 }
 
 func deleteAsset(contract *client.Contract) {
@@ -141,11 +141,11 @@ func deleteAsset(contract *client.Contract) {
 		panic(fmt.Errorf("failed to submit transaction: %w", err))
 	}
 
-	fmt.Printf("\n*** DeleteAsset committed successfully\n")
+	fmt.Println("\n*** DeleteAsset committed successfully")
 }
 
 func replayChaincodeEvents(ctx context.Context, network *client.Network, startBlock uint64) {
-	fmt.Printf("\n*** Start chaincode event replay\n")
+	fmt.Println("\n*** Start chaincode event replay")
 
 	events, err := network.ChaincodeEvents(ctx, chaincodeName, client.WithStartBlock(startBlock))
 	if err != nil {
@@ -162,6 +162,7 @@ func replayChaincodeEvents(ctx context.Context, network *client.Network, startBl
 			fmt.Printf("\n<-- Chaincode event replayed: %s - %s\n", event.EventName, asset)
 
 			if event.EventName == "DeleteAsset" {
+				// Reached the last submitted transaction so return to stop listening for events
 				return
 			}
 		}
