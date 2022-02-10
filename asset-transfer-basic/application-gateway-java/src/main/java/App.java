@@ -1,16 +1,9 @@
- 
 /*
  * Copyright IBM Corp. All Rights Reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// Running TestApp: 
-// gradle runApp 
-
-package application.java;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -22,8 +15,16 @@ import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import io.grpc.ManagedChannel;
+import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import org.hyperledger.fabric.client.CallOption;
 import org.hyperledger.fabric.client.CommitException;
 import org.hyperledger.fabric.client.CommitStatusException;
@@ -32,9 +33,9 @@ import org.hyperledger.fabric.client.EndorseException;
 import org.hyperledger.fabric.client.Gateway;
 import org.hyperledger.fabric.client.GatewayException;
 import org.hyperledger.fabric.client.Network;
+import org.hyperledger.fabric.client.Status;
 import org.hyperledger.fabric.client.SubmitException;
 import org.hyperledger.fabric.client.SubmittedTransaction;
-import org.hyperledger.fabric.client.Status;
 import org.hyperledger.fabric.client.identity.Identities;
 import org.hyperledger.fabric.client.identity.Identity;
 import org.hyperledger.fabric.client.identity.Signer;
@@ -42,43 +43,29 @@ import org.hyperledger.fabric.client.identity.Signers;
 import org.hyperledger.fabric.client.identity.X509Identity;
 import org.hyperledger.fabric.protos.gateway.ErrorDetail;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import io.grpc.ManagedChannel;
-
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-
-public class App {
-
+public final class App {
 	private static final String mspID = "Org1MSP";
 	private static final String channelName = "mychannel";
 	private static final String chaincodeName = "basic";
 
-	public static String assetId = "asset" + Instant.now().toEpochMilli();
-
 	// Path to crypto materials.
-	private static final Path cryptoPath = Paths.get("..", "..", "test-network", "organizations", "peerOrganizations",
-			"org1.example.com");
+	private static final Path cryptoPath = Paths.get("..", "..", "test-network", "organizations", "peerOrganizations", "org1.example.com");
 	// Path to user certificate.
-	private static final Path certPath = cryptoPath
-			.resolve(Paths.get("users", "User1@org1.example.com", "msp", "signcerts", "cert.pem"));
+	private static final Path certPath = cryptoPath.resolve(Paths.get("users", "User1@org1.example.com", "msp", "signcerts", "cert.pem"));
 	// Path to user private key directory.
-	private static final Path keyPath = cryptoPath
-			.resolve(Paths.get("users", "User1@org1.example.com", "msp", "keystore"));
+	private static final Path keyDirPath = cryptoPath.resolve(Paths.get("users", "User1@org1.example.com", "msp", "keystore"));
 	// Path to peer tls certificate.
-	private static final Path tlsCertPath = cryptoPath
-			.resolve(Paths.get("peers", "peer0.org1.example.com", "tls", "ca.crt"));
+	private static final Path tlsCertPath = cryptoPath.resolve(Paths.get("peers", "peer0.org1.example.com", "tls", "ca.crt"));
 
 	// Gateway peer end point.
-	public static String peerEndpoint = "localhost:7051";
-	public static String overrideAuth = "peer0.org1.example.com";
+	private static final String peerEndpoint = "localhost:7051";
+	private static final String overrideAuth = "peer0.org1.example.com";
 
-	public static void main(String[] args)
-			throws Exception {
+	private final Contract contract;
+	private final String assetId = "asset" + Instant.now().toEpochMilli();
+	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+	public static void main(final String[] args) throws Exception {
 		// The gRPC client connection should be shared by all Gateway connections to
 		// this endpoint.
 		ManagedChannel channel = newGrpcConnection();
@@ -91,39 +78,12 @@ public class App {
 				.commitStatusOptions(CallOption.deadlineAfter(1, TimeUnit.MINUTES));
 
 		try (Gateway gateway = builder.connect()) {
-
-			// Get a network instance representing the channel where the smart contract is
-			// deployed.
-			Network network = gateway.getNetwork(channelName);
-
-			// Get the smart contract from the network.
-			Contract contract = network.getContract(chaincodeName);
-
-			// Initialize a set of asset data on the ledger using the chaincode 'InitLedger'
-			// function.
-			initLedger(contract);
-
-			// Return all the current assets on the ledger.
-			getAllAssets(contract);
-
-			// Create a new asset on the ledger.
-			createAsset(contract);
-
-			// Update an existing asset asynchronously.
-			transferAssetAsync(contract);
-
-			// Get the asset details by assetID.
-			readAssetById(contract);
-
-			// Update an asset which does not exist.
-			updateNonExistentAsset(contract);
-
+			new App(gateway).run();
 		} finally {
 			channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
-
 		}
 	}
-	
+
 	private static ManagedChannel newGrpcConnection() throws IOException, CertificateException {
 		Reader tlsCertReader = Files.newBufferedReader(tlsCertPath);
 		X509Certificate tlsCert = Identities.readX509Certificate(tlsCertReader);
@@ -141,24 +101,42 @@ public class App {
 	}
 
 	private static Signer newSigner() throws IOException, InvalidKeyException {
-		File dir = new File(keyPath.toString());
-		File[] listOfFiles = dir.listFiles();
-		Path path = Paths.get(listOfFiles[0].getPath());
-		Reader keyReader = Files.newBufferedReader(path);
+		Path keyPath = Files.list(keyDirPath)
+				.findFirst()
+				.orElseThrow();
+		Reader keyReader = Files.newBufferedReader(keyPath);
 		PrivateKey privateKey = Identities.readPrivateKey(keyReader);
 
 		return Signers.newPrivateKeySigner(privateKey);
 	}
 
-	private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	public App(final Gateway gateway) {
+		// Get a network instance representing the channel where the smart contract is
+		// deployed.
+		Network network = gateway.getNetwork(channelName);
 
-	private static String prettyJson(byte[] json) {
-		return prettyJson(new String(json, StandardCharsets.UTF_8));
+		// Get the smart contract from the network.
+		contract = network.getContract(chaincodeName);
 	}
 
-	private static String prettyJson(String json) {
-		JsonElement parsedJson = JsonParser.parseString(json);
-		return gson.toJson(parsedJson);
+	public void run() throws GatewayException, CommitException {
+		// Initialize a set of asset data on the ledger using the chaincode 'InitLedger' function.
+		initLedger();
+
+		// Return all the current assets on the ledger.
+		getAllAssets();
+
+		// Create a new asset on the ledger.
+		createAsset();
+
+		// Update an existing asset asynchronously.
+		transferAssetAsync();
+
+		// Get the asset details by assetID.
+		readAssetById();
+
+		// Update an asset which does not exist.
+		updateNonExistentAsset();
 	}
 	
 	/**
@@ -166,44 +144,44 @@ public class App {
 	 * the first time it was started after its initial deployment. A new version of
 	 * the chaincode deployed later would likely not need to run an "init" function.
 	 */
-	private static void initLedger(Contract contract) throws GatewayException, CommitException {
-
-		System.out.println(
-				"\n" + "--> Submit Transaction: InitLedger, function creates the initial set of assets on the ledger");
+	private void initLedger() throws EndorseException, SubmitException, CommitStatusException, CommitException {
+		System.out.println("\n--> Submit Transaction: InitLedger, function creates the initial set of assets on the ledger");
 
 		contract.submitTransaction("InitLedger");
 
 		System.out.println("*** Transaction committed successfully");
-
 	}
 
 	/**
 	 * Evaluate a transaction to query ledger state.
 	 */
-	private static void getAllAssets(Contract contract) throws GatewayException {
-
-		System.out.println(
-				"\n" + "--> Evaluate Transaction: GetAllAssets, function returns all the current assets on the ledger");
+	private void getAllAssets() throws GatewayException {
+		System.out.println("\n--> Evaluate Transaction: GetAllAssets, function returns all the current assets on the ledger");
 		
 		byte[] result = contract.evaluateTransaction("GetAllAssets");
 		
 		System.out.println("*** Result: " + prettyJson(result));
+	}
 
+	private String prettyJson(final byte[] json) {
+		return prettyJson(new String(json, StandardCharsets.UTF_8));
+	}
+
+	private String prettyJson(final String json) {
+		JsonElement parsedJson = JsonParser.parseString(json);
+		return gson.toJson(parsedJson);
 	}
 
 	/**
 	 * Submit a transaction synchronously, blocking until it has been committed to
 	 * the ledger.
 	 */
-	private static void createAsset(Contract contract) throws GatewayException, CommitException {
-
-		System.out.println("\n"
-				+ "--> Submit Transaction: CreateAsset, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments");
+	private void createAsset() throws EndorseException, SubmitException, CommitStatusException, CommitException {
+		System.out.println("\n--> Submit Transaction: CreateAsset, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments");
 
 		contract.submitTransaction("CreateAsset", assetId, "yellow", "5", "Tom", "1300");
 
 		System.out.println("*** Transaction committed successfully");
-		
 	}
 
 	/**
@@ -211,9 +189,8 @@ public class App {
 	 * smart contract response (e.g. update a UI) while waiting for the commit
 	 * notification.
 	 */
-	private static void transferAssetAsync(Contract contract) throws GatewayException {
-
-		System.out.println("\n" + "--> Async Submit Transaction: TransferAsset, updates existing asset owner");
+	private void transferAssetAsync() throws EndorseException, SubmitException, CommitStatusException {
+		System.out.println("\n--> Async Submit Transaction: TransferAsset, updates existing asset owner");
 		
 		SubmittedTransaction commit = contract.newProposal("TransferAsset")
 				.addArguments(assetId, "Saptha")
@@ -224,24 +201,20 @@ public class App {
 		byte[] result = commit.getResult();
 		String oldOwner = new String(result, StandardCharsets.UTF_8);
 
-		System.out.println(
-				"*** Successfully submitted transaction to transfer ownership from " + oldOwner + " to Saptha");
+		System.out.println("*** Successfully submitted transaction to transfer ownership from " + oldOwner + " to Saptha");
 		System.out.println("*** Waiting for transaction commit");
 		
 		Status status = commit.getStatus();
 		if (!status.isSuccessful()) {
-			throw new RuntimeException("Transaction " + status.getTransactionId() + " failed to commit with status code "
-					+ status.getCode());
-
+			throw new RuntimeException("Transaction " + status.getTransactionId() +
+					" failed to commit with status code " + status.getCode());
 		}
 		
 		System.out.println("*** Transaction committed successfully");
-
 	}
 
-	private static void readAssetById(Contract contract) throws GatewayException {
-
-		System.out.println("\n" + "--> Evaluate Transaction: ReadAsset, function returns asset attributes");
+	private void readAssetById() throws GatewayException {
+		System.out.println("\n--> Evaluate Transaction: ReadAsset, function returns asset attributes");
 		
 		byte[] evaluateResult = contract.evaluateTransaction("ReadAsset", assetId);
 		
@@ -252,35 +225,31 @@ public class App {
 	 * submitTransaction() will throw an error containing details of any error
 	 * responses from the smart contract.
 	 */
-	private static void updateNonExistentAsset(Contract contract) {
-
+	private void updateNonExistentAsset() {
 		try {
-			System.out.println("\n"
-					+ "--> Submit Transaction: UpdateAsset asset70, asset70 does not exist and should return an error");
+			System.out.println("\n--> Submit Transaction: UpdateAsset asset70, asset70 does not exist and should return an error");
 			
 			contract.submitTransaction("UpdateAsset", "asset70", "blue", "5", "Tomoko", "300");
 			
 			System.out.println("******** FAILED to return an error");
-
 		} catch (EndorseException | SubmitException | CommitStatusException e) {
 			System.out.println("*** Successfully caught the error: ");
-			
 			e.printStackTrace(System.out);
-			if (!e.getDetails().isEmpty()) {
-				System.out.println("\n" + "Error Details: ");
-				for (ErrorDetail detail : e.getDetails()) {
-					System.out.println("address: " + detail.getAddress() + ", mspId: " + detail.getMspId()
+			System.out.println("Transaction ID: " + e.getTransactionId());
+
+			List<ErrorDetail> details = e.getDetails();
+			if (!details.isEmpty()) {
+				System.out.println("Error Details:");
+				for (ErrorDetail detail : details) {
+					System.out.println("- address: " + detail.getAddress() + ", mspId: " + detail.getMspId()
 							+ ", message: " + detail.getMessage());
 				}
 			}
-			
-			System.out.println("Transaction ID: " + e.getTransactionId());
-			
 		} catch (CommitException e) {
 			System.out.println("*** Successfully caught the error: " + e);
 			e.printStackTrace(System.out);
-			System.out.println("Transaction ID: " + e.getTransactionId() + " status code: " + e.getCode());
+			System.out.println("Transaction ID: " + e.getTransactionId());
+			System.out.println("Status code: " + e.getCode());
 		}
 	}
-
 }

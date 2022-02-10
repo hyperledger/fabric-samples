@@ -6,8 +6,6 @@
  * User Manual available at https://docs.gradle.org/6.5/userguide/tutorial_java_projects.html
  */
 plugins {
-    // Apply the java plugin to add support for Java
-    id 'java'
     // Apply the application plugin to add support for building a CLI application.
     id 'application'
     
@@ -30,14 +28,5 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClassName = 'application.java.App'
+    mainClass = 'App'
 }
-
-// task for running the app after building dependencies
-task runApp(type: Exec) {
-    dependsOn build
-    group = "Execution"
-    description = "Run the main class with ExecTask"
-    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), javaMainClass
-}
-
