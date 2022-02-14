@@ -15,29 +15,29 @@
         "Org${ORG}": {
             "mspid": "Org${ORG}MSP",
             "peers": [
-                "org${ORG}-peer1"
+                "org${ORG}-peers"
             ],
             "certificateAuthorities": [
-                "org${ORG}-ecert-ca"
+                "org${ORG}-ca"
             ]
         }
     },
     "peers": {
-        "org${ORG}-peer1": {
-            "url": "grpcs://org${ORG}-peer1:7051",
+        "org${ORG}-peers": {
+            "url": "grpcs://org${ORG}-peer-gateway-svc:7051",
             "tlsCACerts": {
                 "pem": "${PEERPEM}"
             },
             "grpcOptions": {
-                "ssl-target-name-override": "org${ORG}-peer1",
-                "hostnameOverride": "org${ORG}-peer1"
+                "ssl-target-name-override": "org${ORG}-peer-gateway-svc",
+                "hostnameOverride": "org${ORG}-peer-gateway-svc"
             }
         }
     },
     "certificateAuthorities": {
-        "org${ORG}-ecert-ca": {
-            "url": "https://org${ORG}-ecert-ca",
-            "caName": "org${ORG}-ecert-ca",
+        "org${ORG}-ca": {
+            "url": "https://org${ORG}-ca",
+            "caName": "org${ORG}-ca",
             "tlsCACerts": {
                 "pem": ["${CAPEM}"]
             },
