@@ -4,7 +4,7 @@ Sample REST server to demonstrate good Fabric Node SDK practices.
 
 The REST API is only intended to work with the [basic asset transfer example](https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic).
 
-To install the basic asset transfer chaincode on a local Fabric network, follow the [Using the Fabric test network](https://hyperledger-fabric.readthedocs.io/en/release-2.4/test_network.html) tutorial.
+To install the basic asset transfer chaincode on a local Fabric network, follow the [Using the Fabric test network](https://hyperledger-fabric.readthedocs.io/en/release-2.4/test_network.html) tutorial. You need to go at least as far as the step where the ledger gets initialized with assets.
 
 ## Overview
 
