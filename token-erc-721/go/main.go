@@ -5,12 +5,14 @@
 package main
 
 import (
+	"github.com/hyperledger/fabric-samples/token-erc-721/go/chaincode"
+
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/hyperledger/fabric-contract-api-go/metadata"
 )
 
 func main() {
-	hlpNftContract := new(TokenERC721Contract)
+	hlpNftContract := new(chaincode.TokenERC721Contract)
 	hlpNftContract.Info.Version = "0.0.1"
 	hlpNftContract.Info.Description = "ERC-721 fabric port"
 	hlpNftContract.Info.License = new(metadata.LicenseMetadata)
