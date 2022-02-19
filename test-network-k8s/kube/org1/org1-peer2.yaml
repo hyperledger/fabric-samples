@@ -52,6 +52,10 @@ data:
   CORE_PEER_FILESYSTEMPATH: /var/hyperledger/fabric/data/org1-peer2.org1.example.com
   CORE_LEDGER_SNAPSHOTS_ROOTDIR: /var/hyperledger/fabric/data/org1-peer2.org1.example.com/snapshots
   CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG: "{\"peername\":\"org1peer2\"}"
+  CORE_LEDGER_STATE_STATEDATABASE: CouchDB
+  CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS: org1peer2couchdb:5984
+  CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME: admin
+  CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD: adminpw
 ---
 apiVersion: apps/v1
 kind: Deployment

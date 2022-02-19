@@ -1,0 +1,43 @@
+#
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: org2peer2couchdb
+spec:
+  selector:
+    app: org2peer2couchdb
+  ports:
+  - name: couchport
+    port: 5984
+    targetPort: 5984
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: org2peer2couchdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: org2peer2couchdb
+  template:
+    metadata:
+      labels:
+        app: org2peer2couchdb
+    spec:
+      containers:
+      - name: couchdb
+        image: couchdb:3
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: "COUCHDB_USER"
+            value: "admin" 
+          - name: "COUCHDB_PASSWORD"
+            value: "adminpw"
+        ports:
+            - containerPort: 5984

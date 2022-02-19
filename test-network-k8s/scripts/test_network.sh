@@ -209,6 +209,7 @@ function network_up() {
 
   # Test Network
   create_local_MSP
+  create_couchdb
 
   launch_orderers
   launch_peers
@@ -252,4 +253,13 @@ function scrub_org_volumes() {
 function network_down() {
   stop_services
   scrub_org_volumes
+}
+
+function create_couchdb() {
+  push_fn "Launching couchdb"
+  launch ./kube/org1/org1-peer1-couchdb.yaml
+  launch ./kube/org1/org1-peer2-couchdb.yaml
+  launch ./kube/org2/org2-peer1-couchdb.yaml
+  launch ./kube/org2/org2-peer2-couchdb.yaml
+  pop_fn
 }
