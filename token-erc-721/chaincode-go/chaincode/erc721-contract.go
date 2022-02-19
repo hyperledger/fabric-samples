@@ -1,4 +1,4 @@
-package TokenERC721Contract
+package chaincode
 
 import (
 	"encoding/base64"
@@ -17,7 +17,7 @@ const approvalPrefix = "approval"
 const nameKey = "name"
 const symbolKey = "symbol"
 
-// TokenERC721Contract contract for managing CRUD for HlpNft
+// TokenERC721Contract contract for managing CRUD operations
 type TokenERC721Contract struct {
 	contractapi.Contract
 }

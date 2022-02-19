@@ -1,4 +1,4 @@
-package TokenERC721Contract
+package chaincode
 
 import (
 	"encoding/base64"
@@ -14,7 +14,7 @@ import (
 )
 
 const owner = "x509::CN=minter,OU=client,O=Hyperledger,ST=North Carolina,C=US::CN=ca.org1.example.com,O=org1.example.com,L=Durham,ST=North Carolina,C=US"
-const operator = "x509::CN=hlp,OU=client,O=Hyperledger,ST=North Carolina,C=US::CN=ca.org1.example.com,O=org1.example.com,L=Durham,ST=North Carolina,C=AR"
+const operator = "x509::CN=org,OU=client,O=Hyperledger,ST=North Carolina,C=US::CN=ca.org1.example.com,O=org1.example.com,L=Durham,ST=North Carolina,C=AR"
 
 type MockStub struct {
 	shim.ChaincodeStubInterface

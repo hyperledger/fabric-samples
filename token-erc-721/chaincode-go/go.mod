@@ -1,12 +1,12 @@
-module github.com/msalimbene/hlp-721
+module github.com/hyperledger/fabric-samples/token-erc-721/chaincode-go
 
 go 1.17
 
 require (
-	github.com/hyperledger/fabric-chaincode-go v0.0.0-20200424173110-d7076418f212
+	github.com/hyperledger/fabric-chaincode-go v0.0.0-20220131132609-1476cf1d3206
 	github.com/hyperledger/fabric-contract-api-go v1.1.1
-	github.com/hyperledger/fabric-protos-go v0.0.0-20200424173316-dd554ba3746e
-	github.com/stretchr/testify v1.5.1
+	github.com/hyperledger/fabric-protos-go v0.0.0-20220202165055-956c75de7b17
+	github.com/stretchr/testify v1.7.0
 )
 
 require (
@@ -35,4 +35,5 @@ require (
 	google.golang.org/genproto v0.0.0-20180831171423-11092d34479b // indirect
 	google.golang.org/grpc v1.23.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
