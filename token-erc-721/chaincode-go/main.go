@@ -5,7 +5,7 @@
 package main
 
 import (
-	"github.com/hyperledger/fabric-samples/token-erc-721/chaincode-go/chaincode"
+	"github.com/hyperledger/fabric-samples/token-erc-721/chaincode-go/TokenERC721Contract"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/hyperledger/fabric-contract-api-go/metadata"
