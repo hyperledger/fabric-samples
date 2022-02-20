@@ -52,7 +52,8 @@ data:
   CORE_LEDGER_SNAPSHOTS_ROOTDIR: /var/hyperledger/fabric/data/org2-peer1.org2.example.com/snapshots
   CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG: "{\"peername\":\"org2peer1\"}"
   CORE_LEDGER_STATE_STATEDATABASE: CouchDB
-  CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS: org2peer1couchdb:5984
+  CORE_LEDGER_STATE_COUCHDBCONFIG_MAXRETRIESONSTARTUP: "20"
+  CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS: localhost:5984
   CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME: admin
   CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD: adminpw
 ---
@@ -90,6 +91,16 @@ spec:
             - name: tls-cert-volume
               mountPath: /var/hyperledger/fabric/config/tls
               readOnly: true
+        - name: couchdb
+          image: couchdb:3.2.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: "COUCHDB_USER"
+              value: "admin" 
+            - name: "COUCHDB_PASSWORD"
+              value: "adminpw"
+          ports:
+              - containerPort: 5984
       volumes:
         - name: fabric-volume
           persistentVolumeClaim:
@@ -99,7 +110,7 @@ spec:
             name: org2-config
         - name: tls-cert-volume
           secret:
-            secretName: org2-peer1-tls-cert
+            secretName: org2-peer1-tls-cert          
 ---
 apiVersion: v1
 kind: Service
