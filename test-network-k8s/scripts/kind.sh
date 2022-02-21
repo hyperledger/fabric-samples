@@ -25,6 +25,7 @@ function load_docker_images() {
   kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:$FABRIC_VERSION
   kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
   kind load docker-image ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest
+  kind load docker-image couchdb:3.2.1
   
   pop_fn 
 }
