@@ -181,8 +181,8 @@ async function main() {
 			result = await contract.evaluateTransaction('AssetExists', 'asset7');
 			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
-			console.log('\n--> Submit Transaction: TransferAsset, transfer asset(asset2) to new owner(Tom)');
-			await contract.submitTransaction('TransferAsset', 'asset2', 'Tom');
+			console.log('\n--> Submit Transaction: TransferAsset, transfer asset(asset2) to new owner(Max)');
+			await contract.submitTransaction('TransferAsset', 'asset2', 'Max');
 			console.log('*** Result: committed');
 
 			console.log('\n--> Evaluate Transaction: ReadAsset, function returns information about an asset with ID(asset2)');
@@ -190,15 +190,15 @@ async function main() {
 			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
 			// Rich Query with Pagination (Only supported if CouchDB is used as state database)
-			console.log('\n--> Evaluate Transaction: QueryAssetsWithPagination, function returns "Tom" assets');
-			result = await contract.evaluateTransaction('QueryAssetsWithPagination', '{"selector":{"docType":"asset","owner":"Tom"}, "use_index":["_design/indexOwnerDoc", "indexOwner"]}', '1', '');
+			console.log('\n--> Evaluate Transaction: QueryAssetsWithPagination, function returns "Max" assets');
+			result = await contract.evaluateTransaction('QueryAssetsWithPagination', '{"selector":{"docType":"asset","owner":"Max"}, "use_index":["_design/indexOwnerDoc", "indexOwner"]}', '1', '');
 			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
 			// Recover the bookmark from previous query. Normally it will be inside a variable.
 			const resultJson = JSON.parse(result.toString());
 
-			console.log('\n--> Evaluate Transaction: QueryAssetsWithPagination, function returns "Tom" assets next page');
-			result = await contract.evaluateTransaction('QueryAssetsWithPagination', '{"selector":{"docType":"asset","owner":"Tom"}, "use_index":["_design/indexOwnerDoc", "indexOwner"]}', '1', resultJson.ResponseMetadata.Bookmark);
+			console.log('\n--> Evaluate Transaction: QueryAssetsWithPagination, function returns "Max" assets next page');
+			result = await contract.evaluateTransaction('QueryAssetsWithPagination', '{"selector":{"docType":"asset","owner":"Max"}, "use_index":["_design/indexOwnerDoc", "indexOwner"]}', '1', resultJson.bookmark);
 			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
 			console.log('\n--> Submit Transaction: TransferAssetByColor, transfer all yellow assets to new owner(Michel)');
@@ -224,14 +224,14 @@ async function main() {
 			result = await contract.evaluateTransaction('QueryAssets', '{"selector":{"docType":"asset","owner":"Jin Soo"}, "use_index":["_design/indexOwnerDoc", "indexOwner"]}');
 			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
-			// Rich Query with Pagination (Only supported if CouchDB is used as state database)
-			console.log('\n--> Evaluate Transaction: GetAssetsByRangeWithPagination - get page 1 of assets from asset3 to asset6 (asset3, asset4)');
-			result = await contract.evaluateTransaction('GetAssetsByRangeWithPagination', 'asset3', 'asset6', '2', '');
+			// Range Query with Pagination
+			console.log('\n--> Evaluate Transaction: GetAssetsByRangeWithPagination - get page 1 of assets from asset2 to asset6 (asset2, asset3)');
+			result = await contract.evaluateTransaction('GetAssetsByRangeWithPagination', 'asset2', 'asset6', '2', '');
 			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
-			// Rich Query with Pagination (Only supported if CouchDB is used as state database)
-			console.log('\n--> Evaluate Transaction: GetAssetsByRangeWithPagination - get page 2 of assets from asset3 to asset6 (asset4, asset5)');
-			result = await contract.evaluateTransaction('GetAssetsByRangeWithPagination', 'asset3', 'asset6', '2', 'asset4');
+			// Range Query with Pagination
+			console.log('\n--> Evaluate Transaction: GetAssetsByRangeWithPagination - get page 2 of assets from asset2 to asset6 (asset4, asset5)');
+			result = await contract.evaluateTransaction('GetAssetsByRangeWithPagination', 'asset2', 'asset6', '2', 'asset4');
 			console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
 			console.log('*** all tests completed');
