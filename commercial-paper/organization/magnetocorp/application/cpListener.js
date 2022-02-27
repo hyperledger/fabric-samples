@@ -15,7 +15,7 @@ let finished;
 async function main() {
     try {
         // Set up the wallet - just use Org2's wallet (isabella)
-	const wallet = await Wallets.newFileSystemWallet('../identity/user/isabella/wallet');
+	    const wallet = await Wallets.newFileSystemWallet('../identity/user/isabella/wallet');
 
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();

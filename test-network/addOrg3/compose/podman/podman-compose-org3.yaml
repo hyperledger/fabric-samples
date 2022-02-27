@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-version: '3.7'
+version: "3.7"
 
 volumes:
   peer0.org3.example.com:
@@ -13,10 +13,9 @@ networks:
     name: fabric_test
 
 services:
-
   peer0.org3.example.com:
     container_name: peer0.org3.example.com
-    image: hyperledger/fabric-peer:latest
+    image: hyperledger/fabric-peer:2.4
     labels:
       service: hyperledger-fabric
     environment:
@@ -40,9 +39,9 @@ services:
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org3.example.com:11051
       - CORE_PEER_LOCALMSPID=Org3MSP
     volumes:
-        - ../peercfg:/etc/hyperledger/peercfg
-        - ../../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com:/etc/hyperledger/fabric        
-        - peer0.org3.example.com:/var/hyperledger/production
+      - ../peercfg:/etc/hyperledger/peercfg
+      - ../../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com:/etc/hyperledger/fabric
+      - peer0.org3.example.com:/var/hyperledger/production
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:

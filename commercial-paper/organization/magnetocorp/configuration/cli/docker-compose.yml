@@ -12,6 +12,7 @@ networks:
 
 services:
   cliMagnetoCorp:
+    platform: linux/amd64
     container_name: cliMagnetoCorp
     image: hyperledger/fabric-tools:2.0.0-beta
     tty: true

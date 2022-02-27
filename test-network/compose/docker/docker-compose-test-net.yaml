@@ -6,8 +6,9 @@
 version: '3.7'
 services:
   peer0.org1.example.com:
+    platform: linux/amd64
     container_name: peer0.org1.example.com
-    image: hyperledger/fabric-peer:latest
+    image: hyperledger/fabric-peer:2.4
     labels:
       service: hyperledger-fabric
     environment:
@@ -19,8 +20,9 @@ services:
       - ${DOCKER_SOCK}:/host/var/run/docker.sock
 
   peer0.org2.example.com:
+    platform: linux/amd64
     container_name: peer0.org2.example.com
-    image: hyperledger/fabric-peer:latest
+    image: hyperledger/fabric-peer:2.4
     labels:
       service: hyperledger-fabric
     environment:
@@ -33,6 +35,7 @@ services:
   
   cli:
     container_name: cli
-    image: hyperledger/fabric-tools:latest
+    platform: linux/amd64
+    image: hyperledger/fabric-tools:2.4
     volumes:
       - ./docker/peercfg:/etc/hyperledger/peercfg
