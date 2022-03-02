@@ -62,6 +62,7 @@ export CORE_PEER_LOCALMSPID="Org1MSP"
 export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
 export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
 export CORE_PEER_ADDRESS=localhost:7051
+export PATH=${PWD}/../bin:$PATH
 export FABRIC_CFG_PATH=${PWD}/../config
 
 # invoke the function
@@ -111,12 +112,12 @@ For Node.js (JavaScript or TypeScript) chaincode, typically the `package.json` h
 
 Running in the '-as-a-service' mode offers options, similar to how the Fabric 'dev' mode works on debugging code. The restrictions of the 'dev' mode don't apply.
 
-There is an option `-ccaasdr false` that can be provided on the `deployCCAAS` command. This will _not_ build the docker image or start a docker container. It does output the commands it would have run.
+There is an option `-ccaasdocker false` that can be provided on the `deployCCAAS` command. This will _not_ build the docker image or start a docker container. It does output the commands it would have run.
 
 Run this command, and you'll see similar output
 
 ```bash
-./network.sh deployCCAAS  -ccn basicj -ccp ../asset-transfer-basic/chaincode-java -ccaasdr false
+./network.sh deployCCAAS  -ccn basicj -ccp ../asset-transfer-basic/chaincode-java -ccaasdocker false
 #....
 Not building docker image; this the command we would have run
 docker build -f ../asset-transfer-basic/chaincode-java/Dockerfile -t basicj_ccaas_image:latest --build-arg CC_SERVER_PORT=9999 ../asset-transfer-basic/chaincode-java
