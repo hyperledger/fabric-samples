@@ -89,7 +89,7 @@ function generateOrg3() {
     fi
 
     infoln "Generating certificates using Fabric CA"
-    ${CONTAINER_CLI_COMPOSE} -f $COMPOSE_FILE_CA_ORG3 up -d 2>&1
+    ${CONTAINER_CLI_COMPOSE} -f ${COMPOSE_FILE_CA_BASE} -f $COMPOSE_FILE_CA_ORG3 up -d 2>&1
 
     . fabric-ca/registerEnroll.sh
 
@@ -125,13 +125,13 @@ function Org3Up () {
   # start org3 nodes
 
   if [ "$CONTAINER_CLI" == "podman" ]; then
-    cp ../podman/core.ymal ../../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/
+    cp ../podman/core.yaml ../../organizations/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/
   fi
 
   if [ "${DATABASE}" == "couchdb" ]; then
-    DOCKER_SOCK=${DOCKER_SOCK} ${CONTAINER_CLI_COMPOSE} -f $COMPOSE_FILE_ORG3 -f $COMPOSE_FILE_COUCH_ORG3 up -d 2>&1
+    DOCKER_SOCK=${DOCKER_SOCK} ${CONTAINER_CLI_COMPOSE} -f ${COMPOSE_FILE_BASE} -f $COMPOSE_FILE_ORG3 -f ${COMPOSE_FILE_COUCH_BASE} -f $COMPOSE_FILE_COUCH_ORG3 up -d 2>&1
   else
-    DOCKER_SOCK=${DOCKER_SOCK} ${CONTAINER_CLI_COMPOSE} -f $COMPOSE_FILE_ORG3 up -d 2>&1
+    DOCKER_SOCK=${DOCKER_SOCK} ${CONTAINER_CLI_COMPOSE} -f ${COMPOSE_FILE_BASE} -f $COMPOSE_FILE_ORG3 up -d 2>&1
   fi
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to start Org3 network"
@@ -185,11 +185,14 @@ CLI_DELAY=3
 # channel name defaults to "mychannel"
 CHANNEL_NAME="mychannel"
 # use this as the docker compose couch file
-COMPOSE_FILE_COUCH_ORG3=${CONTAINER_CLI}/docker-compose-couch-org3.yaml
+COMPOSE_FILE_COUCH_BASE=compose/compose-couch-org3.yaml
+COMPOSE_FILE_COUCH_ORG3=compose/${CONTAINER_CLI}/docker-compose-couch-org3.yaml
 # use this as the default docker-compose yaml definition
-COMPOSE_FILE_ORG3=${CONTAINER_CLI}/docker-compose-org3.yaml
+COMPOSE_FILE_BASE=compose/compose-org3.yaml
+COMPOSE_FILE_ORG3=compose/${CONTAINER_CLI}/docker-compose-org3.yaml
 # certificate authorities compose file
-COMPOSE_FILE_CA_ORG3=${CONTAINER_CLI}/docker-compose-ca-org3.yaml
+COMPOSE_FILE_CA_BASE=compose/compose-ca-org3.yaml
+COMPOSE_FILE_CA_ORG3=compose/${CONTAINER_CLI}/docker-compose-ca-org3.yaml
 # database
 DATABASE="leveldb"
 

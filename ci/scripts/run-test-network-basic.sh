@@ -12,8 +12,11 @@ function print() {
 }
 
 function createNetwork() {
-  print "Creating network"
+  print "Creating 3 Org network"
   ./network.sh up createChannel -ca -s couchdb
+  cd addOrg3
+  ./addOrg3.sh up -ca -s couchdb
+  cd ..
   print "Deploying ${CHAINCODE_NAME} chaincode"
   ./network.sh deployCC -ccn "${CHAINCODE_NAME}" -ccp "${CHAINCODE_PATH}/chaincode-${CHAINCODE_LANGUAGE}" -ccv 1 -ccs 1 -ccl "${CHAINCODE_LANGUAGE}"
 }

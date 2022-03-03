@@ -5,9 +5,6 @@
 
 version: '3.7'
 
-volumes:
-  peer0.org3.example.com:
-
 networks:
   test:
     name: fabric_test
