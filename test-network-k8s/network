@@ -21,8 +21,8 @@ set -o errexit
 # todo: refactor query/invoke to specify chaincode name (-n param)
 
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
-FABRIC_VERSION=${TEST_NETWORK_FABRIC_VERSION:-2.4.3}
-FABRIC_CA_VERSION=${TEST_NETWORK_FABRIC_CA_VERSION:-1.5.2}
+FABRIC_VERSION=${TEST_NETWORK_FABRIC_VERSION:-2.4}
+FABRIC_CA_VERSION=${TEST_NETWORK_FABRIC_CA_VERSION:-1.5}
 FABRIC_CONTAINER_REGISTRY=${TEST_NETWORK_FABRIC_CONTAINER_REGISTRY:-hyperledger}
 NETWORK_NAME=${TEST_NETWORK_NAME:-test-network}
 CLUSTER_NAME=${TEST_NETWORK_KIND_CLUSTER_NAME:-kind}
@@ -167,7 +167,7 @@ elif [ "${MODE}" == "chaincode" ]; then
 
   elif [ "${ACTION}" == "query" ]; then
     query_chaincode $@ >> ${LOG_FILE}
-  
+
   elif [ "${ACTION}" == "metadata" ]; then
     query_chaincode_metadata >> ${LOG_FILE}
   else
@@ -192,4 +192,3 @@ else
   print_help
   exit 1
 fi
-

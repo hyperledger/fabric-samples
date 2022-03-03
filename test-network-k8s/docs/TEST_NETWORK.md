@@ -1,47 +1,47 @@
 
 ## Network Overview
 
-After we have set up a series of TLS and ECert CA services, we'll use the CAs to generate 
-[Local MSP](https://hyperledger-fabric.readthedocs.io/en/latest/membership/membership.html#local-msps) structures for 
+After we have set up a series of TLS and ECert CA services, we'll use the CAs to generate
+[Local MSP](https://hyperledger-fabric.readthedocs.io/en/latest/membership/membership.html#local-msps) structures for
 all of the nodes, using the local MSPs to launch our network peers and orderers.
 
 
-### TL/DR : 
+### TL/DR :
 
 ```shell
-./network up 
-... 
+./network up
+...
 ✅ - Creating local node MSP ...
 ✅ - Launching orderers ...
 ✅ - Launching peers ...
 🏁 - Network is ready.
 ```
 
-## Fabric MSP Context 
+## Fabric MSP Context
 
-Before we launch the network peers and orderers, each node in the network needs to have available: 
+Before we launch the network peers and orderers, each node in the network needs to have available:
 
 - TLS Root Certificates for all organizations in the network
 - TLS Certificates and Signing Keys for SSL server/hostname verification of the network node
 - Enrollment Certificates validating the network node identity (local MSP)
-- Enrollment Certificates for an `Admin` identity / role for the organization. 
+- Enrollment Certificates for an `Admin` identity / role for the organization.
 
 In order to create the local node MSP, we must first register and enroll the node identities with the ECert CAs, and
 then organize the TLS and MSP certificates into a location suitable for launching the network services.
 
-The key steps in this process are: 
+The key steps in this process are:
 
 - [Registering and enrolling identities with a CA](https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/use_CA.html#registering-and-enrolling-identities-with-a-ca)
 - [Create the local MSP of a node](https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/use_CA.html#create-the-local-msp-of-a-node)
 
-In the test network, each organization includes a function that wraps the registration, enrollment, and MSP aggregation 
-into a series of fabric-ca-client calls.  [The script](../scripts/test_network.sh) will be executed directly on the 
-org's ECert CA pod, with access to the persistent volume for storage of the MSP and TLS certificates.  While this is 
-largely boilerplate scripting, the process is straightforward:  For each node in the network, we'll use the CAs to 
-generate TLS+MSP certificates, bundling into an MSP with a `config.yaml` specifying the fabric roles associated with 
-the target usage in the network. 
+In the test network, each organization includes a function that wraps the registration, enrollment, and MSP aggregation
+into a series of fabric-ca-client calls.  [The script](../scripts/test_network.sh) will be executed directly on the
+org's ECert CA pod, with access to the persistent volume for storage of the MSP and TLS certificates.  While this is
+largely boilerplate scripting, the process is straightforward:  For each node in the network, we'll use the CAs to
+generate TLS+MSP certificates, bundling into an MSP with a `config.yaml` specifying the fabric roles associated with
+the target usage in the network.
 
-For example, the ordering organization sets up the node local MSP with: 
+For example, the ordering organization sets up the node local MSP with:
 ```shell
 # Each identity in the network needs a registration and enrollment.
 fabric-ca-client register --id.name org0-orderer1 --id.secret ordererpw --id.type orderer --url https://org0-ca --mspdir $FABRIC_CA_CLIENT_HOME/org0-ca/rcaadmin/msp
@@ -75,33 +75,33 @@ cp /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/o
 ```
 
 
-## External Chaincode Builders 
+## External Chaincode Builders
 
-Running Fabric in Kubernetes places some unique constraints on the Chaincode lifecycle: 
+Running Fabric in Kubernetes places some unique constraints on the Chaincode lifecycle:
 
-- Many cloud-native vendors rely on [containerd.io](https://containerd.io) to manage the lifecycle of containers 
-  within a cluster.  By contrast, Fabric assumes the presence of a Docker daemon to compile and launch chaincode 
-  containers.  Without a local Docker daemon, Fabric's default chaincode pipeline is doomed! 
-  
+- Many cloud-native vendors rely on [containerd.io](https://containerd.io) to manage the lifecycle of containers
+  within a cluster.  By contrast, Fabric assumes the presence of a Docker daemon to compile and launch chaincode
+  containers.  Without a local Docker daemon, Fabric's default chaincode pipeline is doomed!
+
 
 - For security and operational concerns, it is a "non-starter" to run a docker daemon on Kubernetes worker nodes.
 
 
-- For cloud-ready development, test, validation, CI/CD, and production practices, the use of the 
-  [Chaincode as a Service](https://hyperledger-fabric.readthedocs.io/en/latest/cc_service.html) pattern provides a 
+- For cloud-ready development, test, validation, CI/CD, and production practices, the use of the
+  [Chaincode as a Service](https://hyperledger-fabric.readthedocs.io/en/latest/cc_service.html) pattern provides a
   _vastly superior user experience_.  
-  
 
-- Running Chaincode builds in Docker in Docker, running in Kubernetes in Docker is ... interesting.  Let's 
-  step back and _keep it simple_. 
+
+- Running Chaincode builds in Docker in Docker, running in Kubernetes in Docker is ... interesting.  Let's
+  step back and _keep it simple_.
 
 
 In the Kubernetes Test Network, we've incorporated the default `ccaas` external builder
-(See [fabric #2884](https://github.com/hyperledger/fabric/issues/2884)) as an accelerator for working with 
-Chaincode-as-a-Service on Kubernetes.  For `ccaas` smart contracts, when chaincode is installed on a peer, the 
+(See [fabric #2884](https://github.com/hyperledger/fabric/issues/2884)) as an accelerator for working with
+Chaincode-as-a-Service on Kubernetes.  For `ccaas` smart contracts, when chaincode is installed on a peer, the
 external builder binaries will be invoked, bypassing the reliance on a local Docker daemon running in Kubernetes.
 
-This configuration is accomplished by registering an external builder in the peer core.yaml: 
+This configuration is accomplished by registering an external builder in the peer core.yaml:
 
 ```yaml
     externalBuilders:
@@ -119,54 +119,51 @@ To trigger the external builder for a chaincode service, set the metadata.json `
 }
 ```
 
-- [x] Pro tip: Use the companion container registry at `localhost:5000` to deploy custom chaincode into the test network. 
-- [x] Pro tip: Deploy a chaincode with `address: host.docker.internal:9999` and attach your chaincode in a debugger. 
+- [x] Pro tip: Use the companion container registry at `localhost:5000` to deploy custom chaincode into the test network.
+- [x] Pro tip: Deploy a chaincode with `address: host.docker.internal:9999` and attach your chaincode in a debugger.
 
 
-## Starting Peers and Orderers 
+## Starting Peers and Orderers
 
 ```shell
 ✅ - Launching orderers ...
 ✅ - Launching peers ...
 ```
 
-Once the local MSP structures for the network nodes have been created, the orderers and peers may be launched in the 
-namespace.  System nodes will read base configuration files (orderer.yaml and core.yaml) from the organization 
+Once the local MSP structures for the network nodes have been created, the orderers and peers may be launched in the
+namespace.  System nodes will read base configuration files (orderer.yaml and core.yaml) from the organization
 config folder, made available in Kubernetes as the `fabric-config${org}` config map.
 
-Each orderer and peer creates one `Deployment`, `Pod`, and `Service` in the namespace.  In addition, each org 
-defines an `orgN-peerM-config` `ConfigMap` with environment variable overrides replacing the default settings 
-in the core.yaml file.  Note that each node's [environment](../kube/org1/org1-peer1.yaml) includes pointers to the 
+Each orderer and peer creates one `Deployment`, `Pod`, and `Service` in the namespace.  In addition, each org
+defines an `orgN-peerM-config` `ConfigMap` with environment variable overrides replacing the default settings
+in the core.yaml file.  Note that each node's [environment](../kube/org1/org1-peer1.yaml) includes pointers to the
 node local MSP folders, certificates, and TLS signing keys that we generated above.
 
-Note that the deployment yaml files include some basic template substitution and parameters.  For simplicity and 
-clarity, we elected to use basic string substitution with sed/awk/bash/etc., rather than introduce a Kube template 
+Note that the deployment yaml files include some basic template substitution and parameters.  For simplicity and
+clarity, we elected to use basic string substitution with sed/awk/bash/etc., rather than introduce a Kube template
 binding system (e.g. Helm, Kustomize, Kapitan, Ansible, etc.) for manipulating yaml templates:  
 
 ```shell
-cat kube/org0/org0-orderer1.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f - 
-cat kube/org0/org0-orderer2.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f - 
-cat kube/org0/org0-orderer3.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f - 
+cat kube/org0/org0-orderer1.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f -
+cat kube/org0/org0-orderer2.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f -
+cat kube/org0/org0-orderer3.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f -
 
-# Wait for the orderers to completely start before launching the network peer nodes. 
-kubectl -n $NS rollout status deploy/org0-orderer1 
-kubectl -n $NS rollout status deploy/org0-orderer2 
+# Wait for the orderers to completely start before launching the network peer nodes.
+kubectl -n $NS rollout status deploy/org0-orderer1
+kubectl -n $NS rollout status deploy/org0-orderer2
 kubectl -n $NS rollout status deploy/org0-orderer3
 
-cat kube/org1/org1-peer1.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f - 
-cat kube/org1/org1-peer2.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f - 
-cat kube/org2/org2-peer1.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f - 
-cat kube/org2/org2-peer2.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f - 
+cat kube/org1/org1-peer1.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f -
+cat kube/org1/org1-peer2.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f -
+cat kube/org2/org2-peer1.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f -
+cat kube/org2/org2-peer2.yaml | sed 's,{{FABRIC_VERSION}},'${FABRIC_VERSION}',g' | kubectl -n $NS -f -
 ```
-
-- [x] Pro tip: Run an early-release Fabric build by setting `TEST_NETWORK_FABRIC_VERSION=2.4.0-beta`
-
 
 ## Next Steps :
 
-After the peers and orderers have started, the Kube namespace includes pods, deployments, and service bindings for: 
+After the peers and orderers have started, the Kube namespace includes pods, deployments, and service bindings for:
 
-- Org0 (org0.example.com): 
+- Org0 (org0.example.com):
   - ECert Certificate Authority : https://org0-ca
   - Orderer1 : grpcs://org0-orderer1
   - Orderer2 : grpcs://org0-orderer2
@@ -187,4 +184,3 @@ After the peers and orderers have started, the Kube namespace includes pods, dep
 
 
 ### Next : [Working With Channels](CHANNELS.md)
-
