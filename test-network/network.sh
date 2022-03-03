@@ -13,7 +13,7 @@
 # prepending $PWD/../bin to PATH to ensure we are picking up the correct binaries
 # this may be commented out to resolve installed version of tools if desired
 #
-# However using PWD in the path has the side effect that location that 
+# However using PWD in the path has the side effect that location that
 # this script is run from is critical. To ease this, get the directory
 # this script is actually in and infer location from there. (putting first)
 
@@ -251,13 +251,13 @@ function networkUp() {
   fi
 
   COMPOSE_FILES="-f compose/${COMPOSE_FILE_BASE} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_BASE}"
-  
+
   if [ "${DATABASE}" == "couchdb" ]; then
     COMPOSE_FILES="${COMPOSE_FILES} -f compose/${COMPOSE_FILE_COUCH} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_COUCH}"
   fi
 
   DOCKER_SOCK="${DOCKER_SOCK}" ${CONTAINER_CLI_COMPOSE} ${COMPOSE_FILES} up -d 2>&1
-  
+
   $CONTAINER_CLI ps -a
   if [ $? -ne 0 ]; then
     fatalln "Unable to start network"
@@ -267,20 +267,20 @@ function networkUp() {
 # call the script to create the channel, join the peers of org1 and org2,
 # and then update the anchor peers for each organization
 function createChannel() {
-  # Bring up the network if it is not already up. 
+  # Bring up the network if it is not already up.
   bringUpNetwork="false"
 
   if ! $CONTAINER_CLI info > /dev/null 2>&1 ; then
     fatalln "$CONTAINER_CLI network is required to be running to create a channel"
   fi
 
-  # check if all containers are present 
+  # check if all containers are present
   CONTAINERS=($($CONTAINER_CLI ps | grep hyperledger/ | awk '{print $2}'))
   len=$(echo ${#CONTAINERS[@]})
-  
+
   if [[ $len -ge 4 ]] && [[ ! -d "organizations/peerOrganizations" ]]; then
     echo "Bringing network down to sync certs with containers"
-    networkDown 
+    networkDown
   fi
 
   [[ $len -lt 4 ]] || [[ ! -d "organizations/peerOrganizations" ]] && bringUpNetwork="true" || echo "Network Running Already"
@@ -317,18 +317,25 @@ function deployCCAAS() {
 # Tear down running network
 function networkDown() {
 
+  COMPOSE_BASE_FILES="-f compose/${COMPOSE_FILE_BASE} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_BASE}"
+  COMPOSE_COUCH_FILES="-f compose/${COMPOSE_FILE_COUCH} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_COUCH}"
+  COMPOSE_CA_FILES="-f compose/${COMPOSE_FILE_CA} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_CA}"
+  COMPOSE_FILES="${COMPOSE_BASE_FILES} ${COMPOSE_COUCH_FILES} ${COMPOSE_CA_FILES}"
+
   # stop org3 containers also in addition to org1 and org2, in case we were running sample to add org3
-  for descriptor in $COMPOSE_FILE_BASE $COMPOSE_FILE_COUCH $COMPOSE_FILE_CA #$COMPOSE_FILE_COUCH_ORG3 $COMPOSE_FILE_ORG3
-  do
-    infoln "Decomposing $descriptor"
-    if [ "${CONTAINER_CLI}" == "docker" ]; then
-      DOCKER_SOCK=$DOCKER_SOCK ${CONTAINER_CLI_COMPOSE} -f compose/$descriptor -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${descriptor} down --volumes --remove-orphans
-    elif [ "${CONTAINER_CLI}" == "podman" ]; then
-      ${CONTAINER_CLI_COMPOSE} -f compose/$descriptor -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${descriptor} down --volumes
-    else
-      fatalln "Container CLI  ${CONTAINER_CLI} not supported"
-    fi
-  done
+  COMPOSE_ORG3_BASE_FILES="-f addOrg3/compose/${COMPOSE_FILE_ORG3_BASE} -f addOrg3/compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_ORG3_BASE}"
+  COMPOSE_ORG3_COUCH_FILES="-f addOrg3/compose/${COMPOSE_FILE_ORG3_COUCH} -f addOrg3/compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_ORG3_COUCH}"
+  COMPOSE_ORG3_CA_FILES="-f addOrg3/compose/${COMPOSE_FILE_ORG3_CA} -f addOrg3/compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_ORG3_CA}"
+  COMPOSE_ORG3_FILES="${COMPOSE_ORG3_BASE_FILES} ${COMPOSE_ORG3_COUCH_FILES} ${COMPOSE_ORG3_CA_FILES}"
+
+  if [ "${CONTAINER_CLI}" == "docker" ]; then
+    DOCKER_SOCK=$DOCKER_SOCK ${CONTAINER_CLI_COMPOSE} ${COMPOSE_FILES} ${COMPOSE_ORG3_FILES} down --volumes --remove-orphans
+  elif [ "${CONTAINER_CLI}" == "podman" ]; then
+    ${CONTAINER_CLI_COMPOSE} ${COMPOSE_FILES} ${COMPOSE_ORG3_FILES} down --volumes
+  else
+    fatalln "Container CLI  ${CONTAINER_CLI} not supported"
+  fi
+
 
   # Don't remove the generated artifacts -- note, the ledgers are always removed
   if [ "$MODE" != "restart" ]; then
@@ -377,10 +384,12 @@ COMPOSE_FILE_BASE=compose-test-net.yaml
 COMPOSE_FILE_COUCH=compose-couch.yaml
 # certificate authorities compose file
 COMPOSE_FILE_CA=compose-ca.yaml
-# use this as the docker compose couch file for org3
-COMPOSE_FILE_COUCH_ORG3=addOrg3/${CONTAINER_CLI}/docker-compose-couch-org3.yaml
 # use this as the default docker-compose yaml definition for org3
-COMPOSE_FILE_ORG3=addOrg3/${CONTAINER_CLI}/docker-compose-org3.yaml
+COMPOSE_FILE_ORG3_BASE=compose-org3.yaml
+# use this as the docker compose couch file for org3
+COMPOSE_FILE_ORG3_COUCH=compose-couch-org3.yaml
+# certificate authorities compose file
+COMPOSE_FILE_ORG3_CA=compose-ca-org3.yaml
 #
 # chaincode language defaults to "NA"
 CC_SRC_LANGUAGE="NA"
