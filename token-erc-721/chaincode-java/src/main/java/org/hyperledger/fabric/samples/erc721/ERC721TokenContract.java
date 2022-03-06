@@ -5,7 +5,8 @@
 package org.hyperledger.fabric.samples.erc721;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.hyperledger.fabric.samples.ertc721.utils.ContractUtility.stringIsNullOrEmpty;
+import static org.hyperledger.fabric.samples.erc721.utils.ContractUtility.stringIsNullOrEmpty;
+
 import java.util.stream.StreamSupport;
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.contract.ContractInterface;

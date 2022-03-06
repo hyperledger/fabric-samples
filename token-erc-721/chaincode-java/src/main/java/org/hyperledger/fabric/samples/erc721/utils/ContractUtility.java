@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  */
-package org.hyperledger.fabric.samples.ertc721.utils;
+package org.hyperledger.fabric.samples.erc721.utils;
 /**
  * 
  * @author Renjith
