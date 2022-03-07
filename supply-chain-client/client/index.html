@@ -71,15 +71,15 @@
         <a href="transaction_flow.PNG" target="_blank">
           <img src="transaction_flow.PNG" style="width:100%">
         </a>
-        <label>List All Fabric items in the Ledger</label>
+        <label>List all Fabric items in the Ledger</label>
         <p><input id="queryAllProduce" type="submit" value="Query" class="btn btn-primary" ng-click="queryAllProduce()"></p>
       </div>
  
       <table id="all_produce" class="table" align="center">
 
         <tr>
-          <th>ID</th>
-          <th>Color</th>
+          <th>ProductID</th>
+          <th>Type</th>
           <th>Size</th>
           <th>Price</th>
           <th>Owner</th>
@@ -98,15 +98,15 @@
         <label>Query a Specific Fabric by ID</label><br>
         <h5 style="color:red;margin-bottom:2%" id="error_query">Error: Please enter a valid Id</h5>
         
-        Enter a ID number: <input id="createName" class="form-control" type="text" placeholder="Ex: 3" ng-model="produce_id">
+        Enter an ID number: <input id="createName" class="form-control" type="text" placeholder="Ex: 3" ng-model="produce_id">
         <input id="querySubmit" type="submit" value="Query" class="btn btn-primary" ng-click="queryProduce()">
       </div>
 
       <table id="query_produce" class="table" align="center">
 
         <tr>
-          <th>ID</th>
-          <th>Color</th>
+          <th>ProductID</th>
+          <th>Type</th>
           <th>Size</th>
           <th>Price</th>
           <th>Owner</th>
@@ -126,19 +126,19 @@
         <h5 style="color:green;margin-bottom:2%" id="success_create">Successfully added to Ledger!</h5>      
         <br>
         Fabric id: <input class="form-control" type="text" placeholder="Ex: 6" ng-model="produce.assetID">
-        Color: <input class="form-control" type=text placeholder="Ex: blue" ng-model="produce.color">
+        Type: <input class="form-control" type=text placeholder="Ex: Cotton" ng-model="produce.color">
         Size: <input class="form-control" type=number step=1  ng-model="produce.size">
         Price: <input class="form-control" type=number step=1  ng-model="produce.appraisedValue">
-        Owner name: <input class="form-control" type="text" placeholder="Ex: Sakya" ng-model="produce.owner">
+        Owner name: <input class="form-control" type="text" placeholder="Ex: Alice" ng-model="produce.owner">
         <input id="createSubmit" type="submit" value="Create" class="btn btn-primary" ng-click="recordProduce()"> 
       </div>
 
       <div class="form-group">
         <label>Change Product Owner</label><br>
-        <h5 style="color:green;margin-bottom:2%" id="success_holder">Successfully updated Ledger! Tx ID: {{change_holder}}</h5>
+        <h5 style="color:green;margin-bottom:2%" id="success_holder">Successfully updated Ledger!</h5>
         <h5 style="color:red;margin-bottom:2%" id="error_holder">Error: Please enter a valid Product Id</h5>
-        Enter a ID of the product to transfer ownership: <input class="form-control" name="assetSelect" placeholder="Ex: 1" ng-model="holder.assetID">
-        Enter name of new owner: <input class="form-control" name="assetSelect" placeholder="Ex: Dalio" ng-model="holder.name">
+        Enter the product ID to transfer ownership: <input class="form-control" name="assetSelect" placeholder="Ex: 1" ng-model="holder.assetID">
+        Enter the name of new owner: <input class="form-control" name="assetSelect" placeholder="Ex: Dalio" ng-model="holder.name">
         <input id="transferSubmit" type="submit" value="Change" class="btn btn-primary" ng-click="changeHolder()">
       </div>
 
