@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "Hyperledger Fabric POC",
     "scripts": {
-        "start": "nodemon -L server.js"
+        "start": "node server.js"
     },
     "dependencies": {
         "angular": "^1.7.8",
@@ -12,6 +12,7 @@
         "express": "latest",
         "fabric-ca-client": "^2.2.4",
         "fabric-network": "^2.2.4"
+
     },
     "devDependencies": {
         "nodemon": "^2.0.15"

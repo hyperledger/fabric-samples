@@ -16,6 +16,7 @@ vendor/
 .idea
 # Dependency directories
 node_modules/
+wallet/
 # Ignore Gradle build output directory
 build
 package-lock.json
