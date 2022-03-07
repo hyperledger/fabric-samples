@@ -98,6 +98,8 @@ jobs:
         inputs:
           versionSpec: $(NODE_VER)
         displayName: Install Node.js
+      - script: ./ci/scripts/shellcheck.sh
+        displayName: Lint Shell Scripts
       - script: ./ci/scripts/lint.sh
         displayName: Lint Code
 

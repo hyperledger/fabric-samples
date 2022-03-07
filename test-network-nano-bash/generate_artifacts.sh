@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env sh
+set -eu
 
 # remove existing artifacts, or proceed on if the directories don't exist
 rm -r "${PWD}"/channel-artifacts || true
