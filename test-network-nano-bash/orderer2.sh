@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env sh
+set -eu
 
 # look for binaries in local dev environment /build/bin directory and then in local samples /bin directory
 export PATH="${PWD}"/../../fabric/build/bin:"${PWD}"/../bin:"$PATH"

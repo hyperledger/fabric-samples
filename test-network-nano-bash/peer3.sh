@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env sh
+set -eu
 
-if [ "$(uname)" == "Linux" ] ; then
+if [ "$(uname)" = "Linux" ] ; then
   CCADDR="127.0.0.1"
 else
   CCADDR="host.docker.internal"
