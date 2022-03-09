@@ -99,7 +99,7 @@ type Asset struct {
 // HistoryQueryResult structure used for returning result of history query
 type HistoryQueryResult struct {
 	Record    *Asset    `json:"record"`
-	TxId     string    `json:"txId"`
+	TxId      string    `json:"txId"`
 	Timestamp time.Time `json:"timestamp"`
 	IsDelete  bool      `json:"isDelete"`
 }
@@ -331,15 +331,24 @@ func getQueryResultForQueryString(ctx contractapi.TransactionContextInterface, q
 // The number of fetched records will be equal to or lesser than the page size.
 // Paginated range queries are only valid for read only transactions.
 // Example: Pagination with Range Query
-func (t *SimpleChaincode) GetAssetsByRangeWithPagination(ctx contractapi.TransactionContextInterface, startKey string, endKey string, pageSize int, bookmark string) ([]*Asset, error) {
+func (t *SimpleChaincode) GetAssetsByRangeWithPagination(ctx contractapi.TransactionContextInterface, startKey string, endKey string, pageSize int, bookmark string) (*PaginatedQueryResult, error) {
 
-	resultsIterator, _, err := ctx.GetStub().GetStateByRangeWithPagination(startKey, endKey, int32(pageSize), bookmark)
+	resultsIterator, responseMetadata, err := ctx.GetStub().GetStateByRangeWithPagination(startKey, endKey, int32(pageSize), bookmark)
 	if err != nil {
 		return nil, err
 	}
 	defer resultsIterator.Close()
 
-	return constructQueryResponseFromIterator(resultsIterator)
+	assets, err := constructQueryResponseFromIterator(resultsIterator)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PaginatedQueryResult{
+		Records:             assets,
+		FetchedRecordsCount: responseMetadata.FetchedRecordsCount,
+		Bookmark:            responseMetadata.Bookmark,
+	}, nil
 }
 
 // QueryAssetsWithPagination uses a query string, page size and a bookmark to perform a query

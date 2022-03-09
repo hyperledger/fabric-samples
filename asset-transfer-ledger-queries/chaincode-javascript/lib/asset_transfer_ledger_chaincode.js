@@ -266,10 +266,9 @@ class Chaincode extends Contract {
 
 		results.results = await this._GetAllResults(iterator, false);
 
-		results.ResponseMetadata = {
-			RecordsCount: metadata.fetchedRecordsCount,
-			Bookmark: metadata.bookmark,
-		};
+		results.fetchedRecordsCount = metadata.fetchedRecordsCount;
+
+		results.bookmark = metadata.bookmark;
 
 		return JSON.stringify(results);
 	}
@@ -289,10 +288,9 @@ class Chaincode extends Contract {
 
 		results.results = await this._GetAllResults(iterator, false);
 
-		results.ResponseMetadata = {
-			RecordsCount: metadata.fetchedRecordsCount,
-			Bookmark: metadata.bookmark,
-		};
+		results.fetchedRecordsCount = metadata.fetchedRecordsCount;
+
+		results.bookmark = metadata.bookmark;
 
 		return JSON.stringify(results);
 	}
