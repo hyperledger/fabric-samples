@@ -2,7 +2,7 @@
 
 Test network Nano bash provides a set of minimal bash scripts to run a Fabric network on your local machine.
 The network is functionally equivalent to the docker-based Test Network, you can therefore run all the tutorials and samples that target the Test Network with minimal changes.
-The Fabric release binaries are utilized rather than using docker containers to avoid all unnecessary layers. Only the chaincode and chaincode builder runs in a docker container behind the scenes.
+The Fabric release binaries are utilized rather than using docker containers to avoid all unnecessary layers. And you can choose between running the chaincode and chaincode builder in a docker container behind the scenes or running the chaincode as a service without any containers at all.
 Using the Fabric binaries also makes it simple for Fabric developers to iteratively and quickly modify Fabric code and test a Fabric network as a user.
 
 As the name `nano` implies, the scripts provide the smallest minimal setup possible for a Fabric network while still offering a multi-node TLS-enabled network:
@@ -17,6 +17,20 @@ As the name `nano` implies, the scripts provide the smallest minimal setup possi
 
 - Follow the Fabric documentation for the [Prereqs](https://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html)
 - Follow the Fabric documentation for [downloading the Fabric samples and binaries](https://hyperledger-fabric.readthedocs.io/en/latest/install.html). You can skip the docker image downloads by using `curl -sSL https://bit.ly/2ysbOFE | bash -s -- -d`
+
+## To run the chaincode as a service
+- You need to have the `ccaas_builder` binaries. If you do not have them in `fabric-samples/bin` you can build them from the Fabric source with the command `make ccaasbuilder`, you will then find the builder in `fabric/release/darwin-amd64/bin` or equivalent for your system. Just move the whole hierarchy starting there to `fabric-samples/bin` with something like: `mv release/darwin-amd64/bin/ccaas_builder ../fabric-samples/bin`
+- You need to edit the `fabric-samples/config/core.yaml` file to point to that builder. The path specified in the default config file is only valid within the peer container which you won't be using. Modify the `externalBuilders` field in the `core.yaml` file to add the local external builder so that the configuration looks something like the following:
+```
+externalBuilders:
+       - name: ccaas_builder
+         path: /opt/hyperledger/ccaas_builder
+         propagateEnvironment:
+           - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG
+       - name: external-sample-builder
+	     path: ../bin/ccaas_builder
+```
+The path must be absolute or relative to where the peer will run so that it can find the builder when installing the chaincode.
 
 # Instructions for starting network
 
@@ -42,7 +56,12 @@ The remaining peer admin scripts join their respective peers to `mychannel`.
 
 # Instructions for deploying and running the basic asset transfer sample chaincode
 
-To deploy and invoke the chaincode, utilize the peer1 admin terminal that you have created in the prior steps.
+To deploy and invoke the chaincode, utilize the peer1 admin terminal that you have created in the prior steps. You have two possibilities:
+
+1. Using a chaincode container
+2. Running the chaincode as a service
+
+## 1. Using a chaincode container
 
 Package and install the chaincode on peer1:
 
@@ -52,23 +71,72 @@ peer lifecycle chaincode package basic.tar.gz --path ../asset-transfer-basic/cha
 peer lifecycle chaincode install basic.tar.gz
 ```
 
-The chaincode install may take a minute since the `fabric-ccenv` chaincode builder docker image will be downloaded if not already available on your machine.
+The chaincode install may take a minute since the `fabric-ccenv` chaincode builder docker image will be downloaded if not already available on your machine. Copy the returned chaincode package ID into an environment variable for use in subsequent commands (your ID may be different):
+
+```
+export CHAINCODE_ID=basic_1:faaa38f2fc913c8344986a7d1617d21f6c97bc8d85ee0a489c90020cd57af4a5
+```
+
+
+## 2. Running the chaincode as a service
+
+Package and install the external chaincode on peer1 with the following simple commands:
+
+```
+cd chaincode-external
+
+tar cfz code.tar.gz connection.json
+tar cfz external-chaincode.tgz metadata.json code.tar.gz
+
+cd ..
+
+peer lifecycle chaincode install chaincode-external/external-chaincode.tgz
+```
+
 Copy the returned chaincode package ID into an environment variable for use in subsequent commands (your ID may be different):
 
 ```
-export CC_PACKAGE_ID=basic_1:faaa38f2fc913c8344986a7d1617d21f6c97bc8d85ee0a489c90020cd57af4a5
+export CHAINCODE_ID=basic_1.0:f3e2ca5115bba71aa2fd16e35722b420cb29c42594f0fdd6814daedbc2130b80
 ```
 
-Approve and commit the chaincode (only a single approver is required based on the lifecycle endorsement policy of any organization):
+In another terminal, navigate to `fabric-samples/asset-transfer-basic/chaincode-typescript` and build the chaincode:
 
 ```
-peer lifecycle chaincode approveformyorg -o 127.0.0.1:6050 --channelID mychannel --name basic --version 1 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile ${PWD}/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+npm install
+```
+
+Set the chaincode package ID again (this is a different terminal):
+
+```
+export CHAINCODE_ID=basic_1.0:f3e2ca5115bba71aa2fd16e35722b420cb29c42594f0fdd6814daedbc2130b80
+```
+
+Set the chaincode server address:
+
+```
+export CHAINCODE_SERVER_ADDRESS=127.0.0.1:9999
+```
+
+And start the chaincode service:
+
+```
+npm run start:server-notls
+```
+
+## Activate the chaincode
+
+Using the peer1 admin, approve and commit the chaincode (only a single approver is required based on the lifecycle endorsement policy of any organization):
+
+```
+peer lifecycle chaincode approveformyorg -o 127.0.0.1:6050 --channelID mychannel --name basic --version 1 --package-id $CHAINCODE_ID --sequence 1 --tls --cafile ${PWD}/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
 
 peer lifecycle chaincode commit -o 127.0.0.1:6050 --channelID mychannel --name basic --version 1 --sequence 1 --tls --cafile "${PWD}"/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
 ```
 
+## Interact with the chaincode
+
 Invoke the chaincode to create an asset (only a single endorser is required based on the default endorsement policy of any organization).
-Then query the asset, update it, and query again to see the resulting asset changes on the ledger.
+Then query the asset, update it, and query again to see the resulting asset changes on the ledger. Note that you need to wait a bit for invoke transactions to complete.
 
 ```
 peer chaincode invoke -o 127.0.0.1:6050 -C mychannel -n basic -c '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' --tls --cafile "${PWD}"/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
