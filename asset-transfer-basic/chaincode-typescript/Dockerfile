@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 FROM node:16 AS builder
-ARG CC_SERVER_PORT
 
 WORKDIR /usr/src/app
 
@@ -12,6 +11,7 @@ RUN npm ci && npm run package
 
 
 FROM node:16 AS production
+ARG CC_SERVER_PORT
 
 # Setup tini to work better handle signals
 ENV TINI_VERSION v0.19.0
