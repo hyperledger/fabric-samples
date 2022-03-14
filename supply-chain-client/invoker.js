@@ -58,9 +58,9 @@ class FabricSampleService {
 			// Get the contract from the network.
 			this.contract = network.getContract(chaincodeName);
 
-			console.log('Adding initial inventory to Ledger');
-			await this.contract.submitTransaction('InitLedger');
-			console.log('Done, applicaiton Ready!');
+			//console.log('Adding initial inventory to Ledger');
+			//await this.contract.submitTransaction('InitLedger');
+			//console.log('Done, applicaiton Ready!');
 
 		} catch (error) {
 			console.error(`******** FAILED to startup the FabicSampleService: ${error}`);
