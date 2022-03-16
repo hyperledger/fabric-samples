@@ -20,7 +20,7 @@ const chaincodeName = 'secured';
 
 //Use a random key so that we can run multiple times
 const now = Date.now();
-const assetKey= `asset${now}`;
+const assetKey = `asset${now}`;
 
 //Generate random bytes using crypto
 const randomBytes = crpto.randomBytes(256).toString('hex')
