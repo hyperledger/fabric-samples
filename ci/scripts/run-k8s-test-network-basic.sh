@@ -19,9 +19,10 @@ export TEST_NETWORK_FABRIC_CA_VERSION=amd64-${FABRIC_VERSION}-stable
 # test-network-k8s parameters
 export TEST_TAG=$(git describe)
 export TEST_NETWORK_KIND_CLUSTER_NAME=${TEST_NETWORK_KIND_CLUSTER_NAME:-kind}
+
+# asset-transfer-basic chaincode target
 export TEST_NETWORK_CHAINCODE_NAME=${TEST_NETWORK_CHAINCODE_NAME:-asset-transfer-basic}
-export TEST_NETWORK_CHAINCODE_IMAGE=${TEST_NETWORK_CHAINCODE_NAME}:${TEST_TAG}
-export TEST_NETWORK_CHAINCODE_PATH=${TEST_NETWORK_CHAINCODE_PATH:-../asset-transfer-basic/chaincode-external}
+export TEST_NETWORK_CHAINCODE_PATH=${TEST_NETWORK_CHAINCODE_PATH:-$PWD/../asset-transfer-basic/chaincode-java}
 
 # gateway client application parameters
 export GATEWAY_CLIENT_APPLICATION_PATH=${GATEWAY_CLIENT_APPLICATION_PATH:-../asset-transfer-basic/application-gateway-${CLIENT_LANGUAGE}}
@@ -44,12 +45,10 @@ function print() {
 
 function touteSuite() {
   createCluster
-  buildChaincodeImage
 }
 
 function quitterLaScene() {
   destroyCluster
-  scrubCCImages
 }
 
 function createCluster() {
@@ -62,19 +61,6 @@ function destroyCluster() {
   ./network unkind
 }
 
-function buildChaincodeImage() {
-  print "Building chaincode image $TEST_NETWORK_CHAINCODE_IMAGE"
-  ${CONTAINER_CLI} build -t $TEST_NETWORK_CHAINCODE_IMAGE $TEST_NETWORK_CHAINCODE_PATH
-
-  # todo: work with local reg, or k3s, or KIND, or ...
-  kind load docker-image $TEST_NETWORK_CHAINCODE_IMAGE
-}
-
-function scrubCCImages() {
-  print "Scrubbing chaincode images"
-  ${CONTAINER_CLI} rmi $TEST_NETWORK_CHAINCODE_IMAGE
-}
-
 function createNetwork() {
   print "Launching network"
   ./network up
@@ -84,7 +70,7 @@ function createNetwork() {
   kubectl -n test-network port-forward svc/org1-peer1 7051:7051 &
 
   print "Deploying chaincode"
-  ./network chaincode deploy
+  ./network chaincode deploy $TEST_NETWORK_CHAINCODE_PATH
 
   print "Extracting certificates"
   kubectl \
@@ -109,13 +95,12 @@ function stopNetwork() {
 touteSuite
 trap "quitterLaScene" EXIT
 
-# invoke / query
 createNetwork
 
 print "Inserting and querying assets"
-( ./network chaincode invoke '{"Args":["InitLedger"]}' \
+( ./network chaincode invoke $CHAINCODE_NAME '{"Args":["InitLedger"]}' \
   && sleep 5 \
-  && ./network chaincode query '{"Args":["ReadAsset","asset1"]}' )
+  && ./network chaincode query $CHAINCODE_NAME '{"Args":["ReadAsset","asset1"]}' )
 print "OK"
 
 print "Running rest-easy test"

@@ -24,6 +24,7 @@ function logging_init() {
 
 function exit_fn() {
   rc=$?
+  set +x
 
   # Write an error icon to the current logging statement.
   if [ "0" -ne $rc ]; then

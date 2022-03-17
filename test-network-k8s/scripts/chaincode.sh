@@ -5,45 +5,102 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-function package_chaincode_for() {
-  local org=$1
-  local cc_folder="chaincode/${CHAINCODE_NAME}"
-  local build_folder="build/chaincode"
-  local cc_archive="${build_folder}/${CHAINCODE_NAME}.tgz"
-  push_fn "Packaging chaincode folder ${cc_folder}"
+# Convenience routine to "do everything" required to bring up a sample CC.
+function deploy_chaincode() {
+  local cc_folder=$1
+  local build_folder=${cc_folder}/build
+  local cc_package=${build_folder}/chaincode.tgz
+
+  build_chaincode_image   ${cc_folder}
 
   mkdir -p ${build_folder}
 
-  tar -C ${cc_folder} -zcf ${cc_folder}/code.tar.gz connection.json
+  package_chaincode       ${cc_folder}/ccpackage ${cc_package}
+  extract_chaincode_image ${cc_package}
+  extract_chaincode_name  ${cc_package}
+
+  launch_chaincode        ${cc_package}
+  install_chaincode       ${cc_package}
+  approve_chaincode       ${CHAINCODE_NAME} ${CHAINCODE_ID}
+  commit_chaincode        ${CHAINCODE_NAME}
+}
+
+function query_chaincode() {
+  local cc_name=$1
+  shift
+
+  set -x
+  # todo: mangle additional $@ parameters with bash escape quotations
+  echo '
+  export CORE_PEER_ADDRESS=org1-peer1:7051
+  peer chaincode query -n '${cc_name}' -C '${CHANNEL_NAME}' -c '"'$@'"'
+  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
+}
+
+function query_chaincode_metadata() {
+  local cc_name=$1
+  shift
+
+  set -x
+  local args='{"Args":["org.hyperledger.fabric:GetMetadata"]}'
+  # todo: mangle additional $@ parameters with bash escape quotations
+  log 'Org1-Peer1:'
+  echo '
+  export CORE_PEER_ADDRESS=org1-peer1:7051
+  peer chaincode query -n '${cc_name}' -C '${CHANNEL_NAME}' -c '"'$args'"'
+  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
+
+  log ''
+  log 'Org1-Peer2:'
+  echo '
+  export CORE_PEER_ADDRESS=org1-peer2:7051
+  peer chaincode query -n '${cc_name}' -C '${CHANNEL_NAME}' -c '"'$args'"'
+  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
+}
+
+function invoke_chaincode() {
+  local cc_name=$1
+  shift
+
+  # set -x
+  # todo: mangle additional $@ parameters with bash escape quotations
+  echo '
+  export CORE_PEER_ADDRESS=org1-peer1:7051
+  peer chaincode \
+    invoke \
+    -o org0-orderer1:6050 \
+    --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem \
+    -n '${cc_name}' \
+    -C '${CHANNEL_NAME}' \
+    -c '"'$@'"'
+  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
+
+  sleep 2
+}
+
+function build_chaincode_image() {
+  local cc_folder=$1
+  local cc_image=$(jq -r .image ${cc_folder}/ccpackage/ccaas.json)
+
+  push_fn "Building chaincode image ${cc_image}"
+
+  docker build -t ${cc_image} ${cc_folder}
+
+  kind load docker-image ${cc_image}
+
+  pop_fn
+}
+
+function package_chaincode() {
+  local cc_folder=$1
+  local cc_archive=$2
+  local archive_name=$(basename $cc_archive)
+  push_fn "Packaging chaincode ${archive_name}"
+
+  tar -C ${cc_folder} -zcf ${cc_folder}/code.tar.gz connection.json ccaas.json
   tar -C ${cc_folder} -zcf ${cc_archive} code.tar.gz metadata.json
 
   rm ${cc_folder}/code.tar.gz
-
-  pop_fn
-}
-
-# Copy the chaincode archive from the local host to the org admin
-function transfer_chaincode_archive_for() {
-  local org=$1
-  local cc_archive="build/chaincode/${CHAINCODE_NAME}.tgz"
-  push_fn "Transferring chaincode archive to ${org}"
-
-  # Like kubectl cp, but targeted to a deployment rather than an individual pod.
-  tar cf - ${cc_archive} | kubectl -n $NS exec -i deploy/${org}-admin-cli -c main -- tar xvf -
-
-  pop_fn
-}
-
-function install_chaincode_for() {
-  local org=$1
-  local peer=$2
-  push_fn "Installing chaincode for org ${org}  peer ${peer}"
-
-  # Install the chaincode
-  echo 'set -x
-  export CORE_PEER_ADDRESS='${org}'-'${peer}':7051
-  peer lifecycle chaincode install build/chaincode/'${CHAINCODE_NAME}'.tgz
-  ' | exec kubectl -n $NS exec deploy/${org}-admin-cli -c main -i -- /bin/bash
 
   pop_fn
 }
@@ -70,120 +127,177 @@ function launch_chaincode_service() {
   pop_fn
 }
 
-function activate_chaincode_for() {
+# Copy the chaincode archive from the local host to the org admin
+function transfer_chaincode_archive_for() {
   local org=$1
-  local cc_id=$2
-  push_fn "Activating chaincode ${CHAINCODE_ID}"
+  local cc_archive=$2
+  local dirname=$(dirname $cc_archive)
+  local filename=$(basename $cc_archive)
 
-  echo 'set -x 
-  export CORE_PEER_ADDRESS='${org}'-peer1:7051
-  
-  peer lifecycle \
-    chaincode approveformyorg \
-    --channelID '${CHANNEL_NAME}' \
-    --name '${CHAINCODE_NAME}' \
-    --version 1 \
-    --package-id '${cc_id}' \
-    --sequence 1 \
-    -o org0-orderer1:6050 \
-    --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem
-  
-  peer lifecycle \
-    chaincode commit \
-    --channelID '${CHANNEL_NAME}' \
-    --name '${CHAINCODE_NAME}' \
-    --version 1 \
-    --sequence 1 \
-    -o org0-orderer1:6050 \
-    --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem
+  push_fn "Transferring chaincode archive to ${org}"
+
+  # Like kubectl cp, but targeted to a deployment rather than an individual pod.
+  tar cf - -C ${dirname} ${filename} | kubectl -n $NS exec -i deploy/${org}-admin-cli -c main -- tar xvf -
+
+  pop_fn
+}
+
+function install_chaincode_for() {
+  local org=$1
+  local package_name=$2
+  local peer=$3
+  push_fn "Installing chaincode for ${org} ${peer}"
+
+  # Install the chaincode
+  echo 'set -x
+  export CORE_PEER_ADDRESS='${org}'-'${peer}':7051
+  peer lifecycle chaincode install '${package_name}'
   ' | exec kubectl -n $NS exec deploy/${org}-admin-cli -c main -i -- /bin/bash
 
   pop_fn
 }
 
-function query_chaincode() {
-  set -x
-  # todo: mangle additional $@ parameters with bash escape quotations
-  echo '
-  export CORE_PEER_ADDRESS=org1-peer1:7051
-  peer chaincode query -n '${CHAINCODE_NAME}' -C '${CHANNEL_NAME}' -c '"'$@'"'
-  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
-}
-
-function query_chaincode_metadata() {
-  set -x
-  local args='{"Args":["org.hyperledger.fabric:GetMetadata"]}'
-  # todo: mangle additional $@ parameters with bash escape quotations
-  log 'Org1-Peer1:'
-  echo '
-  export CORE_PEER_ADDRESS=org1-peer1:7051
-  peer chaincode query -n '${CHAINCODE_NAME}' -C '${CHANNEL_NAME}' -c '"'$args'"'
-  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
-
-  log ''
-  log 'Org1-Peer2:'
-  echo '
-  export CORE_PEER_ADDRESS=org1-peer2:7051
-  peer chaincode query -n '${CHAINCODE_NAME}' -C '${CHANNEL_NAME}' -c '"'$args'"'
-  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
-
-}
-
-function invoke_chaincode() {
-  # set -x
-  # todo: mangle additional $@ parameters with bash escape quotations
-  echo '
-  export CORE_PEER_ADDRESS=org1-peer1:7051
-  peer chaincode \
-    invoke \
-    -o org0-orderer1:6050 \
-    --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem \
-    -n '${CHAINCODE_NAME}' \
-    -C '${CHANNEL_NAME}' \
-    -c '"'$@'"'
-  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
-
-  sleep 2
-}
-
-# Normally the chaincode ID is emitted by the peer install command.  In this case, we'll generate the
-# package ID as the sha-256 checksum of the chaincode archive.
-function set_chaincode_id() {
-  local cc_package=build/chaincode/${CHAINCODE_NAME}.tgz
-  cc_sha256=$(shasum -a 256 ${cc_package} | tr -s ' ' | cut -d ' ' -f 1)
-
-  label=$( jq -r '.label' chaincode/${CHAINCODE_NAME}/metadata.json)
-
-  CHAINCODE_ID=${label}:${cc_sha256}
-}
-
-# Package and install the chaincode, but do not activate.
+# Install the chaincode package to an org peer
 function install_chaincode() {
   local org=org1
+  local cc_package=$1
+  local package_name=$(basename $cc_package)
 
-  package_chaincode_for ${org}
-  transfer_chaincode_archive_for ${org}
-  install_chaincode_for ${org} peer1
-  install_chaincode_for ${org} peer2
-
-  set_chaincode_id
+  transfer_chaincode_archive_for ${org} ${cc_package}
+  install_chaincode_for ${org} ${package_name} peer1
+  install_chaincode_for ${org} ${package_name} peer2
 }
 
-# Activate the installed chaincode but do not package/install a new archive.
-function activate_chaincode() {
-  set -x
+# approve the chaincode package for an org and assign a name
+function approve_chaincode() {
+  local org=org1
+  local cc_name=$1
+  local cc_id=$2
+  push_fn "Approving chaincode ${cc_name} with ID ${cc_id}"
 
-  set_chaincode_id
-  activate_chaincode_for org1 $CHAINCODE_ID
+  echo 'set -x
+  export CORE_PEER_ADDRESS='${org}'-peer1:7051
+
+  peer lifecycle \
+    chaincode approveformyorg \
+    --channelID '${CHANNEL_NAME}' \
+    --name '${cc_name}' \
+    --version 1 \
+    --package-id '${cc_id}' \
+    --sequence 1 \
+    -o org0-orderer1:6050 \
+    --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem
+
+  ' | exec kubectl -n $NS exec deploy/${org}-admin-cli -c main -i -- /bin/bash
+
+  pop_fn
 }
 
-# Install, launch, and activate the chaincode
-function deploy_chaincode() {
-  set -x
+# commit the named chaincode for an org
+function commit_chaincode() {
+  local org=org1
+  local cc_name=$1
+  push_fn "Committing chaincode ${cc_name}"
 
-  install_chaincode
+  echo 'set -x
+  export CORE_PEER_ADDRESS='${org}'-peer1:7051
+
+  peer lifecycle \
+    chaincode commit \
+    --channelID '${CHANNEL_NAME}' \
+    --name '${cc_name}' \
+    --version 1 \
+    --sequence 1 \
+    -o org0-orderer1:6050 \
+    --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem
+  ' | exec kubectl -n $NS exec deploy/${org}-admin-cli -c main -i -- /bin/bash
+  pop_fn
+}
+
+# The chaincode docker image is stored in the code.tar.gz ccaas.json
+function extract_chaincode_image() {
+  CHAINCODE_IMAGE=$(tar zxfO $1 code.tar.gz | tar zxfO - ccaas.json | jq -r .image)
+}
+
+function extract_chaincode_name() {
+  CHAINCODE_NAME=$(tar zxfO $1 code.tar.gz | tar zxfO - ccaas.json | jq -r .name)
+}
+
+function launch_chaincode() {
+  local cc_package=$1
+
+  id_chaincode ${cc_package}
+  extract_chaincode_image ${cc_package}
+  extract_chaincode_name ${cc_package}
+
   launch_chaincode_service org1 $CHAINCODE_ID $CHAINCODE_IMAGE peer1
   launch_chaincode_service org1 $CHAINCODE_ID $CHAINCODE_IMAGE peer2
-  activate_chaincode
 }
 
+function id_chaincode() {
+  local cc_package=$1
+
+  cc_sha256=$(shasum -a 256 ${cc_package} | tr -s ' ' | cut -d ' ' -f 1)
+  cc_label=$(tar zxfO ${cc_package} metadata.json | jq -r '.label')
+
+  CHAINCODE_ID=${cc_label}:${cc_sha256}
+}
+
+# chaincode "group" commands.  Like "main" for chaincode sub-command group.
+function cc_command_group() {
+  #set -x
+
+  COMMAND=$1
+  shift
+
+  if [ "${COMMAND}" == "deploy" ]; then
+    log "Deploying chaincode"
+    deploy_chaincode $@
+    log "🏁 - Chaincode is ready."
+
+  elif [ "${COMMAND}" == "package" ]; then
+    log "Packaging chaincode"
+    package_chaincode $@
+    log "🏁 - Chaincode package is ready."
+
+  elif [ "${COMMAND}" == "id" ]; then
+    id_chaincode $@
+    log $CHAINCODE_ID
+
+  elif [ "${COMMAND}" == "launch" ]; then
+    log "Launching chaincode services"
+    launch_chaincode $@
+    log "🏁 - Chaincode services are ready"
+
+  elif [ "${COMMAND}" == "install" ]; then
+    log "Installing chaincode for org1"
+    install_chaincode $@
+    log "🏁 - Chaincode is installed"
+
+  elif [ "${COMMAND}" == "approve" ]; then
+    log "Approving chaincode for org1"
+    approve_chaincode $@
+    log "🏁 - Chaincode is approved"
+
+  elif [ "${COMMAND}" == "commit" ]; then
+    log "Committing chaincode for org1"
+    commit_chaincode $@
+    log "🏁 - Chaincode is committed"
+
+  elif [ "${COMMAND}" == "invoke" ]; then
+    invoke_chaincode $@ 2>> ${LOG_FILE}
+
+  elif [ "${COMMAND}" == "query" ]; then
+    query_chaincode $@ >> ${LOG_FILE}
+
+  elif [ "${COMMAND}" == "metadata" ]; then
+    query_chaincode_metadata $@ >> ${LOG_FILE}
+
+# todo: maybe...
+#  elif [ "${COMMAND}" == "activate" ]; then
+
+  else
+    print_help
+    exit 1
+  fi
+}

@@ -33,17 +33,18 @@ Launch the network, create a channel, and deploy the [basic-asset-transfer](../a
 ```shell
 ./network up
 ./network channel create
-./network chaincode deploy
+
+./network chaincode deploy $PWD/../asset-transfer-basic/chaincode-java 
 ```
 
 Invoke and query chaincode:
 ```shell
-./network chaincode invoke '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' 
-./network chaincode query '{"Args":["ReadAsset","1"]}'
+./network chaincode invoke asset-transfer-basic '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' 
+./network chaincode query  asset-transfer-basic '{"Args":["ReadAsset","1"]}'
 ```
 
 Access the blockchain with a [REST API](https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic/rest-api-typescript): 
-```
+```shell
 ./network rest-easy
 ```
 
@@ -60,7 +61,7 @@ Tear down the cluster:
 
 ## [Detailed Guides](docs/README.md)
 
-- [`./network`](docs/NETWORK.md)
+- [`network`](docs/NETWORK.md)
 - [Working with Kubernetes](docs/KUBERNETES.md)
 - [Certificate Authorities](docs/CA.md)
 - [Launching the Test Network](docs/TEST_NETWORK.md)

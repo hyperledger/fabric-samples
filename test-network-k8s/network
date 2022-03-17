@@ -9,16 +9,17 @@ set -o errexit
 # todo: better handling for input parameters.
 # todo: skip storage volume init if deploying to a remote / cloud cluster (ICP IKS ROKS etc...)
 # todo: for logging, set up a stack and allow multi-line status output codes
-# todo: refactor - lots of for-org-in-0-to-2-...
 # todo: find a better technique for passing input commands to a remote kube exec
 # todo: register tls csr.hosts w/ kube DNS domain .NS.svc.cluster.local
 # todo: user:pass auth for tls and ecert bootstrap admins.  here and in the server-config.yaml
 # todo: set tls.certfiles= ... arg in deployment env / yaml
-# todo: refactor chaincode install to support other chaincode routines
 # todo: consider using templates for boilerplate network nodes (orderers, peers, ...)
-# todo: allow the user to specify the chaincode name (hardcoded as 'basic') both in install and invoke/query
 # todo: track down a nasty bug whereby the CA service endpoints (kube services) will occasionally reject TCP connections after network down/up.  This is patched by introducing a 10s sleep after the deployments are up...
-# todo: refactor query/invoke to specify chaincode name (-n param)
+
+# todo: allow relative paths for input arguments.
+cd "$(dirname "$0")"
+
+
 
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 FABRIC_VERSION=${TEST_NETWORK_FABRIC_VERSION:-2.4}
@@ -35,15 +36,15 @@ LOCAL_REGISTRY_PORT=${TEST_NETWORK_LOCAL_REGISTRY_PORT:-5000}
 STAGE_DOCKER_IMAGES=${TEST_NETWORK_STAGE_DOCKER_IMAGES:-false}
 NGINX_HTTP_PORT=${TEST_NETWORK_INGRESS_HTTP_PORT:-80}
 NGINX_HTTPS_PORT=${TEST_NETWORK_INGRESS_HTTPS_PORT:-443}
-CHAINCODE_NAME=${TEST_NETWORK_CHAINCODE_NAME:-asset-transfer-basic}
-CHAINCODE_IMAGE=${TEST_NETWORK_CHAINCODE_IMAGE:-ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest}
-CHAINCODE_LABEL=${TEST_NETWORK_CHAINCODE_LABEL:-basic_1.0}
+
 
 # todo: more complicated config, as these bleed into the yaml descriptors (sed? kustomize? helm (no)? tkn? ansible?...) or other script locations
 TLSADMIN_AUTH=tlsadmin:tlsadminpw
 RCAADMIN_AUTH=rcaadmin:rcaadminpw
 
 function print_help() {
+  set +x
+
   log
   log "--- Fabric Information"
   log "Fabric Version     \t\t: ${FABRIC_VERSION}"
@@ -51,11 +52,6 @@ function print_help() {
   log "Container Registry   \t: ${FABRIC_CONTAINER_REGISTRY}"
   log "Network name       \t\t: ${NETWORK_NAME}"
   log "Channel name       \t\t: ${CHANNEL_NAME}"
-  log
-  log "--- Chaincode Information"
-  log "Chaincode name      \t\t: ${CHAINCODE_NAME}"
-  log "Chaincode image      \t: ${CHAINCODE_IMAGE}"
-  log "Chaincode label      \t: ${CHAINCODE_LABEL}"
   log
   log "--- Cluster Information"
   log "Cluster name       \t\t: ${CLUSTER_NAME}"
@@ -70,8 +66,6 @@ function print_help() {
   log "Log file           \t\t: ${LOG_FILE}"
   log "Debug log file     \t\t: ${DEBUG_FILE}"
   log
-
-
 
   echo todo: help output, parse mode, flags, env, etc.
 }
@@ -102,8 +96,6 @@ else
   shift
 fi
 
-
-
 if [ "${MODE}" == "kind" ]; then
   log "Initializing KIND cluster \"${CLUSTER_NAME}\":"
   kind_init
@@ -130,10 +122,10 @@ elif [ "${MODE}" == "down" ]; then
   log "🏁 - Fabric network is down."
 
 elif [ "${MODE}" == "channel" ]; then
-  ACTION=$1
+  COMMAND=$1
   shift
 
-  if [ "${ACTION}" == "create" ]; then
+  if [ "${COMMAND}" == "create" ]; then
     log "Creating channel \"${CHANNEL_NAME}\":"
     channel_up
     log "🏁 - Channel is ready."
@@ -143,37 +135,41 @@ elif [ "${MODE}" == "channel" ]; then
     exit 1
   fi
 
-elif [ "${MODE}" == "chaincode" ]; then
-  ACTION=$1
-  shift
+elif [[ "${MODE}" == "chaincode" || "${MODE}" == "cc" ]]; then
+  cc_command_group $@
 
-  if [ "${ACTION}" == "deploy" ]; then
-    log "Deploying chaincode \"${CHAINCODE_NAME}\":"
-    deploy_chaincode
-    log "🏁 - Chaincode is ready."
-
-  elif [ "${ACTION}" == "install" ]; then
-    log "Installing chaincode \"${CHAINCODE_NAME}\":"
-    install_chaincode
-    log "🏁 - Chaincode is installed with CHAINCODE_ID=${CHAINCODE_ID}"
-
-  elif [ "${ACTION}" == "activate" ]; then
-    log "Activating chaincode \"${CHAINCODE_NAME}\":"
-    activate_chaincode
-    log "🏁 - Chaincode is activated with CHAINCODE_ID=${CHAINCODE_ID}"
-
-  elif [ "${ACTION}" == "invoke" ]; then
-    invoke_chaincode $@ 2>> ${LOG_FILE}
-
-  elif [ "${ACTION}" == "query" ]; then
-    query_chaincode $@ >> ${LOG_FILE}
-
-  elif [ "${ACTION}" == "metadata" ]; then
-    query_chaincode_metadata >> ${LOG_FILE}
-  else
-    print_help
-    exit 1
-  fi
+#elif [ "${MODE}" == "chaincode" ]; then
+#  COMMAND=$1
+#  shift
+#
+#  if [ "${COMMAND}" == "deploy" ]; then
+#    log "Deploying chaincode \"${CHAINCODE_NAME}\":"
+#    deploy_chaincode
+#    log "🏁 - Chaincode is ready."
+#
+#  elif [ "${COMMAND}" == "install" ]; then
+#    log "Installing chaincode \"${CHAINCODE_NAME}\":"
+#    install_chaincode
+#    log "🏁 - Chaincode is installed with CHAINCODE_ID=${CHAINCODE_ID}"
+#
+#  elif [ "${COMMAND}" == "activate" ]; then
+#    log "Activating chaincode \"${CHAINCODE_NAME}\":"
+#    activate_chaincode
+#    log "🏁 - Chaincode is activated with CHAINCODE_ID=${CHAINCODE_ID}"
+#
+#  elif [ "${COMMAND}" == "invoke" ]; then
+#    invoke_chaincode $@ 2>> ${LOG_FILE}
+#
+#  elif [ "${COMMAND}" == "query" ]; then
+#    query_chaincode $@ >> ${LOG_FILE}
+#
+#  elif [ "${COMMAND}" == "metadata" ]; then
+#    query_chaincode_metadata >> ${LOG_FILE}
+#
+#  else
+#    print_help
+#    exit 1
+#  fi
 
 elif [ "${MODE}" == "anchor" ]; then
   update_anchor_peers $@
