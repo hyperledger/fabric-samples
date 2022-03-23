@@ -6,7 +6,7 @@ Before you can deploy the test network, you need to follow the instructions to [
 
 ## Using the Peer commands
 
-The `setOrgEnv.sh` script can be used to setup the environment variables for the ogrganziations, this will will help to be able to use the `peer` commands directly.
+The `setOrgEnv.sh` script can be used to set up the environment variables for the ogrganziations, this will will help to be able to use the `peer` commands directly.
 
 First, ensure that the peer binaries are on your path, and the Fabric Config path is set Assuming that you're in the `test-network` directory.
 
