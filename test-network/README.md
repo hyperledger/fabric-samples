@@ -6,9 +6,9 @@ Before you can deploy the test network, you need to follow the instructions to [
 
 ## Using the Peer commands
 
-The `setOrgEnv.sh` script can be used to setup the environment variables for the ogrganziations, this will will help to be able to use the `peer` commands directly.
+The `setOrgEnv.sh` script can be used to set up the environment variables for the organizations, this will help to be able to use the `peer` commands directly.
 
-First, ensure that the peer binaries are on your path, and the Fabric Config path is set Assuming that you're in the `test-network` directory.
+First, ensure that the peer binaries are on your path, and the Fabric Config path is set assuming that you're in the `test-network` directory.
 
 ```bash
  export PATH=$PATH:$(realpath ../bin)
@@ -21,10 +21,10 @@ You can then set up the environment variables for each organization. The `./setO
 export $(./setOrgEnv.sh Org2 | xargs)
 ```
 
-(Note bash v4 is required for the scripts)
+(Note bash v4 is required for the scripts.)
 
-You will now be able to run the `peer` commands in the context of Org2. If a different command prompt you can run the same command with Org1 instead.
-The `setOrgEnv` script outputs a series of `<name>=<value>` strings. These can then be fed into the export command for your current shell
+You will now be able to run the `peer` commands in the context of Org2. If a different command prompt, you can run the same command with Org1 instead.
+The `setOrgEnv` script outputs a series of `<name>=<value>` strings. These can then be fed into the export command for your current shell.
 
 ## Chaincode-as-a-service
 
