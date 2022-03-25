@@ -25,6 +25,8 @@ function logging_init() {
 function exit_fn() {
   rc=$?
 
+  set +x
+
   # Write an error icon to the current logging statement.
   if [ "0" -ne $rc ]; then
     pop_fn $rc
@@ -71,5 +73,14 @@ function pop_fn() {
   fi
 
   echo "" >> ${LOG_FILE}
+}
+
+# Apply the current environment to a k8s template and apply to the cluster.
+function apply_template() {
+
+  echo "Applying template $1:"
+  cat $1 | envsubst
+
+  cat $1 | envsubst | kubectl -n $NS apply -f -
 }
 

@@ -87,8 +87,8 @@ nodes:
       - containerPort: 443
         hostPort: ${ingress_https_port}
         protocol: TCP
-networking:
-  kubeProxyMode: "ipvs"
+#networking:
+#  kubeProxyMode: "ipvs"
 
 # create a cluster with the local registry enabled in containerd
 containerdConfigPatches:
@@ -97,6 +97,12 @@ containerdConfigPatches:
     endpoint = ["http://${reg_name}:${reg_port}"]
 
 EOF
+
+  # workaround for https://github.com/hyperledger/fabric-samples/issues/550 - pods can not resolve external DNS
+  for node in $(kind get nodes);
+  do
+    docker exec "$node" sysctl net.ipv4.conf.all.route_localnet=1;
+  done
 
   pop_fn
 }
