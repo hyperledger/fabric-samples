@@ -45,12 +45,12 @@ function register_org_admin() {
   export FABRIC_CA_CLIENT_TLS_CERTFILES=/var/hyperledger/fabric/config/tls/ca.crt
 
   fabric-ca-client register \
-    --id.name ${id_name} \
+    --id.name   ${id_name} \
     --id.secret ${id_secret} \
-    --id.type ${type} \
-    --url https://${ca_name} \
-    --mspdir /var/hyperledger/fabric-ca-client/${ca_name}/rcaadmin/msp \
-    --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
+    --id.type   ${type} \
+    --url       https://${ca_name} \
+    --mspdir    /var/hyperledger/fabric-ca-client/${ca_name}/rcaadmin/msp \
+    --id.attrs  "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
 EOF
 }
 
@@ -103,7 +103,6 @@ function enroll_org_admin() {
   FABRIC_CA_CLIENT_HOME=${ORG_ADMIN_DIR} fabric-ca-client enroll \
     --url ${CA_URL} \
     --tls.certfiles ${CA_DIR}/tls-cert.pem
-
 
   # Construct an msp config.yaml
   CA_CERT_NAME=${CA_NAME}-$(echo $DOMAIN | tr -s . -)-${CA_PORT}.pem
@@ -204,9 +203,9 @@ function create_genesis_block() {
 
   FABRIC_CFG_PATH=${PWD}/config/org0 \
     configtxgen \
-      -profile TwoOrgsApplicationGenesis \
-      -channelID $CHANNEL_NAME \
-      -outputBlock ${TEMP_DIR}/genesis_block.pb
+      -profile      TwoOrgsApplicationGenesis \
+      -channelID    $CHANNEL_NAME \
+      -outputBlock  ${TEMP_DIR}/genesis_block.pb
 
   # configtxgen -inspectBlock ${TEMP_DIR}/genesis_block.pb
 
@@ -235,11 +234,11 @@ function join_channel_orderer() {
   # of identity than the Docker Compose network, which transmits the orderer node's TLS key pair directly
   osnadmin channel join \
     --orderer-address ${org}-${orderer}-admin.${DOMAIN} \
-    --ca-file ${TEMP_DIR}/channel-msp/ordererOrganizations/${org}/orderers/${org}-${orderer}/tls/signcerts/tls-cert.pem \
-    --client-cert ${TEMP_DIR}/enrollments/${org}/users/${org}admin/msp/signcerts/cert.pem \
-    --client-key ${TEMP_DIR}/enrollments/${org}/users/${org}admin/msp/keystore/key.pem \
-    --channelID ${CHANNEL_NAME} \
-    --config-block ${TEMP_DIR}/genesis_block.pb
+    --ca-file         ${TEMP_DIR}/channel-msp/ordererOrganizations/${org}/orderers/${org}-${orderer}/tls/signcerts/tls-cert.pem \
+    --client-cert     ${TEMP_DIR}/enrollments/${org}/users/${org}admin/msp/signcerts/cert.pem \
+    --client-key      ${TEMP_DIR}/enrollments/${org}/users/${org}admin/msp/keystore/key.pem \
+    --channelID       ${CHANNEL_NAME} \
+    --config-block    ${TEMP_DIR}/genesis_block.pb
 }
 
 function join_channel_peers() {
@@ -250,8 +249,6 @@ function join_channel_peers() {
 function join_org_peers() {
   local org=$1
   push_fn "Joining ${org} peers to channel ${CHANNEL_NAME}"
-
-  # fetch the genesis block from an orderer.   (do we need to do this?  It's available locally...)
 
   # Join peers to channel
   join_channel_peer $org peer1
@@ -264,13 +261,11 @@ function join_channel_peer() {
   local org=$1
   local peer=$2
 
-  FABRIC_CFG_PATH=${PWD}/config/${org} \
-  CORE_PEER_ADDRESS=${org}-${peer}.${DOMAIN}:443 \
-  CORE_PEER_MSPCONFIGPATH=${TEMP_DIR}/enrollments/${org}/users/${org}admin/msp \
-  CORE_PEER_TLS_ROOTCERT_FILE=${TEMP_DIR}/channel-msp/peerOrganizations/${org}/msp/tlscacerts/tlsca-signcert.pem \
-    peer channel join \
-      --blockpath ${TEMP_DIR}/genesis_block.pb \
-      --orderer   org0-orderer1.${DOMAIN} \
-      --tls        \
-      --cafile    ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
+  export_peer_context $org $peer
+
+  peer channel join \
+    --blockpath ${TEMP_DIR}/genesis_block.pb \
+    --orderer   org0-orderer1.${DOMAIN} \
+    --tls        \
+    --cafile    ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 }

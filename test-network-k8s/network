@@ -6,19 +6,13 @@
 #
 set -o errexit
 
-# todo: better handling for input parameters.
+# todo: better handling for input parameters.  Argbash?
 # todo: skip storage volume init if deploying to a remote / cloud cluster (ICP IKS ROKS etc...)
 # todo: for logging, set up a stack and allow multi-line status output codes
-# todo: refactor - lots of for-org-in-0-to-2-...
-# todo: find a better technique for passing input commands to a remote kube exec
-# todo: register tls csr.hosts w/ kube DNS domain .NS.svc.cluster.local
 # todo: user:pass auth for tls and ecert bootstrap admins.  here and in the server-config.yaml
-# todo: set tls.certfiles= ... arg in deployment env / yaml
 # todo: refactor chaincode install to support other chaincode routines
-# todo: consider using templates for boilerplate network nodes (orderers, peers, ...)
 # todo: allow the user to specify the chaincode name (hardcoded as 'basic') both in install and invoke/query
 # todo: track down a nasty bug whereby the CA service endpoints (kube services) will occasionally reject TCP connections after network down/up.  This is patched by introducing a 10s sleep after the deployments are up...
-# todo: refactor query/invoke to specify chaincode name (-n param)
 
 export CONTAINER_CLI=${CONTAINER_CLI:-docker}
 export FABRIC_VERSION=${TEST_NETWORK_FABRIC_VERSION:-2.4.3}
@@ -74,8 +68,6 @@ function print_help() {
   log "Log file           \t\t: ${LOG_FILE}"
   log "Debug log file     \t\t: ${DEBUG_FILE}"
   log
-
-
 
   echo todo: help output, parse mode, flags, env, etc.
 }

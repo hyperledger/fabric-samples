@@ -17,7 +17,7 @@ function launch_ECert_CAs() {
   kubectl -n $NS rollout status deploy/org2-ca
 
   # todo: this papers over a nasty bug whereby the CAs are ready, but sporadically refuse connections after a down / up
-  # sleep 10
+  sleep 5
 
   pop_fn
 }
