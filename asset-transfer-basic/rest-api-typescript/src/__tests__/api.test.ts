@@ -208,11 +208,11 @@ describe('Asset Transfer Besic REST API', () => {
       const response = await request(app)
         .post('/api/assets')
         .send({
-          identifier: 'asset3',
-          color: 'red',
-          size: 5,
-          owner: 'Brad',
-          appraisedValue: 400,
+          wrongidfield: 'asset3',
+          Color: 'red',
+          Size: 5,
+          Owner: 'Brad',
+          AppraisedValue: 400,
         })
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
       expect(response.statusCode).toEqual(400);
@@ -227,7 +227,7 @@ describe('Asset Transfer Besic REST API', () => {
           {
             location: 'body',
             msg: 'must be a string',
-            param: 'id',
+            param: 'ID',
           },
         ],
         message: 'Invalid request body',
@@ -239,11 +239,11 @@ describe('Asset Transfer Besic REST API', () => {
       const response = await request(app)
         .post('/api/assets')
         .send({
-          id: 'asset3',
-          color: 'red',
-          size: 5,
-          owner: 'Brad',
-          appraisedValue: 400,
+          ID: 'asset3',
+          Color: 'red',
+          Size: 5,
+          Owner: 'Brad',
+          AppraisedValue: 400,
         })
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
       expect(response.statusCode).toEqual(202);
@@ -401,11 +401,11 @@ describe('Asset Transfer Besic REST API', () => {
       const response = await request(app)
         .put('/api/assets/asset1')
         .send({
-          id: 'asset3',
-          color: 'red',
-          size: 5,
-          owner: 'Brad',
-          appraisedValue: 400,
+          ID: 'asset3',
+          Color: 'red',
+          Size: 5,
+          Owner: 'Brad',
+          AppraisedValue: 400,
         })
         .set('X-Api-Key', 'NOTTHERIGHTAPIKEY');
       expect(response.statusCode).toEqual(401);
@@ -424,11 +424,11 @@ describe('Asset Transfer Besic REST API', () => {
       const response = await request(app)
         .put('/api/assets/asset1')
         .send({
-          id: 'asset2',
-          color: 'red',
-          size: 5,
-          owner: 'Brad',
-          appraisedValue: 400,
+          ID: 'asset2',
+          Color: 'red',
+          Size: 5,
+          Owner: 'Brad',
+          AppraisedValue: 400,
         })
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
       expect(response.statusCode).toEqual(400);
@@ -448,11 +448,11 @@ describe('Asset Transfer Besic REST API', () => {
       const response = await request(app)
         .put('/api/assets/asset1')
         .send({
-          identifier: 'asset1',
-          color: 'red',
-          size: 5,
-          owner: 'Brad',
-          appraisedValue: 400,
+          wrongID: 'asset1',
+          Color: 'red',
+          Size: 5,
+          Owner: 'Brad',
+          AppraisedValue: 400,
         })
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
       expect(response.statusCode).toEqual(400);
@@ -467,7 +467,7 @@ describe('Asset Transfer Besic REST API', () => {
           {
             location: 'body',
             msg: 'must be a string',
-            param: 'id',
+            param: 'ID',
           },
         ],
         message: 'Invalid request body',
@@ -479,11 +479,11 @@ describe('Asset Transfer Besic REST API', () => {
       const response = await request(app)
         .put('/api/assets/asset1')
         .send({
-          id: 'asset1',
-          color: 'red',
-          size: 5,
-          owner: 'Brad',
-          appraisedValue: 400,
+          ID: 'asset1',
+          Color: 'red',
+          Size: 5,
+          Owner: 'Brad',
+          AppraisedValue: 400,
         })
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
       expect(response.statusCode).toEqual(202);
@@ -501,7 +501,7 @@ describe('Asset Transfer Besic REST API', () => {
     it('PATCH should respond with 401 unauthorized json when an invalid API key is specified', async () => {
       const response = await request(app)
         .patch('/api/assets/asset1')
-        .send([{ op: 'replace', path: '/owner', value: 'Ashleigh' }])
+        .send([{ op: 'replace', path: '/Owner', value: 'Ashleigh' }])
         .set('X-Api-Key', 'NOTTHERIGHTAPIKEY');
       expect(response.statusCode).toEqual(401);
       expect(response.header).toHaveProperty(
@@ -531,7 +531,7 @@ describe('Asset Transfer Besic REST API', () => {
         errors: [
           {
             location: 'body',
-            msg: "path must be '/owner'",
+            msg: "path must be '/Owner'",
             param: '[0].path',
             value: '/color',
           },
@@ -544,7 +544,7 @@ describe('Asset Transfer Besic REST API', () => {
     it('PATCH should respond with 202 accepted json', async () => {
       const response = await request(app)
         .patch('/api/assets/asset1')
-        .send([{ op: 'replace', path: '/owner', value: 'Ashleigh' }])
+        .send([{ op: 'replace', path: '/Owner', value: 'Ashleigh' }])
         .set('X-Api-Key', 'ORG1MOCKAPIKEY');
       expect(response.statusCode).toEqual(202);
       expect(response.header).toHaveProperty(

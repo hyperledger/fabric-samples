@@ -185,7 +185,7 @@ curl --include --header "X-Api-Key: ${SAMPLE_APIKEY}" --request OPTIONS http://l
 ### Create an asset...
 
 ```shell
-curl --include --header "Content-Type: application/json" --header "X-Api-Key: ${SAMPLE_APIKEY}" --request POST --data '{"id":"asset7","color":"red","size":42,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets
+curl --include --header "Content-Type: application/json" --header "X-Api-Key: ${SAMPLE_APIKEY}" --request POST --data '{"ID":"asset7","Color":"red","Size":42,"Owner":"Jean","AppraisedValue":101}' http://localhost:3000/api/assets
 ```
 
 The response should include a `jobId` which you can use to check the job status in next step
@@ -237,13 +237,13 @@ You should see the newly created asset, for example
 ### Update an asset...
 
 ```shell
-curl --include --header "Content-Type: application/json" --header "X-Api-Key: ${SAMPLE_APIKEY}" --request PUT --data '{"id":"asset7","color":"red","size":11,"owner":"Jean","appraisedValue":101}' http://localhost:3000/api/assets/asset7
+curl --include --header "Content-Type: application/json" --header "X-Api-Key: ${SAMPLE_APIKEY}" --request PUT --data '{"ID":"asset7","Color":"red","Size":11,"Owner":"Jean","AppraisedValue":101}' http://localhost:3000/api/assets/asset7
 ```
 
 ### Transfer an asset...
 
 ```shell
-curl --include --header "Content-Type: application/json" --header "X-Api-Key: ${SAMPLE_APIKEY}" --request PATCH --data '[{"op":"replace","path":"/owner","value":"Ashleigh"}]' http://localhost:3000/api/assets/asset7
+curl --include --header "Content-Type: application/json" --header "X-Api-Key: ${SAMPLE_APIKEY}" --request PATCH --data '[{"op":"replace","path":"/Owner","value":"Ashleigh"}]' http://localhost:3000/api/assets/asset7
 ```
 
 ### Delete an asset...
