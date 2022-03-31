@@ -60,7 +60,6 @@ Tear down the cluster:
 
 ## [Detailed Guides](docs/README.md)
 
-- [`./network`](docs/NETWORK.md)
 - [Working with Kubernetes](docs/KUBERNETES.md)
 - [Certificate Authorities](docs/CA.md)
 - [Launching the Test Network](docs/TEST_NETWORK.md)
