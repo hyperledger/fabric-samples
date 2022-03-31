@@ -31,7 +31,7 @@ function load_docker_images() {
 }
 
 function apply_nginx_ingress() {
-  push_fn "Launching Nginx ingress controller"
+  push_fn "Launching ingress controller"
 
   # This ingress-nginx.yaml was generated 9/24 from https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
   # with modifications for ssl-passthrough required to launch IBP-support with the nginx ingress.
@@ -42,11 +42,28 @@ function apply_nginx_ingress() {
   pop_fn
 }
 
-function install_cert_manager() {
-  push_fn "Installing cert-manager"
+function wait_for_nginx_ingress() {
+  push_fn "Waiting for ingress controller"
 
-    # Install cert-manager to manage TLS certificates
+  kubectl wait --namespace ingress-nginx \
+    --for=condition=ready pod \
+    --selector=app.kubernetes.io/component=controller \
+    --timeout=90s
+
+  pop_fn
+}
+
+function apply_cert_manager() {
+  push_fn "Launching cert-manager"
+
+  # Install cert-manager to manage TLS certificates
   kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.yaml
+
+  pop_fn
+}
+
+function wait_for_cert_manager() {
+  push_fn "Waiting for cert-manager"
 
   kubectl -n cert-manager rollout status deploy/cert-manager
   kubectl -n cert-manager rollout status deploy/cert-manager-cainjector
@@ -57,6 +74,9 @@ function install_cert_manager() {
 
 function kind_create() {
   push_fn  "Creating cluster \"${CLUSTER_NAME}\""
+
+  # prevent the next kind cluster from using the previous Fabric network's enrollments.
+  rm -rf $PWD/build
 
   # todo: always delete?  Maybe return no-op if the cluster already exists?
   kind delete cluster --name $CLUSTER_NAME
@@ -157,13 +177,16 @@ function kind_init() {
 
   kind_create
   apply_nginx_ingress
-  install_cert_manager
+  apply_cert_manager
   launch_docker_registry
 
   if [ "${STAGE_DOCKER_IMAGES}" == true ]; then
     pull_docker_images 
     load_docker_images 
-  fi 
+  fi
+
+  wait_for_cert_manager
+  wait_for_nginx_ingress
 }
 
 function kind_unkind() {
