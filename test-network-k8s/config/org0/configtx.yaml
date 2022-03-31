@@ -25,7 +25,7 @@ Organizations:
     ID: OrdererMSP
 
     # MSPDir is the filesystem path which contains the MSP configuration
-    MSPDir: /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp
+    MSPDir: ../../build/channel-msp/ordererOrganizations/org0/msp
 
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
@@ -54,7 +54,7 @@ Organizations:
     # ID to load the MSP definition as
     ID: Org1MSP
 
-    MSPDir: /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/msp
+    MSPDir: ../../build/channel-msp/peerOrganizations/org1/msp
 
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
@@ -89,7 +89,7 @@ Organizations:
     # ID to load the MSP definition as
     ID: Org2MSP
 
-    MSPDir: /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/msp
+    MSPDir: ../../build/channel-msp/peerOrganizations/org2/msp
 
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
@@ -224,16 +224,16 @@ Orderer: &OrdererDefaults
     Consenters:
       - Host: org0-orderer1
         Port: 6050
-        ClientTLSCert: /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer1.org0.example.com/tls/signcerts/cert.pem
-        ServerTLSCert: /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer1.org0.example.com/tls/signcerts/cert.pem
+        ClientTLSCert: ../../build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
+        ServerTLSCert: ../../build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
       - Host: org0-orderer2
         Port: 6050
-        ClientTLSCert: /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer2.org0.example.com/tls/signcerts/cert.pem
-        ServerTLSCert: /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer2.org0.example.com/tls/signcerts/cert.pem
+        ClientTLSCert: ../../build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer2/tls/signcerts/tls-cert.pem
+        ServerTLSCert: ../../build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer2/tls/signcerts/tls-cert.pem
       - Host: org0-orderer3
         Port: 6050
-        ClientTLSCert: /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer3.org0.example.com/tls/signcerts/cert.pem
-        ServerTLSCert: /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer3.org0.example.com/tls/signcerts/cert.pem
+        ClientTLSCert: ../../build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer3/tls/signcerts/tls-cert.pem
+        ServerTLSCert: ../../build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer3/tls/signcerts/tls-cert.pem
 
 
     # Options to be specified for all the etcd/raft nodes. The values here

@@ -5,27 +5,19 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-function launch_CA() {
-  local yaml=$1
-  cat ${yaml} \
-    | sed 's,{{FABRIC_CONTAINER_REGISTRY}},'${FABRIC_CONTAINER_REGISTRY}',g' \
-    | sed 's,{{FABRIC_CA_VERSION}},'${FABRIC_CA_VERSION}',g' \
-    | kubectl -n $NS apply -f -
-}
-
 function launch_ECert_CAs() {
   push_fn "Launching Fabric CAs"
 
-  launch_CA kube/org0/org0-ca.yaml
-  launch_CA kube/org1/org1-ca.yaml
-  launch_CA kube/org2/org2-ca.yaml
+  apply_template kube/org0/org0-ca.yaml
+  apply_template kube/org1/org1-ca.yaml
+  apply_template kube/org2/org2-ca.yaml
 
   kubectl -n $NS rollout status deploy/org0-ca
   kubectl -n $NS rollout status deploy/org1-ca
   kubectl -n $NS rollout status deploy/org2-ca
 
   # todo: this papers over a nasty bug whereby the CAs are ready, but sporadically refuse connections after a down / up
-  # sleep 10
+  sleep 5
 
   pop_fn
 }

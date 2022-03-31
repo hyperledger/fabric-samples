@@ -9,7 +9,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: org0-orderer1-tls-cert
-  namespace: test-network
+  namespace: ${NS}
 spec:
   isCA: false
   privateKey:
@@ -18,7 +18,9 @@ spec:
   dnsNames:
     - localhost
     - org0-orderer1
-    - org0-orderer1.test-network.svc.cluster.local
+    - org0-orderer1.${NS}.svc.cluster.local
+    - org0-orderer1.${DOMAIN}
+    - org0-orderer1-admin.${DOMAIN}
   ipAddresses:
     - 127.0.0.1
   secretName: org0-orderer1-tls-cert
@@ -42,6 +44,12 @@ data:
   ORDERER_GENERAL_TLS_ROOTCAS: /var/hyperledger/fabric/config/tls/ca.crt
   ORDERER_GENERAL_TLS_PRIVATEKEY: /var/hyperledger/fabric/config/tls/tls.key
   ORDERER_GENERAL_BOOTSTRAPMETHOD: none
+  ORDERER_ADMIN_TLS_ENABLED: "true"
+  ORDERER_ADMIN_TLS_CERTIFICATE: /var/hyperledger/fabric/config/tls/tls.crt
+  ORDERER_ADMIN_TLS_ROOTCAS: /var/hyperledger/fabric/config/tls/ca.crt
+  ORDERER_ADMIN_TLS_PRIVATEKEY: /var/hyperledger/fabric/config/tls/tls.key
+  # Authenticate client connections with the org's ecert / admin user enrollments
+  ORDERER_ADMIN_TLS_CLIENTROOTCAS: "[/var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/org0-orderer1.org0.example.com/msp/cacerts/org0-ca.pem]"
   ORDERER_FILELEDGER_LOCATION: /var/hyperledger/fabric/data/orderer1
   ORDERER_CONSENSUS_WALDIR: /var/hyperledger/fabric/data/orderer1/etcdraft/wal
   ORDERER_CONSENSUS_SNAPDIR: /var/hyperledger/fabric/data/orderer1/etcdraft/wal
@@ -65,7 +73,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-orderer:{{FABRIC_VERSION}}
+          image: ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer:${FABRIC_VERSION}
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
@@ -110,3 +118,42 @@ spec:
       protocol: TCP
   selector:
     app: org0-orderer1
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: 60s
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+  labels:
+    app: org0-orderer1
+  name: org0-orderer1
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: org0-orderer1.${DOMAIN}
+      http:
+        paths:
+          - backend:
+              service:
+                name: org0-orderer1
+                port:
+                  name: general
+            path: /
+            pathType: ImplementationSpecific
+    - host: org0-orderer1-admin.${DOMAIN}
+      http:
+        paths:
+          - backend:
+              service:
+                name: org0-orderer1
+                port:
+                  name: admin
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - org0-orderer1.${DOMAIN}
+    - hosts:
+        - org0-orderer1-admin.${DOMAIN}

@@ -17,6 +17,7 @@ spec:
     - localhost
     - org2-ca
     - org2-ca.test-network.svc.cluster.local
+    - org2-ca.${DOMAIN}
   ipAddresses:
     - 127.0.0.1
   secretName: org2-ca-tls-cert
@@ -40,7 +41,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-ca:{{FABRIC_CA_VERSION}}
+          image: ${FABRIC_CONTAINER_REGISTRY}/fabric-ca:${FABRIC_CA_VERSION}
           imagePullPolicy: IfNotPresent
           env:
             - name: FABRIC_CA_SERVER_CA_NAME
@@ -88,8 +89,36 @@ metadata:
   name: org2-ca
 spec:
   ports:
-    - name: tls
+    - name: https
       port: 443
       protocol: TCP
   selector:
     app: org2-ca
+    
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: 60s
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+  labels:
+    app: org2-ca
+  name: org2-ca
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: org2-ca.${DOMAIN}
+      http:
+        paths:
+          - backend:
+              service:
+                name: org2-ca
+                port:
+                  name: https
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - org2-ca.${DOMAIN}
+    

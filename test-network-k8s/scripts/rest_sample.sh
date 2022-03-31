@@ -5,16 +5,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-function extract_MSP_archives() {
-  mkdir -p build/msp
-
-  kubectl -n $NS exec deploy/org1-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org1.example.com/msp | tar zxf - -C build/msp
-  kubectl -n $NS exec deploy/org2-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org2.example.com/msp | tar zxf - -C build/msp
-
-  kubectl -n $NS exec deploy/org1-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp | tar zxf - -C build/msp
-  kubectl -n $NS exec deploy/org2-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp | tar zxf - -C build/msp
-}
-
+# This magical awk script led to 30 hours of debugging a "TLS handshake error"
+# moral: do not edit / alter the number of '\' in the following transform:
 function one_line_pem {
     echo "`awk 'NF {sub(/\\n/, ""); printf "%s\\\\\\\n",$0;}' $1`"
 }
@@ -32,39 +24,30 @@ function json_ccp {
 function construct_rest_sample_configmap() {
   push_fn "Constructing fabric-rest-sample connection profiles"
 
-  extract_MSP_archives
+  ENROLLMENT_DIR=${TEMP_DIR}/enrollments
+  CHANNEL_MSP_DIR=${TEMP_DIR}/channel-msp
+  CONFIG_DIR=${TEMP_DIR}/fabric-rest-sample-config 
 
-  mkdir -p build/fabric-rest-sample-config
+  mkdir -p $CONFIG_DIR
 
-  local peer_pem=build/msp/organizations/peerOrganizations/org1.example.com/msp/tlscacerts/org1-tls-ca.pem
-  local ca_pem=build/msp/organizations/peerOrganizations/org1.example.com/msp/cacerts/org1-ca.pem
-
+  local peer_pem=$CHANNEL_MSP_DIR/peerOrganizations/org1/msp/tlscacerts/tlsca-signcert.pem
+  local ca_pem=$CHANNEL_MSP_DIR/peerOrganizations/org1/msp/cacerts/ca-signcert.pem
   echo "$(json_ccp 1 $peer_pem $ca_pem)" > build/fabric-rest-sample-config/HLF_CONNECTION_PROFILE_ORG1
-  
-  peer_pem=build/msp/organizations/peerOrganizations/org2.example.com/msp/tlscacerts/org2-tls-ca.pem
-  ca_pem=build/msp/organizations/peerOrganizations/org2.example.com/msp/cacerts/org2-ca.pem
 
+  peer_pem=$CHANNEL_MSP_DIR/peerOrganizations/org2/msp/tlscacerts/tlsca-signcert.pem
+  ca_pem=$CHANNEL_MSP_DIR/peerOrganizations/org2/msp/cacerts/ca-signcert.pem
   echo "$(json_ccp 2 $peer_pem $ca_pem)" > build/fabric-rest-sample-config/HLF_CONNECTION_PROFILE_ORG2
-  
-  cat build/msp/organizations/peerOrganizations/org1.example.com/users/Admin\@org1.example.com/msp/signcerts/cert.pem > build/fabric-rest-sample-config/HLF_CERTIFICATE_ORG1
-  cat build/msp/organizations/peerOrganizations/org2.example.com/users/Admin\@org2.example.com/msp/signcerts/cert.pem > build/fabric-rest-sample-config/HLF_CERTIFICATE_ORG2
 
-  cat build/msp/organizations/peerOrganizations/org1.example.com/users/Admin\@org1.example.com/msp/keystore/server.key > build/fabric-rest-sample-config/HLF_PRIVATE_KEY_ORG1
-  cat build/msp/organizations/peerOrganizations/org2.example.com/users/Admin\@org2.example.com/msp/keystore/server.key > build/fabric-rest-sample-config/HLF_PRIVATE_KEY_ORG2
+  cp $ENROLLMENT_DIR/org1/users/org1admin/msp/signcerts/cert.pem $CONFIG_DIR/HLF_CERTIFICATE_ORG1
+  cp $ENROLLMENT_DIR/org2/users/org2admin/msp/signcerts/cert.pem $CONFIG_DIR/HLF_CERTIFICATE_ORG2
+
+  cp $ENROLLMENT_DIR/org1/users/org1admin/msp/keystore/key.pem $CONFIG_DIR/HLF_PRIVATE_KEY_ORG1
+  cp $ENROLLMENT_DIR/org2/users/org2admin/msp/keystore/key.pem $CONFIG_DIR/HLF_PRIVATE_KEY_ORG2
 
   kubectl -n $NS delete configmap fabric-rest-sample-config || true
-  kubectl -n $NS create configmap fabric-rest-sample-config --from-file=build/fabric-rest-sample-config/
+  kubectl -n $NS create configmap fabric-rest-sample-config --from-file=$CONFIG_DIR
 
   pop_fn
-}
-
-# todo: Make sure to port this to IKS / ICP
-function ensure_rest_sample_image() {
-  push_fn "Ensuring fabric-rest-sample image"
-
-  # todo: apply a tag / label to avoid pulling :latest from ghcr.io
-
-  pop_fn 0
 }
 
 function rollout_rest_sample() {
@@ -77,15 +60,19 @@ function rollout_rest_sample() {
 }
 
 function launch_rest_sample() {
-  ensure_rest_sample_image
+
   construct_rest_sample_configmap
-  rollout_rest_sample
+
+  apply_template kube/fabric-rest-sample.yaml
+
+  kubectl -n $NS rollout status deploy/fabric-rest-sample
 
   log ""
-  log "The fabric-rest-sample has started.  See https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic/rest-api-typescript for additional usage."
+  log "The fabric-rest-sample has started."
+  log "See https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic/rest-api-typescript for additional usage details."
   log "To access the endpoint:"
   log ""
   log "export SAMPLE_APIKEY=97834158-3224-4CE7-95F9-A148C886653E"
-  log 'curl -s --header "X-Api-Key: ${SAMPLE_APIKEY}" http://localhost/api/assets'
+  log 'curl -s --header "X-Api-Key: ${SAMPLE_APIKEY}" http://fabric-rest-sample.'${DOMAIN}'/api/assets'
   log ""
 }
