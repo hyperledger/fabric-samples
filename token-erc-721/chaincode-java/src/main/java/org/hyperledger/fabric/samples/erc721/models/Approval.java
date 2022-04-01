@@ -113,7 +113,6 @@ public final class Approval {
     final JSONObject json = new JSONObject(data);
     final Approval approver = new Approval(json.getString("owner"), json.getString("operator"),
         new Boolean(json.getBoolean("approved")));
-
     return approver;
   }
 

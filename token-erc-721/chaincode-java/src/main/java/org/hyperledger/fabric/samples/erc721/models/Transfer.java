@@ -7,7 +7,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import org.hyperledger.fabric.contract.annotation.DataType;
 import org.hyperledger.fabric.contract.annotation.Property;
-
 import com.owlike.genson.Genson;
 import com.owlike.genson.annotation.JsonProperty;
 
@@ -34,7 +33,7 @@ public final class Transfer {
    * @param tokenId
    */
 
-  public Transfer(@JsonProperty("fom") final String from, @JsonProperty("to") final String to,
+  public Transfer(@JsonProperty("from") final String from, @JsonProperty("to") final String to,
       @JsonProperty("tokenId") final String tokenId) {
     super();
     this.from = from;
