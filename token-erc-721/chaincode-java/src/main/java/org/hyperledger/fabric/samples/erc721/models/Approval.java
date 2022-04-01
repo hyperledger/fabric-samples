@@ -110,8 +110,8 @@ public final class Approval {
    * @return
    */
   public static Approval fromJSONString(final String data) {
-    JSONObject json = new JSONObject(data);
-    Approval approver = new Approval(json.getString("owner"), json.getString("operator"),
+    final JSONObject json = new JSONObject(data);
+    final Approval approver = new Approval(json.getString("owner"), json.getString("operator"),
         new Boolean(json.getBoolean("approved")));
 
     return approver;

@@ -40,11 +40,12 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public long balanceOf(final Context ctx, final String owner) {
-    ChaincodeStub stub = ctx.getStub();
-    CompositeKey balanceKey = stub.createCompositeKey(ContractConstants.BALANCE.getValue(), owner);
-    QueryResultsIterator<KeyValue> results = stub.getStateByPartialCompositeKey(balanceKey);
+    final ChaincodeStub stub = ctx.getStub();
+    final CompositeKey balanceKey = stub.createCompositeKey(ContractConstants.BALANCE.getValue(),
+        owner);
+    final QueryResultsIterator<KeyValue> results = stub.getStateByPartialCompositeKey(balanceKey);
     return StreamSupport.stream(results.spliterator(), false).count();
-        
+
   }
 
   /**
@@ -77,9 +78,9 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public boolean isApprovedForAll(final Context ctx, final String owner, final String operator) {
-    ChaincodeStub stub = ctx.getStub();
-    CompositeKey approvalKey = stub.createCompositeKey(ContractConstants.APPROVAL.getValue(), owner,
-        operator);
+    final ChaincodeStub stub = ctx.getStub();
+    final CompositeKey approvalKey = stub.createCompositeKey(ContractConstants.APPROVAL.getValue(),
+        owner, operator);
     final String approvalJson = stub.getStringState(approvalKey.toString());
     if (stringIsNullOrEmpty(approvalJson)) {
 
@@ -104,11 +105,11 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void approve(final Context ctx, final String operator, final String tokenId) {
-    ChaincodeStub stub = ctx.getStub();
+    final ChaincodeStub stub = ctx.getStub();
     final String sender = ctx.getClientIdentity().getId();
     NFT nft = this.readNft(ctx, tokenId);
-    String owner = nft.getOwner();
-    boolean operatorApproval = this.isApprovedForAll(ctx, owner, sender);
+    final String owner = nft.getOwner();
+    final boolean operatorApproval = this.isApprovedForAll(ctx, owner, sender);
     if ((!owner.equalsIgnoreCase(sender)) && (!operatorApproval)) {
       final String errorMessage = String.format(
           "The sender %s is not the current owner nor an authorized operator of the token %s.",
@@ -117,7 +118,7 @@ public class ERC721TokenContract implements ContractInterface {
     }
 
     nft.setApproved(operator);
-    CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue(), tokenId);
+    final CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue(), tokenId);
     stub.putStringState(nftKey.toString(), nft.toJSONString());
   }
 
@@ -132,10 +133,10 @@ public class ERC721TokenContract implements ContractInterface {
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void setApprovalForAll(final Context ctx, final String operator, final boolean approved) {
     final String sender = ctx.getClientIdentity().getId();
-    ChaincodeStub stub = ctx.getStub();
+    final ChaincodeStub stub = ctx.getStub();
     final Approval nftApproval = new Approval(sender, operator, approved);
-    CompositeKey approvalKey = stub.createCompositeKey(ContractConstants.APPROVAL.getValue(), sender,
-        operator);
+    final CompositeKey approvalKey = stub.createCompositeKey(ContractConstants.APPROVAL.getValue(),
+        sender, operator);
     stub.putStringState(approvalKey.toString(), nftApproval.toJSONString());
     stub.setEvent(ContractConstants.APPROVE_FOR_ALL.getValue(),
         nftApproval.toJSONString().getBytes(UTF_8));
@@ -151,7 +152,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String getApproved(final Context ctx, final String tokenId) {
-    NFT nft = this.readNft(ctx, tokenId);
+    final NFT nft = this.readNft(ctx, tokenId);
     return nft.getApproved();
   }
 
@@ -166,12 +167,12 @@ public class ERC721TokenContract implements ContractInterface {
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void transferFrom(final Context ctx, final String from, final String to,
       final String tokenId) {
-    String sender = ctx.getClientIdentity().getId();
-    ChaincodeStub stub = ctx.getStub();
+    final String sender = ctx.getClientIdentity().getId();
+    final ChaincodeStub stub = ctx.getStub();
     NFT nft = this.readNft(ctx, tokenId);
     final String owner = nft.getOwner();
     final String operator = nft.getApproved();
-    boolean operatorApproval = this.isApprovedForAll(ctx, owner, sender);
+    final boolean operatorApproval = this.isApprovedForAll(ctx, owner, sender);
     if ((!owner.equalsIgnoreCase(sender)) && !operator.equalsIgnoreCase(sender)
         && !operatorApproval) {
       final String errorMessage = String.format(
@@ -193,19 +194,19 @@ public class ERC721TokenContract implements ContractInterface {
     // Overwrite a non-fungible token to assign a new owner.
 
     nft.setOwner(to);
-    CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue(), tokenId);
+    final CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue(), tokenId);
     stub.putStringState(nftKey.toString(), nft.toJSONString());
 
     // Remove a composite key from the balance of the current owner
 
-    CompositeKey balanceKeyFrom = stub.createCompositeKey(ContractConstants.BALANCE.getValue(), from,
-        tokenId);
+    final CompositeKey balanceKeyFrom = stub
+        .createCompositeKey(ContractConstants.BALANCE.getValue(), from, tokenId);
     stub.delState(balanceKeyFrom.toString());
 
     // Save a composite key to count the balance of a new owner
 
-    CompositeKey balanceKeyTo = stub.createCompositeKey(ContractConstants.BALANCE.getValue(), to,
-        tokenId);
+    final CompositeKey balanceKeyTo = stub.createCompositeKey(ContractConstants.BALANCE.getValue(),
+        to, tokenId);
     stub.putState(balanceKeyTo.toString(), Character.toString(Character.MIN_VALUE).getBytes(UTF_8));
 
     // Emit the Transfer event
@@ -268,9 +269,9 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public long totalSupply(final Context ctx) {
-    ChaincodeStub stub = ctx.getStub();
-    CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue());
-    QueryResultsIterator<KeyValue> iterator = stub.getStateByPartialCompositeKey(nftKey);
+    final ChaincodeStub stub = ctx.getStub();
+    final CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue());
+    final QueryResultsIterator<KeyValue> iterator = stub.getStateByPartialCompositeKey(nftKey);
     return StreamSupport.stream(iterator.spliterator(), false).count();
 
   }
@@ -286,14 +287,14 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void setOption(final Context ctx, final String name, final String symbol) {
-    String clientMSPID = ctx.getClientIdentity().getMSPID();
+    final String clientMSPID = ctx.getClientIdentity().getMSPID();
     // Check minter authorization - this sample assumes Org1 is the issuer with privilege to set the
     // name and symbol
     if (!clientMSPID.equalsIgnoreCase(ContractConstants.MINTER_ORG_MSP.getValue())) {
       throw new ChaincodeException(
           "Client is not authorized to set the name and symbol of the token");
     }
-    ChaincodeStub stub = ctx.getStub();
+    final ChaincodeStub stub = ctx.getStub();
     stub.putStringState(ContractConstants.NAMEKEY.getValue(), name);
 
     stub.putStringState(ContractConstants.SYMBOLKEY.getValue(), symbol);
@@ -312,31 +313,41 @@ public class ERC721TokenContract implements ContractInterface {
   public NFT mintWithTokenURI(final Context ctx, final String tokenId, final String tokenURI) {
 
     final String clientMSPID = ctx.getClientIdentity().getMSPID();
-    ChaincodeStub stub = ctx.getStub();
-   
-    if (!clientMSPID.equalsIgnoreCase(ContractConstants.MINTER_ORG_MSP.getValue())) {  // Check minter authorization - this sample assumes Org1 is the issuer with privilege to mint a new token
+    final ChaincodeStub stub = ctx.getStub();
+
+    if (!clientMSPID.equalsIgnoreCase(ContractConstants.MINTER_ORG_MSP.getValue())) { // Check
+                                                                                      // minter
+                                                                                      // authorization
+                                                                                      // - this
+                                                                                      // sample
+                                                                                      // assumes
+                                                                                      // Org1 is the
+                                                                                      // issuer with
+                                                                                      // privilege
+                                                                                      // to mint a
+                                                                                      // new token
       throw new ChaincodeException(
           "Client is not authorized to set the name and symbol of the token",
           ContractErrors.UNOTHERIZED_SENDER.toString());
     }
     final String minter = ctx.getClientIdentity().getId();
-    boolean exists = this.isNftExists(ctx, tokenId);
+    final boolean exists = this.isNftExists(ctx, tokenId);
     if (exists) {
       throw new ChaincodeException(String.format("The token %s is already minted.", tokenId),
           ContractErrors.TOKEN_ALREADY_EXITS.toString());
     }
 
-    NFT nft = new NFT(tokenId, minter, tokenURI, "");
-    CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue(), tokenId);
+    final NFT nft = new NFT(tokenId, minter, tokenURI, "");
+    final CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue(), tokenId);
     stub.putStringState(nftKey.toString(), nft.toJSONString());
 
     // A composite key would be balancePrefix.owner.tokenId, which enables partial
     // composite key query to find and count all records matching balance.owner.*
     // An empty value would represent a delete, so we simply insert the null character.
-    CompositeKey balanceKey = stub.createCompositeKey(ContractConstants.BALANCE.getValue(), minter,
-        tokenId);
+    final CompositeKey balanceKey = stub.createCompositeKey(ContractConstants.BALANCE.getValue(),
+        minter, tokenId);
     stub.putStringState(balanceKey.toString(), Character.toString(Character.MIN_VALUE));
-    Transfer transferEvent = new Transfer("0x0", minter, tokenId);
+    final Transfer transferEvent = new Transfer("0x0", minter, tokenId);
     stub.setEvent(ContractConstants.TRANSFER.getValue(),
         transferEvent.toJSONString().getBytes(UTF_8));
     return nft;
@@ -350,25 +361,26 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void burn(final Context ctx, final String tokenId) {
-    ChaincodeStub stub = ctx.getStub();
-    String owner = ctx.getClientIdentity().getId();
+    final ChaincodeStub stub = ctx.getStub();
+    final String owner = ctx.getClientIdentity().getId();
     // Check if a caller is the owner of the non-fungible token
-    NFT nft = this.readNft(ctx, tokenId);
+    final NFT nft = this.readNft(ctx, tokenId);
     if (!nft.getOwner().equalsIgnoreCase(owner)) {
       throw new ChaincodeException(
           String.format("Non-fungible token %s is not owned by %s", tokenId, owner),
           ContractErrors.TOKEN_NONOWNER.toString());
     }
     // Delete the token
-    CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue(), tokenId);
+    final CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue(), tokenId);
     stub.delState(nftKey.toString());
 
     // Remove a composite key from the balance of the owner
-    CompositeKey balanceKey = stub.createCompositeKey(ContractConstants.BALANCE.getValue(), owner,
-        tokenId);
+    final CompositeKey balanceKey = stub.createCompositeKey(ContractConstants.BALANCE.getValue(),
+        owner, tokenId);
     stub.delState(balanceKey.toString());
-    Transfer transferEvent = new Transfer(owner, "0x0", tokenId);
-    stub.setEvent(ContractConstants.TRANSFER.getValue(), transferEvent.toJSONString().getBytes(UTF_8));
+    final Transfer transferEvent = new Transfer(owner, "0x0", tokenId);
+    stub.setEvent(ContractConstants.TRANSFER.getValue(),
+        transferEvent.toJSONString().getBytes(UTF_8));
   }
 
   /**
@@ -387,7 +399,7 @@ public class ERC721TokenContract implements ContractInterface {
    * is the clientId itself. Users can use this function to get their own account id, which they can
    * then give to others as the payment address.
    * 
-   *@param ctx the transaction context
+   * @param ctx the transaction context
    * @return sender account id .
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
@@ -403,9 +415,9 @@ public class ERC721TokenContract implements ContractInterface {
    * @return token details.
    */
   private NFT readNft(final Context ctx, final String tokenId) {
-    ChaincodeStub stub = ctx.getStub();
-    CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue(), tokenId);
-    String nft = stub.getStringState(nftKey.toString());
+    final ChaincodeStub stub = ctx.getStub();
+    final CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue(), tokenId);
+    final String nft = stub.getStringState(nftKey.toString());
     if (stringIsNullOrEmpty(nft)) {
       final String errorMessage = String.format("Token with id  %s not found!.", tokenId);
       throw new ChaincodeException(errorMessage, ContractErrors.TOKEN_NOT_FOUND.toString());
@@ -421,9 +433,9 @@ public class ERC721TokenContract implements ContractInterface {
    * @return true if token exits else false.
    */
   private boolean isNftExists(final Context ctx, final String tokenId) {
-    ChaincodeStub stub = ctx.getStub();
-    CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue(), tokenId);
-    String nft = stub.getStringState(nftKey.toString());
+    final ChaincodeStub stub = ctx.getStub();
+    final CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue(), tokenId);
+    final String nft = stub.getStringState(nftKey.toString());
     return ((stringIsNullOrEmpty(nft)) ? false : true);
   }
 

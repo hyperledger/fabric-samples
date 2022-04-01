@@ -381,7 +381,7 @@ public class ERC721TokenContractTest {
       when(ctx.getStub()).thenReturn(stub);
       when(stub.getStringState(ContractConstants.NAMEKEY.getValue())).thenReturn("ANFT");
       ERC721TokenContract contract = new ERC721TokenContract();
-      String name = contract.getName(ctx);
+      final String name = contract.getName(ctx);
       assertThat(name).isEqualTo("ANFT");
 
     }
@@ -392,7 +392,7 @@ public class ERC721TokenContractTest {
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
       ERC721TokenContract contract = new ERC721TokenContract();
-      NFT nft = new NFT("101", "Alice", "http://test.com", "Bob");
+      final NFT nft = new NFT("101", "Alice", "http://test.com", "Bob");
 
       CompositeKey ck = mock(CompositeKey.class);
       when(ck.toString()).thenReturn(ContractConstants.NFT.getValue() + "101");
@@ -421,7 +421,7 @@ public class ERC721TokenContractTest {
       when(stub.getStateByPartialCompositeKey(ck)).thenReturn(new MockAssetResultsIterator(list));
       ERC721TokenContract contract = new ERC721TokenContract();
 
-      long total = contract.totalSupply(ctx);
+      final long total = contract.totalSupply(ctx);
       assertThat(total).isEqualTo(2L);
 
     }
@@ -436,7 +436,7 @@ public class ERC721TokenContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
-      NFT nft = new NFT("101", "Alice", "DummyURI", "");
+      final NFT nft = new NFT("101", "Alice", "DummyURI", "");
       CompositeKey ck = mock(CompositeKey.class);
       when(ck.toString()).thenReturn(ContractConstants.NFT.getValue() + "101");
       when(stub.createCompositeKey(ContractConstants.NFT.getValue(), "101")).thenReturn(ck);
@@ -453,7 +453,7 @@ public class ERC721TokenContractTest {
       when(ci.getMSPID()).thenReturn("Org1MSP");
       when(ci.getId()).thenReturn("Alice");
       ERC721TokenContract contract = new ERC721TokenContract();
-      NFT response = contract.mintWithTokenURI(ctx, "101", "DummyURI");
+      final NFT response = contract.mintWithTokenURI(ctx, "101", "DummyURI");
 
       verify(stub).putStringState(ck.toString(), nft.toJSONString());
       verify(stub).putStringState(ck2.toString(), "\u0000");
@@ -466,7 +466,7 @@ public class ERC721TokenContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
-      NFT nft = new NFT("101", "Alice", "DummyURI", "");
+      final NFT nft = new NFT("101", "Alice", "DummyURI", "");
       CompositeKey ck = mock(CompositeKey.class);
       when(ck.toString()).thenReturn(ContractConstants.NFT.getValue() + "101");
       when(stub.createCompositeKey(ContractConstants.NFT.getValue(), "101")).thenReturn(ck);
@@ -490,7 +490,7 @@ public class ERC721TokenContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
-      NFT nft = new NFT("101", "Alice", "DummyURI", "");
+      final NFT nft = new NFT("101", "Alice", "DummyURI", "");
       CompositeKey ck = mock(CompositeKey.class);
       when(ck.toString()).thenReturn(ContractConstants.NFT.getValue() + "101");
       when(stub.createCompositeKey(ContractConstants.NFT.getValue(), "101")).thenReturn(ck);

@@ -144,8 +144,8 @@ public final class NFT implements Serializable {
    */
 
   public static NFT fromJSONString(final String data) {
-    JSONObject json = new JSONObject(data);
-    NFT nft = new NFT(json.getString("tokenId"), json.getString("owner"),
+    final JSONObject json = new JSONObject(data);
+    final NFT nft = new NFT(json.getString("tokenId"), json.getString("owner"),
         json.getString("tokenURI"), json.getString("approved"));
 
     return nft;
