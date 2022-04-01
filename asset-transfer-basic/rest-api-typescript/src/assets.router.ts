@@ -35,7 +35,6 @@ export const assetsRouter = express.Router();
 
 assetsRouter.get('/', async (req: Request, res: Response) => {
   logger.debug('Get all assets request received');
-
   try {
     const mspId = req.user as string;
     const contract = req.app.locals[mspId]?.assetContract as Contract;
@@ -59,11 +58,11 @@ assetsRouter.get('/', async (req: Request, res: Response) => {
 assetsRouter.post(
   '/',
   body().isObject().withMessage('body must contain an asset object'),
-  body('id', 'must be a string').notEmpty(),
-  body('color', 'must be a string').notEmpty(),
-  body('size', 'must be a number').isNumeric(),
-  body('owner', 'must be a string').notEmpty(),
-  body('appraisedValue', 'must be a number').isNumeric(),
+  body('ID', 'must be a string').notEmpty(),
+  body('Color', 'must be a string').notEmpty(),
+  body('Size', 'must be a number').isNumeric(),
+  body('Owner', 'must be a string').notEmpty(),
+  body('AppraisedValue', 'must be a number').isNumeric(),
   async (req: Request, res: Response) => {
     logger.debug(req.body, 'Create asset request received');
 
@@ -79,7 +78,7 @@ assetsRouter.post(
     }
 
     const mspId = req.user as string;
-    const assetId = req.body.id;
+    const assetId = req.body.ID;
 
     try {
       const submitQueue = req.app.locals.jobq as Queue;
@@ -88,10 +87,10 @@ assetsRouter.post(
         mspId,
         'CreateAsset',
         assetId,
-        req.body.color,
-        req.body.size,
-        req.body.owner,
-        req.body.appraisedValue
+        req.body.Color,
+        req.body.Size,
+        req.body.Owner,
+        req.body.AppraisedValue
       );
 
       return res.status(ACCEPTED).json({
@@ -190,11 +189,11 @@ assetsRouter.get('/:assetId', async (req: Request, res: Response) => {
 assetsRouter.put(
   '/:assetId',
   body().isObject().withMessage('body must contain an asset object'),
-  body('id', 'must be a string').notEmpty(),
-  body('color', 'must be a string').notEmpty(),
-  body('size', 'must be a number').isNumeric(),
-  body('owner', 'must be a string').notEmpty(),
-  body('appraisedValue', 'must be a number').isNumeric(),
+  body('ID', 'must be a string').notEmpty(),
+  body('Color', 'must be a string').notEmpty(),
+  body('Size', 'must be a number').isNumeric(),
+  body('Owner', 'must be a string').notEmpty(),
+  body('AppraisedValue', 'must be a number').isNumeric(),
   async (req: Request, res: Response) => {
     logger.debug(req.body, 'Update asset request received');
 
@@ -209,7 +208,7 @@ assetsRouter.put(
       });
     }
 
-    if (req.params.assetId != req.body.id) {
+    if (req.params.assetId != req.body.ID) {
       return res.status(BAD_REQUEST).json({
         status: getReasonPhrase(BAD_REQUEST),
         reason: 'ASSET_ID_MISMATCH',
@@ -263,7 +262,7 @@ assetsRouter.patch(
     })
     .withMessage('body must contain an array with a single patch operation'),
   body('*.op', "operation must be 'replace'").equals('replace'),
-  body('*.path', "path must be '/owner'").equals('/owner'),
+  body('*.path', "path must be '/Owner'").equals('/Owner'),
   body('*.value', 'must be a string').isString(),
   async (req: Request, res: Response) => {
     logger.debug(req.body, 'Transfer asset request received');

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// Running TestApp: 
-// gradle runApp 
+// Running TestApp:
+// gradle runApp
 
 package application.java;
 
@@ -128,7 +128,7 @@ public class App {
 			result = contract.evaluateTransaction("QueryAssets","{\"selector\":{\"docType\":\"asset\",\"owner\":\"Jin Soo\"}, \"use_index\":[\"_design/indexOwnerDoc\", \"indexOwner\"]}");
 			System.out.println("result: " + new String(result));
 
-			// Rich Query with Pagination (Only supported if CouchDB is used as state database)
+			// Range Query with Pagination
 			System.out.println("\n");
 			System.out.println("Evaluate Transaction:GetAssetsByRangeWithPagination assets 3-5");
 			result = contract.evaluateTransaction("GetAssetsByRangeWithPagination", "asset3", "asset6", "3","");

@@ -1,0 +1,32 @@
+{
+    "name": "asset-transfer-events",
+    "version": "1.0.0",
+    "description": "Asset Transfer Events Application implemented in typeScript using fabric-gateway",
+    "main": "dist/index.js",
+    "typings": "dist/index.d.ts",
+    "engines": {
+        "node": ">=14"
+    },
+    "scripts": {
+        "build": "tsc",
+        "build:watch": "tsc -w",
+        "lint": "eslint . --ext .ts",
+        "prepare": "npm run build",
+        "pretest": "npm run lint",
+        "start": "node dist/app.js"
+    },
+    "engineStrict": true,
+    "author": "Hyperledger",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "@grpc/grpc-js": "^1.5.0",
+        "@hyperledger/fabric-gateway": "^1.0.0"
+    },
+    "devDependencies": {
+        "@tsconfig/node14": "^1.0.1",
+        "@typescript-eslint/eslint-plugin": "^5.6.0",
+        "@typescript-eslint/parser": "^5.6.0",
+        "eslint": "^8.4.1",
+        "typescript": "~4.5.2"
+    }
+}

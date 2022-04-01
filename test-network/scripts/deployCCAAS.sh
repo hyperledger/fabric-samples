@@ -23,6 +23,10 @@ VERBOSE=${12:-"false"}
 
 CCAAS_SERVER_PORT=9999
 
+: ${CONTAINER_CLI:="docker"}
+: ${CONTAINER_CLI_COMPOSE:="${CONTAINER_CLI}-compose"}
+infoln "Using ${CONTAINER_CLI} and ${CONTAINER_CLI_COMPOSE}"
+
 println "executing with the following"
 println "- CHANNEL_NAME: ${C_GREEN}${CHANNEL_NAME}${C_RESET}"
 println "- CC_NAME: ${C_GREEN}${CC_NAME}${C_RESET}"
@@ -109,15 +113,15 @@ buildDockerImages() {
     # build the docker container
     infoln "Building Chaincode-as-a-Service docker image '${CC_NAME}' '${CC_SRC_PATH}'"
     set -x
-    docker build -f $CC_SRC_PATH/Dockerfile -t ${CC_NAME}_ccaas_image:latest --build-arg CC_SERVER_PORT=9999 $CC_SRC_PATH >&log.txt
+    ${CONTAINER_CLI} build -f $CC_SRC_PATH/Dockerfile -t ${CC_NAME}_ccaas_image:latest --build-arg CC_SERVER_PORT=9999 $CC_SRC_PATH >&log.txt
     res=$?
     { set +x; } 2>/dev/null
     cat log.txt
-    verifyResult $res "Docker buid of chaincode-as-a-service container failed"
+    verifyResult $res "Docker build of chaincode-as-a-service container failed"
     successln "Docker image '${CC_NAME}_ccaas_image:latest' built succesfully"
   else
     infoln "Not building docker image; this the command we would have run"
-    infoln "docker build -f $CC_SRC_PATH/Dockerfile -t ${CC_NAME}_ccaas_image:latest --build-arg CC_SERVER_PORT=9999 $CC_SRC_PATH"
+    infoln "   ${CONTAINER_CLI} build -f $CC_SRC_PATH/Dockerfile -t ${CC_NAME}_ccaas_image:latest --build-arg CC_SERVER_PORT=9999 $CC_SRC_PATH"
   fi
 }
 
@@ -126,13 +130,13 @@ startDockerContainer() {
   if [ "$CCAAS_DOCKER_RUN" = "true" ]; then
     infoln "Starting the Chaincode-as-a-Service docker container..."
     set -x
-    docker run --rm -d --name peer0org1_${CC_NAME}_ccaas  \
+    ${CONTAINER_CLI} run --rm -d --name peer0org1_${CC_NAME}_ccaas  \
                   --network fabric_test \
                   -e CHAINCODE_SERVER_ADDRESS=0.0.0.0:${CCAAS_SERVER_PORT} \
                   -e CHAINCODE_ID=$PACKAGE_ID -e CORE_CHAINCODE_ID_NAME=$PACKAGE_ID \
                     ${CC_NAME}_ccaas_image:latest
 
-    docker run  --rm -d --name peer0org2_${CC_NAME}_ccaas \
+    ${CONTAINER_CLI} run  --rm -d --name peer0org2_${CC_NAME}_ccaas \
                   --network fabric_test \
                   -e CHAINCODE_SERVER_ADDRESS=0.0.0.0:${CCAAS_SERVER_PORT} \
                   -e CHAINCODE_ID=$PACKAGE_ID -e CORE_CHAINCODE_ID_NAME=$PACKAGE_ID \

@@ -74,9 +74,9 @@ of a remote `kubectl` into a local archive files.  These files are then mounted 
 constructing the `msp-config` config map: 
 
 ```shell
-kubectl -n $NS exec deploy/org0-ecert-ca -- tar zcvf - -C /var/hyperledger/fabric organizations/ordererOrganizations/org0.example.com/msp > msp/msp-org0.example.com.tgz
-kubectl -n $NS exec deploy/org1-ecert-ca -- tar zcvf - -C /var/hyperledger/fabric organizations/peerOrganizations/org1.example.com/msp > msp/msp-org1.example.com.tgz
-kubectl -n $NS exec deploy/org2-ecert-ca -- tar zcvf - -C /var/hyperledger/fabric organizations/peerOrganizations/org2.example.com/msp > msp/msp-org2.example.com.tgz
+kubectl -n $NS exec deploy/org0-ca -- tar zcvf - -C /var/hyperledger/fabric organizations/ordererOrganizations/org0.example.com/msp > msp/msp-org0.example.com.tgz
+kubectl -n $NS exec deploy/org1-ca -- tar zcvf - -C /var/hyperledger/fabric organizations/peerOrganizations/org1.example.com/msp > msp/msp-org1.example.com.tgz
+kubectl -n $NS exec deploy/org2-ca -- tar zcvf - -C /var/hyperledger/fabric organizations/peerOrganizations/org2.example.com/msp > msp/msp-org2.example.com.tgz
 
 kubectl -n $NS delete configmap msp-config || true
 kubectl -n $NS create configmap msp-config --from-file=msp/```

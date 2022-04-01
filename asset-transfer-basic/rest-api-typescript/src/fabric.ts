@@ -18,7 +18,7 @@ import { logger } from './logger';
 import { handleError } from './errors';
 import * as protos from 'fabric-protos';
 
-/*
+/**
  * Creates an in memory wallet to hold credentials for an Org1 and Org2 user
  *
  * In this sample there is a single user for each MSP ID to demonstrate how
@@ -55,7 +55,7 @@ export const createWallet = async (): Promise<Wallet> => {
   return wallet;
 };
 
-/*
+/**
  * Create a Gateway connection
  *
  * Gateway instances can and should be reused rather than connecting to submit every transaction
@@ -89,7 +89,7 @@ export const createGateway = async (
   return gateway;
 };
 
-/*
+/**
  * Get the network which the asset transfer sample chaincode is running on
  *
  * In addion to getting the contract, the network will also be used to
@@ -100,7 +100,7 @@ export const getNetwork = async (gateway: Gateway): Promise<Network> => {
   return network;
 };
 
-/*
+/**
  * Get the asset transfer sample contract and the qscc system contract
  *
  * The system contract is used for the liveness REST endpoint
@@ -113,7 +113,7 @@ export const getContracts = async (
   return { assetContract, qsccContract };
 };
 
-/*
+/**
  * Evaluate a transaction and handle any errors
  */
 export const evatuateTransaction = async (
@@ -137,7 +137,7 @@ export const evatuateTransaction = async (
   }
 };
 
-/*
+/**
  * Submit a transaction and handle any errors
  */
 export const submitTransaction = async (
@@ -159,7 +159,7 @@ export const submitTransaction = async (
   }
 };
 
-/*
+/**
  * Get the validation code of the specified transaction
  */
 export const getTransactionValidationCode = async (
@@ -181,7 +181,7 @@ export const getTransactionValidationCode = async (
   return validationCode;
 };
 
-/*
+/**
  * Get the current block height
  *
  * This example of using a system contract is used for the liveness REST

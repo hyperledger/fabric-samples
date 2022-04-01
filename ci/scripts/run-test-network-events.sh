@@ -34,3 +34,34 @@ popd
 stopNetwork
 print "Remove wallet storage"
 rm -R ../asset-transfer-events/application-javascript/wallet
+
+
+# Run typescript gateway application
+createNetwork
+print "Initializing TypeScript gateway application"
+pushd ../asset-transfer-events/application-gateway-typescript
+npm install
+print "Build app"
+npm run build
+print "Executing dist/app.js"
+npm start
+popd
+stopNetwork
+
+# Run Go gateway application
+createNetwork
+print "Initializing Go gateway application"
+pushd ../asset-transfer-events/application-gateway-go
+print "Executing application"
+go run .
+popd
+stopNetwork
+
+# Run Java gateway application
+createNetwork
+print "Initializing Java gateway application"
+pushd ../asset-transfer-events/application-gateway-java
+print "Executing application"
+./gradlew run
+popd
+stopNetwork

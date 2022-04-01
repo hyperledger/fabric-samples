@@ -4,6 +4,30 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 ---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: org1-peer2-tls-cert
+  namespace: test-network
+spec:
+  isCA: false
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  dnsNames:
+    - localhost
+    - org1-peer2
+    - org1-peer-gateway-svc
+    - org1-peer2.test-network.svc.cluster.local
+    - org1-peer2.${DOMAIN}
+  ipAddresses:
+    - 127.0.0.1
+  secretName: org1-peer2-tls-cert
+  issuerRef:
+    name: org1-tls-cert-issuer
+
+
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -12,9 +36,9 @@ data:
   FABRIC_CFG_PATH: /var/hyperledger/fabric/config
   FABRIC_LOGGING_SPEC: "debug:cauthdsl,policies,msp,grpc,peer.gossip.mcs,gossip,leveldbhelper=info"
   CORE_PEER_TLS_ENABLED: "true"
-  CORE_PEER_TLS_CERT_FILE: /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer2.org1.example.com/tls/signcerts/cert.pem
-  CORE_PEER_TLS_KEY_FILE: /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer2.org1.example.com/tls/keystore/server.key
-  CORE_PEER_TLS_ROOTCERT_FILE: /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer2.org1.example.com/tls/cacerts/org1-tls-ca.pem
+  CORE_PEER_TLS_CERT_FILE: /var/hyperledger/fabric/config/tls/tls.crt
+  CORE_PEER_TLS_KEY_FILE: /var/hyperledger/fabric/config/tls/tls.key
+  CORE_PEER_TLS_ROOTCERT_FILE: /var/hyperledger/fabric/config/tls/ca.crt
   CORE_PEER_ID: org1-peer2.org1.example.com
   CORE_PEER_ADDRESS: org1-peer2:7051
   CORE_PEER_LISTENADDRESS: 0.0.0.0:7051
@@ -29,6 +53,11 @@ data:
   CORE_PEER_FILESYSTEMPATH: /var/hyperledger/fabric/data/org1-peer2.org1.example.com
   CORE_LEDGER_SNAPSHOTS_ROOTDIR: /var/hyperledger/fabric/data/org1-peer2.org1.example.com/snapshots
   CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG: "{\"peername\":\"org1peer2\"}"
+  CORE_LEDGER_STATE_STATEDATABASE: CouchDB
+  CORE_LEDGER_STATE_COUCHDBCONFIG_MAXRETRIESONSTARTUP: "20"
+  CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS: localhost:5984
+  CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME: admin
+  CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD: adminpw
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -47,7 +76,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-peer:{{FABRIC_VERSION}}
+          image: ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:${FABRIC_VERSION}
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
@@ -61,7 +90,19 @@ spec:
               mountPath: /var/hyperledger
             - name: fabric-config
               mountPath: /var/hyperledger/fabric/config
-
+            - name: tls-cert-volume
+              mountPath: /var/hyperledger/fabric/config/tls
+              readOnly: true
+        - name: couchdb
+          image: couchdb:3.2.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: "COUCHDB_USER"
+              value: "admin" 
+            - name: "COUCHDB_PASSWORD"
+              value: "adminpw"
+          ports:
+              - containerPort: 5984
       volumes:
         - name: fabric-volume
           persistentVolumeClaim:
@@ -69,7 +110,9 @@ spec:
         - name: fabric-config
           configMap:
             name: org1-config
-
+        - name: tls-cert-volume
+          secret:
+            secretName: org1-peer2-tls-cert
 ---
 apiVersion: v1
 kind: Service
@@ -77,7 +120,7 @@ metadata:
   name: org1-peer2
 spec:
   ports:
-    - name: gossip
+    - name: grpc
       port: 7051
       protocol: TCP
     - name: chaincode
@@ -88,3 +131,29 @@ spec:
       protocol: TCP
   selector:
     app: org1-peer2
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: 60s
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+  labels:
+    app: org1-peer2
+  name: org1-peer2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: org1-peer2.${DOMAIN}
+      http:
+        paths:
+          - backend:
+              service:
+                name: org1-peer2
+                port:
+                  name: grpc
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - org1-peer2.${DOMAIN}

@@ -19,6 +19,8 @@ const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = StatusCodes;
 export const createServer = async (): Promise<Application> => {
   const app = express();
 
+  // Remember for production usage, to check any TLS or CORS requirements
+
   app.use(
     pinoMiddleware({
       logger,

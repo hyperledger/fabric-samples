@@ -20,7 +20,7 @@ export const ORG2 = 'Org2';
 
 export const JOB_QUEUE_NAME = 'submit';
 
-/*
+/**
  * Log level for the REST server
  */
 export const logLevel = env
@@ -28,7 +28,7 @@ export const logLevel = env
   .default('info')
   .asEnum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']);
 
-/*
+/**
  * The port to start the REST server on
  */
 export const port = env
@@ -37,7 +37,7 @@ export const port = env
   .example('3000')
   .asPortNumber();
 
-/*
+/**
  * The type of backoff to use for retrying failed submit jobs
  */
 export const submitJobBackoffType = env
@@ -45,7 +45,7 @@ export const submitJobBackoffType = env
   .default('fixed')
   .asEnum(['fixed', 'exponential']);
 
-/*
+/**
  * Backoff delay for retrying failed submit jobs in milliseconds
  */
 export const submitJobBackoffDelay = env
@@ -54,7 +54,7 @@ export const submitJobBackoffDelay = env
   .example('3000')
   .asIntPositive();
 
-/*
+/**
  * The total number of attempts to try a submit job until it completes
  */
 export const submitJobAttempts = env
@@ -63,7 +63,7 @@ export const submitJobAttempts = env
   .example('5')
   .asIntPositive();
 
-/*
+/**
  * The maximum number of submit jobs that can be processed in parallel
  */
 export const submitJobConcurrency = env
@@ -72,7 +72,7 @@ export const submitJobConcurrency = env
   .example('5')
   .asIntPositive();
 
-/*
+/**
  * The number of completed submit jobs to keep
  */
 export const maxCompletedSubmitJobs = env
@@ -81,7 +81,7 @@ export const maxCompletedSubmitJobs = env
   .example('1000')
   .asIntPositive();
 
-/*
+/**
  * The number of failed submit jobs to keep
  */
 export const maxFailedSubmitJobs = env
@@ -90,7 +90,7 @@ export const maxFailedSubmitJobs = env
   .example('1000')
   .asIntPositive();
 
-/*
+/**
  * Whether to initialise a scheduler for the submit job queue
  * There must be at least on queue scheduler to handle retries and you may want
  * more than one for redundancy
@@ -101,7 +101,7 @@ export const submitJobQueueScheduler = env
   .example('true')
   .asBoolStrict();
 
-/*
+/**
  * Whether to convert discovered host addresses to be 'localhost'
  * This should be set to 'true' when running a docker composed fabric network on the
  * local system, e.g. using the test network; otherwise should it should be 'false'
@@ -112,7 +112,7 @@ export const asLocalhost = env
   .example('true')
   .asBoolStrict();
 
-/*
+/**
  * The Org1 MSP ID
  */
 export const mspIdOrg1 = env
@@ -121,7 +121,7 @@ export const mspIdOrg1 = env
   .example(`${ORG1}MSP`)
   .asString();
 
-/*
+/**
  * The Org2 MSP ID
  */
 export const mspIdOrg2 = env
@@ -130,7 +130,7 @@ export const mspIdOrg2 = env
   .example(`${ORG2}MSP`)
   .asString();
 
-/*
+/**
  * Name of the channel which the basic asset sample chaincode has been installed on
  */
 export const channelName = env
@@ -139,7 +139,7 @@ export const channelName = env
   .example('mychannel')
   .asString();
 
-/*
+/**
  * Name used to install the basic asset sample
  */
 export const chaincodeName = env
@@ -148,7 +148,7 @@ export const chaincodeName = env
   .example('basic')
   .asString();
 
-/*
+/**
  * The transaction submit timeout in seconds for commit notification to complete
  */
 export const commitTimeout = env
@@ -157,7 +157,7 @@ export const commitTimeout = env
   .example('300')
   .asIntPositive();
 
-/*
+/**
  * The transaction submit timeout in seconds for the endorsement to complete
  */
 export const endorseTimeout = env
@@ -166,7 +166,7 @@ export const endorseTimeout = env
   .example('30')
   .asIntPositive();
 
-/*
+/**
  * The transaction query timeout in seconds
  */
 export const queryTimeout = env
@@ -175,7 +175,7 @@ export const queryTimeout = env
   .example('3')
   .asIntPositive();
 
-/*
+/**
  * The Org1 connection profile JSON
  */
 export const connectionProfileOrg1 = env
@@ -186,7 +186,7 @@ export const connectionProfileOrg1 = env
   )
   .asJsonObject() as Record<string, unknown>;
 
-/*
+/**
  * Certificate for an Org1 identity to evaluate and submit transactions
  */
 export const certificateOrg1 = env
@@ -195,7 +195,7 @@ export const certificateOrg1 = env
   .example('"-----BEGIN CERTIFICATE-----\\n...\\n-----END CERTIFICATE-----\\n"')
   .asString();
 
-/*
+/**
  * Private key for an Org1 identity to evaluate and submit transactions
  */
 export const privateKeyOrg1 = env
@@ -204,7 +204,7 @@ export const privateKeyOrg1 = env
   .example('"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"')
   .asString();
 
-/*
+/**
  * The Org2 connection profile JSON
  */
 export const connectionProfileOrg2 = env
@@ -215,7 +215,7 @@ export const connectionProfileOrg2 = env
   )
   .asJsonObject() as Record<string, unknown>;
 
-/*
+/**
  * Certificate for an Org2 identity to evaluate and submit transactions
  */
 export const certificateOrg2 = env
@@ -224,7 +224,7 @@ export const certificateOrg2 = env
   .example('"-----BEGIN CERTIFICATE-----\\n...\\n-----END CERTIFICATE-----\\n"')
   .asString();
 
-/*
+/**
  * Private key for an Org2 identity to evaluate and submit transactions
  */
 export const privateKeyOrg2 = env
@@ -233,7 +233,7 @@ export const privateKeyOrg2 = env
   .example('"-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"')
   .asString();
 
-/*
+/**
  * The host the Redis server is running on
  */
 export const redisHost = env
@@ -242,7 +242,7 @@ export const redisHost = env
   .example('localhost')
   .asString();
 
-/*
+/**
  * The port the Redis server is running on
  */
 export const redisPort = env
@@ -251,7 +251,7 @@ export const redisPort = env
   .example('6379')
   .asPortNumber();
 
-/*
+/**
  * Username for the Redis server
  */
 export const redisUsername = env
@@ -259,12 +259,12 @@ export const redisUsername = env
   .example('fabric')
   .asString();
 
-/*
+/**
  * Password for the Redis server
  */
 export const redisPassword = env.get('REDIS_PASSWORD').asString();
 
-/*
+/**
  * API key for Org1
  * Specify this API key with the X-Api-Key header to use the Org1 connection profile and credentials
  */
@@ -274,7 +274,7 @@ export const org1ApiKey = env
   .example('123')
   .asString();
 
-/*
+/**
  * API key for Org2
  * Specify this API key with the X-Api-Key header to use the Org2 connection profile and credentials
  */

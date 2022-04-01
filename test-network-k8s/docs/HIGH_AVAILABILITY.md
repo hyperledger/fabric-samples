@@ -56,7 +56,7 @@ It is important that applications connect to the `org2-peer-gateway-svc` or `org
 The solution is to add the additional servicename to the hosts field in the SAN section of the TLS certificate. As an example here is the command that is used to create the TLS certificate for org1-peer1.  Note the 
 
 ```bash
-fabric-ca-client enroll --url https://org1-peer1:peerpw@org1-ecert-ca --csr.hosts org1-peer1,org1-peer-gateway-svc --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/msp
+fabric-ca-client enroll --url https://org1-peer1:peerpw@org1-ca --csr.hosts org1-peer1,org1-peer-gateway-svc --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/msp
 ```
 
 ## Summary
