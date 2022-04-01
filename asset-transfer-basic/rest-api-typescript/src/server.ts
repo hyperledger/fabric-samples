@@ -13,13 +13,12 @@ import { healthRouter } from './health.router';
 import { jobsRouter } from './jobs.router';
 import { logger } from './logger';
 import { transactionsRouter } from './transactions.router';
+import cors from 'cors';
 
 const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = StatusCodes;
 
 export const createServer = async (): Promise<Application> => {
   const app = express();
-
-  // Remember for production usage, to check any TLS or CORS requirements
 
   app.use(
     pinoMiddleware({
@@ -51,7 +50,7 @@ export const createServer = async (): Promise<Application> => {
   app.use(passport.initialize());
 
   if (process.env.NODE_ENV === 'development') {
-    // TBC
+    app.use(cors());
   }
 
   if (process.env.NODE_ENV === 'test') {
