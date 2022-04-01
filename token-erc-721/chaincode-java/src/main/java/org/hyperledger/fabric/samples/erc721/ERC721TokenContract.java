@@ -30,7 +30,7 @@ import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 public class ERC721TokenContract implements ContractInterface {
 
   /**
-   * BalanceOf counts all non-fungible tokens assigned to an owner. There is a key record for every
+   * BalanceOf counts all non-fungible tokens assigned to an owner.There is a key record for every
    * non-fungible token in the format of balancePrefix.owner.tokenId. balanceOf() queries for and
    * counts all records matching balancePrefix.owner.*
    * 
@@ -315,17 +315,9 @@ public class ERC721TokenContract implements ContractInterface {
     final String clientMSPID = ctx.getClientIdentity().getMSPID();
     final ChaincodeStub stub = ctx.getStub();
 
-    if (!clientMSPID.equalsIgnoreCase(ContractConstants.MINTER_ORG_MSP.getValue())) { // Check
-                                                                                      // minter
-                                                                                      // authorization
-                                                                                      // - this
-                                                                                      // sample
-                                                                                      // assumes
-                                                                                      // Org1 is the
-                                                                                      // issuer with
-                                                                                      // privilege
-                                                                                      // to mint a
-                                                                                      // new token
+   
+    // Check minter authorization this sample assumes Org1 is the issuer with privilege to mint a new token
+    if (!clientMSPID.equalsIgnoreCase(ContractConstants.MINTER_ORG_MSP.getValue())) {
       throw new ChaincodeException(
           "Client is not authorized to set the name and symbol of the token",
           ContractErrors.UNOTHERIZED_SENDER.toString());
