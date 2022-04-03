@@ -13,6 +13,23 @@ In this tutorial, you will mint and transfer tokens as follows:
 - A member of Org1 uses the `Mint` function to create a UTXO representing a number of tokens. The `Mint` function reads the certificate information of the client identity that submitted the transaction using the `GetClientIdentity.GetID()` API and assigns the UTXO ownership to the minter client ID.
 - The same minter client will then use the `Transfer` function to transfer the requested number of tokens to a recipient. The minted UTXO key gets passed as input to the `Transfer` function, a UTXO output representing the number of transferred tokens gets created for the recipient, and another UTXO output representing the 'change' gets created for the minter. It is assumed that the recipient has provided their client ID to the transfer caller out of band. The recipient can then transfer tokens to other registered users in the same fashion.
 
+## Test Network Diagram
+![Test Network Diagram](https://ibb.co/tYLqRkD)
+
+## Test Network - Docker
+| Organization         | Component            | Domain / Container Name                                 | Port             |
+|----------------------|----------------------|---------------------------------------------------------|------------------|
+| Orderer Organization | Enrollment CA        | ca_orderer                                              | 9054, 19054      |
+| Orderer Organization | Orderer (solo, raft) | orderer.example.com                                     | 7050, 7053, 9443 |
+| Organization 1       | Enrollment CA        | ca_org1                                                 | 7054, 17054      |
+| Organization 1       | Peer 1               | peer0.org1.example.com                                  | 7051, 9444       |
+| Organization 1       | Chaincode Container  | dev-peer0.org1.example.com-token_utxo_1.0-[instance ID] | N/A              |
+| Organization 2       | Enrollment CA        | ca_org2                                                 | 8054, 18054      |
+| Organization 2       | Peer 1               | peer0.org2.example.com                                  | 9051, 9445       |
+| Organization 2       | Chaincode Container  | def-peer0.org1.example.com-token_utxo_1.0-[instance ID] | N/A              |
+
+
+
 ## Bring up the test network
 
 You can run the UTXO token transfer scenario using the Fabric test network. Open a command terminal and navigate to the test network directory in your local clone of the `fabric-samples`. We will operate from the `test-network` directory for the remainder of the tutorial.
