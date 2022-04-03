@@ -16,20 +16,22 @@ documentation.
 
 ## [Quickstart](../../test-network-k8s#quickstart)
 
-```shell
+```
 export PATH=${PWD}/../../test-network-k8s:$PATH 
 
 network kind 
-
+```
+```
 network up 
 network channel create
 ```
-
-```shell
-network chaincode deploy  ${PWD}
-
-network chaincode invoke  asset-transfer-basic '{"Args":["InitLedger"]}'
-network chaincode query   asset-transfer-basic '{"Args":["ReadAsset","asset1"]}' | jq 
+```
+network chaincode deploy    ${PWD}
+```
+```
+network chaincode metadata  asset-transfer-basic
+network chaincode invoke    asset-transfer-basic '{"Args":["InitLedger"]}'
+network chaincode query     asset-transfer-basic '{"Args":["ReadAsset","asset1"]}' | jq 
 ```
 
 ## Detailed Guide 
@@ -67,8 +69,9 @@ network chaincode commit  asset-transfer-basic
 
 ```shell
 # execute the smart contract by name 
-network chaincode invoke  asset-transfer-basic '{"Args":["InitLedger"]}'
-network chaincode query   asset-transfer-basic '{"Args":["ReadAsset","asset1"]}'
+network chaincode metadata  asset-transfer-basic
+network chaincode invoke    asset-transfer-basic '{"Args":["InitLedger"]}'
+network chaincode query     asset-transfer-basic '{"Args":["ReadAsset","asset1"]}'
 ```
 
 ```shell
@@ -101,7 +104,7 @@ Set the "address" attribute in the project's [ccpackage/connection.json](ccpacka
 ```
 
 ```shell
-network chaincode package $PWD/ccpackage/ $PWD/build/asset-transfer-debug.tgz
+network cc package $PWD/ccpackage/ $PWD/build/asset-transfer-debug.tgz
 ```
 
 ### Launch
@@ -138,17 +141,14 @@ After the contract main has launched, install, approve, commit, and invoke the c
 
 ```shell
 # Complete the chaincode lifecycle 
-export CORE_CHAINCODE_ID_NAME=$(network chaincode id $PWD/build/asset-transfer-debug.tgz)
-
-network chaincode install $PWD/build/asset-transfer-debug.tgz 
-network chaincode approve asset-transfer-debug $CORE_CHAINCODE_ID_NAME
-network chaincode commit  asset-transfer-debug
+network cc activate asset-transfer-debug $PWD/build/asset-transfer-debug.tgz 
 ```
 
 ```shell
 # execute the smart contract by name 
-network chaincode invoke  asset-transfer-debug '{"Args":["InitLedger"]}'
-network chaincode query   asset-transfer-debug '{"Args":["ReadAsset","asset1"]}'
+network cc metadata asset-transfer-debug
+network cc invoke   asset-transfer-debug '{"Args":["InitLedger"]}'
+network cc query    asset-transfer-debug '{"Args":["ReadAsset","asset1"]}'
 ```
 
 ## Tear Down 

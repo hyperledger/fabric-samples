@@ -20,9 +20,21 @@ function deploy_chaincode() {
   extract_chaincode_name  ${cc_package}
 
   launch_chaincode        ${cc_package}
-  install_chaincode       ${cc_package}
-  approve_chaincode       ${CHAINCODE_NAME} ${CHAINCODE_ID}
-  commit_chaincode        ${CHAINCODE_NAME}
+
+  activate_chaincode      ${CHAINCODE_NAME} ${cc_package}
+}
+
+# Convenience routine to "do everything other than package and launch" a sample CC.
+# This is useful in local debugging scenarios, where
+function activate_chaincode() {
+  local cc_name=$1
+  local cc_package=$2
+
+  set_chaincode_id    ${cc_package}
+
+  install_chaincode   ${cc_package}
+  approve_chaincode   ${cc_name} ${CHAINCODE_ID}
+  commit_chaincode    ${cc_name}
 }
 
 function query_chaincode() {
@@ -202,7 +214,8 @@ function extract_chaincode_name() {
 function launch_chaincode() {
   local cc_package=$1
 
-  id_chaincode ${cc_package}
+  set_chaincode_id ${cc_package}
+
   extract_chaincode_image ${cc_package}
   extract_chaincode_name ${cc_package}
 
@@ -210,7 +223,7 @@ function launch_chaincode() {
   launch_chaincode_service org1 $CHAINCODE_ID $CHAINCODE_IMAGE peer2
 }
 
-function id_chaincode() {
+function set_chaincode_id() {
   local cc_package=$1
 
   cc_sha256=$(shasum -a 256 ${cc_package} | tr -s ' ' | cut -d ' ' -f 1)
@@ -231,13 +244,18 @@ function chaincode_command_group() {
     deploy_chaincode $@
     log "🏁 - Chaincode is ready."
 
+  elif [ "${COMMAND}" == "activate" ]; then
+    log "Activating chaincode"
+    activate_chaincode $@
+    log "🏁 - Chaincode is ready."
+
   elif [ "${COMMAND}" == "package" ]; then
     log "Packaging chaincode"
     package_chaincode $@
     log "🏁 - Chaincode package is ready."
 
   elif [ "${COMMAND}" == "id" ]; then
-    id_chaincode $@
+    set_chaincode_id $@
     log $CHAINCODE_ID
 
   elif [ "${COMMAND}" == "launch" ]; then
@@ -268,9 +286,6 @@ function chaincode_command_group() {
 
   elif [ "${COMMAND}" == "metadata" ]; then
     query_chaincode_metadata $@ >> ${LOG_FILE}
-
-# todo: maybe...
-#  elif [ "${COMMAND}" == "activate" ]; then
 
   else
     print_help
