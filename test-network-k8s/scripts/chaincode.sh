@@ -142,7 +142,7 @@ function install_chaincode() {
   local org=org1
   local cc_package=$1
 
-  install_chaincode_for ${org} peer1 ${cc_package
+  install_chaincode_for ${org} peer1 ${cc_package}
   install_chaincode_for ${org} peer2 ${cc_package}
 }
 
@@ -186,6 +186,8 @@ function commit_chaincode() {
     --sequence      1 \
     --orderer       org0-orderer1.${DOMAIN}:443 \
     --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
+
+  pop_fn
 }
 
 # The chaincode docker image is stored in the code.tar.gz ccaas.json
@@ -218,7 +220,7 @@ function id_chaincode() {
 }
 
 # chaincode "group" commands.  Like "main" for chaincode sub-command group.
-function cc_command_group() {
+function chaincode_command_group() {
   #set -x
 
   COMMAND=$1
