@@ -30,11 +30,13 @@ function query_chaincode() {
   shift
 
   set -x
-  # todo: mangle additional $@ parameters with bash escape quotations
-  echo '
-  export CORE_PEER_ADDRESS=org1-peer1:7051
-  peer chaincode query -n '${cc_name}' -C '${CHANNEL_NAME}' -c '"'$@'"'
-  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
+
+  export_peer_context org1 peer1
+
+  peer chaincode query \
+    -n  $cc_name \
+    -C  $CHANNEL_NAME \
+    -c  $@
 }
 
 function query_chaincode_metadata() {
@@ -43,19 +45,16 @@ function query_chaincode_metadata() {
 
   set -x
   local args='{"Args":["org.hyperledger.fabric:GetMetadata"]}'
-  # todo: mangle additional $@ parameters with bash escape quotations
+
+  log ''
   log 'Org1-Peer1:'
-  echo '
-  export CORE_PEER_ADDRESS=org1-peer1:7051
-  peer chaincode query -n '${cc_name}' -C '${CHANNEL_NAME}' -c '"'$args'"'
-  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
+  export_peer_context org1 peer1
+  peer chaincode query -n $cc_name -C $CHANNEL_NAME -c $args
 
   log ''
   log 'Org1-Peer2:'
-  echo '
-  export CORE_PEER_ADDRESS=org1-peer2:7051
-  peer chaincode query -n '${cc_name}' -C '${CHANNEL_NAME}' -c '"'$args'"'
-  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
+  export_peer_context org1 peer2
+  peer chaincode query -n $cc_name -C $CHANNEL_NAME -c $args
 }
 
 function invoke_chaincode() {
@@ -63,17 +62,15 @@ function invoke_chaincode() {
   shift
 
   # set -x
-  # todo: mangle additional $@ parameters with bash escape quotations
-  echo '
-  export CORE_PEER_ADDRESS=org1-peer1:7051
-  peer chaincode \
-    invoke \
-    -o org0-orderer1:6050 \
-    --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem \
-    -n '${cc_name}' \
-    -C '${CHANNEL_NAME}' \
-    -c '"'$@'"'
-  ' | exec kubectl -n $NS exec deploy/org1-admin-cli -c main -i -- /bin/bash
+
+  export_peer_context org1 peer1
+
+  peer chaincode invoke \
+    -n              $cc_name \
+    -C              $CHANNEL_NAME \
+    -c              $@ \
+    --orderer       org0-orderer1.${DOMAIN}:443 \
+    --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 
   sleep 2
 }
@@ -127,68 +124,47 @@ function launch_chaincode_service() {
   pop_fn
 }
 
-# Copy the chaincode archive from the local host to the org admin
-function transfer_chaincode_archive_for() {
-  local org=$1
-  local cc_archive=$2
-  local dirname=$(dirname $cc_archive)
-  local filename=$(basename $cc_archive)
-
-  push_fn "Transferring chaincode archive to ${org}"
-
-  # Like kubectl cp, but targeted to a deployment rather than an individual pod.
-  tar cf - -C ${dirname} ${filename} | kubectl -n $NS exec -i deploy/${org}-admin-cli -c main -- tar xvf -
-
-  pop_fn
-}
-
 function install_chaincode_for() {
   local org=$1
-  local package_name=$2
-  local peer=$3
-  push_fn "Installing chaincode for ${org} ${peer}"
+  local peer=$2
+  local cc_package=$3
+  push_fn "Installing chaincode for org ${org} peer ${peer}"
 
-  # Install the chaincode
-  echo 'set -x
-  export CORE_PEER_ADDRESS='${org}'-'${peer}':7051
-  peer lifecycle chaincode install '${package_name}'
-  ' | exec kubectl -n $NS exec deploy/${org}-admin-cli -c main -i -- /bin/bash
+  export_peer_context $org $peer
+
+  peer lifecycle chaincode install $cc_package
 
   pop_fn
 }
 
-# Install the chaincode package to an org peer
+# Package and install the chaincode, but do not activate.
 function install_chaincode() {
   local org=org1
   local cc_package=$1
-  local package_name=$(basename $cc_package)
 
-  transfer_chaincode_archive_for ${org} ${cc_package}
-  install_chaincode_for ${org} ${package_name} peer1
-  install_chaincode_for ${org} ${package_name} peer2
+  install_chaincode_for ${org} peer1 ${cc_package
+  install_chaincode_for ${org} peer2 ${cc_package}
 }
 
 # approve the chaincode package for an org and assign a name
 function approve_chaincode() {
   local org=org1
+  local peer=peer1
   local cc_name=$1
   local cc_id=$2
   push_fn "Approving chaincode ${cc_name} with ID ${cc_id}"
 
-  echo 'set -x
-  export CORE_PEER_ADDRESS='${org}'-peer1:7051
+  export_peer_context $org $peer
 
   peer lifecycle \
     chaincode approveformyorg \
-    --channelID '${CHANNEL_NAME}' \
-    --name '${cc_name}' \
-    --version 1 \
-    --package-id '${cc_id}' \
-    --sequence 1 \
-    -o org0-orderer1:6050 \
-    --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem
-
-  ' | exec kubectl -n $NS exec deploy/${org}-admin-cli -c main -i -- /bin/bash
+    --channelID     ${CHANNEL_NAME} \
+    --name          ${cc_name} \
+    --version       1 \
+    --package-id    ${cc_id} \
+    --sequence      1 \
+    --orderer       org0-orderer1.${DOMAIN}:443 \
+    --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 
   pop_fn
 }
@@ -196,22 +172,20 @@ function approve_chaincode() {
 # commit the named chaincode for an org
 function commit_chaincode() {
   local org=org1
+  local peer=peer1
   local cc_name=$1
   push_fn "Committing chaincode ${cc_name}"
 
-  echo 'set -x
-  export CORE_PEER_ADDRESS='${org}'-peer1:7051
+  export_peer_context $org $peer
 
   peer lifecycle \
     chaincode commit \
-    --channelID '${CHANNEL_NAME}' \
-    --name '${cc_name}' \
-    --version 1 \
-    --sequence 1 \
-    -o org0-orderer1:6050 \
-    --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem
-  ' | exec kubectl -n $NS exec deploy/${org}-admin-cli -c main -i -- /bin/bash
-  pop_fn
+    --channelID     ${CHANNEL_NAME} \
+    --name          ${cc_name} \
+    --version       1 \
+    --sequence      1 \
+    --orderer       org0-orderer1.${DOMAIN}:443 \
+    --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 }
 
 # The chaincode docker image is stored in the code.tar.gz ccaas.json

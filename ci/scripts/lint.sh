@@ -10,7 +10,7 @@ function print() {
 
 go install golang.org/x/tools/cmd/goimports@latest
 
-dirs=("$(find . -name "*-go" -o -name "*-java" -o -name "*-javascript" -o -name "*-typescript")")
+dirs=("$(find . -name "*-go" -o -name "*-java" -o -name "*-javascript" -o -name "*-typescript"  -not -path '*/.*')")
 for dir in $dirs; do
   if [[ -d $dir ]] && [[ ! $dir =~ node_modules  ]]; then
     print "Linting $dir"

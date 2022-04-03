@@ -33,11 +33,11 @@ content-type: application/json
 X-Api-Key: {{api-key}}
 
 {
-    "id": "asset7",
-    "color": "red",
-    "size": 42,
-    "owner": "Jean",
-    "appraisedValue": 101
+    "ID": "asset7",
+    "Color": "red",
+    "Size": 42,
+    "Owner": "Jean",
+    "AppraisedValue": 101
 }
 
 ### Read job status
@@ -62,11 +62,11 @@ content-type: application/json
 X-Api-Key: {{api-key}}
 
 {
-    "id": "asset7",
-    "color": "red",
-    "size": 11,
-    "owner": "Jean",
-    "appraisedValue": 101
+    "ID": "asset7",
+    "Color": "red",
+    "Size": 11,
+    "Owner": "Jean",
+    "AppraisedValue": 101
 }
 
 ### Transfer asset
@@ -78,7 +78,7 @@ X-Api-Key: {{api-key}}
 [
     {
         "op": "replace",
-        "path": "/owner",
+        "path": "/Owner",
         "value": "Ashleigh"
     }
 ]

@@ -6,29 +6,28 @@
 #
 set -o errexit
 
-# todo: better handling for input parameters.
+# todo: better handling for input parameters.  Argbash?
 # todo: skip storage volume init if deploying to a remote / cloud cluster (ICP IKS ROKS etc...)
 # todo: for logging, set up a stack and allow multi-line status output codes
-# todo: find a better technique for passing input commands to a remote kube exec
-# todo: register tls csr.hosts w/ kube DNS domain .NS.svc.cluster.local
 # todo: user:pass auth for tls and ecert bootstrap admins.  here and in the server-config.yaml
-# todo: set tls.certfiles= ... arg in deployment env / yaml
-# todo: consider using templates for boilerplate network nodes (orderers, peers, ...)
+# todo: refactor chaincode install to support other chaincode routines
+# todo: allow the user to specify the chaincode name (hardcoded as 'basic') both in install and invoke/query
 # todo: track down a nasty bug whereby the CA service endpoints (kube services) will occasionally reject TCP connections after network down/up.  This is patched by introducing a 10s sleep after the deployments are up...
 
 # todo: allow relative paths for input arguments.
 cd "$(dirname "$0")"
 
+export CONTAINER_CLI=${CONTAINER_CLI:-docker}
+export FABRIC_VERSION=${TEST_NETWORK_FABRIC_VERSION:-2.4.3}
+export FABRIC_CA_VERSION=${TEST_NETWORK_FABRIC_CA_VERSION:-1.5.2}
+export FABRIC_CONTAINER_REGISTRY=${TEST_NETWORK_FABRIC_CONTAINER_REGISTRY:-hyperledger}
+export NETWORK_NAME=${TEST_NETWORK_NAME:-test-network}
+export CLUSTER_NAME=${TEST_NETWORK_KIND_CLUSTER_NAME:-kind}
+export NS=${TEST_NETWORK_KUBE_NAMESPACE:-${NETWORK_NAME}}
+export DOMAIN=${TEST_NETWORK_DOMAIN:-vcap.me}
+export CHANNEL_NAME=${TEST_NETWORK_CHANNEL_NAME:-mychannel}
+export TEMP_DIR=${PWD}/build
 
-
-CONTAINER_CLI=${CONTAINER_CLI:-docker}
-FABRIC_VERSION=${TEST_NETWORK_FABRIC_VERSION:-2.4}
-FABRIC_CA_VERSION=${TEST_NETWORK_FABRIC_CA_VERSION:-1.5}
-FABRIC_CONTAINER_REGISTRY=${TEST_NETWORK_FABRIC_CONTAINER_REGISTRY:-hyperledger}
-NETWORK_NAME=${TEST_NETWORK_NAME:-test-network}
-CLUSTER_NAME=${TEST_NETWORK_KIND_CLUSTER_NAME:-kind}
-NS=${TEST_NETWORK_KUBE_NAMESPACE:-${NETWORK_NAME}}
-CHANNEL_NAME=${TEST_NETWORK_CHANNEL_NAME:-mychannel}
 LOG_FILE=${TEST_NETWORK_LOG_FILE:-network.log}
 DEBUG_FILE=${TEST_NETWORK_DEBUG_FILE:-network-debug.log}
 LOCAL_REGISTRY_NAME=${TEST_NETWORK_LOCAL_REGISTRY_NAME:-kind-registry}
@@ -51,6 +50,7 @@ function print_help() {
   log "Fabric CA Version    \t: ${FABRIC_CA_VERSION}"
   log "Container Registry   \t: ${FABRIC_CONTAINER_REGISTRY}"
   log "Network name       \t\t: ${NETWORK_NAME}"
+  log "Ingress domain     \t\t: ${DOMAIN}"
   log "Channel name       \t\t: ${CHANNEL_NAME}"
   log
   log "--- Cluster Information"
@@ -136,40 +136,7 @@ elif [ "${MODE}" == "channel" ]; then
   fi
 
 elif [[ "${MODE}" == "chaincode" || "${MODE}" == "cc" ]]; then
-  cc_command_group $@
-
-#elif [ "${MODE}" == "chaincode" ]; then
-#  COMMAND=$1
-#  shift
-#
-#  if [ "${COMMAND}" == "deploy" ]; then
-#    log "Deploying chaincode \"${CHAINCODE_NAME}\":"
-#    deploy_chaincode
-#    log "🏁 - Chaincode is ready."
-#
-#  elif [ "${COMMAND}" == "install" ]; then
-#    log "Installing chaincode \"${CHAINCODE_NAME}\":"
-#    install_chaincode
-#    log "🏁 - Chaincode is installed with CHAINCODE_ID=${CHAINCODE_ID}"
-#
-#  elif [ "${COMMAND}" == "activate" ]; then
-#    log "Activating chaincode \"${CHAINCODE_NAME}\":"
-#    activate_chaincode
-#    log "🏁 - Chaincode is activated with CHAINCODE_ID=${CHAINCODE_ID}"
-#
-#  elif [ "${COMMAND}" == "invoke" ]; then
-#    invoke_chaincode $@ 2>> ${LOG_FILE}
-#
-#  elif [ "${COMMAND}" == "query" ]; then
-#    query_chaincode $@ >> ${LOG_FILE}
-#
-#  elif [ "${COMMAND}" == "metadata" ]; then
-#    query_chaincode_metadata >> ${LOG_FILE}
-#
-#  else
-#    print_help
-#    exit 1
-#  fi
+  chaincode_command_group $@
 
 elif [ "${MODE}" == "anchor" ]; then
   update_anchor_peers $@

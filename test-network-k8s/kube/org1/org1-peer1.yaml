@@ -17,8 +17,10 @@ spec:
   dnsNames:
     - localhost
     - org1-peer1
-    - org1-peer-gateway-svc
     - org1-peer1.test-network.svc.cluster.local
+    - org1-peer1.${DOMAIN}
+    - org1-peer-gateway-svc
+    - org1-peer-gateway-svc.${DOMAIN}
   ipAddresses:
     - 127.0.0.1
   secretName: org1-peer1-tls-cert
@@ -74,7 +76,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-peer:{{FABRIC_VERSION}}
+          image: ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:${FABRIC_VERSION}
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
@@ -118,7 +120,7 @@ metadata:
   name: org1-peer1
 spec:
   ports:
-    - name: gossip
+    - name: grpc
       port: 7051
       protocol: TCP
     - name: chaincode
@@ -136,8 +138,46 @@ metadata:
   name: org1-peer-gateway-svc
 spec:
   ports:
-    - name: gossip
+    - name: grpc
       port: 7051
       protocol: TCP
   selector:
     org: org1
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: 60s
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+  labels:
+    app: org1-peer1
+  name: org1-peer1
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: org1-peer1.${DOMAIN}
+      http:
+        paths:
+          - backend:
+              service:
+                name: org1-peer1
+                port:
+                  name: grpc
+            path: /
+            pathType: ImplementationSpecific
+    - host: org1-peer-gateway-svc.${DOMAIN}
+      http:
+        paths:
+          - backend:
+              service:
+                name: org1-peer1
+                port:
+                  name: grpc
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - org1-peer1.${DOMAIN}
+    - hosts:
+        - org1-peer-gateway-svc.${DOMAIN}

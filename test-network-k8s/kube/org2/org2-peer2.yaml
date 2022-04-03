@@ -19,6 +19,7 @@ spec:
     - org2-peer2
     - org2-peer-gateway-svc
     - org2-peer2.test-network.svc.cluster.local
+    - org2-peer2.${DOMAIN}
   ipAddresses:
     - 127.0.0.1
   secretName: org2-peer2-tls-cert
@@ -74,7 +75,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: {{FABRIC_CONTAINER_REGISTRY}}/fabric-peer:{{FABRIC_VERSION}}
+          image: ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:${FABRIC_VERSION}
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
@@ -118,7 +119,7 @@ metadata:
   name: org2-peer2
 spec:
   ports:
-    - name: gossip
+    - name: grpc
       port: 7051
       protocol: TCP
     - name: chaincode
@@ -129,3 +130,29 @@ spec:
       protocol: TCP
   selector:
     app: org2-peer2
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: 60s
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+  labels:
+    app: org2-peer2
+  name: org2-peer2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: org2-peer2.${DOMAIN}
+      http:
+        paths:
+          - backend:
+              service:
+                name: org2-peer2
+                port:
+                  name: grpc
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - org2-peer2.${DOMAIN}
