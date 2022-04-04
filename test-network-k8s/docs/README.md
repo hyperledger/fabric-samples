@@ -30,7 +30,6 @@ _Chaincode-as-a-Service_ running in a shared Kubernetes namespace.
 
 ## Detailed Guides
 
-- [`./network`](NETWORK.md)
 - [Working with Kubernetes](KUBERNETES.md)
 - [Certificate Authorities](CA.md)
   - [Planning for a CA](CA.md#planning-for-a-ca)

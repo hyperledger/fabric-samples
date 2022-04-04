@@ -5,16 +5,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-function app_extract_MSP_archives() {
-  mkdir -p build/msp
-  set -ex
-  kubectl -n $NS exec deploy/org1-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org1.example.com/msp | tar zxf - -C build/msp
-  kubectl -n $NS exec deploy/org2-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org2.example.com/msp | tar zxf - -C build/msp
-
-  kubectl -n $NS exec deploy/org1-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp | tar zxf - -C build/msp
-  kubectl -n $NS exec deploy/org2-ca -- tar zcf - -C /var/hyperledger/fabric organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp | tar zxf - -C build/msp
-}
-
 function app_one_line_pem {
     echo "`awk 'NF {sub(/\\n/, ""); printf "%s\\\\\\\n",$0;}' $1`"
 }
@@ -43,18 +33,19 @@ function app_id {
 function construct_application_configmap() {
   push_fn "Constructing application connection profiles"
 
-  app_extract_MSP_archives
+  ENROLLMENT_DIR=${TEMP_DIR}/enrollments
+  CHANNEL_MSP_DIR=${TEMP_DIR}/channel-msp
 
   mkdir -p build/application/wallet
   mkdir -p build/application/gateways
-  
-  local peer_pem=build/msp/organizations/peerOrganizations/org1.example.com/msp/tlscacerts/org1-tls-ca.pem
-  local ca_pem=build/msp/organizations/peerOrganizations/org1.example.com/msp/cacerts/org1-ca.pem
+
+  local peer_pem=$CHANNEL_MSP_DIR/peerOrganizations/org1/msp/tlscacerts/tlsca-signcert.pem
+  local ca_pem=$CHANNEL_MSP_DIR/peerOrganizations/org1/msp/cacerts/ca-signcert.pem
 
   echo "$(json_ccp 1 $peer_pem $ca_pem)" > build/application/gateways/org1_ccp.json
-  
-  peer_pem=build/msp/organizations/peerOrganizations/org2.example.com/msp/tlscacerts/org2-tls-ca.pem
-  ca_pem=build/msp/organizations/peerOrganizations/org2.example.com/msp/cacerts/org2-ca.pem
+
+  peer_pem=$CHANNEL_MSP_DIR/peerOrganizations/org2/msp/tlscacerts/tlsca-signcert.pem
+  ca_pem=$CHANNEL_MSP_DIR/peerOrganizations/org2/msp/cacerts/ca-signcert.pem
 
   echo "$(json_ccp 2 $peer_pem $ca_pem)" > build/application/gateways/org2_ccp.json
 
@@ -62,13 +53,13 @@ function construct_application_configmap() {
 
   push_fn "Getting Application Identities"
 
-  local cert=build/msp/organizations/peerOrganizations/org1.example.com/users/Admin\@org1.example.com/msp/signcerts/cert.pem
-  local pk=build/msp/organizations/peerOrganizations/org1.example.com/users/Admin\@org1.example.com/msp/keystore/server.key
+  local cert=$ENROLLMENT_DIR/org1/users/org1admin/msp/signcerts/cert.pem
+  local pk=$ENROLLMENT_DIR/org1/users/org1admin/msp/keystore/key.pem
 
   echo "$(app_id Org1MSP $cert $pk)" > build/application/wallet/appuser_org1.id
 
-  local cert=build/msp/organizations/peerOrganizations/org2.example.com/users/Admin\@org2.example.com/msp/signcerts/cert.pem
-  local pk=build/msp/organizations/peerOrganizations/org2.example.com/users/Admin\@org2.example.com/msp/keystore/server.key
+  local cert=$ENROLLMENT_DIR/org2/users/org2admin/msp/signcerts/cert.pem
+  local pk=$ENROLLMENT_DIR/org2/users/org2admin/msp/keystore/key.pem
 
   echo "$(app_id Org2MSP $cert $pk)" > build/application/wallet/appuser_org2.id
 
@@ -76,7 +67,7 @@ function construct_application_configmap() {
 
   push_fn "Creating ConfigMap \"app-fabric-tls-v1-map\" with TLS certificates for the application"
   kubectl -n $NS delete configmap app-fabric-tls-v1-map || true
-  kubectl -n $NS create configmap app-fabric-tls-v1-map --from-file=./build/msp/organizations/peerOrganizations/org1.example.com/msp/tlscacerts
+  kubectl -n $NS create configmap app-fabric-tls-v1-map --from-file=$CHANNEL_MSP_DIR/peerOrganizations/org1/msp/tlscacerts
   pop_fn
 
   push_fn "Creating ConfigMap \"app-fabric-ids-v1-map\" with identities for the application"
@@ -103,7 +94,7 @@ data:
   fabric_gateway_hostport: org1-peer-gateway-svc:7051
   fabric_gateway_sslHostOverride: org1-peer-gateway-svc
   fabric_user: appuser_org1
-  fabric_gateway_tlsCertPath: /fabric/tlscacerts/org1-tls-ca.pem
+  fabric_gateway_tlsCertPath: /fabric/tlscacerts/tlsca-signcert.pem
 EOF
 
   kubectl -n $NS apply -f build/app-fabric-org1-v1-map.yaml
