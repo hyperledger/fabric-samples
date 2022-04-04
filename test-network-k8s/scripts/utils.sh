@@ -102,3 +102,11 @@ function export_peer_context() {
   export CORE_PEER_MSPCONFIGPATH=${TEMP_DIR}/enrollments/${org}/users/${org}admin/msp
   export CORE_PEER_TLS_ROOTCERT_FILE=${TEMP_DIR}/channel-msp/peerOrganizations/${org}/msp/tlscacerts/tlsca-signcert.pem
 }
+
+function absolute_path() {
+  local relative_path=$1
+
+  local abspath="$( cd "${relative_path}" && pwd )"
+
+  echo $abspath
+}

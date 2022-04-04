@@ -26,7 +26,7 @@ network up
 network channel create
 ```
 ```
-network chaincode deploy    ${PWD}
+network chaincode deploy    asset-transfer-basic basic_1.0 ${PWD}
 ```
 ```
 network chaincode metadata  asset-transfer-basic
@@ -44,22 +44,22 @@ network channel create
 
 ```shell
 # Build the chaincode docker image 
-docker build -t hyperledger/fabric-samples/asset-transfer-basic/chaincode-java .
+docker build -t fabric-samples/asset-transfer-basic/chaincode-java .
 
 # Load the docker image directly to the KIND control plane.  
 # (Alternately, build/tag/push the image to a remote container registry, e.g. localhost:5000) 
-kind load docker-image hyperledger/fabric-samples/asset-transfer-basic/chaincode-java
+kind load docker-image fabric-samples/asset-transfer-basic/chaincode-java
 ```
 
 ```shell
 # Assemble the chaincode package archive 
-network chaincode package $PWD/ccpackage/ $PWD/build/asset-transfer.tgz
+network chaincode package basic_1.0 asset-transfer-basic $PWD/build/asset-transfer.tgz
 
 # Determine the ID for the chaincode package 
 CORE_CHAINCODE_ID_NAME=$(network chaincode id $PWD/build/asset-transfer.tgz)
 
 # Launch the chaincode in k8s as Deployment + Service 
-network chaincode launch $PWD/build/asset-transfer.tgz
+network chaincode launch asset-transfer-basic $CORE_CHAINCODE_ID_NAME fabric-samples/asset-transfer-basic/chaincode-java
 
 # Complete the chaincode lifecycle 
 network chaincode install $PWD/build/asset-transfer.tgz 
@@ -75,7 +75,7 @@ network chaincode query     asset-transfer-basic '{"Args":["ReadAsset","asset1"]
 ```
 
 ```shell
-kubectl -n test-network logs -f deployment/org1peer1-cc-asset-transfer-basic
+kubectl -n test-network logs -f deployment/org1peer1-ccaas-asset-transfer-basic
 ```
 
 ## Debugging 
@@ -96,20 +96,16 @@ docker build -t fabric-samples/asset-transfer-basic/chaincode-java .
 By instructing the peer to connect to chaincode at the Docker host alias `host.docker.internal`, pods running in 
 Kubernetes will access the local process via a special loopback interface established by KIND. 
 
-Set the "address" attribute in the project's [ccpackage/connection.json](ccpackage/connection.json) descriptor and assemble the chaincode package: 
-```json
-{
-  "address": "host.docker.internal:9999",
-}
-```
-
+Set the "address" attribute in the package connection.json descriptor and assemble the chaincode package: 
 ```shell
-network cc package $PWD/ccpackage/ $PWD/build/asset-transfer-debug.tgz
+export TEST_NETWORK_CHAINCODE_ADDRESS=host.docker.internal:9999
+
+network cc package basic_1.0 asset-transfer-debug $PWD/build/asset-transfer-debug.tgz
 ```
 
 ### Launch
 
-When chaincode is launched locally, it must declare the package ID in the enviroment as if the process had been managed 
+When chaincode is launched locally, it must declare the package ID in the environment as if the process had been managed 
 by the peer's chaincode lifecycle manager.  Calculate the package ID and start the chaincode, binding to port 9999
 on the local system:
 
@@ -117,7 +113,7 @@ on the local system:
 export CHAINCODE_SERVER_ADDRESS=0.0.0.0:9999
 export CORE_CHAINCODE_ID_NAME=$(network chaincode id $PWD/build/asset-transfer-debug.tgz)
 
-java -jar build/libs/chaincode.jar  
+java -jar build/libs/chaincode.jar
 ```
 
 Or using the editor/debugger/IDE of your choice, create a launch target for `ContractMain.main()`, specifying the 

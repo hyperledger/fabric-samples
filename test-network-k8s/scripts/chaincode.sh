@@ -7,21 +7,35 @@
 
 # Convenience routine to "do everything" required to bring up a sample CC.
 function deploy_chaincode() {
+  local cc_name=$1
+  local cc_label=$2
+  local cc_folder=$(absolute_path $3)
+
+  local temp_folder=$(mktemp -d)
+  local cc_package=${temp_folder}/${cc_name}.tgz
+
+  package_chaincode       ${cc_label} ${cc_name} ${cc_package}
+
+  set_chaincode_id        ${cc_package}
+  set_chaincode_image     ${cc_folder}
+
+  build_chaincode_image   ${cc_folder} ${CHAINCODE_IMAGE}
+  kind_load_image         ${CHAINCODE_IMAGE}
+  launch_chaincode        ${cc_name} ${CHAINCODE_ID} ${CHAINCODE_IMAGE}
+
+  activate_chaincode      ${cc_name} ${cc_package}
+}
+
+# Infer a reasonable name for the chaincode image based on the folder path conventions, or
+# allow the user to override with TEST_NETWORK_CHAINCODE_IMAGE.
+function set_chaincode_image() {
   local cc_folder=$1
-  local build_folder=${cc_folder}/build
-  local cc_package=${build_folder}/chaincode.tgz
 
-  build_chaincode_image   ${cc_folder}
-
-  mkdir -p ${build_folder}
-
-  package_chaincode       ${cc_folder}/ccpackage ${cc_package}
-  extract_chaincode_image ${cc_package}
-  extract_chaincode_name  ${cc_package}
-
-  launch_chaincode        ${cc_package}
-
-  activate_chaincode      ${CHAINCODE_NAME} ${cc_package}
+  if [ -z "$TEST_NETWORK_CHAINCODE_IMAGE" ]; then
+    CHAINCODE_IMAGE=${cc_folder/*fabric-samples/fabric-samples}
+  else
+    CHAINCODE_IMAGE=${TEST_NETWORK_CHAINCODE_IMAGE}
+  fi
 }
 
 # Convenience routine to "do everything other than package and launch" a sample CC.
@@ -73,8 +87,6 @@ function invoke_chaincode() {
   local cc_name=$1
   shift
 
-  # set -x
-
   export_peer_context org1 peer1
 
   peer chaincode invoke \
@@ -89,11 +101,19 @@ function invoke_chaincode() {
 
 function build_chaincode_image() {
   local cc_folder=$1
-  local cc_image=$(jq -r .image ${cc_folder}/ccpackage/ccaas.json)
+  local cc_image=$2
 
   push_fn "Building chaincode image ${cc_image}"
 
   docker build -t ${cc_image} ${cc_folder}
+
+  pop_fn
+}
+
+function kind_load_image() {
+  local cc_image=$1
+
+  push_fn "Loading chaincode to kind image plane"
 
   kind load docker-image ${cc_image}
 
@@ -101,12 +121,38 @@ function build_chaincode_image() {
 }
 
 function package_chaincode() {
-  local cc_folder=$1
-  local cc_archive=$2
-  local archive_name=$(basename $cc_archive)
-  push_fn "Packaging chaincode ${archive_name}"
+  local cc_label=$1
+  local cc_name=$2
+  local cc_archive=$3
 
-  tar -C ${cc_folder} -zcf ${cc_folder}/code.tar.gz connection.json ccaas.json
+  local cc_folder=$(dirname $cc_archive)
+  local archive_name=$(basename $cc_archive)
+
+  push_fn "Packaging chaincode ${cc_label}"
+
+  mkdir -p ${cc_folder}
+
+  # Allow the user to override the service URL for the endpoint.  This allows, for instance,
+  # local debugging at the 'host.docker.internal' DNS alias.
+  local cc_default_address="{{.peername}}-ccaas-${cc_name}:9999"
+  local cc_address=${TEST_NETWORK_CHAINCODE_ADDRESS:-$cc_default_address}
+
+  cat << EOF > ${cc_folder}/connection.json
+{
+  "address": "${cc_address}",
+  "dial_timeout": "10s",
+  "tls_required": false
+}
+EOF
+
+  cat << EOF > ${cc_folder}/metadata.json
+{
+  "type": "ccaas",
+  "label": "${cc_label}"
+}
+EOF
+
+  tar -C ${cc_folder} -zcf ${cc_folder}/code.tar.gz connection.json
   tar -C ${cc_folder} -zcf ${cc_archive} code.tar.gz metadata.json
 
   rm ${cc_folder}/code.tar.gz
@@ -116,24 +162,35 @@ function package_chaincode() {
 
 function launch_chaincode_service() {
   local org=$1
-  local cc_id=$2
-  local cc_image=$3
-  local peer=$4
+  local peer=$2
+  local cc_name=$3
+  local cc_id=$4
+  local cc_image=$5
   push_fn "Launching chaincode container \"${cc_image}\""
 
   # The chaincode endpoint needs to have the generated chaincode ID available in the environment.
   # This could be from a config map, a secret, or by directly editing the deployment spec.  Here we'll keep
   # things simple by using sed to substitute script variables into a yaml template.
   cat kube/${org}/${org}-cc-template.yaml \
-    | sed 's,{{CHAINCODE_NAME}},'${CHAINCODE_NAME}',g' \
+    | sed 's,{{CHAINCODE_NAME}},'${cc_name}',g' \
     | sed 's,{{CHAINCODE_ID}},'${cc_id}',g' \
     | sed 's,{{CHAINCODE_IMAGE}},'${cc_image}',g' \
     | sed 's,{{PEER_NAME}},'${peer}',g' \
     | exec kubectl -n $NS apply -f -
 
-  kubectl -n $NS rollout status deploy/${org}${peer}-cc-${CHAINCODE_NAME}
+  kubectl -n $NS rollout status deploy/${org}${peer}-ccaas-${cc_name}
 
   pop_fn
+}
+
+function launch_chaincode() {
+  local org=org1
+  local cc_name=$1
+  local cc_id=$2
+  local cc_image=$3
+
+  launch_chaincode_service ${org} peer1 ${cc_name} ${cc_id} ${cc_image}
+  launch_chaincode_service ${org} peer2 ${cc_name} ${cc_id} ${cc_image}
 }
 
 function install_chaincode_for() {
@@ -200,27 +257,6 @@ function commit_chaincode() {
     --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 
   pop_fn
-}
-
-# The chaincode docker image is stored in the code.tar.gz ccaas.json
-function extract_chaincode_image() {
-  CHAINCODE_IMAGE=$(tar zxfO $1 code.tar.gz | tar zxfO - ccaas.json | jq -r .image)
-}
-
-function extract_chaincode_name() {
-  CHAINCODE_NAME=$(tar zxfO $1 code.tar.gz | tar zxfO - ccaas.json | jq -r .name)
-}
-
-function launch_chaincode() {
-  local cc_package=$1
-
-  set_chaincode_id ${cc_package}
-
-  extract_chaincode_image ${cc_package}
-  extract_chaincode_name ${cc_package}
-
-  launch_chaincode_service org1 $CHAINCODE_ID $CHAINCODE_IMAGE peer1
-  launch_chaincode_service org1 $CHAINCODE_ID $CHAINCODE_IMAGE peer2
 }
 
 function set_chaincode_id() {

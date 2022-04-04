@@ -1,4 +1,0 @@
-{
-  "name": "asset-transfer-basic",
-  "image": "hyperledger/fabric-samples/asset-transfer-basic/chaincode-java:latest"
-}

@@ -67,7 +67,7 @@ function createNetwork() {
   ./network channel create
 
   print "Deploying chaincode"
-  ./network chaincode deploy $TEST_NETWORK_CHAINCODE_PATH
+  ./network chaincode deploy asset-transfer-basic basic_1.0 $TEST_NETWORK_CHAINCODE_PATH
 }
 
 function stopNetwork() {
@@ -82,7 +82,8 @@ trap "quitterLaScene" EXIT
 createNetwork
 
 print "Inserting and querying assets"
-( ./network chaincode invoke $CHAINCODE_NAME '{"Args":["InitLedger"]}' \
+( ./network chaincode metadata $CHAINCODE_NAME \
+  && ./network chaincode invoke $CHAINCODE_NAME '{"Args":["InitLedger"]}' \
   && sleep 5 \
   && ./network chaincode query $CHAINCODE_NAME '{"Args":["ReadAsset","asset1"]}' )
 print "OK"
