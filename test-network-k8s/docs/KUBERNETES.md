@@ -4,18 +4,20 @@ To get started with the Kube test network, you will need access to a Kubernetes 
 
 ## TL/DR :
 
-```shell
+```
 $ ./network kind
 Initializing KIND cluster "kind":
-✅ - Pulling docker images for Fabric 2.3.2 ...
 ✅ - Creating cluster "kind" ...
-✅ - Launching Nginx ingress controller ...
+✅ - Launching ingress controller ...
+✅ - Launching cert-manager ...
 ✅ - Launching container registry "kind-registry" at localhost:5000 ...
+✅ - Waiting for cert-manager ...
+✅ - Waiting for ingress controller ...
 🏁 - Cluster is ready.
 ```
 
 and :
-```shell
+```
 $ ./network unkind
 Deleting cluster "kind":
 ☠️  - Deleting KIND cluster kind ...
@@ -26,7 +28,7 @@ Deleting cluster "kind":
 ## Kube Context:
 
 For illustration purposes, this project attempts in all cases to _keep it simple_ as the
-general rule.  By default, we will rely on `kind` ([Kubernetes IN Docker](https://kind.sigs.k8s.io))
+general rule.  By default, we will rely on KIND ([Kubernetes IN Docker](https://kind.sigs.k8s.io))
 as a mechanism to quickly spin up ephemeral, short-lived clusters for development and
 illustration.
 
@@ -45,10 +47,6 @@ for development, testing, or CI, you can create a new cluster with:
 
 ```shell
 $ ./network kind
-```
-or:
-```shell
-$ kind create cluster
 ```
 
 By default, `kind` will set the current Kube context to reference the new cluster.  Any
@@ -74,9 +72,9 @@ $ kind delete cluster
 ## Test Network Structure
 
 To emulate a more realistic example of multi-party collaboration, the test network
-forms a blockchain consensus group spanning three virtual organizations.  Access to the
-blockchain is entirely constrained to Kubernetes private networks, and consuming applications
-make use of a Kube ingress controller for external visibility.
+forms a blockchain consensus group spanning three virtual organizations.  Network I/O between the 
+blockchain nodes is entirely constrained to Kubernetes private networks, and consuming applications
+make use of a Kubernetes / Nginx ingress controller for external visibility.
 
 In k8s terms:
 
@@ -171,6 +169,46 @@ export TEST_NETWORK_FABRIC_VERSION=2.4.0
 ./network up
 ```
 
+## Nginx Ingress Controller 
+
+When Fabric nodes communicate within the k8s cluster, TCP sockets are established via Kube DNS service 
+aliases (e.g. grpcs://org1-peer1.test-network.svc.cluster.local:443) and traverse private K8s network routes.
+
+For access from _external clients_, all traffic into the network nodes are routed into the correct pod by 
+virtue of an Nginx ingress controller bound to the host OS ports :80 and :443.  To differentiate between 
+services, the Nginx provides a "layer 6" traffic router based on the http(s) host alias.  In addition to 
+constructing Deployments, Pods, and Services, each Fabric node exposes a set of `Ingress` routes binding 
+the virtual host name to the corresponding endpoint.
+
+TLS traffic tunneled through the ingress controller has been configured in "ssl-passthrough" mode.  For 
+secure access to services, client applications must present the TLS root certificate of the appropriate 
+organization when connecting to peers, orderers, and CAs.
+
+
+## What is `*.vcap.me` ? 
+
+In order to expose a dynamic set of DNS host aliases matching the Nginx ingress controller, the test network 
+employs the public DNS wildcard domain `*.vcap.me` to resolve host and subdomains to the local loopback 
+address 127.0.0.1.  
+
+The vcap.me domain is managed by VMWare and is associated with the 
+[VMWare Cloud Application Platform](https://github.com/cloudfoundry-attic/vcap) (VCAP).
+
+Using this DNS wildcard alias means that all ingress points bound to the *.vcap.me domain will resolve to your 
+local host, conveniently routing traffic into the KIND cluster on ports :80 and :443. 
+
+To override the *.vcap.me network ingress domain (for example in cloud-based environments supporting a DNS 
+wildcard resolver) set the `TEST_NETWORK_DOMAIN` environment variable before invoking `./network` 
+targets.   E.g.: 
+
+```shell
+export TEST_NETWORK_DOMAIN=lvh.me
+
+./network up 
+
+curl -s --insecure https://org0-ca.lvh.me/cainfo | jq  
+```
+
 ## Cloud Vendors
 
 While the test network primarily targets KIND clusters, the singular reliance on the Kube API plane
@@ -187,11 +225,5 @@ In general, at a high-level the steps required to port the test network to ANY k
 - Upload your chaincode, gateway clients, and application logic to an external Container Registry.
 - Run with a `ServiceAccount` and role bindings suitable for creating `Pods`, `Deployments`, and `Services`.
 
-Example configurations for common cloud vendors:
-
-### IKS
-### OCP
-### AWS
-### Azure
 
 ## Next : [Fabric Certificate Authorities](CA.md)
