@@ -9,6 +9,7 @@ set -euo pipefail
 # Test matrix parameters
 export CONTAINER_CLI=${CONTAINER_CLI:-docker}
 export CLIENT_LANGUAGE=${CLIENT_LANGUAGE:-typescript}
+export CHAINCODE_LANGUAGE=${CHAINCODE_LANGUAGE:-java}
 
 # Fabric version and Docker registry source: use the latest stable tag image from JFrog
 export FABRIC_VERSION=${FABRIC_VERSION:-2.4}
@@ -22,8 +23,8 @@ export TEST_NETWORK_KIND_CLUSTER_NAME=${TEST_NETWORK_KIND_CLUSTER_NAME:-kind}
 
 # asset-transfer-basic chaincode target
 export TEST_NETWORK_CHAINCODE_NAME=${TEST_NETWORK_CHAINCODE_NAME:-asset-transfer-basic}
-export TEST_NETWORK_CHAINCODE_PATH=${TEST_NETWORK_CHAINCODE_PATH:-$PWD/../asset-transfer-basic/chaincode-java}
-export TEST_NETWORK_CHAINCODE_IMAGE=${TEST_NETWORK_CHAINCODE_IMAGE:-fabric-samples/asset-transfer-basic/chaincode-java}
+export TEST_NETWORK_CHAINCODE_PATH=${TEST_NETWORK_CHAINCODE_PATH:-$PWD/../asset-transfer-basic/chaincode-${CHAINCODE_LANGUAGE}}
+export TEST_NETWORK_CHAINCODE_IMAGE=${TEST_NETWORK_CHAINCODE_IMAGE:-fabric-samples/asset-transfer-basic/chaincode-${CHAINCODE_LANGUAGE}}
 
 # gateway client application parameters
 export GATEWAY_CLIENT_APPLICATION_PATH=${GATEWAY_CLIENT_APPLICATION_PATH:-../asset-transfer-basic/application-gateway-${CLIENT_LANGUAGE}}

@@ -135,8 +135,12 @@ jobs:
       vmImage: ubuntu-20.04
     strategy:
       matrix:
-        Typescript:
+        Typescript-Java:
           CLIENT_LANGUAGE: typescript
+          CHAINCODE_LANGUAGE: java
+        Typescript-Golang:
+          CLIENT_LANGUAGE: typescript
+          CHAINCODE_LANGUAGE: external
     steps:
       - template: templates/install-k8s-deps.yml
       - script: ../ci/scripts/run-k8s-test-network-basic.sh

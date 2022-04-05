@@ -25,8 +25,8 @@ spec:
           env:
             - name: CHAINCODE_SERVER_ADDRESS
               value: 0.0.0.0:9999
-
-            # todo: load with an envFrom and a dynamic config map with the ID.
+            - name: CHAINCODE_ID
+              value: {{CHAINCODE_ID}}
             - name: CORE_CHAINCODE_ID_NAME
               value: {{CHAINCODE_ID}}
           ports:
