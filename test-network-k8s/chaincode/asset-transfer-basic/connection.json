@@ -1,5 +1,0 @@
-{
-  "address": "{{.peername}}-cc-asset-transfer-basic:9999",
-  "dial_timeout": "10s",
-  "tls_required": false
-}
