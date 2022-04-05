@@ -23,6 +23,7 @@ export TEST_NETWORK_KIND_CLUSTER_NAME=${TEST_NETWORK_KIND_CLUSTER_NAME:-kind}
 # asset-transfer-basic chaincode target
 export TEST_NETWORK_CHAINCODE_NAME=${TEST_NETWORK_CHAINCODE_NAME:-asset-transfer-basic}
 export TEST_NETWORK_CHAINCODE_PATH=${TEST_NETWORK_CHAINCODE_PATH:-$PWD/../asset-transfer-basic/chaincode-java}
+export TEST_NETWORK_CHAINCODE_IMAGE=${TEST_NETWORK_CHAINCODE_IMAGE:-fabric-samples/asset-transfer-basic/chaincode-java}
 
 # gateway client application parameters
 export GATEWAY_CLIENT_APPLICATION_PATH=${GATEWAY_CLIENT_APPLICATION_PATH:-../asset-transfer-basic/application-gateway-${CLIENT_LANGUAGE}}

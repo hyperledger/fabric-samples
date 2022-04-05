@@ -32,6 +32,7 @@ function set_chaincode_image() {
   local cc_folder=$1
 
   if [ -z "$TEST_NETWORK_CHAINCODE_IMAGE" ]; then
+    # cc_folder path starting with first index of "fabric-samples"
     CHAINCODE_IMAGE=${cc_folder/*fabric-samples/fabric-samples}
   else
     CHAINCODE_IMAGE=${TEST_NETWORK_CHAINCODE_IMAGE}
