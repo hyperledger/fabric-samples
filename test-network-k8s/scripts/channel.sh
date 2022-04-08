@@ -93,16 +93,16 @@ function enroll_org_admin() {
   CA_URL=https://${CA_AUTH}@${CA_HOST}:${CA_PORT}
 
   # Read the CA's TLS certificate from the cert-manager CA secret
-  echo "retrieving ${org}-ca TLS cert"
+  echo "retrieving ${org}-ca TLS root cert"
   kubectl -n $NS get secret ${org}-ca-tls-cert -o json \
-    | jq -r .data.\"tls.crt\" \
+    | jq -r .data.\"ca.crt\" \
     | base64 -d \
-    > ${CA_DIR}/tls-cert.pem
+    > ${CA_DIR}/tlsca-cert.pem
 
   # enroll the org admin
   FABRIC_CA_CLIENT_HOME=${ORG_ADMIN_DIR} fabric-ca-client enroll \
     --url ${CA_URL} \
-    --tls.certfiles ${CA_DIR}/tls-cert.pem
+    --tls.certfiles ${CA_DIR}/tlsca-cert.pem
 
   # Construct an msp config.yaml
   CA_CERT_NAME=${CA_NAME}-$(echo $DOMAIN | tr -s . -)-${CA_PORT}.pem
@@ -166,7 +166,7 @@ function create_channel_org_MSP() {
 
   # extract the CA's signing authority from the CA/cainfo response
   curl -s \
-    --cacert ${TEMP_DIR}/cas/${ca_name}/tls-cert.pem \
+    --cacert ${TEMP_DIR}/cas/${ca_name}/tlsca-cert.pem \
     https://${ca_name}.${DOMAIN}/cainfo \
     | jq -r .result.CAChain \
     | base64 -d \
