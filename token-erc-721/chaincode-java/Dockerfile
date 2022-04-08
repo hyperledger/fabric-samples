@@ -8,7 +8,6 @@ COPY build.gradle ./
 # Build and package our code
 RUN gradle --no-daemon build shadowJar -x checkstyleMain -x checkstyleTest
 
-
 # the second stage of our build just needs the compiled files
 FROM openjdk:11-jre
 ARG CC_SERVER_PORT=9999
