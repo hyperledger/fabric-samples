@@ -13,6 +13,7 @@ function pull_docker_images() {
   docker pull ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:$FABRIC_VERSION
   docker pull ${FABRIC_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
   docker pull ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest
+  docker pull couchdb:3.2.1
 
   pop_fn
 }
@@ -26,9 +27,28 @@ function load_docker_images() {
   kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
   kind load docker-image ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest
   kind load docker-image couchdb:3.2.1
-  
-  pop_fn 
+
+  pop_fn
 }
+
+function pull_docker_images_for_rest_sample() {
+  push_fn "Pulling docker images for fabric-rest-sample"
+
+  docker pull ghcr.io/hyperledger/fabric-rest-sample:latest
+  docker pull redis:6.2.5
+
+  pop_fn
+}
+
+function load_docker_images_for_rest_sample() {
+  push_fn "Loading docker images for fabric-rest-sample to KIND control plane"
+
+  kind load docker-image ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest
+  kind load docker-image redis:6.2.5
+
+  pop_fn
+}
+
 
 function apply_nginx_ingress() {
   push_fn "Launching ingress controller"
@@ -181,8 +201,10 @@ function kind_init() {
   launch_docker_registry
 
   if [ "${STAGE_DOCKER_IMAGES}" == true ]; then
-    pull_docker_images 
-    load_docker_images 
+    pull_docker_images
+    load_docker_images
+    pull_docker_images_for_rest_sample
+    load_docker_images_for_rest_sample
   fi
 
   wait_for_cert_manager

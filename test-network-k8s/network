@@ -174,6 +174,11 @@ elif [ "${MODE}" == "chaincode" ]; then
 elif [ "${MODE}" == "anchor" ]; then
   update_anchor_peers $@
 
+elif [ "${MODE}" == "load-images-for-rest-easy" ]; then
+  log "Loading images for fabric-rest-sample to KIND:"
+  load_docker_images_for_rest_sample
+  log "🏁 - Images loaded."
+
 elif [ "${MODE}" == "rest-easy" ]; then
   log "Launching fabric-rest-sample application:"
   launch_rest_sample
