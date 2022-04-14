@@ -88,8 +88,8 @@ public final class ERC20TokenContract implements ContractInterface {
     if (!stringIsNullOrEmpty(currentBalanceStr)) {
       currentBalance = Long.parseLong(currentBalanceStr);
     }
-
-    long updatedBalance = currentBalance + amount;
+    // Used safe math .
+    long updatedBalance = Math.addExact(currentBalance, amount);
 
     stub.putStringState(balanceKey.toString(), String.valueOf(updatedBalance));
     // Increase totalSupply
@@ -98,7 +98,8 @@ public final class ERC20TokenContract implements ContractInterface {
     if (!stringIsNullOrEmpty(totalSupplyStr)) {
       totalSupply = Long.parseLong(totalSupplyStr);
     }
-    totalSupply = totalSupply + amount;
+    // Used safe math .
+    totalSupply = Math.addExact(totalSupply, amount);
     stub.putStringState(TOTAL_SUPPLY_KEY.getValue(), String.valueOf(totalSupply));
     Transfer transferEvent = new Transfer("0x0", minter, amount);
     stub.setEvent(TRANSFER_EVENT.getValue(), transferEvent.toJSONString().getBytes(UTF_8));
@@ -136,7 +137,7 @@ public final class ERC20TokenContract implements ContractInterface {
       throw new ChaincodeException("The balance does not exist", BALANCE_NOT_FOUND.toString());
     }
     long currentBalance = Long.parseLong(currentBalanceStr);
-    long updatedBalance = currentBalance - amount;
+    long updatedBalance = Math.subtractExact(currentBalance, amount);
 
     stub.putStringState(balanceKey.toString(), String.valueOf(updatedBalance));
 
@@ -145,7 +146,7 @@ public final class ERC20TokenContract implements ContractInterface {
     if (stringIsNullOrEmpty(totalSupplyBytes)) {
       throw new ChaincodeException("TotalSupply does not exist", NOT_FOUND.toString());
     }
-    long totalSupply = Long.parseLong(totalSupplyBytes) - amount;
+    long totalSupply = Math.subtractExact(Long.parseLong(totalSupplyBytes), amount);
     stub.putStringState(TOTAL_SUPPLY_KEY.getValue(), String.valueOf(totalSupply));
 
     // Emit the Transfer event
@@ -364,8 +365,8 @@ public final class ERC20TokenContract implements ContractInterface {
     }
 
     // Update the balance
-    long fromUpdatedBalance = fromCurrentBalance - value;
-    long toUpdatedBalance = toCurrentBalance + value;
+    long fromUpdatedBalance = Math.subtractExact(fromCurrentBalance, value);
+    long toUpdatedBalance = Math.addExact(toCurrentBalance, value);
 
     stub.putStringState(fromBalanceKey.toString(), String.valueOf(fromUpdatedBalance));
 
