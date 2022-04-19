@@ -141,7 +141,7 @@ When updating anchor peers, the `./network` script will:
 1.  Transfer the shell scripts from `/scripts/*.sh` into the remote organization's persistent volume.
 2.  Issue a `kubectl exec -c "script-name.sh {args}"` on the org's admin CLI pod.
 
-For non-trivial Fabric administative tasks, this approach of uploading a script into the cluster and then 
+For non-trivial Fabric administrative tasks, this approach of uploading a script into the cluster and then 
 executing in an admin pod works well. 
 
 

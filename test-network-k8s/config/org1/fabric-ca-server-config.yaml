@@ -31,7 +31,7 @@
 #   For example, see "tls.certfile" and "tls.clientauth.certfiles".
 #   The value of each of these fields can be a simple filename, a
 #   relative path, or an absolute path.  If the value is not an
-#   absolute path, it is interpretted as being relative to the location
+#   absolute path, it is interpreted as being relative to the location
 #   of this configuration file.
 #
 #############################################################################
@@ -341,7 +341,7 @@ idemix:
   rhpoolsize: 1000
 
   # The Idemix credential issuance is a two step process. First step is to  get a nonce from the issuer
-  # and second step is send credential request that is constructed using the nonce to the isuser to
+  # and second step is send credential request that is constructed using the nonce to the issuer to
   # request a credential. This configuration property specifies expiration for the nonces. By default is
   # nonces expire after 15 seconds. The value is expressed in the time.Duration format (see https://golang.org/pkg/time/#ParseDuration).
   nonceexpiration: 15s
@@ -498,9 +498,9 @@ metrics:
     # statsd server address
     address: 127.0.0.1:8125
 
-    # the interval at which locally cached counters and gauges are pushsed
+    # the interval at which locally cached counters and gauges are pushed
     # to statsd; timings are pushed immediately
     writeInterval: 10s
 
-    # prefix is prepended to all emitted statsd merics
+    # prefix is prepended to all emitted statsd metrics
     prefix: server
