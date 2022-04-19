@@ -31,8 +31,8 @@ $ ./network chaincode query '{"Args":["ReadAsset","1"]}' | jq
 
 ## Running Smart Contracts on Kubernetes 
 
-In the Kubernetes Test Network, smart contracts are developed with the [Chaincode as a Service](link)
-pattern, relying on an embedded [External Builder](link) to avoid the use of a Docker daemon. With 
+In the Kubernetes Test Network, smart contracts are developed with the [Chaincode as a Service](https://hyperledger-fabric.readthedocs.io/en/latest/cc_service.html)
+pattern, relying on an embedded [External Builder](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html) to avoid the use of a Docker daemon. With 
 Chaincode-as-a-Service, smart contracts are deployed to Kubernetes as `Services`,
 `Deployments`, and `Pods`.  When invoking smart contracts, the Peer network connects to the grpc receiver
 through the port exposed by the chaincode's Kube `Service` as described in the chaincode 
@@ -70,34 +70,30 @@ launched in the cluster and the chaincode metadata:
 
 To deploy the chaincode, the network script will: 
 
-1.  Read the `connection.json` and `metadata.json` files from the `/chaincode/${TEST_NETWORK_CHAINCODE_NAME` 
+1.  Read the `connection.json` and `metadata.json` files from the `/chaincode/${TEST_NETWORK_CHAINCODE_NAME}` 
     folder, bundling the files into a chaincode tar.gz archive.
-    
 
-2.  `kubectl cp` the chaincode archive from the local file system to the organization's persistent volume storage. 
-
-
-3.  Install the chaincode archive on a peer in the organization: 
+2.  Install the chaincode archive on a peer in the organization: 
 ```shell
   export CORE_PEER_ADDRESS='${org}'-peer1:7051
   peer lifecycle chaincode install chaincode/asset-transfer-basic.tgz
 ```
 
 
-4. In typical Fabric operations, the output of the `chaincode install` command includes a generated ID of the 
+3. In typical Fabric operations, the output of the `chaincode install` command includes a generated ID of the 
    chaincode archive printed to standard out.  This ID is manually inspected and transcribed by the 
    network operator when executing subsequent commands with the network peers.  To avoid scraping the 
    output of the installation command, the test network scripts precompute the chaincode ID 
    as the `sha256` checksum of the tar.gz archive. 
 
 
-5. The chaincode docker [image is launched](../kube/org1/org1-cc-asset-transfer-basic.yaml) as a Kubernetes 
+4. The chaincode docker [image is launched using the yaml template](../kube/org1/org1-cc-template.yaml) as a Kubernetes 
    `Deployment` specifying _CHAINCODE_ID=sha-256(archive)_ in the environment and binding a `Service` port 9999 
    within the namespace.  When the network sends messages to the chaincode process, it will use the host URL as 
    defined in the `connection.json`, connecting to the kubernetes `Service` URL and `Deployment`.
    
 
-6.  Finally, the Admin CLI issues a series of peer commands to approve and commit the chaincode for the org: 
+5.  Finally, the Admin CLI issues a series of peer commands to approve and commit the chaincode for the org: 
 
 ```shell
   export CORE_PEER_ADDRESS='${org}'-peer1:7051
@@ -178,7 +174,7 @@ information to the stdout of this process, bundling into a Docker image, and pus
 image to the local development container registry.
 
 1. Add some print statements to assetTransfer.go.  E.g.:
-```java 
+```go
     fmt.Printf("reading asset %s\n", id)
 ```
 

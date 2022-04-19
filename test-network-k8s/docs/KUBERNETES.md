@@ -82,7 +82,7 @@ In k8s terms:
 - Blockchain services (nodes, orderers, chaincode, etc.) reside within a single `Namespace`.
 - Each organization maintains a distinct, independent `PersistentVolumeClaim` for TLS certificates,
   local MSP, private data, and transaction ledgers.
-- Smart Contracts rely exclusively on the [Chaincode-as-a-Service](link) and [External Builder](link)
+- Smart Contracts rely exclusively on the [Chaincode-as-a-Service](https://hyperledger-fabric.readthedocs.io/en/latest/cc_service.html) and [External Builder](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html)
   patterns, running in the cluster as Kube `Deployments` with companion `Services`.
 - An HTTP(s) `Ingress` and companion gateway application is required for external access to the blockchain.
 

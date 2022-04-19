@@ -130,7 +130,7 @@ To trigger the external builder for a chaincode service, set the metadata.json `
 
 Once the local MSP structures for the network nodes have been created, the orderers and peers may be launched in the
 namespace.  System nodes will read base configuration files (orderer.yaml and core.yaml) from the organization
-config folder, made available in Kubernetes as the `fabric-config${org}` config map.
+config folder, made available in Kubernetes as the `${org}-config` config map.
 
 Each orderer and peer creates one `Deployment`, `Pod`, and `Service` in the namespace.  In addition, each org
 defines an `orgN-peerM-config` `ConfigMap` with environment variable overrides replacing the default settings
@@ -148,7 +148,7 @@ export FABRIC_VERSION=2.4.2
 
 cat kube/org0/org0-orderer1.yaml | envsubst | kubectl -n $NS -f -
 cat kube/org0/org0-orderer2.yaml | envsubst | kubectl -n $NS -f -
-cat kube/org0/org0-orderer3.yaml | envsubts | kubectl -n $NS -f -
+cat kube/org0/org0-orderer3.yaml | envsubst | kubectl -n $NS -f -
 
 # Wait for the orderers to completely start before launching the network peer nodes.
 kubectl -n $NS rollout status deploy/org0-orderer1
