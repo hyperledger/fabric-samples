@@ -33,7 +33,7 @@ In order to construct a Fabric channel, the following steps must be performed:
    
 4. Network orderers are joined to the channel using the channel participation API.
 
-5. Network peers are joioned to the channel.
+5. Network peers are joined to the channel.
 
 
 ## Aggregating the Channel MSP 

@@ -1,6 +1,8 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package org.hyperledger.fabric.samples.erc20.model;
 
-import com.owlike.genson.Genson;
 import com.owlike.genson.annotation.JsonProperty;
 import org.hyperledger.fabric.contract.annotation.DataType;
 import org.hyperledger.fabric.contract.annotation.Property;
@@ -46,27 +48,11 @@ public final class Approval {
     return owner;
   }
 
-  public void setOwner(final String owner1) {
-    this.owner = owner1;
-  }
-
   public String getSpender() {
     return spender;
   }
 
-  public void setSpender(final String spender1) {
-    this.spender = spender1;
-  }
-
   public long getValue() {
     return value;
-  }
-
-  public void setValue(final long value1) {
-    this.value = value1;
-  }
-
-  public String toJSONString() {
-    return new Genson().serialize(this);
   }
 }

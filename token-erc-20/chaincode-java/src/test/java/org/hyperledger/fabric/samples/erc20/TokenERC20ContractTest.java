@@ -1,3 +1,6 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package org.hyperledger.fabric.samples.erc20;
 
 import org.hyperledger.fabric.contract.ClientIdentity;
@@ -334,6 +337,37 @@ public class TokenERC20ContractTest {
     }
 
     @Test
+    public void whenTokenTransferSameId() {
+
+      ERC20TokenContract contract = new ERC20TokenContract();
+      Context ctx = mock(Context.class);
+      ChaincodeStub stub = mock(ChaincodeStub.class);
+      ClientIdentity ci = mock(ClientIdentity.class);
+      when(ctx.getClientIdentity()).thenReturn(ci);
+      when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
+      when(ci.getId()).thenReturn(org1UserId);
+      when(ctx.getStub()).thenReturn(stub);
+      String to =
+          "x509::CN=User2@org2.example.com, L=San Francisco, ST=California,"
+              + " C=US::CN=ca.org2.example.com, O=org2.example.com, L=San Francisco, ST=California, C=US";
+
+      CompositeKey ckFrom = mock(CompositeKey.class);
+      when(stub.createCompositeKey(BALANCE_PREFIX.getValue(), org1UserId)).thenReturn(ckFrom);
+      when(ckFrom.toString()).thenReturn(BALANCE_PREFIX.getValue() + org1UserId);
+      when(stub.getStringState(ckFrom.toString())).thenReturn("1000");
+      CompositeKey ckTo = mock(CompositeKey.class);
+      when(stub.createCompositeKey(BALANCE_PREFIX.getValue(), to)).thenReturn(ckTo);
+      when(ckTo.toString()).thenReturn(BALANCE_PREFIX.getValue() + to);
+      when(stub.getStringState(ckTo.toString())).thenReturn(null);
+
+      Throwable thrown = catchThrowable(() -> contract.Transfer(ctx, org1UserId, 10));
+      assertThat(thrown)
+          .isInstanceOf(ChaincodeException.class)
+          .hasNoCause()
+          .hasMessage("Cannot transfer to and from same client account");
+    }
+
+    @Test
     public void invokeTokenBurnTest() {
 
       ERC20TokenContract contract = new ERC20TokenContract();
@@ -362,10 +396,10 @@ public class TokenERC20ContractTest {
       ClientIdentity ci = mock(ClientIdentity.class);
       when(ctx.getClientIdentity()).thenReturn(ci);
       when(ci.getMSPID()).thenReturn("Org2MSP");
-      when(ci.getId()).thenReturn(org1UserId);
+      when(ci.getId()).thenReturn(spender);
       CompositeKey ck = mock(CompositeKey.class);
-      when(stub.createCompositeKey(BALANCE_PREFIX.getValue(), org1UserId)).thenReturn(ck);
-      when(ck.toString()).thenReturn(BALANCE_PREFIX.getValue() + org1UserId);
+      when(stub.createCompositeKey(BALANCE_PREFIX.getValue(), spender)).thenReturn(ck);
+      when(ck.toString()).thenReturn(BALANCE_PREFIX.getValue() + spender);
       when(stub.getStringState(ck.toString())).thenReturn(null);
       when(ctx.getStub()).thenReturn(stub);
       when(stub.getStringState(TOTAL_SUPPLY_KEY.getValue())).thenReturn("1000");
@@ -376,6 +410,30 @@ public class TokenERC20ContractTest {
           .isInstanceOf(ChaincodeException.class)
           .hasNoCause()
           .hasMessage("Client is not authorized to burn tokens");
+    }
+
+    @Test
+    public void whenTokenBurnNegativeAmountTest() {
+      ERC20TokenContract contract = new ERC20TokenContract();
+      Context ctx = mock(Context.class);
+      ChaincodeStub stub = mock(ChaincodeStub.class);
+      ClientIdentity ci = mock(ClientIdentity.class);
+      when(ctx.getClientIdentity()).thenReturn(ci);
+      when(ci.getMSPID()).thenReturn("Org1MSP");
+      when(ci.getId()).thenReturn(org1UserId);
+      CompositeKey ck = mock(CompositeKey.class);
+      when(stub.createCompositeKey(BALANCE_PREFIX.getValue(), org1UserId)).thenReturn(ck);
+      when(ck.toString()).thenReturn(BALANCE_PREFIX.getValue() + org1UserId);
+      when(stub.getStringState(ck.toString())).thenReturn(null);
+      when(ctx.getStub()).thenReturn(stub);
+      when(stub.getStringState(TOTAL_SUPPLY_KEY.getValue())).thenReturn("1000");
+      when(stub.getStringState(ck.toString())).thenReturn("1000");
+
+      Throwable thrown = catchThrowable(() -> contract.Burn(ctx, -100));
+      assertThat(thrown)
+          .isInstanceOf(ChaincodeException.class)
+          .hasNoCause()
+          .hasMessage("Burn amount must be a positive integer");
     }
   }
 

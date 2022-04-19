@@ -12,6 +12,7 @@ public final class ContractUtility {
   private ContractUtility() {
   }
 
+
   public static boolean stringIsNullOrEmpty(final String string) {
         return string == null || string.isEmpty();
   }

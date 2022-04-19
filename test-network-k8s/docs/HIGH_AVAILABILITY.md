@@ -4,7 +4,7 @@ The peers have been configured so they implemented a essential failover/high-ava
 
 Two important notes:
 
-1. The word 'gateway' in the k8s definitions is being used in a generic way. It is not tied to the concept of the 'Fabric Gateway' component. However using the 'Fabric-Gateway' with the udpated SDKs, make connecting to Fabric even easier. There is a single connection, that can easily be handled with core k8s abilities. Attempting the approach described below with the older SDKs is not recommended.
+1. The word 'gateway' in the k8s definitions is being used in a generic way. It is not tied to the concept of the 'Fabric Gateway' component. However using the 'Fabric-Gateway' with the updated SDKs, make connecting to Fabric even easier. There is a single connection, that can easily be handled with core k8s abilities. Attempting the approach described below with the older SDKs is not recommended.
 2. Long Lived gRPC connections. Remember that the connections between components in Fabric are long-lived gRPC connections. From a client application's perspective that means the connection will be load-balanced when initially connected, but unless the connection breaks, it will not be 're-load-balanced'. It's important to keep this in mind.
 
 ## Peer Gateway Services
@@ -39,7 +39,7 @@ The selector is `org: org2` that is defined in the specification of the Peer's D
 ```
 
 ## Kube Proxy Configuration
-The proxy configuration is set to be `ipvs`. This gives a lot more scope for different load balancing algorthms.
+The proxy configuration is set to be `ipvs`. This gives a lot more scope for different load balancing algorithms.
 "Round Robin" is the default configuration (as used in this test network). For more information check this [deep dive](https://kubernetes.io/blog/2018/07/09/ipvs-based-in-cluster-load-balancing-deep-dive) on the Kubernetes blog.
 
 For this KIND cluster, this is configured by updating the cluster configuration, add the following yaml.

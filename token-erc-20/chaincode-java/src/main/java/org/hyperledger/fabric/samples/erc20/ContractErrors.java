@@ -10,7 +10,7 @@ package org.hyperledger.fabric.samples.erc20;
 
 public enum ContractErrors {
     BALANCE_NOT_FOUND,
-    UNAUTHERIZED_SENDER,
+    UNAUTHORIZED_SENDER,
     INVALID_AMOUNT,
     NOT_FOUND,
     INVALID_TRANSFER,

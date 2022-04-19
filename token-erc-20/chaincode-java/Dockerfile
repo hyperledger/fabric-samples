@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 # the first stage 
 FROM gradle:jdk11 AS GRADLE_BUILD
 

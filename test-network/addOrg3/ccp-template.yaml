@@ -19,7 +19,7 @@ peers:
     url: grpcs://localhost:${P0PORT}
     tlsCACerts:
       pem: |
-        ${PEERPEM}
+          ${PEERPEM}
     grpcOptions:
       ssl-target-name-override: peer0.org${ORG}.example.com
       hostnameOverride: peer0.org${ORG}.example.com
@@ -28,7 +28,8 @@ certificateAuthorities:
     url: https://localhost:${CAPORT}
     caName: ca-org${ORG}
     tlsCACerts:
-      pem: |
-        ${CAPEM}
+      pem: 
+        - |
+          ${CAPEM}
     httpOptions:
       verify: false

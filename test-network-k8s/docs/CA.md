@@ -72,7 +72,7 @@ simplified, but realistic CA deployment illustrating key touch points with Kuber
 
 ### Future Enhancements: 
 
-- **_Bring your own Certificates_** :  It would be nice to boostrap the network using a single, top-level signing authority, 
+- **_Bring your own Certificates_** :  It would be nice to bootstrap the network using a single, top-level signing authority, 
   rather than generating self-signed certificates when the system is bootstrapped.  Ideally this will be realized by 
   introducing an [Intermediate CA](https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/ca-deploy-topology.html#when-would-i-want-an-intermediate-ca)
   and/or alternate signing chains backed by formal (e.g. letsencrypt, Thawte, Verisign, etc.) certificate authorities. 

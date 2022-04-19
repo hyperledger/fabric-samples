@@ -58,7 +58,7 @@ The `202 ACCEPTED` response includes a `jobId` which can be used with the `/api/
 Jobs are not used to get assets, because evaluating transactions is typically much faster.
 
 Related files:
-- [src/asset.router.ts](src/asset.router.ts)  
+- [src/assets.router.ts](src/assets.router.ts)  
   Defines the main `/api/assets` endpoint.
 - [src/fabric.ts](src/fabric.ts)  
   All the sample code which interacts with the Fabric network via the Fabric SDK.
@@ -66,7 +66,7 @@ Related files:
   Defines the `/api/jobs` endpoint for getting job status.
 - [src/jobs.ts](src/jobs.ts)
   Job queue implementation details.
-- [src/transactions.router.ts]()  
+- [src/transactions.router.ts](src/transactions.router.ts)  
   Defines the `/api/transactions` endpoint for getting transaction status.
 
 **Note:** If you are not specifically interested in REST APIs, you should only need to look at the files in the [Fabric network connections](#fabric-network-connections) and [Error handling](#error-handling) sections above.
