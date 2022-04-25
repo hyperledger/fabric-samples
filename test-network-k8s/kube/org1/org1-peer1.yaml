@@ -76,7 +76,7 @@ spec:
     spec:
       containers:
         - name: main
-          image: ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:${FABRIC_VERSION}
+          image: ${FABRIC_PEER_IMAGE}
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
