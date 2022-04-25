@@ -1,5 +1,0 @@
-{
-  "address": "host.docker.internal:9999",
-  "dial_timeout": "10s",
-  "tls_required": false
-}

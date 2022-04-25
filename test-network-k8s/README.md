@@ -22,6 +22,7 @@ _Fabric, Ahoy!_
 - [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 - [jq](https://stedolan.github.io/jq/)
 
+
 ## Quickstart
 
 Create a local Kubernetes cluster:
@@ -33,17 +34,18 @@ Launch the network, create a channel, and deploy the [basic-asset-transfer](../a
 ```shell
 ./network up
 ./network channel create
-./network chaincode deploy
+
+./network chaincode deploy asset-transfer-basic basic_1.0 $PWD/../asset-transfer-basic/chaincode-java
 ```
 
 Invoke and query chaincode:
 ```shell
-./network chaincode invoke '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' 
-./network chaincode query '{"Args":["ReadAsset","1"]}'
+./network chaincode invoke asset-transfer-basic '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' 
+./network chaincode query  asset-transfer-basic '{"Args":["ReadAsset","1"]}'
 ```
 
 Access the blockchain with a [REST API](https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic/rest-api-typescript): 
-```
+```shell
 ./network rest-easy
 ```
 
