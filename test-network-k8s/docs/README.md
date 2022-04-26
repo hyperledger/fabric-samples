@@ -41,5 +41,6 @@ _Chaincode-as-a-Service_ running in a shared Kubernetes namespace.
   - [Deploy Orderers and Peers](TEST_NETWORK.md#starting-peers-and-orderers)
 - [Working with Channels](CHANNELS.md)
 - [Working with Chaincode](CHAINCODE.md)
+- [Debugging Chaincode](CHAINCODE_AS_A_SERVICE.md)
 - [Working with Applications](APPLICATIONS.md)
 - [High Availability](HIGH_AVAILABILITY.md)

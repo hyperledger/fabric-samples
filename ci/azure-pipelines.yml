@@ -130,13 +130,17 @@ jobs:
         displayName: Run Test Network Basic Chaincode
 
   - job: KubeTestNetworkBasic
-    displayName: Kube Test Network Basic
+    displayName: Kube Test Network
     pool:
       vmImage: ubuntu-20.04
     strategy:
       matrix:
-        Docker-Typescript:
+        Typescript-Java:
           CLIENT_LANGUAGE: typescript
+          CHAINCODE_LANGUAGE: java
+        Typescript-Golang:
+          CLIENT_LANGUAGE: typescript
+          CHAINCODE_LANGUAGE: external
     steps:
       - template: templates/install-k8s-deps.yml
       - script: ../ci/scripts/run-k8s-test-network-basic.sh
