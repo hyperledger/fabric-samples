@@ -40,7 +40,10 @@ function set_chaincode_image() {
 }
 
 # Convenience routine to "do everything other than package and launch" a sample CC.
-# This is useful in local debugging scenarios, where
+# When debugging a chaincode server, the process must be launched prior to completing
+# the chaincode lifecycle at the peer.  This routine provides a route for packaging
+# and installing the chaincode out of band, and a single target to complete the peer
+# chaincode lifecycle.
 function activate_chaincode() {
   local cc_name=$1
   local cc_package=$2

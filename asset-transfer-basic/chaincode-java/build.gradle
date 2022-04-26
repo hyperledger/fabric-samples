@@ -31,7 +31,7 @@ repositories {
 }
 
 application {
-    mainClass = 'org.hyperledger.fabric.contract.ContractRouter'
+    mainClass = 'org.hyperledger.fabric.samples.assettransfer.ContractMain'
 }
 
 checkstyle {
