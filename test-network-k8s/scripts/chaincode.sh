@@ -20,9 +20,12 @@ function deploy_chaincode() {
   set_chaincode_image     ${cc_folder}
 
   build_chaincode_image   ${cc_folder} ${CHAINCODE_IMAGE}
-  kind_load_image         ${CHAINCODE_IMAGE}
-  launch_chaincode        ${cc_name} ${CHAINCODE_ID} ${CHAINCODE_IMAGE}
 
+  if [ "${CLUSTER_RUNTIME}" == "kind" ]; then
+    kind_load_image       ${CHAINCODE_IMAGE}
+  fi
+
+  launch_chaincode        ${cc_name} ${CHAINCODE_ID} ${CHAINCODE_IMAGE}
   activate_chaincode      ${cc_name} ${cc_package}
 }
 

@@ -19,7 +19,7 @@ _Fabric, Ahoy!_
 
 - [Docker](https://www.docker.com)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
-- [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
+- K8s: [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) or [k3s](https://rancherdesktop.io)
 - [jq](https://stedolan.github.io/jq/)
 
 
@@ -28,6 +28,12 @@ _Fabric, Ahoy!_
 Create a local Kubernetes cluster:
 ```shell
 ./network kind
+```
+For environments with Rancher / k3s + mobyd: 
+```shell
+export TEST_NETWORK_CLUSTER_RUNTIME=k3s
+
+./network cluster-init 
 ```
 
 Launch the network, create a channel, and deploy the [basic-asset-transfer](../asset-transfer-basic) smart contract: 
@@ -72,7 +78,6 @@ Tear down the cluster:
 
 ## Areas for Improvement / TODOs
 
-- [ ] Refine the recipe and guidelines for use with `k3s` / `nerdctl` (rancherdesktop.io) as an alternative to Docker / KIND.
 - [ ] Test the recipe with OCP, AWS, gcp, Azure, etc. (These should ONLY differ w.r.t. pvc and ingress)
 - [ ] Address any of the 20+ todo: notes in network.sh
 - [ ] Implement mutual TLS across peers, orderers, and clients. 

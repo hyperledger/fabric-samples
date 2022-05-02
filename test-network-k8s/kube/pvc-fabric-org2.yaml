@@ -9,10 +9,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: fabric-org2
 spec:
-  volumeName: fabric-org2
-  storageClassName: standard
   accessModes:
     - ReadWriteOnce
+  storageClassName: ${STORAGE_CLASS}
   resources:
     requests:
-      storage: 1Gi
+      storage: 128Mi

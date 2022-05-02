@@ -17,7 +17,9 @@ set -o errexit
 # todo: allow relative paths for input arguments.
 cd "$(dirname "$0")"
 
-export CONTAINER_CLI=${CONTAINER_CLI:-docker}
+export CLUSTER_RUNTIME=${TEST_NETWORK_CLUSTER_RUNTIME:-kind}  # or k3s
+export CONTAINER_CLI=${CONTAINER_CLI:-docker}                 # or nerdctl for containerd
+
 export FABRIC_VERSION=${TEST_NETWORK_FABRIC_VERSION:-2.4.3}
 export FABRIC_CA_VERSION=${TEST_NETWORK_FABRIC_CA_VERSION:-1.5.2}
 export FABRIC_CONTAINER_REGISTRY=${TEST_NETWORK_FABRIC_CONTAINER_REGISTRY:-hyperledger}
@@ -55,6 +57,7 @@ function print_help() {
   log "Channel name       \t\t: ${CHANNEL_NAME}"
   log
   log "--- Cluster Information"
+  log "Cluster runtime      \t: ${CLUSTER_RUNTIME}"
   log "Cluster name       \t\t: ${CLUSTER_NAME}"
   log "Cluster namespace    \t: ${NS}"
   log "Fabric Registry      \t: ${FABRIC_CONTAINER_REGISTRY}"
@@ -101,6 +104,11 @@ if [ "${MODE}" == "kind" ]; then
   log "Initializing KIND cluster \"${CLUSTER_NAME}\":"
   kind_init
   log "🏁 - Cluster is ready."
+
+elif [ "${MODE}" == "cluster-init" ]; then
+  log "Applying k8s ingress and cert-manager"
+  cluster_init
+  log "🏁 - Cluster is ready"
 
 elif [ "${MODE}" == "load-images" ]; then
   log "Loading images to KIND:"
