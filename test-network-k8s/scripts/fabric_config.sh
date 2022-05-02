@@ -16,13 +16,25 @@ function init_namespace() {
 function init_storage_volumes() {
   push_fn "Provisioning volume storage"
 
-  kubectl create -f kube/pv-fabric-org0.yaml || true
-  kubectl create -f kube/pv-fabric-org1.yaml || true
-  kubectl create -f kube/pv-fabric-org2.yaml || true
+  # odd.
+  # KIND runs the rancher local-path provider, installing as the storageclass 'standard'
+  # Rancher runs the local-path provider, installing as the storageclass 'local-path'
+  #
+  # When installing to KIND, use the 'standard' storage class.
+  if [ "${CLUSTER_RUNTIME}" == "kind" ]; then
+    export STORAGE_CLASS="standard"
 
-  kubectl -n $NS create -f kube/pvc-fabric-org0.yaml || true
-  kubectl -n $NS create -f kube/pvc-fabric-org1.yaml || true
-  kubectl -n $NS create -f kube/pvc-fabric-org2.yaml || true
+  elif [ "${CLUSTER_RUNTIME}" == "k3s" ]; then
+    export STORAGE_CLASS="local-path"
+
+  else
+    echo "Unknown CLUSTER_RUNTIME ${CLUSTER_RUNTIME}"
+    exit 1
+  fi
+
+  cat kube/pvc-fabric-org0.yaml | envsubst | kubectl -n $NS create -f - || true
+  cat kube/pvc-fabric-org1.yaml | envsubst | kubectl -n $NS create -f - || true
+  cat kube/pvc-fabric-org2.yaml | envsubst | kubectl -n $NS create -f - || true
 
   pop_fn
 }

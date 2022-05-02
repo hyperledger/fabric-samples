@@ -49,15 +49,15 @@ function load_docker_images_for_rest_sample() {
   pop_fn
 }
 
-
 function apply_nginx_ingress() {
-  push_fn "Launching ingress controller"
+  push_fn "Launching ${CLUSTER_RUNTIME} ingress controller"
 
-  # This ingress-nginx.yaml was generated 9/24 from https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-  # with modifications for ssl-passthrough required to launch IBP-support with the nginx ingress.
-  # It may be preferable to always load from the remote mainline?
-  # kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-  kubectl apply -f kube/ingress-nginx.yaml
+  # 1.1.2 static ingress with modifications to enable ssl-passthrough
+  # k3s : 'cloud'
+  # kind : 'kind'
+  # kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.2/deploy/static/provider/cloud/deploy.yaml
+
+  kubectl apply -f kube/ingress-nginx-${CLUSTER_RUNTIME}.yaml
 
   pop_fn
 }
@@ -196,8 +196,7 @@ function kind_init() {
   set -o errexit
 
   kind_create
-  apply_nginx_ingress
-  apply_cert_manager
+
   launch_docker_registry
 
   if [ "${STAGE_DOCKER_IMAGES}" == true ]; then
@@ -207,10 +206,25 @@ function kind_init() {
     load_docker_images_for_rest_sample
   fi
 
+  cluster_init
+}
+
+function cluster_init() {
+
+  apply_nginx_ingress
+  apply_cert_manager
+
+  sleep 2
+
   wait_for_cert_manager
   wait_for_nginx_ingress
 }
 
 function kind_unkind() {
   kind_delete
+}
+
+function apply_nginx() {
+  apply_nginx_ingress
+  wait_for_nginx_ingress
 }
