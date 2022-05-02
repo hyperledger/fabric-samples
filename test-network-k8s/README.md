@@ -25,11 +25,11 @@ _Fabric, Ahoy!_
 
 ## Quickstart
 
-Create a local Kubernetes cluster:
+Create a KIND Kubernetes:
 ```shell
 ./network kind
 ```
-For environments with Rancher / k3s + mobyd: 
+Or for environments running [Rancher k3s](docs/KUBERNETES.md#rancher-desktop-and-k3s): 
 ```shell
 export TEST_NETWORK_CLUSTER_RUNTIME=k3s
 
