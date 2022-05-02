@@ -69,6 +69,36 @@ or:
 $ kind delete cluster
 ```
 
+## Rancher Desktop and k3s 
+
+In addition to KIND, the Kube Test Network runs on the k3s Kubernetes provided by [Rancher Desktop](https://rancherdesktop.io). 
+
+To run natively on k3s, skip the creation of a KIND cluster and:
+
+1. In Rancher's Kubernetes Settings:
+   1. Disable Traefik
+   2. Select the dockerd (moby) container runtime 
+   3. Increase Memory allocation to 8 GRAM 
+   4. Increase CPU allocation to 8 CPU 
+
+2. Reset Kubernetes 
+
+3. Initialize the Nginx ingress and cert-manager: 
+
+```shell
+export TEST_NETWORK_CLUSTER_RUNTIME=k3s
+
+./network cluster-init
+```
+- containerd is also a viable runtime.  When building images for chaincode-as-a-service, the `--namespace k8s.io` 
+  argument must be applied to the `nerdctl` CLI.  
+
+- For use with containerd: 
+```shell
+export CONTAINER_CLI=nerdctl
+```
+
+
 ## Test Network Structure
 
 To emulate a more realistic example of multi-party collaboration, the test network
