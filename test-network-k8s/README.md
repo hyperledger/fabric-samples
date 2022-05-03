@@ -22,19 +22,26 @@ _Fabric, Ahoy!_
 - K8s: [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) or [Rancher / k3s](https://rancherdesktop.io)
 - [jq](https://stedolan.github.io/jq/)
 - [envsubst](https://www.gnu.org/software/gettext/manual/html_node/envsubst-Invocation.html) (`brew install gettext` on OSX)
-- DNS domain alias:  Fabric services are exposed by Kubernetes Ingress at the fictitious DNS domain `*.local.fabric`.  Add the
-  following aliases to your /etc/hosts file:
+
+### OSX DNS 
+
+Fabric services are exposed by Ingress at the wildcard DNS domain `*.vcap.me`, resolving to the 
+loopback interface at 127.0.0.1.
+
+On OSX, the Fabric golang binaries are not able to resolve hosts at this domain.  As a workaround, add 
+the following entries to your /etc/hosts file:
+
 ```
-127.0.0.1 org0-ca.local.fabric
-127.0.0.1 org1-ca.local.fabric
-127.0.0.1 org2-ca.local.fabric
-127.0.0.1 org0-orderer1.local.fabric
-127.0.0.1 org0-orderer2.local.fabric
-127.0.0.1 org0-orderer3.local.fabric
-127.0.0.1 org1-peer1.local.fabric
-127.0.0.1 org1-peer2.local.fabric
-127.0.0.1 org2-peer1.local.fabric
-127.0.0.1 org2-peer2.local.fabric
+127.0.0.1 org0-ca.vcap.me
+127.0.0.1 org1-ca.vcap.me
+127.0.0.1 org2-ca.vcap.me
+127.0.0.1 org0-orderer1.vcap.me
+127.0.0.1 org0-orderer2.vcap.me
+127.0.0.1 org0-orderer3.vcap.me
+127.0.0.1 org1-peer1.vcap.me
+127.0.0.1 org1-peer2.vcap.me
+127.0.0.1 org2-peer1.vcap.me
+127.0.0.1 org2-peer2.vcap.me
 ```
 
 ## Quickstart
