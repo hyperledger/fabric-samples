@@ -22,7 +22,20 @@ _Fabric, Ahoy!_
 - K8s: [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) or [Rancher / k3s](https://rancherdesktop.io)
 - [jq](https://stedolan.github.io/jq/)
 - [envsubst](https://www.gnu.org/software/gettext/manual/html_node/envsubst-Invocation.html) (`brew install gettext` on OSX)
-
+- DNS domain alias:  Fabric services are exposed by Kubernetes Ingress at the fictitious DNS domain `*.local.fabric`.  Add the
+  following aliases to your /etc/hosts file:
+```
+127.0.0.1 org0-ca.local.fabric
+127.0.0.1 org1-ca.local.fabric
+127.0.0.1 org2-ca.local.fabric
+127.0.0.1 org0-orderer1.local.fabric
+127.0.0.1 org0-orderer2.local.fabric
+127.0.0.1 org0-orderer3.local.fabric
+127.0.0.1 org1-peer1.local.fabric
+127.0.0.1 org1-peer2.local.fabric
+127.0.0.1 org2-peer1.local.fabric
+127.0.0.1 org2-peer2.local.fabric
+```
 
 ## Quickstart
 
@@ -35,21 +48,6 @@ For environments running [Rancher k3s](docs/KUBERNETES.md#rancher-desktop-and-k3
 export TEST_NETWORK_CLUSTER_RUNTIME=k3s
 
 ./network cluster-init 
-```
-
-Fabric services are exposed by Kubernetes Ingress at the fictitious DNS domain `*.local.fabric`.  Add the 
-following aliases to your /etc/hosts file: 
-```
-127.0.0.1 org0-ca.local.fabric
-127.0.0.1 org1-ca.local.fabric
-127.0.0.1 org2-ca.local.fabric
-127.0.0.1 org0-orderer1.local.fabric
-127.0.0.1 org0-orderer2.local.fabric
-127.0.0.1 org0-orderer3.local.fabric
-127.0.0.1 org1-peer1.local.fabric
-127.0.0.1 org1-peer2.local.fabric
-127.0.0.1 org2-peer1.local.fabric
-127.0.0.1 org2-peer2.local.fabric
 ```
 
 Launch the network, create a channel, and deploy the [basic-asset-transfer](../asset-transfer-basic) smart contract: 
