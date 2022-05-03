@@ -16,10 +16,12 @@ function check_prereqs() {
     exit 1
   fi
 
-  kind version > /dev/null
-  if [[ $? -ne 0 ]]; then
-    echo "No 'kind' binary available? (https://kind.sigs.k8s.io/docs/user/quick-start/#installation)"
-    exit 1
+  if [ "${CLUSTER_RUNTIME}" == "kind" ]; then
+    kind version > /dev/null
+    if [[ $? -ne 0 ]]; then
+      echo "No 'kind' binary available? (https://kind.sigs.k8s.io/docs/user/quick-start/#installation)"
+      exit 1
+    fi
   fi
 
   kubectl > /dev/null
@@ -31,6 +33,12 @@ function check_prereqs() {
   jq --version > /dev/null
   if [[ $? -ne 0 ]]; then
     echo "No 'jq' binary available? (https://stedolan.github.io/jq/)"
+    exit 1
+  fi
+
+  echo | envsubst > /dev/null
+  if [[ $? -ne 0 ]]; then
+    echo "No 'envsubst' binary (gettext package) available? (https://www.gnu.org/software/gettext/)"
     exit 1
   fi
 

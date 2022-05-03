@@ -210,8 +210,21 @@ function scrub_org_volumes() {
 }
 
 function network_down() {
+
+  set +e
+
+  kubectl get namespace $NS > /dev/null
+  if [[ $? -ne 0 ]]; then
+    echo "No namespace $NS found - nothing to do."
+    return
+  fi
+
+  set -e
+
   stop_services
   scrub_org_volumes
+
+  kubectl delete namespace $NS
 
   rm -rf $PWD/build
 }

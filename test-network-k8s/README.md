@@ -17,10 +17,11 @@ _Fabric, Ahoy!_
 
 ## Prerequisites 
 
-- [Docker](https://www.docker.com)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
-- K8s: [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) or [k3s](https://rancherdesktop.io)
+- [Docker](https://www.docker.com)
+- K8s: [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) or [Rancher / k3s](https://rancherdesktop.io)
 - [jq](https://stedolan.github.io/jq/)
+- [envsubst](https://www.gnu.org/software/gettext/manual/html_node/envsubst-Invocation.html) (`brew install gettext` on OSX)
 
 
 ## Quickstart
@@ -29,11 +30,26 @@ Create a KIND Kubernetes:
 ```shell
 ./network kind
 ```
-Or for environments running [Rancher k3s](docs/KUBERNETES.md#rancher-desktop-and-k3s): 
+For environments running [Rancher k3s](docs/KUBERNETES.md#rancher-desktop-and-k3s): 
 ```shell
 export TEST_NETWORK_CLUSTER_RUNTIME=k3s
 
 ./network cluster-init 
+```
+
+Fabric services are exposed by Kubernetes Ingress at the fictitious DNS domain `*.local.fabric`.  Add the 
+following aliases to your /etc/hosts file: 
+```
+127.0.0.1 org0-ca.local.fabric
+127.0.0.1 org1-ca.local.fabric
+127.0.0.1 org2-ca.local.fabric
+127.0.0.1 org0-orderer1.local.fabric
+127.0.0.1 org0-orderer2.local.fabric
+127.0.0.1 org0-orderer3.local.fabric
+127.0.0.1 org1-peer1.local.fabric
+127.0.0.1 org1-peer2.local.fabric
+127.0.0.1 org2-peer1.local.fabric
+127.0.0.1 org2-peer2.local.fabric
 ```
 
 Launch the network, create a channel, and deploy the [basic-asset-transfer](../asset-transfer-basic) smart contract: 
@@ -75,10 +91,3 @@ Tear down the cluster:
 - [Working with Chaincode](docs/CHAINCODE.md)
 - [Working with Applications](docs/APPLICATIONS.md)
 
-
-## Areas for Improvement / TODOs
-
-- [ ] Test the recipe with OCP, AWS, gcp, Azure, etc. (These should ONLY differ w.r.t. pvc and ingress)
-- [ ] Address any of the 20+ todo: notes in network.sh
-- [ ] Implement mutual TLS across peers, orderers, and clients. 
-- [ ] Caliper?  
