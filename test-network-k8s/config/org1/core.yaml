@@ -344,7 +344,7 @@ peer:
     # CLI common client config options
     client:
         # connection timeout
-        connTimeout: 3s
+        connTimeout: 10s
 
     # Delivery service related config
     deliveryclient:
