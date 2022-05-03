@@ -23,26 +23,6 @@ _Fabric, Ahoy!_
 - [jq](https://stedolan.github.io/jq/)
 - [envsubst](https://www.gnu.org/software/gettext/manual/html_node/envsubst-Invocation.html) (`brew install gettext` on OSX)
 
-### OSX DNS 
-
-Fabric services are exposed by Ingress at the wildcard DNS domain `*.vcap.me`, resolving to the 
-loopback interface at 127.0.0.1.
-
-On OSX, the Fabric golang binaries are not able to resolve hosts at this domain.  As a workaround, add 
-the following entries to your /etc/hosts file:
-
-```
-127.0.0.1 org0-ca.vcap.me
-127.0.0.1 org1-ca.vcap.me
-127.0.0.1 org2-ca.vcap.me
-127.0.0.1 org0-orderer1.vcap.me
-127.0.0.1 org0-orderer2.vcap.me
-127.0.0.1 org0-orderer3.vcap.me
-127.0.0.1 org1-peer1.vcap.me
-127.0.0.1 org1-peer2.vcap.me
-127.0.0.1 org2-peer1.vcap.me
-127.0.0.1 org2-peer2.vcap.me
-```
 
 ## Quickstart
 
