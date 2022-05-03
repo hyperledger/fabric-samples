@@ -16,11 +16,8 @@ function init_namespace() {
 function init_storage_volumes() {
   push_fn "Provisioning volume storage"
 
-  # odd.
-  # KIND runs the rancher local-path provider, installing as the storageclass 'standard'
-  # Rancher runs the local-path provider, installing as the storageclass 'local-path'
-  #
-  # When installing to KIND, use the 'standard' storage class.
+  # Both KIND and k3s use the Rancher local-path provider.  In KIND, this is installed
+  # as the 'standard' storage class, and in Rancher as the 'local-path' storage class.
   if [ "${CLUSTER_RUNTIME}" == "kind" ]; then
     export STORAGE_CLASS="standard"
 
