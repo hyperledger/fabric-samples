@@ -76,3 +76,34 @@ Tear down the cluster:
 - [Working with Chaincode](docs/CHAINCODE.md)
 - [Working with Applications](docs/APPLICATIONS.md)
 
+
+### DNS Resolution on OSX
+
+Fabric's OSX binaries have been statically linked with the golang `go` DNS resolver.  In some environments, this 
+causes a brief but [noticeable delay](https://github.com/hyperledger/fabric/issues/3372) when issuing peer commands 
+against the test network.
+
+Workarounds to improve DNS resolution time on OSX: 
+
+- Reduce the system resolver timeout from the default 5s by adding to /etc/resolv.conf:
+```shell
+options: timeout 2
+```
+
+- Add manual DNS overrides for virtual hosts by adding to /etc/hosts:
+```
+127.0.0.1 org0-ca.vcap.me
+127.0.0.1 org1-ca.vcap.me
+127.0.0.1 org2-ca.vcap.me
+127.0.0.1 org0-orderer1.vcap.me
+127.0.0.1 org0-orderer2.vcap.me
+127.0.0.1 org0-orderer3.vcap.me
+127.0.0.1 org1-peer1.vcap.me
+127.0.0.1 org1-peer2.vcap.me
+127.0.0.1 org2-peer1.vcap.me
+127.0.0.1 org2-peer2.vcap.me
+```
+
+- Compile the [fabric binaries](https://github.com/hyperledger/fabric) on a Mac and copy `build/bin/*` outputs to 
+  `test-network-k8s/bin`.  Mac native builds are linked against the `netdns=cgo` DNS resolver, and are not
+  subject to the timeouts associated with the Golang DNS resolver.
