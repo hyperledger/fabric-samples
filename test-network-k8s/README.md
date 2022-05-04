@@ -85,11 +85,6 @@ against the test network.
 
 Workarounds to improve DNS resolution time on OSX: 
 
-- Reduce the system resolver timeout from the default 5s by adding to /etc/resolv.conf:
-```shell
-options: timeout 2
-```
-
 - Add manual DNS overrides for virtual hosts by adding to /etc/hosts:
 ```
 127.0.0.1 org0-ca.vcap.me
@@ -102,6 +97,11 @@ options: timeout 2
 127.0.0.1 org1-peer2.vcap.me
 127.0.0.1 org2-peer1.vcap.me
 127.0.0.1 org2-peer2.vcap.me
+```
+
+- Reduce the system resolver timeout from the default 5s by adding to /etc/resolv.conf:
+```shell
+options: timeout 2
 ```
 
 - Compile the [fabric binaries](https://github.com/hyperledger/fabric) on a Mac and copy `build/bin/*` outputs to 
