@@ -101,6 +101,7 @@ function invoke_chaincode() {
     -C              $CHANNEL_NAME \
     -c              $@ \
     --orderer       org0-orderer1.${DOMAIN}:443 \
+    --connTimeout   ${ORDERER_TIMEOUT} \
     --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 
   sleep 2
@@ -240,6 +241,7 @@ function approve_chaincode() {
     --package-id    ${cc_id} \
     --sequence      1 \
     --orderer       org0-orderer1.${DOMAIN}:443 \
+    --connTimeout   ${ORDERER_TIMEOUT} \
     --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 
   pop_fn
@@ -261,6 +263,7 @@ function commit_chaincode() {
     --version       1 \
     --sequence      1 \
     --orderer       org0-orderer1.${DOMAIN}:443 \
+    --connTimeout   ${ORDERER_TIMEOUT} \
     --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 
   pop_fn
