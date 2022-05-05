@@ -86,7 +86,7 @@ To run natively on k3s, skip the creation of a KIND cluster and:
 3. Initialize the Nginx ingress and cert-manager: 
 
 ```shell
-export TEST_NETWORK_CLUSTER_RUNTIME=k3s
+export TEST_NETWORK_CLUSTER_RUNTIME="k3s"
 
 ./network cluster-init
 ```
@@ -95,7 +95,8 @@ export TEST_NETWORK_CLUSTER_RUNTIME=k3s
 
 - For use with containerd: 
 ```shell
-export CONTAINER_CLI=nerdctl
+export CONTAINER_CLI="nerdctl"
+export TEST_NETWORK_CONTAINER_NAMESPACE="--namespace k8s.io"
 ```
 
 
