@@ -17,8 +17,9 @@ set -o errexit
 # todo: allow relative paths for input arguments.
 cd "$(dirname "$0")"
 
-export CLUSTER_RUNTIME=${TEST_NETWORK_CLUSTER_RUNTIME:-kind}  # or k3s
-export CONTAINER_CLI=${CONTAINER_CLI:-docker}                 # or nerdctl for containerd
+export CLUSTER_RUNTIME=${TEST_NETWORK_CLUSTER_RUNTIME:-kind}        # or k3s
+export CONTAINER_CLI=${CONTAINER_CLI:-docker}                       # or nerdctl for containerd
+export CONTAINER_NAMESPACE=${TEST_NETWORK_CONTAINER_NAMESPACE:-""}  # or "--namespace k8s.io" for containerd / nerdctl
 
 export FABRIC_VERSION=${TEST_NETWORK_FABRIC_VERSION:-2.4.3}
 export FABRIC_CA_VERSION=${TEST_NETWORK_FABRIC_CA_VERSION:-1.5.2}

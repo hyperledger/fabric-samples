@@ -113,7 +113,7 @@ function build_chaincode_image() {
 
   push_fn "Building chaincode image ${cc_image}"
 
-  docker build -t ${cc_image} ${cc_folder}
+  $CONTAINER_CLI build ${CONTAINER_NAMESPACE} -t ${cc_image} ${cc_folder}
 
   pop_fn
 }
