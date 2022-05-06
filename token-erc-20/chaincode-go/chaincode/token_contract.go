@@ -11,10 +11,15 @@ import (
 )
 
 // Define key names for options
+const nameKey = "name"
+const symbolKey = "symbol"
+const decimalsKey = "decimals"
 const totalSupplyKey = "totalSupply"
-
 // Define objectType names for prefix
 const allowancePrefix = "allowance"
+
+// Define key names for options
+
 
 // SmartContract provides functions for transferring tokens between accounts
 type SmartContract struct {
@@ -31,6 +36,15 @@ type event struct {
 // Mint creates new tokens and adds them to minter's account balance
 // This function triggers a Transfer event
 func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount int) error {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
 
 	// Check minter authorization - this sample assumes Org1 is the central banker with privilege to mint new tokens
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
@@ -65,7 +79,10 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 		currentBalance, _ = strconv.Atoi(string(currentBalanceBytes)) // Error handling not needed since Itoa() was used when setting the account balance, guaranteeing it was an integer.
 	}
 
-	updatedBalance := currentBalance + amount
+	updatedBalance,err := add(currentBalance, amount)
+	if err != nil {
+		return err
+	}
 
 	err = ctx.GetStub().PutState(minter, []byte(strconv.Itoa(updatedBalance)))
 	if err != nil {
@@ -88,7 +105,11 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 	}
 
 	// Add the mint amount to the total supply and update the state
-	totalSupply += amount
+	totalSupply, err = add(totalSupply, amount)
+	if err != nil {
+		return err
+	}
+
 	err = ctx.GetStub().PutState(totalSupplyKey, []byte(strconv.Itoa(totalSupply)))
 	if err != nil {
 		return err
@@ -114,6 +135,14 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 // This function triggers a Transfer event
 func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount int) error {
 
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
 	// Check minter authorization - this sample assumes Org1 is the central banker with privilege to burn new tokens
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
@@ -147,7 +176,10 @@ func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount
 
 	currentBalance, _ = strconv.Atoi(string(currentBalanceBytes)) // Error handling not needed since Itoa() was used when setting the account balance, guaranteeing it was an integer.
 
-	updatedBalance := currentBalance - amount
+	updatedBalance, err := sub(currentBalance, amount)
+	if err != nil {
+		return err
+	}
 
 	err = ctx.GetStub().PutState(minter, []byte(strconv.Itoa(updatedBalance)))
 	if err != nil {
@@ -168,7 +200,11 @@ func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount
 	totalSupply, _ := strconv.Atoi(string(totalSupplyBytes)) // Error handling not needed since Itoa() was used when setting the totalSupply, guaranteeing it was an integer.
 
 	// Subtract the burn amount to the total supply and update the state
-	totalSupply -= amount
+	totalSupply, err = sub(totalSupply, amount)
+	if err != nil {
+		return err
+	}
+
 	err = ctx.GetStub().PutState(totalSupplyKey, []byte(strconv.Itoa(totalSupply)))
 	if err != nil {
 		return err
@@ -194,6 +230,15 @@ func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount
 // recipient account must be a valid clientID as returned by the ClientID() function
 // This function triggers a Transfer event
 func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, recipient string, amount int) error {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
 
 	// Get ID of submitting client identity
 	clientID, err := ctx.GetClientIdentity().GetID()
@@ -222,6 +267,16 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, re
 
 // BalanceOf returns the balance of the given account
 func (s *SmartContract) BalanceOf(ctx contractapi.TransactionContextInterface, account string) (int, error) {
+	
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	balanceBytes, err := ctx.GetStub().GetState(account)
 	if err != nil {
 		return 0, fmt.Errorf("failed to read from world state: %v", err)
@@ -237,6 +292,15 @@ func (s *SmartContract) BalanceOf(ctx contractapi.TransactionContextInterface, a
 
 // ClientAccountBalance returns the balance of the requesting client's account
 func (s *SmartContract) ClientAccountBalance(ctx contractapi.TransactionContextInterface) (int, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
 
 	// Get ID of submitting client identity
 	clientID, err := ctx.GetClientIdentity().GetID()
@@ -262,6 +326,15 @@ func (s *SmartContract) ClientAccountBalance(ctx contractapi.TransactionContextI
 // Users can use this function to get their own account id, which they can then give to others as the payment address
 func (s *SmartContract) ClientAccountID(ctx contractapi.TransactionContextInterface) (string, error) {
 
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	// Get ID of submitting client identity
 	clientAccountID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
@@ -273,6 +346,15 @@ func (s *SmartContract) ClientAccountID(ctx contractapi.TransactionContextInterf
 
 // TotalSupply returns the total token supply
 func (s *SmartContract) TotalSupply(ctx contractapi.TransactionContextInterface) (int, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
 
 	// Retrieve total supply of tokens from state of smart contract
 	totalSupplyBytes, err := ctx.GetStub().GetState(totalSupplyKey)
@@ -298,6 +380,15 @@ func (s *SmartContract) TotalSupply(ctx contractapi.TransactionContextInterface)
 // The spender can withdraw multiple times if necessary, up to the value amount
 // This function triggers an Approval event
 func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, spender string, value int) error {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
 
 	// Get ID of submitting client identity
 	owner, err := ctx.GetClientIdentity().GetID()
@@ -336,6 +427,15 @@ func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, spe
 // Allowance returns the amount still available for the spender to withdraw from the owner
 func (s *SmartContract) Allowance(ctx contractapi.TransactionContextInterface, owner string, spender string) (int, error) {
 
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	// Create allowanceKey
 	allowanceKey, err := ctx.GetStub().CreateCompositeKey(allowancePrefix, []string{owner, spender})
 	if err != nil {
@@ -365,6 +465,15 @@ func (s *SmartContract) Allowance(ctx contractapi.TransactionContextInterface, o
 // TransferFrom transfers the value amount from the "from" address to the "to" address
 // This function triggers a Transfer event
 func (s *SmartContract) TransferFrom(ctx contractapi.TransactionContextInterface, from string, to string, value int) error {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
 
 	// Get ID of submitting client identity
 	spender, err := ctx.GetClientIdentity().GetID()
@@ -399,7 +508,11 @@ func (s *SmartContract) TransferFrom(ctx contractapi.TransactionContextInterface
 	}
 
 	// Decrease the allowance
-	updatedAllowance := currentAllowance - value
+	updatedAllowance, err := sub(currentAllowance, value)
+	if err != nil {
+		return err
+	}
+
 	err = ctx.GetStub().PutState(allowanceKey, []byte(strconv.Itoa(updatedAllowance)))
 	if err != nil {
 		return err
@@ -419,6 +532,90 @@ func (s *SmartContract) TransferFrom(ctx contractapi.TransactionContextInterface
 	log.Printf("spender %s allowance updated from %d to %d", spender, currentAllowance, updatedAllowance)
 
 	return nil
+}
+
+// Name returns a descriptive name for fungible tokens in this contract
+// returns {String} Returns the name of the token
+
+func (s *SmartContract) Name(ctx contractapi.TransactionContextInterface) (string, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
+	bytes, err := ctx.GetStub().GetState(nameKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to get Name bytes: %s", err)
+	}
+
+	return string(bytes), nil
+}
+
+// Symbol returns an abbreviated name for fungible tokens in this contract.
+// returns {String} Returns the symbol of the token
+
+func (s *SmartContract) Symbol(ctx contractapi.TransactionContextInterface) (string, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
+	bytes, err := ctx.GetStub().GetState(symbolKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to get Symbol: %v", err)
+	}
+
+	return string(bytes), nil
+}
+
+// Set information for a token and intialize contract.
+// param {String} name The name of the token
+// param {String} symbol The symbol of the token
+// param {String} decimals The name of the token
+func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, name string, symbol string, decimals string) (bool, error) {
+	
+	// Check minter authorization - this sample assumes Org1 is the central banker with privilege to intitialize contract
+	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
+	if err != nil {
+		return false, fmt.Errorf("failed to get MSPID: %v", err)
+	} else if clientMSPID != "Org1MSP" {
+		return false, fmt.Errorf("client is not authorized to initialize contract")
+	}
+
+	//check contract options are not already set, client is not authorized to change them once intitialized
+	bytes, err := ctx.GetStub().GetState(nameKey)
+	if err != nil {
+		return false, fmt.Errorf("failed to get Name: %v", err)
+	}else if bytes != nil {
+		return false, fmt.Errorf("contract options are already set, client is not authorized to change them")
+	}
+
+	err = ctx.GetStub().PutState(nameKey, []byte(name))
+	if err != nil {
+		return false, fmt.Errorf("failed to set token name: %v", err)
+	}
+
+	err = ctx.GetStub().PutState(symbolKey, []byte(symbol))
+	if err != nil {
+		return false, fmt.Errorf("failed to set symbol: %v", err)
+	}
+
+	err = ctx.GetStub().PutState(decimalsKey, []byte(decimals))
+	if err != nil {
+		return false, fmt.Errorf("failed to set token name: %v", err)
+	}
+	
+	return true, nil;
 }
 
 // Helper Functions
@@ -463,8 +660,15 @@ func transferHelper(ctx contractapi.TransactionContextInterface, from string, to
 		toCurrentBalance, _ = strconv.Atoi(string(toCurrentBalanceBytes)) // Error handling not needed since Itoa() was used when setting the account balance, guaranteeing it was an integer.
 	}
 
-	fromUpdatedBalance := fromCurrentBalance - value
-	toUpdatedBalance := toCurrentBalance + value
+	fromUpdatedBalance, err := sub(fromCurrentBalance, value)
+	if err != nil {
+		return err
+	}
+
+	toUpdatedBalance, err := add(toCurrentBalance, value)
+	if err != nil {
+		return err
+	}
 
 	err = ctx.GetStub().PutState(from, []byte(strconv.Itoa(fromUpdatedBalance)))
 	if err != nil {
@@ -480,4 +684,45 @@ func transferHelper(ctx contractapi.TransactionContextInterface, from string, to
 	log.Printf("recipient %s balance updated from %d to %d", to, toCurrentBalance, toUpdatedBalance)
 
 	return nil
+}
+
+
+// add two number checking for overflow
+func add(b int, q int) (int, error) {
+
+	// Check overflow
+	var sum int
+	sum = q + b
+
+	if (sum < q) == (b > 0 && q > 0) {
+		return 0, fmt.Errorf("Math: addition overflow occurred %d + %d", b, q)
+	}
+
+	return sum, nil
+}
+
+//Checks that contract options have been already initialized
+func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error) {
+	tokenName, err := ctx.GetStub().GetState(nameKey)
+	if err != nil {
+		return false, fmt.Errorf("failed to get token name: %v", err)
+	}else if (tokenName == nil){
+		return false , nil
+	}
+	return true , nil
+}
+
+
+// sub two number checking for overflow
+func sub(b int, q int) (int, error) {
+
+	// Check overflow
+	var diff int
+	diff = q - b
+
+	if (diff > q) == (b > 0 && q > 0) {
+		return 0, fmt.Errorf("Math: Subtraction overflow occurred  %d - %d", b, q)
+	}
+
+	return diff, nil
 }

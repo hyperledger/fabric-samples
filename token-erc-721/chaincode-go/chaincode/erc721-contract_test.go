@@ -242,11 +242,11 @@ func TestTokenURI(t *testing.T) {
 	assert.Equal(t, "https://example.com/nft101.json", tokenURI)
 }
 
-func TestSetOption(t *testing.T) {
+func TestInitialize(t *testing.T) {
 	ctx, _ := setupStub()
 	c := new(TokenERC721Contract)
 
-	option, _ := c.SetOption(ctx, "someName", "someSymbol")
+	option, _ := c.Initialize(ctx, "someName", "someSymbol")
 	assert.Equal(t, true, option)
 }
 

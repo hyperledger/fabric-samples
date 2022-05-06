@@ -76,6 +76,10 @@ public final class ERC20TokenContract implements ContractInterface {
       throw new ChaincodeException(
           "Client is not authorized to mint new tokens", UNAUTHORIZED_SENDER.toString());
     }
+
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
+
     // Get ID of submitting client identity
     String minter = ctx.getClientIdentity().getId();
     if (amount <= 0) {
@@ -127,6 +131,10 @@ public final class ERC20TokenContract implements ContractInterface {
       throw new ChaincodeException(
           "Client is not authorized to burn tokens", UNAUTHORIZED_SENDER.toString());
     }
+
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
+
     String minter = ctx.getClientIdentity().getId();
     if (amount <= 0) {
       throw new ChaincodeException(
@@ -173,6 +181,8 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void Transfer(final Context ctx, final String to, final long value) {
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
     String from = ctx.getClientIdentity().getId();
     this.transferHelper(ctx, from, to, value);
     final Transfer transferEvent = new Transfer(from, to, value);
@@ -188,6 +198,8 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public long BalanceOf(final Context ctx, final String owner) {
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
     ChaincodeStub stub = ctx.getStub();
     CompositeKey balanceKey = stub.createCompositeKey(BALANCE_PREFIX.getValue(), owner);
     String balance = stub.getStringState(balanceKey.toString());
@@ -207,6 +219,8 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public long ClientAccountBalance(final Context ctx) {
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
     // Get ID of submitting client identity
     ChaincodeStub stub = ctx.getStub();
     String clientAccountID = ctx.getClientIdentity().getId();
@@ -230,6 +244,8 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String ClientAccountID(final Context ctx) {
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
     // Get ID of submitting client identity
     return ctx.getClientIdentity().getId();
   }
@@ -242,6 +258,8 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public long TotalSupply(final Context ctx) {
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
     String totalSupply = ctx.getStub().getStringState(TOTAL_SUPPLY_KEY.getValue());
     if (stringIsNullOrEmpty(totalSupply)) {
       throw new ChaincodeException("Total Supply  not found", NOT_FOUND.toString());
@@ -259,6 +277,8 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void Approve(final Context ctx, final String spender, final long value) {
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
     ChaincodeStub stub = ctx.getStub();
     String owner = ctx.getClientIdentity().getId();
     CompositeKey allowanceKey =
@@ -282,6 +302,8 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public long Allowance(final Context ctx, final String owner, final String spender) {
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
     ChaincodeStub stub = ctx.getStub();
     CompositeKey allowanceKey =
         stub.createCompositeKey(ALLOWANCE_PREFIX.getValue(), owner, spender);
@@ -308,6 +330,8 @@ public final class ERC20TokenContract implements ContractInterface {
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void TransferFrom(
       final Context ctx, final String from, final String to, final long value) {
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
     String spender = ctx.getClientIdentity().getId();
     ChaincodeStub stub = ctx.getStub();
     // Retrieve the allowance of the spender
@@ -402,9 +426,23 @@ public final class ERC20TokenContract implements ContractInterface {
    * @param decimals The decimals of the token
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
-  public void SetOptions(
+  public void Initialize(
       final Context ctx, final String name, final String symbol, final String decimals) {
     ChaincodeStub stub = ctx.getStub();
+
+    // Check minter authorization - this sample assumes Org1 is the central banker with privilege to set Options for these tokens
+    String clientMSPID = ctx.getClientIdentity().getMSPID();
+    if (!clientMSPID.equalsIgnoreCase(ContractConstants.MINTER_ORG_MSPID.getValue())) {
+      throw new ChaincodeException(
+          "Client is not authorized to initialize contract", UNAUTHORIZED_SENDER.toString());
+    }
+
+    //check contract options are not already set, client is not authorized to change them once intitialized
+    String tokenName = stub.getStringState(ContractConstants.NAME_KEY.getValue());
+    if (!stringIsNullOrEmpty(tokenName)) {
+      throw new ChaincodeException("contract options are already set, client is not authorized to change them");
+    }
+
     stub.putStringState(NAME_KEY.getValue(), name);
     stub.putStringState(SYMBOL_KEY.getValue(), symbol);
     stub.putStringState(DECIMALS_KEY.getValue(), decimals);
@@ -420,6 +458,8 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String TokenName(final Context ctx) {
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
     String tokenName = ctx.getStub().getStringState(ContractConstants.NAME_KEY.getValue());
     if (stringIsNullOrEmpty(tokenName)) {
       throw new ChaincodeException("Token name not found", NOT_FOUND.toString());
@@ -435,6 +475,8 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String TokenSymbol(final Context ctx) {
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
     String tokenSymbol = ctx.getStub().getStringState(SYMBOL_KEY.getValue());
     if (stringIsNullOrEmpty(tokenSymbol)) {
       throw new ChaincodeException("Token symbol not found", NOT_FOUND.toString());
@@ -451,6 +493,8 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public int Decimals(final Context ctx) {
+    //check contract options are already set first to execute the function
+    this.checkInitialized(ctx);
     String decimals = ctx.getStub().getStringState(DECIMALS_KEY.getValue());
     if (stringIsNullOrEmpty(decimals)) {
       throw new ChaincodeException("Decimal not found", NOT_FOUND.toString());
@@ -465,5 +509,18 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   private byte[] marshal(final Object obj) {
     return new Genson().serialize(obj).getBytes(UTF_8);
+  }
+
+  /**
+   * Checks that contract options have been already initialized
+   *
+   * @param ctx the transaction context
+   * @return the number of decimals
+   */
+  private void checkInitialized(final Context ctx) {
+    String tokenName = ctx.getStub().getStringState(ContractConstants.NAME_KEY.getValue());
+    if (stringIsNullOrEmpty(tokenName)) {
+      throw new ChaincodeException("Contract options need to be set before calling any function, call Initialize() to initialize contract", NOT_FOUND.toString());
+    }
   }
 }
