@@ -15,11 +15,12 @@ This project re-establishes the Hyperledger [test-network](../test-network) as a
 _Fabric, Ahoy!_ 
 
 
-## Prerequisites 
+## Prerequisites:
 
+- K8s - either:
+  - [KIND](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) + [Docker](https://www.docker.com) (resources: 8 CPU / 8 GRAM) or
+  - [Rancher Desktop](https://rancherdesktop.io) (resources: 8 CPU / 8GRAM, mobyd, and disable Traefik)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
-- [Docker](https://www.docker.com)
-- K8s: [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) or [Rancher / k3s](https://rancherdesktop.io)
 - [jq](https://stedolan.github.io/jq/)
 - [envsubst](https://www.gnu.org/software/gettext/manual/html_node/envsubst-Invocation.html) (`brew install gettext` on OSX)
 

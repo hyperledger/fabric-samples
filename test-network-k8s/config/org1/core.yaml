@@ -353,7 +353,7 @@ peer:
         reconnectTotalTimeThreshold: 3600s
 
         # It sets the delivery service <-> ordering service node connection timeout
-        connTimeout: 3s
+        connTimeout: 10s
 
         # It sets the delivery service maximal delay between consecutive retries
         reConnectBackoffThreshold: 3600s
