@@ -56,6 +56,7 @@ function quitterLaScene() {
 function createCluster() {
   print "Initializing KIND Kubernetes cluster"
   ./network kind
+  ./network cluster init
 }
 
 function destroyCluster() {

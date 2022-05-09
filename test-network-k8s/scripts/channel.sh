@@ -5,8 +5,24 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+function channel_command_group() {
+  # set -x
+
+  COMMAND=$1
+  shift
+
+  if [ "${COMMAND}" == "create" ]; then
+    log "Creating channel \"${CHANNEL_NAME}\":"
+    channel_up
+    log "🏁 - Channel is ready."
+
+  else
+    print_help
+    exit 1
+  fi
+}
+
 function channel_up() {
-  set -x
 
   register_org_admins
   enroll_org_admins

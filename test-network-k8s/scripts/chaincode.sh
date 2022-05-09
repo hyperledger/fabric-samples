@@ -5,6 +5,67 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+# chaincode "group" commands.  Like "main" for chaincode sub-command group.
+function chaincode_command_group() {
+  #set -x
+
+  COMMAND=$1
+  shift
+
+  if [ "${COMMAND}" == "deploy" ]; then
+    log "Deploying chaincode"
+    deploy_chaincode $@
+    log "🏁 - Chaincode is ready."
+
+  elif [ "${COMMAND}" == "activate" ]; then
+    log "Activating chaincode"
+    activate_chaincode $@
+    log "🏁 - Chaincode is ready."
+
+  elif [ "${COMMAND}" == "package" ]; then
+    log "Packaging chaincode"
+    package_chaincode $@
+    log "🏁 - Chaincode package is ready."
+
+  elif [ "${COMMAND}" == "id" ]; then
+    set_chaincode_id $@
+    log $CHAINCODE_ID
+
+  elif [ "${COMMAND}" == "launch" ]; then
+    log "Launching chaincode services"
+    launch_chaincode $@
+    log "🏁 - Chaincode services are ready"
+
+  elif [ "${COMMAND}" == "install" ]; then
+    log "Installing chaincode for org1"
+    install_chaincode $@
+    log "🏁 - Chaincode is installed"
+
+  elif [ "${COMMAND}" == "approve" ]; then
+    log "Approving chaincode for org1"
+    approve_chaincode $@
+    log "🏁 - Chaincode is approved"
+
+  elif [ "${COMMAND}" == "commit" ]; then
+    log "Committing chaincode for org1"
+    commit_chaincode $@
+    log "🏁 - Chaincode is committed"
+
+  elif [ "${COMMAND}" == "invoke" ]; then
+    invoke_chaincode $@ 2>> ${LOG_FILE}
+
+  elif [ "${COMMAND}" == "query" ]; then
+    query_chaincode $@ >> ${LOG_FILE}
+
+  elif [ "${COMMAND}" == "metadata" ]; then
+    query_chaincode_metadata $@ >> ${LOG_FILE}
+
+  else
+    print_help
+    exit 1
+  fi
+}
+
 # Convenience routine to "do everything" required to bring up a sample CC.
 function deploy_chaincode() {
   local cc_name=$1
@@ -278,63 +339,3 @@ function set_chaincode_id() {
   CHAINCODE_ID=${cc_label}:${cc_sha256}
 }
 
-# chaincode "group" commands.  Like "main" for chaincode sub-command group.
-function chaincode_command_group() {
-  #set -x
-
-  COMMAND=$1
-  shift
-
-  if [ "${COMMAND}" == "deploy" ]; then
-    log "Deploying chaincode"
-    deploy_chaincode $@
-    log "🏁 - Chaincode is ready."
-
-  elif [ "${COMMAND}" == "activate" ]; then
-    log "Activating chaincode"
-    activate_chaincode $@
-    log "🏁 - Chaincode is ready."
-
-  elif [ "${COMMAND}" == "package" ]; then
-    log "Packaging chaincode"
-    package_chaincode $@
-    log "🏁 - Chaincode package is ready."
-
-  elif [ "${COMMAND}" == "id" ]; then
-    set_chaincode_id $@
-    log $CHAINCODE_ID
-
-  elif [ "${COMMAND}" == "launch" ]; then
-    log "Launching chaincode services"
-    launch_chaincode $@
-    log "🏁 - Chaincode services are ready"
-
-  elif [ "${COMMAND}" == "install" ]; then
-    log "Installing chaincode for org1"
-    install_chaincode $@
-    log "🏁 - Chaincode is installed"
-
-  elif [ "${COMMAND}" == "approve" ]; then
-    log "Approving chaincode for org1"
-    approve_chaincode $@
-    log "🏁 - Chaincode is approved"
-
-  elif [ "${COMMAND}" == "commit" ]; then
-    log "Committing chaincode for org1"
-    commit_chaincode $@
-    log "🏁 - Chaincode is committed"
-
-  elif [ "${COMMAND}" == "invoke" ]; then
-    invoke_chaincode $@ 2>> ${LOG_FILE}
-
-  elif [ "${COMMAND}" == "query" ]; then
-    query_chaincode $@ >> ${LOG_FILE}
-
-  elif [ "${COMMAND}" == "metadata" ]; then
-    query_chaincode_metadata $@ >> ${LOG_FILE}
-
-  else
-    print_help
-    exit 1
-  fi
-}

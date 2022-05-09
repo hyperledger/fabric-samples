@@ -224,7 +224,7 @@ function network_down() {
   stop_services
   scrub_org_volumes
 
-  kubectl delete namespace $NS
+  delete_namespace
 
   rm -rf $PWD/build
 }

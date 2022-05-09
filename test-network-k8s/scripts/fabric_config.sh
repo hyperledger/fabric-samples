@@ -13,6 +13,14 @@ function init_namespace() {
   pop_fn
 }
 
+function delete_namespace() {
+  push_fn "Deleting namespace \"$NS\""
+
+  kubectl delete namespace $NS || true
+
+  pop_fn
+}
+
 function init_storage_volumes() {
   push_fn "Provisioning volume storage"
 

@@ -26,8 +26,6 @@ function exit_fn() {
   rc=$?
   set +x
 
-  set +x
-
   # Write an error icon to the current logging statement.
   if [ "0" -ne $rc ]; then
     pop_fn $rc
@@ -58,22 +56,26 @@ function pop_fn() {
 
   local res=$1
   if [ $res -eq 0 ]; then
-    echo -ne "\r✅"  >> ${LOG_FILE}
+    echo -ne "\r✅\n"  >> ${LOG_FILE}
 
   elif [ $res -eq 1 ]; then
-    echo -ne "\r⚠️" >> ${LOG_FILE}
+    echo -ne "\r⚠️\n" >> ${LOG_FILE}
 
   elif [ $res -eq 2 ]; then
-    echo -ne "\r☠️" >> ${LOG_FILE}
+    echo -ne "\r☠️\n" >> ${LOG_FILE}
 
   elif [ $res -eq 127 ]; then
-    echo -ne "\r☠️" >> ${LOG_FILE}
+    echo -ne "\r☠️\n" >> ${LOG_FILE}
 
   else
-    echo -ne "\r" >> ${LOG_FILE}
+    echo -ne "\r\n" >> ${LOG_FILE}
   fi
 
-  echo "" >> ${LOG_FILE}
+  if [ $res -ne 0 ]; then
+    tail -${LOG_ERROR_LINES} network-debug.log >> ${LOG_FILE}
+  fi
+
+  #echo "" >> ${LOG_FILE}
 }
 
 # Apply the current environment to a k8s template and apply to the cluster.
