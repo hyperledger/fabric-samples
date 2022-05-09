@@ -51,7 +51,7 @@ Launch the network, create a channel, and deploy the [basic-asset-transfer](../a
 Invoke and query chaincode:
 ```shell
 ./network chaincode invoke asset-transfer-basic '{"Args":["InitLedger"]}'
-./network chaincode query  asset-transfer-basic '{"Args":["ReadAsset","1"]}'
+./network chaincode query  asset-transfer-basic '{"Args":["ReadAsset","asset1"]}'
 ```
 
 Access the blockchain with a [REST API](https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-basic/rest-api-typescript): 
