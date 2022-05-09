@@ -47,6 +47,7 @@ for development, testing, or CI, you can create a new cluster with:
 
 ```shell
 $ ./network kind
+$ ./network cluster init
 ```
 
 By default, `kind` will set the current Kube context to reference the new cluster.  Any
@@ -88,15 +89,18 @@ To run natively on k3s, skip the creation of a KIND cluster and:
 ```shell
 export TEST_NETWORK_CLUSTER_RUNTIME="k3s"
 
-./network cluster-init
+./network cluster init
 ```
 - containerd is also a viable runtime.  When building images for chaincode-as-a-service, the `--namespace k8s.io` 
   argument must be applied to the `nerdctl` CLI.  
 
 - For use with containerd: 
 ```shell
-export CONTAINER_CLI="nerdctl"
+export TEST_NETWORK_CLUSTER_RUNTIME="k3s"
 export TEST_NETWORK_CONTAINER_NAMESPACE="--namespace k8s.io"
+export CONTAINER_CLI="nerdctl"
+
+./network cluster init
 ```
 
 

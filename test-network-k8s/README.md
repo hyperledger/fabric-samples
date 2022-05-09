@@ -17,30 +17,32 @@ _Fabric, Ahoy!_
 
 ## Prerequisites:
 
-- K8s - either:
-  - [KIND](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) + [Docker](https://www.docker.com) (resources: 8 CPU / 8 GRAM) or
-  - [Rancher Desktop](https://rancherdesktop.io) (resources: 8 CPU / 8GRAM, mobyd, and disable Traefik)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [jq](https://stedolan.github.io/jq/)
 - [envsubst](https://www.gnu.org/software/gettext/manual/html_node/envsubst-Invocation.html) (`brew install gettext` on OSX)
 
+- K8s - either:
+  - [KIND](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) + [Docker](https://www.docker.com) (resources: 8 CPU / 8 GRAM) 
+  - [Rancher Desktop](https://rancherdesktop.io) (resources: 8 CPU / 8GRAM, mobyd, and disable Traefik)
 
-## Quickstart
+## Quickstart 
 
-Create a KIND Kubernetes:
+Create a KIND cluster:  
 ```shell
 ./network kind
+./network cluster init
 ```
-For environments running [Rancher k3s](docs/KUBERNETES.md#rancher-desktop-and-k3s): 
+or for [Rancher / k3s](docs/KUBERNETES.md#rancher-desktop-and-k3s):
 ```shell
 export TEST_NETWORK_CLUSTER_RUNTIME=k3s
 
-./network cluster-init 
+./network cluster init
 ```
 
 Launch the network, create a channel, and deploy the [basic-asset-transfer](../asset-transfer-basic) smart contract: 
 ```shell
 ./network up
+
 ./network channel create
 
 ./network chaincode deploy asset-transfer-basic basic_1.0 $PWD/../asset-transfer-basic/chaincode-java
@@ -48,7 +50,7 @@ Launch the network, create a channel, and deploy the [basic-asset-transfer](../a
 
 Invoke and query chaincode:
 ```shell
-./network chaincode invoke asset-transfer-basic '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' 
+./network chaincode invoke asset-transfer-basic '{"Args":["InitLedger"]}'
 ./network chaincode query  asset-transfer-basic '{"Args":["ReadAsset","1"]}'
 ```
 
@@ -57,14 +59,19 @@ Access the blockchain with a [REST API](https://github.com/hyperledger/fabric-sa
 ./network rest-easy
 ```
 
-Tear down the test network: 
+Shut down the test network: 
 ```shell
 ./network down 
 ```
 
-Tear down the cluster: 
+Tear down the cluster (KIND): 
 ```shell
 ./network unkind
+```
+
+For Rancher: Preferences -> Kubernetes Settings -> Reset Kubernetes  OR ...
+```shell
+./network cluster clean
 ```
 
 

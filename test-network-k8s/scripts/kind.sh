@@ -5,93 +5,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-function pull_docker_images() {
-  push_fn "Pulling docker images for Fabric ${FABRIC_VERSION}"
-
-  docker pull ${FABRIC_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION
-  docker pull ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
-  docker pull ${FABRIC_PEER_IMAGE}
-  docker pull ${FABRIC_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
-  docker pull ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest
-  docker pull couchdb:3.2.1
-
-  pop_fn
-}
-
-function load_docker_images() {
-  push_fn "Loading docker images to KIND control plane"
-
-  kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION
-  kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
-  kind load docker-image ${FABRIC_PEER_IMAGE}
-  kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-tools:$FABRIC_VERSION
-  kind load docker-image ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest
-  kind load docker-image couchdb:3.2.1
-
-  pop_fn
-}
-
-function pull_docker_images_for_rest_sample() {
-  push_fn "Pulling docker images for fabric-rest-sample"
-
-  docker pull ghcr.io/hyperledger/fabric-rest-sample:latest
-  docker pull redis:6.2.5
-
-  pop_fn
-}
-
-function load_docker_images_for_rest_sample() {
-  push_fn "Loading docker images for fabric-rest-sample to KIND control plane"
-
-  kind load docker-image ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest
-  kind load docker-image redis:6.2.5
-
-  pop_fn
-}
-
-function apply_nginx_ingress() {
-  push_fn "Launching ${CLUSTER_RUNTIME} ingress controller"
-
-  # 1.1.2 static ingress with modifications to enable ssl-passthrough
-  # k3s : 'cloud'
-  # kind : 'kind'
-  # kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.2/deploy/static/provider/cloud/deploy.yaml
-
-  kubectl apply -f kube/ingress-nginx-${CLUSTER_RUNTIME}.yaml
-
-  pop_fn
-}
-
-function wait_for_nginx_ingress() {
-  push_fn "Waiting for ingress controller"
-
-  kubectl wait --namespace ingress-nginx \
-    --for=condition=ready pod \
-    --selector=app.kubernetes.io/component=controller \
-    --timeout=90s
-
-  pop_fn
-}
-
-function apply_cert_manager() {
-  push_fn "Launching cert-manager"
-
-  # Install cert-manager to manage TLS certificates
-  kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.yaml
-
-  pop_fn
-}
-
-function wait_for_cert_manager() {
-  push_fn "Waiting for cert-manager"
-
-  kubectl -n cert-manager rollout status deploy/cert-manager
-  kubectl -n cert-manager rollout status deploy/cert-manager-cainjector
-  kubectl -n cert-manager rollout status deploy/cert-manager-webhook
-
-  pop_fn
-}
-
 function kind_create() {
   push_fn  "Creating cluster \"${CLUSTER_NAME}\""
 
@@ -147,6 +60,20 @@ EOF
   pop_fn
 }
 
+function kind_load_docker_images() {
+  push_fn "Loading docker images to KIND control plane"
+
+  kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION
+  kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
+  kind load docker-image ${FABRIC_PEER_IMAGE}
+  kind load docker-image couchdb:3.2.1
+
+  kind load docker-image ghcr.io/hyperledger/fabric-rest-sample:latest
+  kind load docker-image redis:6.2.5
+
+  pop_fn
+}
+
 function launch_docker_registry() {
   push_fn "Launching container registry \"${LOCAL_REGISTRY_NAME}\" at localhost:${LOCAL_REGISTRY_PORT}"
 
@@ -183,48 +110,29 @@ EOF
   pop_fn
 }
 
+function stop_docker_registry() {
+  push_fn "Deleting container registry \"${LOCAL_REGISTRY_NAME}\" at localhost:${LOCAL_REGISTRY_PORT}"
+
+  docker kill kind-registry || true
+  docker rm kind-registry   || true
+
+  pop_fn
+}
+
 function kind_delete() {
   push_fn "Deleting KIND cluster ${CLUSTER_NAME}"
 
   kind delete cluster --name $CLUSTER_NAME
 
-  pop_fn 2
+  pop_fn
 }
 
 function kind_init() {
-  # todo: how to pass this through to push_fn ?
-  set -o errexit
-
   kind_create
-
   launch_docker_registry
-
-  if [ "${STAGE_DOCKER_IMAGES}" == true ]; then
-    pull_docker_images
-    load_docker_images
-    pull_docker_images_for_rest_sample
-    load_docker_images_for_rest_sample
-  fi
-
-  cluster_init
-}
-
-function cluster_init() {
-
-  apply_nginx_ingress
-  apply_cert_manager
-
-  sleep 2
-
-  wait_for_cert_manager
-  wait_for_nginx_ingress
 }
 
 function kind_unkind() {
   kind_delete
-}
-
-function apply_nginx() {
-  apply_nginx_ingress
-  wait_for_nginx_ingress
+  stop_docker_registry
 }

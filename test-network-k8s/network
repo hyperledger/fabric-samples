@@ -35,6 +35,7 @@ export TEMP_DIR=${PWD}/build
 
 LOG_FILE=${TEST_NETWORK_LOG_FILE:-network.log}
 DEBUG_FILE=${TEST_NETWORK_DEBUG_FILE:-network-debug.log}
+LOG_ERROR_LINES=${TEST_NETWORK_LOG_ERROR_LINES:-1}
 LOCAL_REGISTRY_NAME=${TEST_NETWORK_LOCAL_REGISTRY_NAME:-kind-registry}
 LOCAL_REGISTRY_PORT=${TEST_NETWORK_LOCAL_REGISTRY_PORT:-5000}
 STAGE_DOCKER_IMAGES=${TEST_NETWORK_STAGE_DOCKER_IMAGES:-false}
@@ -79,6 +80,7 @@ function print_help() {
 . scripts/utils.sh
 . scripts/prereqs.sh
 . scripts/kind.sh
+. scripts/cluster.sh
 . scripts/fabric_config.sh
 . scripts/fabric_CAs.sh
 . scripts/test_network.sh
@@ -103,24 +105,17 @@ else
 fi
 
 if [ "${MODE}" == "kind" ]; then
-  log "Initializing KIND cluster \"${CLUSTER_NAME}\":"
+  log "Creating KIND cluster \"${CLUSTER_NAME}\":"
   kind_init
-  log "🏁 - Cluster is ready."
-
-elif [ "${MODE}" == "cluster-init" ]; then
-  log "Applying k8s ingress and cert-manager"
-  cluster_init
-  log "🏁 - Cluster is ready"
-
-elif [ "${MODE}" == "load-images" ]; then
-  log "Loading images to KIND:"
-  load_docker_images
-  log "🏁 - Images loaded."
+  log "🏁 - KIND cluster is ready"
 
 elif [ "${MODE}" == "unkind" ]; then
-  log "Deleting cluster \"${CLUSTER_NAME}\":"
+  log "Deleting KIND cluster \"${CLUSTER_NAME}\":"
   kind_unkind
-  log "🏁 - Cluster is gone."
+  log "🏁 - KIND Cluster is gone."
+
+elif [[ "${MODE}" == "cluster" || "${MODE}" == "k8s" || "${MODE}" == "kube" ]]; then
+  cluster_command_group $@
 
 elif [ "${MODE}" == "up" ]; then
   log "Launching network \"${NETWORK_NAME}\":"
@@ -133,29 +128,13 @@ elif [ "${MODE}" == "down" ]; then
   log "🏁 - Fabric network is down."
 
 elif [ "${MODE}" == "channel" ]; then
-  COMMAND=$1
-  shift
-
-  if [ "${COMMAND}" == "create" ]; then
-    log "Creating channel \"${CHANNEL_NAME}\":"
-    channel_up
-    log "🏁 - Channel is ready."
-
-  else
-    print_help
-    exit 1
-  fi
+  channel_command_group $@
 
 elif [[ "${MODE}" == "chaincode" || "${MODE}" == "cc" ]]; then
   chaincode_command_group $@
 
 elif [ "${MODE}" == "anchor" ]; then
   update_anchor_peers $@
-
-elif [ "${MODE}" == "load-images-for-rest-easy" ]; then
-  log "Loading images for fabric-rest-sample to KIND:"
-  load_docker_images_for_rest_sample
-  log "🏁 - Images loaded."
 
 elif [ "${MODE}" == "rest-easy" ]; then
   log "Launching fabric-rest-sample application:"
