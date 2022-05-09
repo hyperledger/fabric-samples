@@ -20,7 +20,8 @@ export PATH=${PWD}/test-network-k8s:$PATH
 
 cd asset-transfer-basic/chaincode-java 
 
-network kind 
+network kind
+network cluster init 
 ```
 ```
 network up 
