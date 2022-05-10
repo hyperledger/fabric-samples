@@ -105,6 +105,15 @@ export TEST_NETWORK_CHAINCODE_ADDRESS=host.docker.internal:9999
 network cc package basic_1.0 asset-transfer-debug $PWD/build/asset-transfer-debug.tgz
 ```
 
+*NOTE:* The Docker host alias `host.docker.internal` is not yet supported for Linux.
+In Linux environments, as a workaround, you should specify the IP address of the host directly instead of `host.docker.internal`:
+
+```shell
+export TEST_NETWORK_CHAINCODE_ADDRESS=<YOUR_HOST_IP_ADDRESS>:9999
+
+network cc package basic_1.0 asset-transfer-debug $PWD/build/asset-transfer-debug.tgz
+```
+
 ### Launch
 
 When chaincode is launched locally, it must declare the package ID in the environment as if the process had been managed
