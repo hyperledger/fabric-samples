@@ -60,6 +60,16 @@ func _nftExists(ctx contractapi.TransactionContextInterface, tokenId string) boo
 // param owner {String} An owner for whom to query the balance
 // returns {int} The number of non-fungible tokens owned by the owner, possibly zero
 func (c *TokenERC721Contract) BalanceOf(ctx contractapi.TransactionContextInterface, owner string) int {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		panic("failed to check if contract ia already initialized:"+ err.Error())
+	}
+	if !initialized {
+		panic("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	// There is a key record for every non-fungible token in the format of balancePrefix.owner.tokenId.
 	// BalanceOf() queries for and counts all records matching balancePrefix.owner.*
 
@@ -85,6 +95,16 @@ func (c *TokenERC721Contract) BalanceOf(ctx contractapi.TransactionContextInterf
 // param {String} tokenId The identifier for a non-fungible token
 // returns {String} Return the owner of the non-fungible token
 func (c *TokenERC721Contract) OwnerOf(ctx contractapi.TransactionContextInterface, tokenId string) (string, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	nft, err := _readNFT(ctx, tokenId)
 	if err != nil {
 		return "", fmt.Errorf("could not process OwnerOf for tokenId: %w", err)
@@ -98,6 +118,16 @@ func (c *TokenERC721Contract) OwnerOf(ctx contractapi.TransactionContextInterfac
 // param {String} tokenId the non-fungible token to approve
 // returns {Boolean} Return whether the approval was successful or not
 func (c *TokenERC721Contract) Approve(ctx contractapi.TransactionContextInterface, operator string, tokenId string) (bool, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	sender64, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
 		return false, fmt.Errorf("failed to GetClientIdentity: %v", err)
@@ -151,6 +181,16 @@ func (c *TokenERC721Contract) Approve(ctx contractapi.TransactionContextInterfac
 // param {Boolean} approved True if the operator is approved, false to revoke approval
 // returns {Boolean} Return whether the approval was successful or not
 func (c *TokenERC721Contract) SetApprovalForAll(ctx contractapi.TransactionContextInterface, operator string, approved bool) (bool, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	sender64, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
 		return false, fmt.Errorf("failed to GetClientIdentity: %v", err)
@@ -196,6 +236,16 @@ func (c *TokenERC721Contract) SetApprovalForAll(ctx contractapi.TransactionConte
 // param {String} operator The client that acts on behalf of the owner
 // returns {Boolean} Return true if the operator is an approved operator for the owner, false otherwise
 func (c *TokenERC721Contract) IsApprovedForAll(ctx contractapi.TransactionContextInterface, owner string, operator string) (bool, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return false,fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	approvalKey, err := ctx.GetStub().CreateCompositeKey(approvalPrefix, []string{owner, operator})
 	if err != nil {
 		return false, fmt.Errorf("failed to CreateCompositeKey: %v", err)
@@ -223,6 +273,16 @@ func (c *TokenERC721Contract) IsApprovedForAll(ctx contractapi.TransactionContex
 // param {String} tokenId the non-fungible token to find the approved client for
 // returns {Object} Return the approved client for this non-fungible token, or null if there is none
 func (c *TokenERC721Contract) GetApproved(ctx contractapi.TransactionContextInterface, tokenId string) (string, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return "false",fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return "false", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	nft, err := _readNFT(ctx, tokenId)
 	if err != nil {
 		return "false", fmt.Errorf("failed GetApproved for tokenId : %v", err)
@@ -238,6 +298,16 @@ func (c *TokenERC721Contract) GetApproved(ctx contractapi.TransactionContextInte
 // returns {Boolean} Return whether the transfer was successful or not
 
 func (c *TokenERC721Contract) TransferFrom(ctx contractapi.TransactionContextInterface, from string, to string, tokenId string) (bool, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 
 	// Get ID of submitting client identity
 	sender64, err := ctx.GetClientIdentity().GetID()
@@ -336,6 +406,16 @@ func (c *TokenERC721Contract) TransferFrom(ctx contractapi.TransactionContextInt
 // returns {String} Returns the name of the token
 
 func (c *TokenERC721Contract) Name(ctx contractapi.TransactionContextInterface) (string, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	bytes, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to get Name bytes: %s", err)
@@ -348,6 +428,16 @@ func (c *TokenERC721Contract) Name(ctx contractapi.TransactionContextInterface) 
 // returns {String} Returns the symbol of the token
 
 func (c *TokenERC721Contract) Symbol(ctx contractapi.TransactionContextInterface) (string, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	bytes, err := ctx.GetStub().GetState(symbolKey)
 	if err != nil {
 		return "", fmt.Errorf("failed to get Symbol: %v", err)
@@ -361,6 +451,16 @@ func (c *TokenERC721Contract) Symbol(ctx contractapi.TransactionContextInterface
 // returns {String} Returns the URI of the token
 
 func (c *TokenERC721Contract) TokenURI(ctx contractapi.TransactionContextInterface, tokenId string) (string, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	nft, err := _readNFT(ctx, tokenId)
 	if err != nil {
 		return "", fmt.Errorf("failed to get TokenURI: %v", err)
@@ -376,6 +476,16 @@ func (c *TokenERC721Contract) TokenURI(ctx contractapi.TransactionContextInterfa
 // where each one of them has an assigned and queryable owner.
 
 func (c *TokenERC721Contract) TotalSupply(ctx contractapi.TransactionContextInterface) int {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		panic("failed to check if contract ia already initialized:"+ err.Error())
+	}
+	if !initialized {
+		panic("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	// There is a key record for every non-fungible token in the format of nftPrefix.tokenId.
 	// TotalSupply() queries for and counts all records matching nftPrefix.*
 
@@ -399,17 +509,24 @@ func (c *TokenERC721Contract) TotalSupply(ctx contractapi.TransactionContextInte
 }
 
 // ============== ERC721 enumeration extension ===============
-// Set optional information for a token.
+// Set information for a token and intialize contract.
 // param {String} name The name of the token
 // param {String} symbol The symbol of the token
 
-func (c *TokenERC721Contract) SetOption(ctx contractapi.TransactionContextInterface, name string, symbol string) (bool, error) {
+func (c *TokenERC721Contract) Initialize(ctx contractapi.TransactionContextInterface, name string, symbol string) (bool, error) {
 	// Check minter authorization - this sample assumes Org1 is the issuer with privilege to set the name and symbol
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
 		return false, fmt.Errorf("failed to get clientMSPID: %v", err)
 	} else if clientMSPID != "Org1MSP" {
 		return false, fmt.Errorf("client is not authorized to set the name and symbol of the token")
+	}
+
+	bytes, err := ctx.GetStub().GetState(nameKey)
+	if err != nil {
+		return false, fmt.Errorf("failed to get Name: %v", err)
+	}else if bytes != nil {
+		return false, fmt.Errorf("contract options are already set, client is not authorized to change them")
 	}
 
 	err = ctx.GetStub().PutState(nameKey, []byte(name))
@@ -431,6 +548,16 @@ func (c *TokenERC721Contract) SetOption(ctx contractapi.TransactionContextInterf
 // returns {Object} Return the non-fungible token object
 
 func (c *TokenERC721Contract) MintWithTokenURI(ctx contractapi.TransactionContextInterface, tokenId string, tokenURI string) (*Nft, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return nil, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 
 	// Check minter authorization - this sample assumes Org1 is the issuer with privilege to mint a new token
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
@@ -518,6 +645,16 @@ func (c *TokenERC721Contract) MintWithTokenURI(ctx contractapi.TransactionContex
 // param {String} tokenId Unique ID of a non-fungible token
 // returns {Boolean} Return whether the burn was successful or not
 func (c *TokenERC721Contract) Burn(ctx contractapi.TransactionContextInterface, tokenId string) (bool, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	owner64, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
 		return false, fmt.Errorf("failed to GetClientIdentity owner64: %v", err)
@@ -582,6 +719,16 @@ func (c *TokenERC721Contract) Burn(ctx contractapi.TransactionContextInterface, 
 // ClientAccountBalance returns the balance of the requesting client's account.
 // returns {Number} Returns the account balance
 func (c *TokenERC721Contract) ClientAccountBalance(ctx contractapi.TransactionContextInterface) (int, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	// Get ID of submitting client identity
 	clientAccountID64, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
@@ -603,6 +750,16 @@ func (c *TokenERC721Contract) ClientAccountBalance(ctx contractapi.TransactionCo
 // Users can use this function to get their own account id, which they can then give to others as the payment address
 
 func (c *TokenERC721Contract) ClientAccountID(ctx contractapi.TransactionContextInterface) (string, error) {
+
+	//check if contract has been intilized first
+	initialized, err := checkInitialized(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+	}
+	if !initialized {
+		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
 	// Get ID of submitting client identity
 	clientAccountID64, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
@@ -616,4 +773,15 @@ func (c *TokenERC721Contract) ClientAccountID(ctx contractapi.TransactionContext
 	clientAccount := string(clientAccountBytes)
 
 	return clientAccount, nil
+}
+
+//Checks that contract options have been already initialized
+func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error) {
+	tokenName, err := ctx.GetStub().GetState(nameKey)
+	if err != nil {
+		return false, fmt.Errorf("failed to get token name: %v", err)
+	}else if (tokenName == nil){
+		return false, nil
+	}
+	return true, nil
 }

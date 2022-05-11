@@ -30,7 +30,12 @@ class TokenERC20Contract extends Contract {
      * @returns {String} Returns the name of the token
     */
     async TokenName(ctx) {
+
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
+
         const nameBytes = await ctx.stub.getState(nameKey);
+
         return nameBytes.toString();
     }
 
@@ -41,6 +46,10 @@ class TokenERC20Contract extends Contract {
      * @returns {String} Returns the symbol of the token
     */
     async Symbol(ctx) {
+
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
+
         const symbolBytes = await ctx.stub.getState(symbolKey);
         return symbolBytes.toString();
     }
@@ -53,6 +62,10 @@ class TokenERC20Contract extends Contract {
      * @returns {Number} Returns the number of decimals
     */
     async Decimals(ctx) {
+
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
+
         const decimalsBytes = await ctx.stub.getState(decimalsKey);
         const decimals = parseInt(decimalsBytes.toString());
         return decimals;
@@ -65,6 +78,10 @@ class TokenERC20Contract extends Contract {
      * @returns {Number} Returns the total token supply
     */
     async TotalSupply(ctx) {
+
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
+
         const totalSupplyBytes = await ctx.stub.getState(totalSupplyKey);
         const totalSupply = parseInt(totalSupplyBytes.toString());
         return totalSupply;
@@ -78,6 +95,10 @@ class TokenERC20Contract extends Contract {
      * @returns {Number} Returns the account balance
      */
     async BalanceOf(ctx, owner) {
+
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
+
         const balanceKey = ctx.stub.createCompositeKey(balancePrefix, [owner]);
 
         const balanceBytes = await ctx.stub.getState(balanceKey);
@@ -99,6 +120,10 @@ class TokenERC20Contract extends Contract {
      * @returns {Boolean} Return whether the transfer was successful or not
      */
     async Transfer(ctx, to, value) {
+
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
+
         const from = ctx.clientIdentity.getID();
 
         const transferResp = await this._transfer(ctx, from, to, value);
@@ -123,6 +148,10 @@ class TokenERC20Contract extends Contract {
     * @returns {Boolean} Return whether the transfer was successful or not
     */
     async TransferFrom(ctx, from, to, value) {
+
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
+
         const spender = ctx.clientIdentity.getID();
 
         // Retrieve the allowance of the spender
@@ -149,7 +178,7 @@ class TokenERC20Contract extends Contract {
         }
 
         // Decrease the allowance
-        const updatedAllowance = currentAllowance - valueInt;
+        const updatedAllowance = this.sub(currentAllowance, valueInt);
         await ctx.stub.putState(allowanceKey, Buffer.from(updatedAllowance.toString()));
         console.log(`spender ${spender} allowance updated from ${currentAllowance} to ${updatedAllowance}`);
 
@@ -202,8 +231,8 @@ class TokenERC20Contract extends Contract {
         }
 
         // Update the balance
-        const fromUpdatedBalance = fromCurrentBalance - valueInt;
-        const toUpdatedBalance = toCurrentBalance + valueInt;
+        const fromUpdatedBalance = this.sub(fromCurrentBalance, valueInt);
+        const toUpdatedBalance = this.add(toCurrentBalance, valueInt);
 
         await ctx.stub.putState(fromBalanceKey, Buffer.from(fromUpdatedBalance.toString()));
         await ctx.stub.putState(toBalanceKey, Buffer.from(toUpdatedBalance.toString()));
@@ -223,6 +252,10 @@ class TokenERC20Contract extends Contract {
      * @returns {Boolean} Return whether the approval was successful or not
      */
     async Approve(ctx, spender, value) {
+
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
+
         const owner = ctx.clientIdentity.getID();
 
         const allowanceKey = ctx.stub.createCompositeKey(allowancePrefix, [owner, spender]);
@@ -247,6 +280,10 @@ class TokenERC20Contract extends Contract {
      * @returns {Number} Return the amount of remaining tokens allowed to spent
      */
     async Allowance(ctx, owner, spender) {
+
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
+
         const allowanceKey = ctx.stub.createCompositeKey(allowancePrefix, [owner, spender]);
 
         const allowanceBytes = await ctx.stub.getState(allowanceKey);
@@ -269,7 +306,19 @@ class TokenERC20Contract extends Contract {
      * @param {String} decimals The decimals of the token
      * @param {String} totalSupply The totalSupply of the token
      */
-    async SetOption(ctx, name, symbol, decimals) {
+    async Initialize(ctx, name, symbol, decimals) {
+        // Check minter authorization - this sample assumes Org1 is the central banker with privilege to set Options for these tokens
+        const clientMSPID = ctx.clientIdentity.getMSPID();
+        if (clientMSPID !== 'Org1MSP') {
+            throw new Error('client is not authorized to initialize contract');
+        }
+
+        //check contract options are not already set, client is not authorized to change them once intitialized
+        const nameBytes = await ctx.stub.getState(nameKey);
+        if (nameBytes !== undefined) {
+            throw new Error('contract options are already set, client is not authorized to change them');
+        }
+
         await ctx.stub.putState(nameKey, Buffer.from(name));
         await ctx.stub.putState(symbolKey, Buffer.from(symbol));
         await ctx.stub.putState(decimalsKey, Buffer.from(decimals));
@@ -286,6 +335,9 @@ class TokenERC20Contract extends Contract {
      * @returns {Object} The balance
      */
     async Mint(ctx, amount) {
+
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
 
         // Check minter authorization - this sample assumes Org1 is the central banker with privilege to mint new tokens
         const clientMSPID = ctx.clientIdentity.getMSPID();
@@ -311,7 +363,7 @@ class TokenERC20Contract extends Contract {
         } else {
             currentBalance = parseInt(currentBalanceBytes.toString());
         }
-        const updatedBalance = currentBalance + amountInt;
+        const updatedBalance = this.add(currentBalance, amountInt);
 
         await ctx.stub.putState(balanceKey, Buffer.from(updatedBalance.toString()));
 
@@ -324,7 +376,7 @@ class TokenERC20Contract extends Contract {
         } else {
             totalSupply = parseInt(totalSupplyBytes.toString());
         }
-        totalSupply = totalSupply + amountInt;
+        totalSupply = this.add(totalSupply, amountInt);
         await ctx.stub.putState(totalSupplyKey, Buffer.from(totalSupply.toString()));
 
         // Emit the Transfer event
@@ -344,6 +396,9 @@ class TokenERC20Contract extends Contract {
      */
     async Burn(ctx, amount) {
 
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
+
         // Check minter authorization - this sample assumes Org1 is the central banker with privilege to burn tokens
         const clientMSPID = ctx.clientIdentity.getMSPID();
         if (clientMSPID !== 'Org1MSP') {
@@ -361,7 +416,7 @@ class TokenERC20Contract extends Contract {
             throw new Error('The balance does not exist');
         }
         const currentBalance = parseInt(currentBalanceBytes.toString());
-        const updatedBalance = currentBalance - amountInt;
+        const updatedBalance = this.sub(currentBalance, amountInt);
 
         await ctx.stub.putState(balanceKey, Buffer.from(updatedBalance.toString()));
 
@@ -370,7 +425,7 @@ class TokenERC20Contract extends Contract {
         if (!totalSupplyBytes || totalSupplyBytes.length === 0) {
             throw new Error('totalSupply does not exist.');
         }
-        const totalSupply = parseInt(totalSupplyBytes.toString()) - amountInt;
+        const totalSupply = this.sub(parseInt(totalSupplyBytes.toString()), amountInt);
         await ctx.stub.putState(totalSupplyKey, Buffer.from(totalSupply.toString()));
 
         // Emit the Transfer event
@@ -388,6 +443,10 @@ class TokenERC20Contract extends Contract {
      * @returns {Number} Returns the account balance
      */
     async ClientAccountBalance(ctx) {
+
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
+
         // Get ID of submitting client identity
         const clientAccountID = ctx.clientIdentity.getID();
 
@@ -405,11 +464,40 @@ class TokenERC20Contract extends Contract {
     // In this implementation, the client account ID is the clientId itself.
     // Users can use this function to get their own account id, which they can then give to others as the payment address
     async ClientAccountID(ctx) {
+
+        //check contract options are already set first to execute the function
+        await this.CheckInitialized(ctx);
+
         // Get ID of submitting client identity
         const clientAccountID = ctx.clientIdentity.getID();
         return clientAccountID;
     }
 
+    //Checks that contract options have been already initialized
+    async CheckInitialized(ctx){
+        const nameBytes = await ctx.stub.getState(nameKey);
+        if (nameBytes === undefined) {
+            throw new Error('contract options need to be set before calling any function, call Initialize() to initialize contract');
+        }
+    }
+
+    // add two number checking for overflow
+    add(a, b) {
+        let c = a + b;
+        if (a !== c - b || b !== c - a){
+            throw new Error(`Math: addition overflow occurred ${a} + ${b}`);
+        }
+        return c;
+    }
+
+    // add two number checking for overflow
+    sub(a, b) {
+        let c = a - b;
+        if (a !== c + b || b !== a - c){
+            throw new Error(`Math: subtraction overflow occurred ${a} - ${b}`);
+        }
+        return c;
+    }
 }
 
 module.exports = TokenERC20Contract;

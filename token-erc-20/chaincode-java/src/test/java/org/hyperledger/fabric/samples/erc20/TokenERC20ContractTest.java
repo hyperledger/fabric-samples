@@ -58,7 +58,7 @@ public class TokenERC20ContractTest {
       assertThat(thrown)
           .isInstanceOf(ChaincodeException.class)
           .hasNoCause()
-          .hasMessage("Token name not found");
+          .hasMessage("Contract options need to be set before calling any function, call Initialize() to initialize contract");
     }
 
     @Test
@@ -67,6 +67,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(stub.getStringState(SYMBOL_KEY.getValue())).thenReturn("ARBT");
       String toknName = contract.TokenSymbol(ctx);
       assertThat(toknName).isEqualTo("ARBT");
@@ -78,6 +79,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(stub.getStringState(SYMBOL_KEY.getValue())).thenReturn("");
       Throwable thrown = catchThrowable(() -> contract.TokenSymbol(ctx));
       assertThat(thrown)
@@ -92,6 +94,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(stub.getStringState(DECIMALS_KEY.getValue())).thenReturn("18");
       long decimal = contract.Decimals(ctx);
       assertThat(decimal).isEqualTo(18);
@@ -103,6 +106,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(stub.getStringState(DECIMALS_KEY.getValue())).thenReturn("");
       Throwable thrown = catchThrowable(() -> contract.Decimals(ctx));
       assertThat(thrown)
@@ -117,6 +121,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(stub.getStringState(TOTAL_SUPPLY_KEY.getValue())).thenReturn("222222222222");
       long totalSupply = contract.TotalSupply(ctx);
       assertThat(totalSupply).isEqualTo(222222222222L);
@@ -128,6 +133,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(stub.getStringState(TOTAL_SUPPLY_KEY.getValue())).thenReturn("");
       Throwable thrown = catchThrowable(() -> contract.TotalSupply(ctx));
       assertThat(thrown)
@@ -143,6 +149,7 @@ public class TokenERC20ContractTest {
       ChaincodeStub stub = mock(ChaincodeStub.class);
       ClientIdentity ci = mock(ClientIdentity.class);
       when(ctx.getClientIdentity()).thenReturn(ci);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
       when(ci.getId()).thenReturn(org1UserId);
       when(ctx.getStub()).thenReturn(stub);
@@ -156,12 +163,15 @@ public class TokenERC20ContractTest {
   class TokenOperationsInvoke {
 
     @Test
-    public void invokeSetOptionsTest() {
+    public void invokeInitializeTest() {
       ERC20TokenContract contract = new ERC20TokenContract();
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
-      contract.SetOptions(ctx, "ARBTToken", "ARBT", "18");
+      ClientIdentity ci = mock(ClientIdentity.class);
+      when(ctx.getClientIdentity()).thenReturn(ci);
+      when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
+      contract.Initialize(ctx, "ARBTToken", "ARBT", "18");
       verify(stub).putStringState(NAME_KEY.getValue(), "ARBTToken");
       verify(stub).putStringState(SYMBOL_KEY.getValue(), "ARBT");
       verify(stub).putStringState(DECIMALS_KEY.getValue(), "18");
@@ -173,6 +183,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       ClientIdentity ci = mock(ClientIdentity.class);
       when(ctx.getClientIdentity()).thenReturn(ci);
       when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
@@ -192,6 +203,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       when(ctx.getStub()).thenReturn(stub);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       ClientIdentity ci = mock(ClientIdentity.class);
       when(ctx.getClientIdentity()).thenReturn(ci);
       when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
@@ -213,6 +225,7 @@ public class TokenERC20ContractTest {
       ChaincodeStub stub = mock(ChaincodeStub.class);
       ClientIdentity ci = mock(ClientIdentity.class);
       when(ctx.getClientIdentity()).thenReturn(ci);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
       when(ci.getId()).thenReturn(org1UserId);
       when(ctx.getStub()).thenReturn(stub);
@@ -234,6 +247,7 @@ public class TokenERC20ContractTest {
       ChaincodeStub stub = mock(ChaincodeStub.class);
       ClientIdentity ci = mock(ClientIdentity.class);
       when(ctx.getClientIdentity()).thenReturn(ci);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(ci.getMSPID()).thenReturn("Org2MSP");
       when(ci.getId()).thenReturn(org1UserId);
       when(ctx.getStub()).thenReturn(stub);
@@ -256,6 +270,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       ClientIdentity ci = mock(ClientIdentity.class);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(ctx.getClientIdentity()).thenReturn(ci);
       when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
       when(ci.getId()).thenReturn(org1UserId);
@@ -284,6 +299,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       ClientIdentity ci = mock(ClientIdentity.class);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(ctx.getClientIdentity()).thenReturn(ci);
       when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
       when(ci.getId()).thenReturn(org1UserId);
@@ -312,6 +328,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       ClientIdentity ci = mock(ClientIdentity.class);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(ctx.getClientIdentity()).thenReturn(ci);
       when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
       when(ci.getId()).thenReturn(org1UserId);
@@ -343,6 +360,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       ClientIdentity ci = mock(ClientIdentity.class);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(ctx.getClientIdentity()).thenReturn(ci);
       when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
       when(ci.getId()).thenReturn(org1UserId);
@@ -374,6 +392,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       ClientIdentity ci = mock(ClientIdentity.class);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(ctx.getClientIdentity()).thenReturn(ci);
       when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
       when(ci.getId()).thenReturn(org1UserId);
@@ -394,6 +413,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       ClientIdentity ci = mock(ClientIdentity.class);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(ctx.getClientIdentity()).thenReturn(ci);
       when(ci.getMSPID()).thenReturn("Org2MSP");
       when(ci.getId()).thenReturn(spender);
@@ -418,6 +438,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       ClientIdentity ci = mock(ClientIdentity.class);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(ctx.getClientIdentity()).thenReturn(ci);
       when(ci.getMSPID()).thenReturn("Org1MSP");
       when(ci.getId()).thenReturn(org1UserId);
@@ -446,6 +467,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       ClientIdentity ci = mock(ClientIdentity.class);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(ctx.getClientIdentity()).thenReturn(ci);
       when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
       when(ci.getId()).thenReturn(org1UserId);
@@ -465,6 +487,7 @@ public class TokenERC20ContractTest {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       ClientIdentity ci = mock(ClientIdentity.class);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(ctx.getClientIdentity()).thenReturn(ci);
       when(ci.getMSPID()).thenReturn(MINTER_ORG_MSPID.getValue());
       when(ci.getId()).thenReturn(org1UserId);
@@ -489,6 +512,7 @@ public class TokenERC20ContractTest {
               + " C=US::CN=ca.org2.example.com, O=org2.example.com, L=San Francisco, ST=California, C=US";
 
       CompositeKey ckFromBalance = mock(CompositeKey.class);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(stub.createCompositeKey(BALANCE_PREFIX.toString(), org1UserId))
           .thenReturn(ckFromBalance);
       when(ckFromBalance.toString()).thenReturn(BALANCE_PREFIX.getValue() + org1UserId);
@@ -529,6 +553,7 @@ public class TokenERC20ContractTest {
               + " C=US::CN=ca.org2.example.com, O=org2.example.com, L=San Francisco, ST=California, C=US";
 
       CompositeKey ckFromBalance = mock(CompositeKey.class);
+      when(stub.getStringState(NAME_KEY.getValue())).thenReturn("ARBTToken");
       when(stub.createCompositeKey(BALANCE_PREFIX.getValue(), org1UserId))
           .thenReturn(ckFromBalance);
       when(ckFromBalance.toString()).thenReturn(BALANCE_PREFIX.getValue() + org1UserId);
