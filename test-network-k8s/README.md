@@ -45,7 +45,7 @@ Launch the network, create a channel, and deploy the [basic-asset-transfer](../a
 
 ./network channel create
 
-./network chaincode deploy asset-transfer-basic basic_1.0 $PWD/../asset-transfer-basic/chaincode-java
+./network chaincode deploy asset-transfer-basic ../asset-transfer-basic/chaincode-java
 ```
 
 Invoke and query chaincode:

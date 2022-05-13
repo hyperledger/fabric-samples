@@ -4,3 +4,4 @@ network-debug.log
 build/
 .env
 bin/
+*.tgz

@@ -8,6 +8,7 @@ set -euo pipefail
 
 # Test matrix parameters
 export CONTAINER_CLI=${CONTAINER_CLI:-docker}
+export CHAINCODE_BUILDER=${CHAINCODE_BUILDER:-ccaas}
 export CLIENT_LANGUAGE=${CLIENT_LANGUAGE:-typescript}
 export CHAINCODE_LANGUAGE=${CHAINCODE_LANGUAGE:-java}
 
@@ -70,7 +71,7 @@ function createNetwork() {
   ./network channel create
 
   print "Deploying chaincode"
-  ./network chaincode deploy asset-transfer-basic basic_1.0 $TEST_NETWORK_CHAINCODE_PATH
+  ./network chaincode deploy $CHAINCODE_NAME $TEST_NETWORK_CHAINCODE_PATH
 }
 
 function stopNetwork() {

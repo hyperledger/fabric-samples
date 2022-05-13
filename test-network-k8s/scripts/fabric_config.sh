@@ -57,3 +57,21 @@ function load_org_config() {
 
   pop_fn
 }
+
+function apply_k8s_builder_roles() {
+  push_fn "Applying k8s chaincode builder roles"
+
+  apply_template kube/fabric-builder-role.yaml
+  apply_template kube/fabric-builder-rolebinding.yaml
+
+  pop_fn
+}
+
+function apply_k8s_builders() {
+  push_fn "Installing k8s chaincode builders"
+
+  apply_template kube/org1/org1-install-k8s-builder.yaml
+  apply_template kube/org2/org2-install-k8s-builder.yaml
+
+  pop_fn
+}

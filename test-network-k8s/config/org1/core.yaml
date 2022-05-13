@@ -558,11 +558,18 @@ chaincode:
     # chaincode. The external builder detection processing will iterate over the
     # builders in the order specified below.
     externalBuilders:
-       - name: ccaas_builder
-         path: /opt/hyperledger/ccaas_builder
-         propagateEnvironment:
-           - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG
+      - name: ccaas_builder
+        path: /opt/hyperledger/ccaas_builder
+        propagateEnvironment:
+          - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG
 
+        # copied into the /var persistent volume share by "network up"
+      - name: k8s_builder
+        path: /var/hyperledger/fabric/external_builders/k8s_builder
+        propagateEnvironment:
+          - CORE_PEER_ID
+          - KUBERNETES_SERVICE_HOST
+          - KUBERNETES_SERVICE_PORT
 
     # The maximum duration to wait for the chaincode build and install process
     # to complete.

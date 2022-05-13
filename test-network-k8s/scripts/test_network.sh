@@ -164,6 +164,12 @@ function network_up() {
   init_storage_volumes
   load_org_config
 
+  # Service account permissions for the k8s builder
+  if [ "${CHAINCODE_BUILDER}" == "k8s" ]; then
+    apply_k8s_builder_roles
+    apply_k8s_builders
+  fi
+
   # Network TLS CAs
   init_tls_cert_issuers
 
