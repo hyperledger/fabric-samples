@@ -10,7 +10,7 @@ set -e pipefail
 starttime=$(date +%s)
 
 # launch network; create channel and join peer to channel
-pushd ../test-network
+pushd ../../test-network
 
 # Fixes the issue of <sh: cd: line 1: can't cd to /data: No such file or directory> when running busybox in network down command on windows git bash
 case "$(uname -s)" in
@@ -22,7 +22,7 @@ case "$(uname -s)" in
      ;;
     *)
      ./network.sh down
-     ;; 
+     ;;
 esac
 ./network.sh up createChannel -ca -s couchdb
 ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-go/ -ccl go

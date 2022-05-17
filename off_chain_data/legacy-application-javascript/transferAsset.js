@@ -6,12 +6,11 @@
  */
 
 /*
+ * tranferAsset.js will transfer ownership a specified asset to a new ownder. Example:
  *
- * deleteAsset.js will delete a specified asset. Example:
+ *   $ node transferAsset.js asset102 jimmy
  *
- *    $ node deleteAsset.js asset100
- *
- *  The utility is meant to demonstrate delete block events.
+ * The utility is meant to demonstrate update block events.
  */
 
 'use strict';
@@ -25,17 +24,18 @@ const channelid = config.channelid;
 
 async function main() {
 
-    if (process.argv[2] == undefined) {
-        console.log("Usage: node deleteAsset AssetId");
+    if (process.argv[2] == undefined && process.argv[3] == undefined) {
+        console.log("Usage: node transferAsset.js assetId owner");
         process.exit(1);
     }
 
-    const deletekey = process.argv[2];
+    const updatekey = process.argv[2];
+    const newowner = process.argv[3];
 
     try {
 
         // Parse the connection profile.
-        const ccpPath = path.resolve(__dirname, '..', 'test-network','organizations','peerOrganizations','org1.example.com', 'connection-org1.json');
+        const ccpPath = path.resolve(__dirname, '..', '..', 'test-network','organizations','peerOrganizations','org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
         // Configure a wallet. This wallet must already be primed with an identity that
@@ -54,8 +54,8 @@ async function main() {
         // Get the smart contract from the network channel.
         const contract = network.getContract('basic');
 
-        await contract.submitTransaction('DeleteAsset', deletekey);
-        console.log("Deleted asset: " + deletekey);
+        await contract.submitTransaction('TransferAsset', updatekey, newowner);
+        console.log("Transferred asset " + updatekey + " to " + newowner);
 
         await gateway.disconnect();
 

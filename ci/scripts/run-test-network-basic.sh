@@ -111,3 +111,15 @@ print "Executing AssetTransfer.go"
 go run .
 popd
 stopNetwork
+
+# Run off-chain data TypeScript application
+createNetwork
+print "Initializing Typescript off-chain data application"
+pushd ../off_chain_data/application-typescript
+rm -f checkpoint.json store.log
+npm install
+print "Running the output app"
+SIMULATED_FAILURE_COUNT=1 npm start getAllAssets transact getAllAssets listen
+SIMULATED_FAILURE_COUNT=1 npm start listen
+popd
+stopNetwork
