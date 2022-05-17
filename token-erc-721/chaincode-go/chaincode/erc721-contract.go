@@ -64,7 +64,7 @@ func (c *TokenERC721Contract) BalanceOf(ctx contractapi.TransactionContextInterf
 	//check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		panic("failed to check if contract ia already initialized:"+ err.Error())
+		panic("failed to check if contract ia already initialized:" + err.Error())
 	}
 	if !initialized {
 		panic("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -240,7 +240,7 @@ func (c *TokenERC721Contract) IsApprovedForAll(ctx contractapi.TransactionContex
 	//check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return false,fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
 	}
 	if !initialized {
 		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -277,7 +277,7 @@ func (c *TokenERC721Contract) GetApproved(ctx contractapi.TransactionContextInte
 	//check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "false",fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "false", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
 	}
 	if !initialized {
 		return "false", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -307,7 +307,6 @@ func (c *TokenERC721Contract) TransferFrom(ctx contractapi.TransactionContextInt
 	if !initialized {
 		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
-
 
 	// Get ID of submitting client identity
 	sender64, err := ctx.GetClientIdentity().GetID()
@@ -480,7 +479,7 @@ func (c *TokenERC721Contract) TotalSupply(ctx contractapi.TransactionContextInte
 	//check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		panic("failed to check if contract ia already initialized:"+ err.Error())
+		panic("failed to check if contract ia already initialized:" + err.Error())
 	}
 	if !initialized {
 		panic("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -518,14 +517,16 @@ func (c *TokenERC721Contract) Initialize(ctx contractapi.TransactionContextInter
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
 		return false, fmt.Errorf("failed to get clientMSPID: %v", err)
-	} else if clientMSPID != "Org1MSP" {
+	}
+	if clientMSPID != "Org1MSP" {
 		return false, fmt.Errorf("client is not authorized to set the name and symbol of the token")
 	}
 
 	bytes, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {
 		return false, fmt.Errorf("failed to get Name: %v", err)
-	}else if bytes != nil {
+	}
+	if bytes != nil {
 		return false, fmt.Errorf("contract options are already set, client is not authorized to change them")
 	}
 
@@ -557,7 +558,6 @@ func (c *TokenERC721Contract) MintWithTokenURI(ctx contractapi.TransactionContex
 	if !initialized {
 		return nil, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
-
 
 	// Check minter authorization - this sample assumes Org1 is the issuer with privilege to mint a new token
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
@@ -780,7 +780,8 @@ func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error)
 	tokenName, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {
 		return false, fmt.Errorf("failed to get token name: %v", err)
-	}else if (tokenName == nil){
+	}
+	if tokenName == nil {
 		return false, nil
 	}
 	return true, nil

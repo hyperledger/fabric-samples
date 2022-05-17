@@ -123,7 +123,7 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, ut
 			Amount: amount,
 		}
 
-		totalInputAmount,err = add(totalInputAmount, amount) 
+		totalInputAmount, err = add(totalInputAmount, amount)
 		utxoInputs[utxoInputKey] = utxoInput
 	}
 
@@ -138,7 +138,7 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, ut
 
 		utxoOutputs[i].Key = fmt.Sprintf("%s.%d", txID, i)
 
-		totalOutputAmount,err = add(totalOutputAmount, utxoOutput.Amount) 
+		totalOutputAmount, err = add(totalOutputAmount, utxoOutput.Amount)
 	}
 
 	// Validate total inputs equals total outputs
@@ -309,12 +309,13 @@ func (s *SmartContract) Symbol(ctx contractapi.TransactionContextInterface) (str
 // param {String} name The name of the token
 // param {String} symbol The symbol of the token
 func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, name string, symbol string) (bool, error) {
-	
+
 	// Check minter authorization - this sample assumes Org1 is the central banker with privilege to intitialize contract
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
 		return false, fmt.Errorf("failed to get MSPID: %v", err)
-	} else if clientMSPID != "Org1MSP" {
+	}
+	if clientMSPID != "Org1MSP" {
 		return false, fmt.Errorf("client is not authorized to initialize contract")
 	}
 
@@ -322,8 +323,9 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 	bytes, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {
 		return false, fmt.Errorf("failed to get Name: %v", err)
-	}else if bytes != nil {
-		return false,  fmt.Errorf("contract options are already set, client is not authorized to change them")
+	}
+	if bytes != nil {
+		return false, fmt.Errorf("contract options are already set, client is not authorized to change them")
 	}
 
 	err = ctx.GetStub().PutState(nameKey, []byte(name))
@@ -337,8 +339,8 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 	}
 
 	log.Printf("name: %v, symbol: %v", name, symbol)
-	
-	return true, nil;
+
+	return true, nil
 }
 
 //Checks that contract options have been already initialized
@@ -346,12 +348,12 @@ func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error)
 	tokenName, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {
 		return false, fmt.Errorf("failed to get token name: %v", err)
-	}else if (tokenName == nil){
-		return false , nil
 	}
-	return true , nil
+	if tokenName == nil {
+		return false, nil
+	}
+	return true, nil
 }
-
 
 // add two number checking for overflow
 func add(b int, q int) (int, error) {
@@ -360,7 +362,7 @@ func add(b int, q int) (int, error) {
 	var sum int
 	sum = q + b
 
-	if (sum < q) == (b > 0 && q > 0) {
+	if (sum < q) == (b >= 0 && q >= 0) {
 		return 0, fmt.Errorf("Math: addition overflow occurred %d + %d", b, q)
 	}
 
