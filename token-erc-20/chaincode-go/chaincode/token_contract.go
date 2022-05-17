@@ -15,11 +15,11 @@ const nameKey = "name"
 const symbolKey = "symbol"
 const decimalsKey = "decimals"
 const totalSupplyKey = "totalSupply"
+
 // Define objectType names for prefix
 const allowancePrefix = "allowance"
 
 // Define key names for options
-
 
 // SmartContract provides functions for transferring tokens between accounts
 type SmartContract struct {
@@ -79,7 +79,7 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 		currentBalance, _ = strconv.Atoi(string(currentBalanceBytes)) // Error handling not needed since Itoa() was used when setting the account balance, guaranteeing it was an integer.
 	}
 
-	updatedBalance,err := add(currentBalance, amount)
+	updatedBalance, err := add(currentBalance, amount)
 	if err != nil {
 		return err
 	}
@@ -267,7 +267,7 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, re
 
 // BalanceOf returns the balance of the given account
 func (s *SmartContract) BalanceOf(ctx contractapi.TransactionContextInterface, account string) (int, error) {
-	
+
 	//check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
@@ -581,14 +581,15 @@ func (s *SmartContract) Symbol(ctx contractapi.TransactionContextInterface) (str
 // Set information for a token and intialize contract.
 // param {String} name The name of the token
 // param {String} symbol The symbol of the token
-// param {String} decimals The name of the token
+// param {String} decimals The decimals used for the token operations
 func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, name string, symbol string, decimals string) (bool, error) {
-	
+
 	// Check minter authorization - this sample assumes Org1 is the central banker with privilege to intitialize contract
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
 		return false, fmt.Errorf("failed to get MSPID: %v", err)
-	} else if clientMSPID != "Org1MSP" {
+	}
+	if clientMSPID != "Org1MSP" {
 		return false, fmt.Errorf("client is not authorized to initialize contract")
 	}
 
@@ -596,7 +597,8 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 	bytes, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {
 		return false, fmt.Errorf("failed to get Name: %v", err)
-	}else if bytes != nil {
+	}
+	if bytes != nil {
 		return false, fmt.Errorf("contract options are already set, client is not authorized to change them")
 	}
 
@@ -614,8 +616,8 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 	if err != nil {
 		return false, fmt.Errorf("failed to set token name: %v", err)
 	}
-	
-	return true, nil;
+
+	return true, nil
 }
 
 // Helper Functions
@@ -686,7 +688,6 @@ func transferHelper(ctx contractapi.TransactionContextInterface, from string, to
 	return nil
 }
 
-
 // add two number checking for overflow
 func add(b int, q int) (int, error) {
 
@@ -694,7 +695,7 @@ func add(b int, q int) (int, error) {
 	var sum int
 	sum = q + b
 
-	if (sum < q) == (b > 0 && q > 0) {
+	if (sum < q) == (b >= 0 && q >= 0) {
 		return 0, fmt.Errorf("Math: addition overflow occurred %d + %d", b, q)
 	}
 
@@ -706,12 +707,14 @@ func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error)
 	tokenName, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {
 		return false, fmt.Errorf("failed to get token name: %v", err)
-	}else if (tokenName == nil){
-		return false , nil
 	}
-	return true , nil
-}
 
+	if tokenName == nil {
+		return false, nil
+	}
+
+	return true, nil
+}
 
 // sub two number checking for overflow
 func sub(b int, q int) (int, error) {
@@ -720,7 +723,7 @@ func sub(b int, q int) (int, error) {
 	var diff int
 	diff = q - b
 
-	if (diff > q) == (b > 0 && q > 0) {
+	if (diff > q) == (b >= 0 && q >= 0) {
 		return 0, fmt.Errorf("Math: Subtraction overflow occurred  %d - %d", b, q)
 	}
 

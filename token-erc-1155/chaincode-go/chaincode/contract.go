@@ -810,7 +810,8 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
 		return false, fmt.Errorf("failed to get MSPID: %v", err)
-	} else if clientMSPID != "Org1MSP" {
+	}
+	if clientMSPID != "Org1MSP" {
 		return false, fmt.Errorf("client is not authorized to initialize contract")
 	}
 
@@ -818,7 +819,8 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 	bytes, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {
 		return false, fmt.Errorf("failed to get Name: %v", err)
-	} else if bytes != nil {
+	}
+	if bytes != nil {
 		return false, fmt.Errorf("contract options are already set, client is not authorized to change them")
 	}
 
@@ -1123,7 +1125,8 @@ func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error)
 	tokenName, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {
 		return false, fmt.Errorf("failed to get token name: %v", err)
-	} else if tokenName == nil {
+	}
+	if tokenName == nil {
 		return false, nil
 	}
 	return true, nil
