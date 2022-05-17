@@ -71,7 +71,7 @@ class TransactApp {
             Color: randomElement(colors),
             Size: randomInt(maxInitialSize) + 1,
             Owner: randomElement(owners),
-            AppriasedValue: randomInt(maxInitialValue) + 1,
+            AppraisedValue: randomInt(maxInitialValue) + 1,
         };
     }
 }

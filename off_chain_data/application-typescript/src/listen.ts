@@ -6,11 +6,10 @@
 
 import { Client } from '@grpc/grpc-js';
 import { Checkpointer, checkpointers, connect } from '@hyperledger/fabric-gateway';
-import { ledger } from '@hyperledger/fabric-protos';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { TextDecoder } from 'util';
-import { Block, NamespaceReadWriteSet, parseBlock, Transaction } from './blockParser';
+import { Block, parseBlock, Transaction } from './blockParser';
 import { channelName, newConnectOptions } from './connect';
 import { ExpectedError } from './expectedError';
 
@@ -37,14 +36,13 @@ let transactionCount = 0; // Used only to simulate failures
  * Apply writes for a given transaction to off-chain data store, ideally in a single operation for fault tolerance.
  * @param data Transaction data.
  */
-type StoreStrategy = (data: LedgerUpdate) => Promise<void>;
+type Store = (data: LedgerUpdate) => Promise<void>;
 
 /**
  * Ledger update made by a specific transaction.
  */
 interface LedgerUpdate {
     blockNumber: bigint;
-    channelName: string;
     transactionId: string;
     writes: Write[];
 }
@@ -55,12 +53,12 @@ interface LedgerUpdate {
 interface Write {
     /** Channel whose ledger is being updated. */
     channelName: string;
+    /** Namespace within the ledger. */
+    namespace: string;
     /** Key name within the ledger namespace. */
     key: string;
     /** Whether the key and associated value are being deleted. */
     isDelete: boolean;
-    /** Namespace within the ledger. */
-    namespace: string;
     /** If `isDelete` is false, the value written to the key; otherwise ignored. */
     value: Uint8Array;
 }
@@ -69,7 +67,7 @@ interface Write {
  * Apply writes for a given transaction to off-chain data store, ideally in a single operation for fault tolerance.
  * This implementation just writes to a file.
  */
-const applyWritesToOffChainStore: StoreStrategy = async (data) => {
+const applyWritesToOffChainStore: Store = async (data) => {
     simulateFailureIfRequired();
 
     const writes = data.writes
@@ -120,13 +118,13 @@ export async function main(client: Client): Promise<void> {
 interface BlockProcessorOptions {
     block: Block;
     checkpointer: Checkpointer;
-    store: StoreStrategy;
+    store: Store;
 }
 
 class BlockProcessor {
     readonly #block: Block;
     readonly #checkpointer: Checkpointer;
-    readonly #store: StoreStrategy;
+    readonly #store: Store;
 
     constructor(options: Readonly<BlockProcessorOptions>) {
         this.#block = options.block;
@@ -135,16 +133,16 @@ class BlockProcessor {
     }
 
     async process(): Promise<void> {
-        console.log(`\nReceived block ${this.#block.getNumber()}`);
-
         const blockNumber = this.#block.getNumber();
+
+        console.log(`\nReceived block ${blockNumber}`);
+
         const validTransactions = this.#getNewTransactions()
             .filter(transaction => transaction.isValid());
 
         for (const transaction of validTransactions) {
             const transactionProcessor = new TransactionProcessor({
                 blockNumber,
-                channelName: transaction.getChannelHeader().getChannelId(),
                 store: this.#store,
                 transaction,
             });
@@ -179,59 +177,58 @@ class BlockProcessor {
 
 interface TransactionProcessorOptions {
     blockNumber: bigint;
-    channelName: string;
-    store: StoreStrategy;
+    store: Store;
     transaction: Transaction;
 }
 
 class TransactionProcessor {
     readonly #blockNumber: bigint;
-    readonly #channelName: string;
-    readonly #id: string;
-    readonly #namespaceReadWriteSets: NamespaceReadWriteSet[];
-    readonly #store: StoreStrategy;
+    readonly #transaction: Transaction;
+    readonly #store: Store;
 
     constructor(options: Readonly<TransactionProcessorOptions>) {
         this.#blockNumber = options.blockNumber;
-        this.#channelName = options.channelName;
-        this.#id = options.transaction.getChannelHeader().getTxId();
-        this.#namespaceReadWriteSets = options.transaction.getNamespaceReadWriteSets()
-            .filter(readWriteSet => !isSystemChaincode(readWriteSet.getNamespace()));
+        this.#transaction = options.transaction;
         this.#store = options.store;
     }
 
     async process(): Promise<void> {
+        const channelHeader = this.#transaction.getChannelHeader();
+        const transactionId = channelHeader.getTxId();
+
         const writes = this.#getWrites();
         if (writes.length === 0) {
-            console.log(`Skipping read-only or system transaction ${this.#id}`);
+            console.log(`Skipping read-only or system transaction ${transactionId}`);
             return;
         }
 
-        console.log(`Process transaction ${this.#id}`);
+        console.log(`Process transaction ${transactionId}`);
 
         await this.#store({
             blockNumber: this.#blockNumber,
-            channelName: this.#channelName,
-            transactionId: this.#id,
-            writes: this.#getWrites(),
+            transactionId,
+            writes,
         });
     }
 
     #getWrites(): Write[] {
-        return this.#namespaceReadWriteSets.flatMap(readWriteSet => {
-            const namespace = readWriteSet.getNamespace();
-            return readWriteSet.getReadWriteSet().getWritesList().map(write => this.#newWrite(namespace, write));
-        });
-    }
+        const channelName = this.#transaction.getChannelHeader().getChannelId();
 
-    #newWrite(namespace: string, write: ledger.rwset.kvrwset.KVWrite): Write {
-        return {
-            channelName: this.#channelName,
-            key: write.getKey(),
-            isDelete: write.getIsDelete(),
-            namespace,
-            value: write.getValue_asU8(),
-        };
+        return this.#transaction.getNamespaceReadWriteSets()
+            .filter(readWriteSet => !isSystemChaincode(readWriteSet.getNamespace()))
+            .flatMap(readWriteSet => {
+                const namespace = readWriteSet.getNamespace();
+
+                return readWriteSet.getReadWriteSet().getWritesList().map(write => {
+                    return {
+                        channelName,
+                        namespace,
+                        key: write.getKey(),
+                        isDelete: write.getIsDelete(),
+                        value: write.getValue_asU8(),
+                    };
+                });
+            });
     }
 }
 

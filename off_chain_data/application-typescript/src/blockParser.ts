@@ -68,15 +68,13 @@ function parsePayload(payload: common.Payload, statusCode: number): Payload {
 
     return {
         getChannelHeader: cachedChannelHeader,
-        getEndorserTransaction: cache(
-            () => {
-                if (!isEndorserTransaction()) {
-                    throw new Error(`Unexpected payload type: ${cachedChannelHeader().getType()}`);
-                }
-                const transaction = peer.Transaction.deserializeBinary(payload.getData_asU8());
-                return parseEndorserTransaction(transaction);
+        getEndorserTransaction: () => {
+            if (!isEndorserTransaction()) {
+                throw new Error(`Unexpected payload type: ${cachedChannelHeader().getType()}`);
             }
-        ),
+            const transaction = peer.Transaction.deserializeBinary(payload.getData_asU8());
+            return parseEndorserTransaction(transaction);
+        },
         getTransactionValidationCode: () => statusCode,
         isEndorserTransaction,
         isValid: () => statusCode === peer.TxValidationCode.VALID,
