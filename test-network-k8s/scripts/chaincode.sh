@@ -161,7 +161,7 @@ function invoke_chaincode() {
     -n              $cc_name \
     -C              $CHANNEL_NAME \
     -c              $@ \
-    --orderer       org0-orderer1.${DOMAIN}:443 \
+    --orderer       org0-orderer1.${DOMAIN}:${NGINX_HTTPS_PORT} \
     --connTimeout   ${ORDERER_TIMEOUT} \
     --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 
@@ -301,7 +301,7 @@ function approve_chaincode() {
     --version       1 \
     --package-id    ${cc_id} \
     --sequence      1 \
-    --orderer       org0-orderer1.${DOMAIN}:443 \
+    --orderer       org0-orderer1.${DOMAIN}:${NGINX_HTTPS_PORT} \
     --connTimeout   ${ORDERER_TIMEOUT} \
     --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 
@@ -323,7 +323,7 @@ function commit_chaincode() {
     --name          ${cc_name} \
     --version       1 \
     --sequence      1 \
-    --orderer       org0-orderer1.${DOMAIN}:443 \
+    --orderer       org0-orderer1.${DOMAIN}:${NGINX_HTTPS_PORT} \
     --connTimeout   ${ORDERER_TIMEOUT} \
     --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 

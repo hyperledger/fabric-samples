@@ -105,7 +105,7 @@ function enroll_org_admin() {
 
   CA_AUTH=${username}:${password}
   CA_HOST=${CA_NAME}.${DOMAIN}
-  CA_PORT=443
+  CA_PORT=${NGINX_HTTPS_PORT}
   CA_URL=https://${CA_AUTH}@${CA_HOST}:${CA_PORT}
 
   # Read the CA's TLS certificate from the cert-manager CA secret
@@ -183,7 +183,7 @@ function create_channel_org_MSP() {
   # extract the CA's signing authority from the CA/cainfo response
   curl -s \
     --cacert ${TEMP_DIR}/cas/${ca_name}/tlsca-cert.pem \
-    https://${ca_name}.${DOMAIN}/cainfo \
+    https://${ca_name}.${DOMAIN}:${NGINX_HTTPS_PORT}/cainfo \
     | jq -r .result.CAChain \
     | base64 -d \
     > ${ORG_MSP_DIR}/cacerts/ca-signcert.pem
@@ -249,7 +249,7 @@ function join_channel_orderer() {
   # The client certificate presented in this case is the admin user's enrollment key.  This is a stronger assertion
   # of identity than the Docker Compose network, which transmits the orderer node's TLS key pair directly
   osnadmin channel join \
-    --orderer-address ${org}-${orderer}-admin.${DOMAIN} \
+    --orderer-address ${org}-${orderer}-admin.${DOMAIN}:${NGINX_HTTPS_PORT} \
     --ca-file         ${TEMP_DIR}/channel-msp/ordererOrganizations/${org}/orderers/${org}-${orderer}/tls/signcerts/tls-cert.pem \
     --client-cert     ${TEMP_DIR}/enrollments/${org}/users/${org}admin/msp/signcerts/cert.pem \
     --client-key      ${TEMP_DIR}/enrollments/${org}/users/${org}admin/msp/keystore/key.pem \
