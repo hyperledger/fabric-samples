@@ -15,7 +15,7 @@ export const mspIdOrg1 = 'Org1MSP';
 export const mspIdOrg2 = 'Org2MSP';
 
 // Path to org1 crypto materials.
-export const cryptoPathOrg1 = path.resolve(__dirname, '..', '..', '..', '../../sample-2.4.3/fabric-samples/test-network', 'organizations', 'peerOrganizations', 'org1.example.com');
+export const cryptoPathOrg1 = path.resolve(__dirname, '..', '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com');
 
 // Path to user private key directory.
 export const keyDirectoryPathOrg1 = path.resolve(cryptoPathOrg1, 'users', 'User1@org1.example.com', 'msp', 'keystore');
@@ -32,7 +32,7 @@ export const cryptoPathOrg2 = path.resolve(
     '..',
     '..',
     '..',
-    '../../sample-2.4.3/fabric-samples/test-network',
+    'test-network',
     'organizations',
     'peerOrganizations',
     'org2.example.com'

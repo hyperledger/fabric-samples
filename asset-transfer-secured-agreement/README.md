@@ -51,7 +51,7 @@ Like other samples, the Fabric test network is used to deploy and run this sampl
    npm start
 
    # To run the Javascript sample application
-   cd application-gateway-javascript
+   cd application-javascript
    node app.js
    ```
 

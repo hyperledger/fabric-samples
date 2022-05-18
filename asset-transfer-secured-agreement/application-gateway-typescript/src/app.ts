@@ -7,7 +7,7 @@
 import { connect } from '@hyperledger/fabric-gateway';
 import crpto from 'crypto';
 import { newGrpcConnection, newIdentity, newSigner, tlsCertPathOrg1, peerEndpointOrg1, peerNameOrg1, certPathOrg1, mspIdOrg1, keyDirectoryPathOrg1, tlsCertPathOrg2, peerEndpointOrg2, peerNameOrg2, certPathOrg2, mspIdOrg2, keyDirectoryPathOrg2 } from './connect';
-import { Asset, AssetPrice, AssetProperties, GREEN, RED, RESET } from './utils';
+import { AssetPrice, AssetProperties, GREEN, RED, RESET } from './utils';
 import { ContractWrapper } from './contractWrapper';
 
 const channelName = 'mychannel';
@@ -69,19 +69,19 @@ async function main(): Promise<void> {
         await readAsset(contractWrapperOrg2, assetKey, mspIdOrg1, mspIdOrg2);
 
         // Org1 should be able to read the private data details of the asset.
-        await readPrivateAsset(contractWrapperOrg1, assetKey, mspIdOrg1)
+        await readPrivateAsset(contractWrapperOrg1, assetKey, mspIdOrg1);
 
         // Org2 is not the owner and does not have the private details, read expected to fail.
-        await readPrivateAsset(contractWrapperOrg2, assetKey, mspIdOrg2)
+        await readPrivateAsset(contractWrapperOrg2, assetKey, mspIdOrg2);
 
         // Org1 updates the assets public description.
-        await changePublicDescription(contractWrapperOrg1, assetKey, mspIdOrg1, `Asset ${assetKey} owned by ${mspIdOrg1} is for sale`)
+        await changePublicDescription(contractWrapperOrg1, assetKey, mspIdOrg1, `Asset ${assetKey} owned by ${mspIdOrg1} is for sale`);
 
         // Read the public details by org1.
-        await readAsset(contractWrapperOrg1, assetKey, mspIdOrg1,mspIdOrg1);
+        await readAsset(contractWrapperOrg1, assetKey, mspIdOrg1, mspIdOrg1);
 
         // Read the public details by org2.
-        await readAsset(contractWrapperOrg2, assetKey, mspIdOrg1,mspIdOrg2);
+        await readAsset(contractWrapperOrg2, assetKey, mspIdOrg1, mspIdOrg2);
 
         // This is an update to the public state and requires the owner(Org1) to endorse and sent by the owner org client (Org1).
         // Since the client is from Org2, which is not the owner, this will fail
@@ -123,13 +123,13 @@ async function main(): Promise<void> {
         await agreeToSell(contractWrapperOrg1, assetKey, mspIdOrg1, 100);
 
         // Read the public details by  org1.
-        await readAsset(contractWrapperOrg1, assetKey, mspIdOrg1,mspIdOrg1);
+        await readAsset(contractWrapperOrg1, assetKey, mspIdOrg1, mspIdOrg1);
 
         // Read the public details by  org2.
         await readAsset(contractWrapperOrg2, assetKey, mspIdOrg1, mspIdOrg2);
 
         // Org1 should be able to read the private data details of the asset.
-        await readPrivateAsset(contractWrapperOrg1, assetKey, mspIdOrg1,)
+        await readPrivateAsset(contractWrapperOrg1, assetKey, mspIdOrg1,);
 
         // Org1 should be able to read the sale price of this asset
         await readSalePrice(contractWrapperOrg1, assetKey, mspIdOrg1);
@@ -180,46 +180,36 @@ main().catch(error => {
     process.exitCode = 1;
 });
 
-async function createAsset(contract:ContractWrapper, org:string):Promise<void> {
+async function createAsset(contract: ContractWrapper, org: string): Promise<void> {
     console.log(`${GREEN}--> Submit Transaction: CreateAsset, ${assetKey} as ${org} - endorsed by Org1${RESET}`);
 
-    await contract.submit('CreateAsset', {
-        arguments: [assetKey,`Asset ${assetKey} owned by ${org} is not for sale`],
-        transientData: { asset_properties: AssetProperties.instance('asset_properties', assetKey, 'blue', 35, randomBytes)},
-    });
+    await contract.createAsset(org, assetKey, { object_type: 'asset_properties', asset_id: assetKey, color: 'blue', size: 35, salt: randomBytes });
 
     console.log(`*** Result: committed, asset ${assetKey} is owned by Org1`);
 }
 
-async function readAsset(contract:ContractWrapper, assetKey:string, ownerOrg:string, org:string):Promise<void> {
+async function readAsset(contract: ContractWrapper, assetKey: string, ownerOrg: string, org: string): Promise<void> {
 
     console.log(`${GREEN}--> Evaluate Transactions: ReadAsset as ${org}, - ${assetKey} should be owned by ${ownerOrg}${RESET}`);
-
-    const resultString = await contract.evaluateTransaction('ReadAsset', assetKey);
-    const result = Asset.parse(resultString);
-    if (resultString.length !== 0) {
-        if (result?.ownerOrg === ownerOrg) {
+    try {
+        const result = await contract.readAsset(assetKey);
+        if (result.ownerOrg === ownerOrg) {
             console.log(`*** Result from ${org} - asset ${result.assetID} owned by ${result.ownerOrg} DESC:${result.publicDescription}`);
         } else {
             console.log(`${RED}*** Failed owner check from ${org} - asset ${result.assetID} owned by ${result.ownerOrg} DESC:${result.publicDescription}${RESET}`);
         }
-
-    }else{
-        console.log(`${RED}*** Failed ReadAsset ${RESET}`);
+    }catch (e) {
+        console.log(`${RED}*** Failed evaluateTransaction readAsset - ${e}${RESET}`);
     }
-
 }
 
-async function readPrivateAsset(contract:ContractWrapper, assetKey:string, org:string):Promise<void> {
+async function readPrivateAsset(contract: ContractWrapper, assetKey: string, org: string): Promise<void> {
     try{
         console.log(`${GREEN}--> Evaluate Transaction: GetAssetPrivateProperties, - ${assetKey} from organization ${org}${RESET}`);
         if(org === mspIdOrg2){
-            console.log(`${GREEN}* Expected to fail as ${org} is not the owner and does not have the private details${RESET}`)
+            console.log(`${GREEN}* Expected to fail as ${org} is not the owner and does not have the private details${RESET}`);
         }
-        const resultString = await contract.evaluateTransaction('GetAssetPrivateProperties', assetKey);
-
-        const result = Asset.parse(resultString);
-
+        const result = await contract.getAssetPrivateProperties(assetKey);
         console.log('*** Result:', result);
     }
     catch(e){
@@ -227,31 +217,24 @@ async function readPrivateAsset(contract:ContractWrapper, assetKey:string, org:s
     }
 }
 
-async function changePublicDescription(contract:ContractWrapper, assetKey:string, org:string, description:string):Promise<void> {
+async function changePublicDescription(contract: ContractWrapper, assetKey: string, org: string, description: string): Promise<void> {
     try {
         console.log(`${GREEN}--> Submit Transaction: ChangePublicDescription ${assetKey}, as ${org} - endorse by ${org}${RESET}`);
-        if(org===mspIdOrg2){
-            console.log(`${GREEN}* Expected to fail as ${org} is not the owner${RESET}`)
+        if (org === mspIdOrg2) {
+            console.log(`${GREEN}* Expected to fail as ${org} is not the owner${RESET}`);
         }
-
-        await contract.submit('ChangePublicDescription', {
-            arguments:[assetKey,description],
-        });
-
+        await contract.changePublicDescription(assetKey, description);
         console.log(`*** Result: committed, asset ${assetKey} is now for sale by ${org}`);
     } catch (e) {
         console.log(`${RED}*** Failed: ChangePublicDescription - ${e}${RESET}`);
     }
 }
 
-async function agreeToSell(contract:ContractWrapper, assetKey:string, org:string, price:number):Promise<void> {
+async function agreeToSell(contract: ContractWrapper, assetKey: string, org: string, price: number): Promise<void> {
     try {
         console.log(`${GREEN}--> Submit Transaction: AgreeToSell, ${assetKey} as ${org} - endorsed by ${org}${RESET}`);
 
-        await contract.submit('AgreeToSell',{
-            arguments:[assetKey],
-            transientData: { asset_price: AssetPrice.instance(assetKey, price, now.toString()) }
-        });
+        await contract.agreeToSell({asset_id:assetKey, price, trade_id:now.toString()});
 
         console.log(`*** Result: committed, ${org} has agreed to sell asset ${assetKey} for ${price}`);
     } catch (e) {
@@ -259,22 +242,14 @@ async function agreeToSell(contract:ContractWrapper, assetKey:string, org:string
     }
 }
 
-async function verifyAssetProperties(contract:ContractWrapper, assetKey:string, org:string): Promise<void> {
+async function verifyAssetProperties(contract: ContractWrapper, assetKey: string, org: string): Promise<void> {
     try {
         console.log(`${GREEN}--> Evalute: VerifyAssetProperties, ${assetKey} as ${org} - endorsed by ${org}${RESET}`);
 
-        const resultString = await contract.evaluate('VerifyAssetProperties',{
-            arguments:[assetKey],
-            transientData: { asset_properties: AssetProperties.instance('asset_properties', assetKey, 'blue', 35, randomBytes) },
-        });
+        const result = await contract.verifyAssetProperties({object_type:'asset_properties', asset_id:assetKey, color:'blue', size:35, salt:randomBytes}, org);
 
-        if (resultString.length !== 0) {
-            const result = Asset.parse(resultString);
-            if (result) {
-                console.log(`*** Success VerifyAssetProperties, private information about asset ${assetKey} has been verified by ${org}`);
-            } else {
-                console.log(`*** Failed: VerifyAssetProperties, private information about asset ${assetKey} has not been verified by ${org}`);
-            }
+        if (result) {
+            console.log(`*** Success VerifyAssetProperties, private information about asset ${assetKey} has been verified by ${org}`);
         } else {
             console.log(`*** Failed: VerifyAssetProperties, private information about asset ${assetKey} has not been verified by ${org}`);
         }
@@ -283,14 +258,11 @@ async function verifyAssetProperties(contract:ContractWrapper, assetKey:string, 
     }
 }
 
-async function agreeToBuy(contract:ContractWrapper, assetKey:string, org:string, price:number):Promise<void> {
+async function agreeToBuy(contract: ContractWrapper, assetKey: string, org: string, price: number): Promise<void> {
     try {
         console.log(`${GREEN}--> Submit Transaction: AgreeToBuy, ${assetKey} as ${org} - endorsed by ${org}${RESET}`);
 
-        await contract.submit('AgreeToBuy',{
-            arguments:[assetKey],
-            transientData: { asset_price: AssetPrice.instance(assetKey,price,now.toString()) }
-        });
+        await contract.agreeToBuy( {asset_id:assetKey, price, trade_id: now.toString()});
 
         console.log(`*** Result: committed, ${org} has agreed to buy asset ${assetKey} for 100`);
     } catch (e) {
@@ -298,30 +270,29 @@ async function agreeToBuy(contract:ContractWrapper, assetKey:string, org:string,
     }
 }
 
-async function readSalePrice(contract:ContractWrapper, assetKey:string, org:string):Promise<void> {
+async function readSalePrice(contract: ContractWrapper, assetKey: string, org: string): Promise<void> {
     try {
         console.log(`${GREEN}--> Evaluate Transaction: GetAssetSalesPrice, - ${assetKey} from organization ${org}${RESET}`);
-        if(org===mspIdOrg2){
-            console.log(`${GREEN}* Expected to fail as ${org} has not set a sale price${RESET}`)
+        if(org === mspIdOrg2){
+            console.log(`${GREEN}* Expected to fail as ${org} has not set a sale price${RESET}`);
         }
 
-        const resultString = await contract.evaluateTransaction('GetAssetSalesPrice', assetKey);
-        const result = Asset.parse(resultString);
+        const result = await contract.getAssetSalesPrice(assetKey);
+
         console.log('*** Result: GetAssetSalesPrice', result);
     } catch (e) {
         console.log(`${RED}*** Failed evaluateTransaction GetAssetSalesPrice: ${e}${RESET}`);
     }
 }
 
-async function readBidPrice(contract:ContractWrapper, assetKey:string, org:string):Promise<void> {
+async function readBidPrice(contract: ContractWrapper, assetKey: string, org: string): Promise<void> {
     try{
         console.log(`${GREEN}--> Evaluate Transaction: GetAssetBidPrice, - ${assetKey} from organization ${org}${RESET}`);
-        if(org===mspIdOrg1){
-            console.log(`${GREEN}* Expected to fail as Org1 has not agreed to buy${RESET}`)
+        if(org === mspIdOrg1){
+            console.log(`${GREEN}* Expected to fail as Org1 has not agreed to buy${RESET}`);
         }
 
-        const resultString = await contract.evaluateTransaction('GetAssetBidPrice', assetKey);
-        const result = Asset.parse(resultString);
+        const result = await contract.getAssetBidPrice(assetKey);
 
         console.log('*** Result: GetAssetBidPrice', result);
     } catch (e) {
@@ -329,23 +300,24 @@ async function readBidPrice(contract:ContractWrapper, assetKey:string, org:strin
     }
 }
 
-async function transferAsset(contract:ContractWrapper, assetKey:string, org:string,buyerOrgID:string, price:number):Promise<void> {
+async function transferAsset(contract: ContractWrapper, assetKey: string, org: string, buyerOrgID: string, price: number): Promise<void> {
     try {
-
         console.log(`${GREEN}--> Submit Transaction: TransferAsset, ${assetKey} as ${org} - endorsed by ${org}${RESET}`);
         if(org === mspIdOrg2){
-            console.log(`${GREEN}* Expected to fail as the owner is Org1${RESET}`)
+            console.log(`${GREEN}* Expected to fail as the owner is Org1${RESET}`);
         }else if(price === 110){
-            console.log(`${GREEN}* Expected to fail as sell price and the bid price are not the same${RESET}`)
+            console.log(`${GREEN}* Expected to fail as sell price and the bid price are not the same${RESET}`);
         }
 
-        await contract.submit('TransferAsset', {
-            arguments:[assetKey,buyerOrgID],
-            transientData: {
-                asset_properties: AssetProperties.instance('asset_properties', assetKey, 'blue', 35, randomBytes),
-                asset_price: AssetPrice.instance(assetKey, price, now.toString()) },
-            endorsingOrganizations:[mspIdOrg1,mspIdOrg2]
-        });
+        const assetProperties: AssetProperties =
+        {   object_type:'asset_properties',
+            asset_id:assetKey,
+            color:'blue',
+            size:35,
+            salt:randomBytes
+        };
+        const assetPrice: AssetPrice = {asset_id: assetKey, price, trade_id:now.toString()};
+        await contract.transferAsset(buyerOrgID, assetProperties, assetPrice, [ mspIdOrg1, mspIdOrg2 ]);
 
         console.log(`${GREEN}*** Result: committed, ${org} has transfered the asset ${assetKey} to ${mspIdOrg2} ${RESET}`);
     } catch (e) {
@@ -353,14 +325,14 @@ async function transferAsset(contract:ContractWrapper, assetKey:string, org:stri
     }
 }
 
-async function readPrivateAssetAfterTransfer(contract:ContractWrapper, assetKey:string, org:string):Promise<void> {
+async function readPrivateAssetAfterTransfer(contract: ContractWrapper, assetKey: string, org: string): Promise<void> {
     try{
         console.log(`${GREEN}--> Evaluate Transaction: GetAssetPrivateProperties, - ${assetKey} from organization ${org}${RESET}`);
-        if(org === mspIdOrg1){
-            console.log(`${GREEN}* Expected to fail as ${org} is not the owner and does not have the private details${RESET}`)
+        if(org === mspIdOrg1) {
+            console.log(`${GREEN}* Expected to fail as ${org} is not the owner and does not have the private details${RESET}`);
         }
-        const resultString = await contract.evaluateTransaction('GetAssetPrivateProperties', assetKey);
-        const result = Asset.parse(resultString);
+
+        const result = await contract.getAssetPrivateProperties(assetKey);
 
         console.log('*** Result:', result);
     }
@@ -369,16 +341,14 @@ async function readPrivateAssetAfterTransfer(contract:ContractWrapper, assetKey:
     }
 }
 
-async function changePublicDescriptionAfterTransfer(contract:ContractWrapper, assetKey:string, org:string, description:string):Promise<void> {
+async function changePublicDescriptionAfterTransfer(contract: ContractWrapper, assetKey: string, org: string, description: string): Promise<void> {
     try {
         console.log(`${GREEN}--> Submit Transaction: changePublicDescription ${assetKey}, as ${org} - endorse by ${org}${RESET}`);
-        if(org===mspIdOrg1){
-            console.log(`${GREEN}* Expected to fail as ${org} is not the owner${RESET}`)
+        if(org === mspIdOrg1) {
+            console.log(`${GREEN}* Expected to fail as ${org} is not the owner${RESET}`);
         }
 
-        await contract.submit('ChangePublicDescription', {
-            arguments:[assetKey,description],
-        });
+        await contract.changePublicDescription(assetKey, description);
 
         console.log(`*** Result: committed, asset ${assetKey} is now for sale by ${org}`);
     } catch (e) {
