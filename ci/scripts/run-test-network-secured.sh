@@ -34,3 +34,15 @@ popd
 stopNetwork
 print "Remove wallet storage"
 rm -R ../asset-transfer-secured-agreement/application-javascript/wallet
+
+# Run Typescript Gateway application
+createNetwork
+print "Initializing typescript application"
+pushd ../asset-transfer-secured-agreement/application-gateway-typescript
+npm install
+print "Build app"
+npm run build
+print "Executing dist/app.js"
+npm start
+popd
+stopNetwork
