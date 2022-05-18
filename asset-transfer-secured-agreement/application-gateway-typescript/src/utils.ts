@@ -8,25 +8,43 @@ export const RED = '\x1b[31m\n';
 export const GREEN = '\x1b[32m\n';
 export const RESET = '\x1b[0m';
 
-export interface Asset {
+export interface AssetJSON {
     objectType: string;
-    assetID: string;
+    assetId: string;
     ownerOrg: string;
     publicDescription: string;
 }
 
-export interface AssetProperties {
-    object_type: string;
-    asset_id: string;
+export interface AssetPropertiesJSON {
+    objectType: string;
+    assetId: string;
     color: string;
     size: number;
     salt: string;
 }
 
-export interface AssetPrice {
-    asset_id: string;
+export interface AssetPriceJSON {
+    assetId: string;
     price: number;
-    trade_id: string;
+    tradeId: string;
+}
+
+export interface Asset {
+    assetId: string;
+    ownerOrg: string;
+    publicDescription: string;
+}
+
+export interface AssetProperties {
+    assetId: string;
+    color: string;
+    size: number;
+}
+
+export interface AssetPrice {
+    assetId: string;
+    price: number;
+    tradeId: string;
 }
 
 export function parse<T>(data: string): T {

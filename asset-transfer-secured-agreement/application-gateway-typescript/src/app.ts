@@ -7,7 +7,7 @@
 import { connect } from '@hyperledger/fabric-gateway';
 import crpto from 'crypto';
 import { newGrpcConnection, newIdentity, newSigner, tlsCertPathOrg1, peerEndpointOrg1, peerNameOrg1, certPathOrg1, mspIdOrg1, keyDirectoryPathOrg1, tlsCertPathOrg2, peerEndpointOrg2, peerNameOrg2, certPathOrg2, mspIdOrg2, keyDirectoryPathOrg2 } from './connect';
-import { AssetPrice, AssetProperties, GREEN, RED, RESET } from './utils';
+import { AssetPriceJSON, AssetPropertiesJSON, GREEN, RED, RESET } from './utils';
 import { ContractWrapper } from './contractWrapper';
 
 const channelName = 'mychannel';
@@ -183,7 +183,7 @@ main().catch(error => {
 async function createAsset(contract: ContractWrapper, org: string): Promise<void> {
     console.log(`${GREEN}--> Submit Transaction: CreateAsset, ${assetKey} as ${org} - endorsed by Org1${RESET}`);
 
-    await contract.createAsset(org, assetKey, { object_type: 'asset_properties', asset_id: assetKey, color: 'blue', size: 35, salt: randomBytes });
+    await contract.createAsset(org, assetKey, { objectType: 'asset_properties', assetId: assetKey, color: 'blue', size: 35, salt: randomBytes });
 
     console.log(`*** Result: committed, asset ${assetKey} is owned by Org1`);
 }
@@ -194,9 +194,9 @@ async function readAsset(contract: ContractWrapper, assetKey: string, ownerOrg: 
     try {
         const result = await contract.readAsset(assetKey);
         if (result.ownerOrg === ownerOrg) {
-            console.log(`*** Result from ${org} - asset ${result.assetID} owned by ${result.ownerOrg} DESC:${result.publicDescription}`);
+            console.log(`*** Result from ${org} - asset ${result.assetId} owned by ${result.ownerOrg} DESC:${result.publicDescription}`);
         } else {
-            console.log(`${RED}*** Failed owner check from ${org} - asset ${result.assetID} owned by ${result.ownerOrg} DESC:${result.publicDescription}${RESET}`);
+            console.log(`${RED}*** Failed owner check from ${org} - asset ${result.assetId} owned by ${result.ownerOrg} DESC:${result.publicDescription}${RESET}`);
         }
     }catch (e) {
         console.log(`${RED}*** Failed evaluateTransaction readAsset - ${e}${RESET}`);
@@ -234,7 +234,7 @@ async function agreeToSell(contract: ContractWrapper, assetKey: string, org: str
     try {
         console.log(`${GREEN}--> Submit Transaction: AgreeToSell, ${assetKey} as ${org} - endorsed by ${org}${RESET}`);
 
-        await contract.agreeToSell({asset_id:assetKey, price, trade_id:now.toString()});
+        await contract.agreeToSell({assetId:assetKey, price, tradeId:now.toString()});
 
         console.log(`*** Result: committed, ${org} has agreed to sell asset ${assetKey} for ${price}`);
     } catch (e) {
@@ -246,7 +246,7 @@ async function verifyAssetProperties(contract: ContractWrapper, assetKey: string
     try {
         console.log(`${GREEN}--> Evalute: VerifyAssetProperties, ${assetKey} as ${org} - endorsed by ${org}${RESET}`);
 
-        const result = await contract.verifyAssetProperties({object_type:'asset_properties', asset_id:assetKey, color:'blue', size:35, salt:randomBytes}, org);
+        const result = await contract.verifyAssetProperties({objectType:'asset_properties', assetId:assetKey, color:'blue', size:35, salt:randomBytes}, org);
 
         if (result) {
             console.log(`*** Success VerifyAssetProperties, private information about asset ${assetKey} has been verified by ${org}`);
@@ -262,7 +262,7 @@ async function agreeToBuy(contract: ContractWrapper, assetKey: string, org: stri
     try {
         console.log(`${GREEN}--> Submit Transaction: AgreeToBuy, ${assetKey} as ${org} - endorsed by ${org}${RESET}`);
 
-        await contract.agreeToBuy( {asset_id:assetKey, price, trade_id: now.toString()});
+        await contract.agreeToBuy( {assetId:assetKey, price, tradeId: now.toString()});
 
         console.log(`*** Result: committed, ${org} has agreed to buy asset ${assetKey} for 100`);
     } catch (e) {
@@ -309,14 +309,14 @@ async function transferAsset(contract: ContractWrapper, assetKey: string, org: s
             console.log(`${GREEN}* Expected to fail as sell price and the bid price are not the same${RESET}`);
         }
 
-        const assetProperties: AssetProperties =
-        {   object_type:'asset_properties',
-            asset_id:assetKey,
+        const assetProperties: AssetPropertiesJSON =
+        {   objectType:'asset_properties',
+            assetId:assetKey,
             color:'blue',
             size:35,
             salt:randomBytes
         };
-        const assetPrice: AssetPrice = {asset_id: assetKey, price, trade_id:now.toString()};
+        const assetPrice: AssetPriceJSON = { assetId: assetKey, price, tradeId:now.toString()};
         await contract.transferAsset(buyerOrgID, assetProperties, assetPrice, [ mspIdOrg1, mspIdOrg2 ]);
 
         console.log(`${GREEN}*** Result: committed, ${org} has transfered the asset ${assetKey} to ${mspIdOrg2} ${RESET}`);
