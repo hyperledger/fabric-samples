@@ -126,19 +126,6 @@ function publish_chaincode_image() {
   pop_fn
 }
 
-# Infer a reasonable name for the chaincode image based on the folder path conventions, or
-# allow the user to override with TEST_NETWORK_CHAINCODE_IMAGE.
-function zz_unused_set_chaincode_image() {
-  local cc_folder=$1
-
-  if [ -z "$TEST_NETWORK_CHAINCODE_IMAGE" ]; then
-    # cc_folder path starting with first index of "fabric-samples"
-    CHAINCODE_IMAGE=${cc_folder/*fabric-samples/fabric-samples}
-  else
-    CHAINCODE_IMAGE=${TEST_NETWORK_CHAINCODE_IMAGE}
-  fi
-}
-
 # Convenience routine to "do everything other than package and launch" a sample CC.
 # When debugging a chaincode server, the process must be launched prior to completing
 # the chaincode lifecycle at the peer.  This routine provides a route for packaging
