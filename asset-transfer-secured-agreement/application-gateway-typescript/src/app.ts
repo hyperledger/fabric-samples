@@ -8,6 +8,7 @@ import { connect } from '@hyperledger/fabric-gateway';
 
 import { newGrpcConnection, newIdentity, newSigner, tlsCertPathOrg1, peerEndpointOrg1, peerNameOrg1, certPathOrg1, mspIdOrg1, keyDirectoryPathOrg1, tlsCertPathOrg2, peerEndpointOrg2, peerNameOrg2, certPathOrg2, mspIdOrg2, keyDirectoryPathOrg2 } from './connect';
 import { ContractWrapper } from './contractWrapper';
+import { RED, RESET } from './utils';
 
 const channelName = 'mychannel';
 const chaincodeName = 'secured';
@@ -70,7 +71,11 @@ async function main(): Promise<void> {
         await contractWrapperOrg1.getAssetPrivateProperties(assetKey, mspIdOrg1);
 
         // Org2 is not the owner and does not have the private details, read expected to fail.
-        await contractWrapperOrg2.getAssetPrivateProperties(assetKey, mspIdOrg1);
+        try {
+            await contractWrapperOrg2.getAssetPrivateProperties(assetKey, mspIdOrg1);
+        } catch(e) {
+            console.log(`${RED}*** Failed: getAssetPrivateProperties - ${e}${RESET}`);
+        }
 
         // Org1 updates the assets public description.
         await contractWrapperOrg1.changePublicDescription({AssetId: assetKey,
@@ -84,10 +89,14 @@ async function main(): Promise<void> {
         await contractWrapperOrg2.readAsset(assetKey, mspIdOrg1);
 
         // This is an update to the public state and requires the owner(Org1) to endorse and sent by the owner org client (Org1).
-        // Since the client is from Org2, which is not the owner, this will fail
-        await contractWrapperOrg2.changePublicDescription({AssetId: assetKey,
-            OwnerOrg: mspIdOrg1,
-            PublicDescription: `Asset ${assetKey} owned by ${mspIdOrg2} is NOT for sale`});
+        // Since the client is from Org2, which is not the owner, this will fail.
+        try{
+            await contractWrapperOrg2.changePublicDescription({AssetId: assetKey,
+                OwnerOrg: mspIdOrg1,
+                PublicDescription: `Asset ${assetKey} owned by ${mspIdOrg2} is NOT for sale`});
+        } catch(e) {
+            console.log(`${RED}*** Failed: changePublicDescription - ${e}${RESET}`);
+        }
 
         // Read the public details by org1.
         await contractWrapperOrg1.readAsset(assetKey, mspIdOrg1);
@@ -115,18 +124,28 @@ async function main(): Promise<void> {
         await contractWrapperOrg1.getAssetSalesPrice(assetKey, mspIdOrg1);
 
         // Org2 has not set a sale price and this should fail.
-        await contractWrapperOrg2.getAssetSalesPrice(assetKey, mspIdOrg1);
+        try{
+            await contractWrapperOrg2.getAssetSalesPrice(assetKey, mspIdOrg1);
+        } catch(e) {
+            console.log(`${RED}*** Failed: getAssetSalesPrice - ${e}${RESET}`);
+        }
 
         // Org1 has not agreed to buy so this should fail.
-        await contractWrapperOrg1.getAssetBidPrice(assetKey, mspIdOrg2);
-
+        try{
+            await contractWrapperOrg1.getAssetBidPrice(assetKey, mspIdOrg2);
+        } catch(e) {
+            console.log(`${RED}*** Failed: getAssetBidPrice - ${e}${RESET}`);
+        }
         // Org2 should be able to see the price it has agreed.
         await contractWrapperOrg2.getAssetBidPrice(assetKey, mspIdOrg2);
 
         // Org1 will try to transfer the asset to Org2
         // This will fail due to the sell price and the bid price are not the same.
-        await contractWrapperOrg1.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { AssetId: assetKey, Price: 110, TradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
-
+        try{
+            await contractWrapperOrg1.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { AssetId: assetKey, Price: 110, TradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
+        } catch(e) {
+            console.log(`${RED}*** Failed: transferAsset - ${e}${RESET}`);
+        }
         // Agree to a sell by Org1, the seller will agree to the bid price of Org2.
         await contractWrapperOrg1.agreeToSell({AssetId:assetKey, Price:100, TradeId:now});
 
@@ -147,7 +166,11 @@ async function main(): Promise<void> {
 
         // Org2 user will try to transfer the asset to Org1.
         // This will fail as the owner is Org1.
-        await contractWrapperOrg2.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { AssetId: assetKey, Price: 100, TradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
+        try{
+            await contractWrapperOrg2.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { AssetId: assetKey, Price: 100, TradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
+        } catch(e) {
+            console.log(`${RED}*** Failed: transferAsset - ${e}${RESET}`);
+        }
 
         // Org1 will transfer the asset to Org2.
         // This will now complete as the sell price and the bid price are the same.
@@ -163,7 +186,11 @@ async function main(): Promise<void> {
         await contractWrapperOrg2.getAssetPrivateProperties(assetKey, mspIdOrg2);
 
         // Org1 should not be able to read the private data details of this asset, expected to fail.
-        await contractWrapperOrg1.getAssetPrivateProperties(assetKey, mspIdOrg2);
+        try{
+            await contractWrapperOrg1.getAssetPrivateProperties(assetKey, mspIdOrg2);
+        } catch(e) {
+            console.log(`${RED}*** Failed: getAssetPrivateProperties - ${e}${RESET}`);
+        }
 
         // This is an update to the public state and requires only the owner to endorse.
         // Org2 wants to indicate that the items is no longer for sale.
