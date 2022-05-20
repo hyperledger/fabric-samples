@@ -6,18 +6,20 @@
 import { Contract } from '@hyperledger/fabric-gateway';
 import { TextDecoder } from 'util';
 import { Asset, AssetJSON, AssetPrice, AssetPriceJSON, AssetPrivateData, AssetProperties, AssetPropertiesJSON, GREEN, parse, RED, RESET } from './utils';
+import crpto from 'crypto';
+
+const randomBytes = crpto.randomBytes(256).toString('hex');
 
 export class ContractWrapper {
 
     readonly #contract: Contract;
     readonly #org: string;
     readonly #utf8Decoder  = new TextDecoder();
-    readonly #randomBytes: string;
+    readonly #randomBytes: string = randomBytes;
 
-    public constructor(contract: Contract, org: string, randomBytes: string) {
+    public constructor(contract: Contract, org: string) {
         this.#contract = contract;
         this.#org = org;
-        this.#randomBytes = randomBytes;
     }
 
     public async createAsset(asset: Asset, privateData: AssetPrivateData): Promise<void> {

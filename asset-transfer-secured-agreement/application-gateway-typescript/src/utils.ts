@@ -3,7 +3,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-import crpto from 'crypto';
 
 export const RED = '\x1b[31m\n';
 export const GREEN = '\x1b[32m\n';
@@ -56,5 +55,3 @@ export interface AssetPrice {
 export function parse<T>(data: string): T {
     return JSON.parse(data);
 }
-
-export const randomBytes = crpto.randomBytes(256).toString('hex');

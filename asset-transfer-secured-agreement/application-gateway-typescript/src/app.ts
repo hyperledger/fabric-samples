@@ -8,7 +8,6 @@ import { connect } from '@hyperledger/fabric-gateway';
 
 import { newGrpcConnection, newIdentity, newSigner, tlsCertPathOrg1, peerEndpointOrg1, peerNameOrg1, certPathOrg1, mspIdOrg1, keyDirectoryPathOrg1, tlsCertPathOrg2, peerEndpointOrg2, peerNameOrg2, certPathOrg2, mspIdOrg2, keyDirectoryPathOrg2 } from './connect';
 import { ContractWrapper } from './contractWrapper';
-import { randomBytes } from './utils';
 
 const channelName = 'mychannel';
 const chaincodeName = 'secured';
@@ -50,11 +49,11 @@ async function main(): Promise<void> {
 
         // Get the smart contract from the network for Org1.
         const contractOrg1 = gatewayOrg1.getNetwork(channelName).getContract(chaincodeName);
-        const contractWrapperOrg1  = new ContractWrapper(contractOrg1, mspIdOrg1, randomBytes);
+        const contractWrapperOrg1  = new ContractWrapper(contractOrg1, mspIdOrg1);
 
         // Get the smart contract from the network for Org2.
         const contractOrg2 = gatewayOrg2.getNetwork(channelName).getContract(chaincodeName);
-        const contractWrapperOrg2  = new ContractWrapper(contractOrg2, mspIdOrg2, randomBytes);
+        const contractWrapperOrg2  = new ContractWrapper(contractOrg2, mspIdOrg2);
 
         // Create an asset by organization Org1, this only requires the owning organization to endorse.
         await contractWrapperOrg1.createAsset({ AssetId: assetKey,
