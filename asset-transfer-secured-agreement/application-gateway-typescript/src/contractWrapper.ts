@@ -31,25 +31,25 @@ interface AssetPriceJSON {
     tradeID: string;
 }
 
-interface AssetPrivateData {
+export interface AssetPrivateData {
     ObjectType: string;
     Color: string;
     Size: number;
 }
 
-interface Asset {
+export interface Asset {
     assetId: string;
     ownerOrg: string;
     publicDescription: string;
 }
 
-interface AssetProperties {
+export interface AssetProperties {
     assetId: string;
     color: string;
     size: number;
 }
 
-interface AssetPrice {
+export interface AssetPrice {
     assetId: string;
     price: number;
     tradeId: string;
