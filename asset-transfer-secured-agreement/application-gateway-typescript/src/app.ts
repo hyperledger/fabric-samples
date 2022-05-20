@@ -57,9 +57,9 @@ async function main(): Promise<void> {
         const contractWrapperOrg2  = new ContractWrapper(contractOrg2, mspIdOrg2);
 
         // Create an asset by organization Org1, this only requires the owning organization to endorse.
-        await contractWrapperOrg1.createAsset({ AssetId: assetKey,
-            OwnerOrg: mspIdOrg1,
-            PublicDescription: `Asset ${assetKey} owned by ${mspIdOrg1} is not for sale`}, { ObjectType: 'asset_properties', Color: 'blue', Size: 35 });
+        await contractWrapperOrg1.createAsset({ assetId: assetKey,
+            ownerOrg: mspIdOrg1,
+            publicDescription: `Asset ${assetKey} owned by ${mspIdOrg1} is not for sale`}, { ObjectType: 'asset_properties', Color: 'blue', Size: 35 });
 
         // Read the public details by org1.
         await contractWrapperOrg1.readAsset(assetKey, mspIdOrg1);
@@ -78,9 +78,9 @@ async function main(): Promise<void> {
         }
 
         // Org1 updates the assets public description.
-        await contractWrapperOrg1.changePublicDescription({AssetId: assetKey,
-            OwnerOrg: mspIdOrg1,
-            PublicDescription: `Asset ${assetKey} owned by ${mspIdOrg1} is for sale`});
+        await contractWrapperOrg1.changePublicDescription({assetId: assetKey,
+            ownerOrg: mspIdOrg1,
+            publicDescription: `Asset ${assetKey} owned by ${mspIdOrg1} is for sale`});
 
         // Read the public details by org1.
         await contractWrapperOrg1.readAsset(assetKey, mspIdOrg1);
@@ -91,9 +91,9 @@ async function main(): Promise<void> {
         // This is an update to the public state and requires the owner(Org1) to endorse and sent by the owner org client (Org1).
         // Since the client is from Org2, which is not the owner, this will fail.
         try{
-            await contractWrapperOrg2.changePublicDescription({AssetId: assetKey,
-                OwnerOrg: mspIdOrg1,
-                PublicDescription: `Asset ${assetKey} owned by ${mspIdOrg2} is NOT for sale`});
+            await contractWrapperOrg2.changePublicDescription({assetId: assetKey,
+                ownerOrg: mspIdOrg1,
+                publicDescription: `Asset ${assetKey} owned by ${mspIdOrg2} is NOT for sale`});
         } catch(e) {
             console.log(`${RED}*** Failed: changePublicDescription - ${e}${RESET}`);
         }
@@ -106,19 +106,19 @@ async function main(): Promise<void> {
 
         // Agree to a sell by org1.
         await contractWrapperOrg1.agreeToSell({
-            AssetId: assetKey,
-            Price: 110,
-            TradeId: now,
+            assetId: assetKey,
+            price: 110,
+            tradeId: now,
         });
 
         // Check the private information about the asset from Org2. Org1 would have to send Org2 asset details,
         // so the hash of the details may be checked by the chaincode.
-        await contractWrapperOrg2.verifyAssetProperties({ AssetId:assetKey, Color:'blue', Size:35});
+        await contractWrapperOrg2.verifyAssetProperties({ assetId:assetKey, color:'blue', size:35});
 
         // Agree to a buy by org2.
-        await contractWrapperOrg2.agreeToBuy( {AssetId: assetKey,
-            Price: 100,
-            TradeId: now});
+        await contractWrapperOrg2.agreeToBuy( {assetId: assetKey,
+            price: 100,
+            tradeId: now});
 
         // Org1 should be able to read the sale price of this asset.
         await contractWrapperOrg1.getAssetSalesPrice(assetKey, mspIdOrg1);
@@ -142,12 +142,12 @@ async function main(): Promise<void> {
         // Org1 will try to transfer the asset to Org2
         // This will fail due to the sell price and the bid price are not the same.
         try{
-            await contractWrapperOrg1.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { AssetId: assetKey, Price: 110, TradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
+            await contractWrapperOrg1.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { assetId: assetKey, price: 110, tradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
         } catch(e) {
             console.log(`${RED}*** Failed: transferAsset - ${e}${RESET}`);
         }
         // Agree to a sell by Org1, the seller will agree to the bid price of Org2.
-        await contractWrapperOrg1.agreeToSell({AssetId:assetKey, Price:100, TradeId:now});
+        await contractWrapperOrg1.agreeToSell({assetId:assetKey, price:100, tradeId:now});
 
         // Read the public details by  org1.
         await contractWrapperOrg1.readAsset(assetKey, mspIdOrg1);
@@ -167,14 +167,14 @@ async function main(): Promise<void> {
         // Org2 user will try to transfer the asset to Org1.
         // This will fail as the owner is Org1.
         try{
-            await contractWrapperOrg2.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { AssetId: assetKey, Price: 100, TradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
+            await contractWrapperOrg2.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { assetId: assetKey, price: 100, tradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
         } catch(e) {
             console.log(`${RED}*** Failed: transferAsset - ${e}${RESET}`);
         }
 
         // Org1 will transfer the asset to Org2.
         // This will now complete as the sell price and the bid price are the same.
-        await contractWrapperOrg1.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { AssetId: assetKey, Price: 100, TradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
+        await contractWrapperOrg1.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { assetId: assetKey, price: 100, tradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
 
         // Read the public details by  org1.
         await contractWrapperOrg1.readAsset(assetKey, mspIdOrg2);
@@ -194,7 +194,7 @@ async function main(): Promise<void> {
 
         // This is an update to the public state and requires only the owner to endorse.
         // Org2 wants to indicate that the items is no longer for sale.
-        await contractWrapperOrg2.changePublicDescription( {AssetId: assetKey, OwnerOrg: mspIdOrg2, PublicDescription: `Asset ${assetKey} owned by ${mspIdOrg2} is NOT for sale`});
+        await contractWrapperOrg2.changePublicDescription( {assetId: assetKey, ownerOrg: mspIdOrg2, publicDescription: `Asset ${assetKey} owned by ${mspIdOrg2} is NOT for sale`});
 
         // Read the public details by org1.
         await contractWrapperOrg1.readAsset(assetKey, mspIdOrg2);
