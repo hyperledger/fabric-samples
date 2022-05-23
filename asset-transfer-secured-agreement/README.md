@@ -24,6 +24,7 @@ The smart contract (in folder `chaincode-go`) implements the following functions
 - GetAssetPrivateProperties
 - GetAssetSalesPrice
 - GetAssetBidPrice
+- GetAssetHashId
 - QueryAssetSaleAgreements
 - QueryAssetBuyAgreements
 - QueryAssetHistory
