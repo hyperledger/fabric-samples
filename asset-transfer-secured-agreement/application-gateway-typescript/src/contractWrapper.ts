@@ -7,6 +7,7 @@ import { Contract } from '@hyperledger/fabric-gateway';
 import { TextDecoder } from 'util';
 import { GREEN, parse, RED, RESET } from './utils';
 import crpto from 'crypto';
+import { mspIdOrg2 } from './connect';
 
 const randomBytes = crpto.randomBytes(256).toString('hex');
 
@@ -19,7 +20,6 @@ interface AssetJSON {
 
 interface AssetPropertiesJSON {
     objectType: string;
-    assetID: string;
     color: string;
     size: number;
     salt: string;
@@ -44,7 +44,6 @@ export interface Asset {
 }
 
 export interface AssetProperties {
-    assetId: string;
     color: string;
     size: number;
 }
@@ -61,27 +60,30 @@ export class ContractWrapper {
     readonly #org: string;
     readonly #utf8Decoder  = new TextDecoder();
     readonly #randomBytes: string = randomBytes;
+    #endorsingOrgs: { [id: string]: string[] };
 
     public constructor(contract: Contract, org: string) {
         this.#contract = contract;
         this.#org = org;
+        this.#endorsingOrgs = {};
     }
 
-    public async createAsset(asset: Asset, privateData: AssetPrivateData): Promise<void> {
-        console.log(`${GREEN}--> Submit Transaction: CreateAsset, ${asset.assetId} as ${asset.ownerOrg} - endorsed by Org1.${RESET}`);
+    public async createAsset(ownerOrg: string, publicDescription: string, privateData: AssetPrivateData): Promise<string> {
+        console.log(`${GREEN}--> Submit Transaction: CreateAsset as ${ownerOrg} - endorsed by Org1.${RESET}`);
         const assetPropertiesJSON: AssetPropertiesJSON = {
             objectType: 'asset_properties',
-            assetID: asset.assetId,
             color: privateData.Color,
             size: privateData.Size,
             salt: this.#randomBytes };
 
-        await this.#contract.submit('CreateAsset', {
-            arguments: [asset.assetId, asset.publicDescription],
+        const resultBytes = await this.#contract.submit('CreateAsset', {
+            arguments: [publicDescription],
             transientData: { asset_properties: JSON.stringify(assetPropertiesJSON)},
         });
-
-        console.log(`*** Result: committed, asset ${asset.assetId} is owned by Org1`);
+        const assetID = this.#utf8Decoder.decode(resultBytes);
+        this.#endorsingOrgs[assetID] = [ownerOrg];
+        console.log(`*** Result: committed, asset ${assetID} is owned by ${ownerOrg}`);
+        return assetID;
     }
 
     public async readAsset(assetKey: string, ownerOrg: string): Promise<void> {
@@ -113,7 +115,6 @@ export class ContractWrapper {
         const resultString = this.#utf8Decoder.decode(resultBytes);
         const json = parse<AssetPropertiesJSON>(resultString);
         const result: AssetProperties = {
-            assetId: json.assetID,
             color: json.color,
             size: json.size,
         };
@@ -129,12 +130,13 @@ export class ContractWrapper {
 
         await this.#contract.submit('ChangePublicDescription', {
             arguments:[asset.assetId, asset.publicDescription],
+            endorsingOrganizations: this.#endorsingOrgs[asset.assetId]
         });
 
         console.log(`*** Result: committed, Desc: ${asset.publicDescription}`);
     }
 
-    public async agreeToSell(assetPrice: AssetPrice): Promise<void> {
+    public async agreeToSell(assetPrice: AssetPrice, buyerOrgID: string): Promise<void> {
 
         console.log(`${GREEN}--> Submit Transaction: AgreeToSell, ${assetPrice.assetId} as ${this.#org} - endorsed by ${this.#org}.${RESET}`);
         const assetPriceJSON: AssetPriceJSON = {
@@ -144,23 +146,28 @@ export class ContractWrapper {
         };
 
         await this.#contract.submit('AgreeToSell', {
-            arguments:[assetPrice.assetId],
-            transientData: {asset_price: JSON.stringify(assetPriceJSON)}
+            arguments:[assetPrice.assetId, buyerOrgID],
+            transientData: {asset_price: JSON.stringify(assetPriceJSON)},
+            endorsingOrganizations: this.#endorsingOrgs[assetPrice.assetId]
         });
+
+        //update local record of sbe to inlcude buyer org if not already
+        if (this.#endorsingOrgs[assetPrice.assetId].indexOf('buyerOrgID') == -1){
+            this.#endorsingOrgs[assetPrice.assetId].push(buyerOrgID);
+        }
 
         console.log(`*** Result: committed, ${this.#org} has agreed to sell asset ${assetPrice.assetId} for ${assetPrice.price}`);
     }
 
-    public async verifyAssetProperties(assetProperties: AssetProperties): Promise<void> {
-        console.log(`${GREEN}--> Evalute: VerifyAssetProperties, ${assetProperties.assetId} as ${this.#org} - endorsed by ${this.#org}.${RESET}`);
+    public async verifyAssetProperties(assetId: string, assetProperties: AssetProperties): Promise<void> {
+        console.log(`${GREEN}--> Evalute: VerifyAssetProperties, ${assetId} as ${this.#org} - endorsed by ${this.#org} and ${mspIdOrg2}.${RESET}`);
         const assetPropertiesJSON: AssetPropertiesJSON = {objectType: 'asset_properties',
-            assetID: assetProperties.assetId,
             color: assetProperties.color,
             size: assetProperties.size,
             salt: this.#randomBytes };
 
         const resultBytes = await this.#contract.evaluate('VerifyAssetProperties', {
-            arguments:[assetPropertiesJSON.assetID],
+            arguments:[assetId],
             transientData: {asset_properties: JSON.stringify(assetPropertiesJSON)},
         });
 
@@ -168,24 +175,29 @@ export class ContractWrapper {
         if (resultString.length !== 0) {
             const json = parse<AssetPropertiesJSON>(resultString);
             const result: AssetProperties =  {
-                assetId: json.assetID,
                 color: json.color,
                 size: json.size
             };
             if (result) {
-                console.log(`*** Success VerifyAssetProperties, private information about asset ${assetProperties.assetId} has been verified by ${this.#org}`);
+                console.log(`*** Success VerifyAssetProperties, private information about asset ${assetId} has been verified by ${this.#org}`);
             } else {
-                console.log(`*** Failed: VerifyAssetProperties, private information about asset ${assetProperties.assetId} has not been verified by ${this.#org}`);
+                console.log(`*** Failed: VerifyAssetProperties, private information about asset ${assetId} has not been verified by ${this.#org}`);
             }
 
         } else {
-            throw new Error(`Private information about asset ${assetProperties.assetId} has not been verified by ${this.#org}`);
+            throw new Error(`Private information about asset ${assetId} has not been verified by ${this.#org}`);
         }
     }
 
-    public async agreeToBuy(assetPrice: AssetPrice, ): Promise<void> {
+    public async agreeToBuy(assetPrice: AssetPrice, privateData: AssetPrivateData): Promise<void> {
 
-        console.log(`${GREEN}--> Submit Transaction: AgreeToBuy, ${assetPrice.assetId} as ${this.#org} - endorsed by ${this.#org}.${RESET}`);
+        console.log(`${GREEN}--> Submit Transaction: AgreeToBuy, ${assetPrice.assetId} as ${this.#org} - endorsed by ${this.#org} and ${mspIdOrg2}.${RESET}`);
+        const assetPropertiesJSON: AssetPropertiesJSON = {
+            objectType: 'asset_properties',
+            color: privateData.Color,
+            size: privateData.Size,
+            salt: this.#randomBytes };
+
         const assetPriceJSON: AssetPriceJSON = {
             assetID: assetPrice.assetId,
             price: assetPrice.price,
@@ -194,7 +206,11 @@ export class ContractWrapper {
 
         await this.#contract.submit('AgreeToBuy', {
             arguments:[assetPrice.assetId],
-            transientData: {asset_price: JSON.stringify(assetPriceJSON)}
+            transientData: {
+                asset_price: JSON.stringify(assetPriceJSON),
+                asset_properties: JSON.stringify(assetPropertiesJSON)
+            },
+            endorsingOrganizations: this.#endorsingOrgs[assetPrice.assetId]
         });
 
         console.log(`*** Result: committed, ${this.#org} has agreed to buy asset ${assetPrice.assetId} for 100`);
@@ -242,9 +258,9 @@ export class ContractWrapper {
         console.log('*** Result: GetAssetBidPrice', result);
     }
 
-    public async transferAsset( privateData: AssetPrivateData, assetPrice: AssetPrice, endorsingOrganizations: string[], ownerOrgID: string, buyerOrgID: string): Promise<void> {
+    public async transferAsset(assetPrice: AssetPrice, ownerOrgID: string, buyerOrgID: string): Promise<void> {
 
-        console.log(`${GREEN}--> Submit Transaction: TransferAsset, ${assetPrice.assetId} as ${this.#org } - endorsed by ${this.#org}.${RESET}`);
+        console.log(`${GREEN}--> Submit Transaction: TransferAsset, ${assetPrice.assetId} as ${this.#org } - endorsed by ${this.#org} and ${buyerOrgID}.${RESET}`);
 
         if (this.#org !== ownerOrgID) {
             console.log(`${GREEN}* Expected to fail as the owner is ${ownerOrgID}.${RESET}`);
@@ -252,20 +268,12 @@ export class ContractWrapper {
             console.log(`${GREEN}* Expected to fail as sell price and the bid price are not the same.${RESET}`);
         }
 
-        const assetPropertiesJSON: AssetPropertiesJSON = {objectType: 'asset_properties',
-            assetID: assetPrice.assetId,
-            color: privateData.Color,
-            size: privateData.Size,
-            salt: this.#randomBytes };
-
         const assetPriceJSON: AssetPriceJSON = { assetID: assetPrice.assetId, price:assetPrice.price, tradeID:assetPrice.tradeId};
 
         await this.#contract.submit('TransferAsset', {
-            arguments:[assetPropertiesJSON.assetID, buyerOrgID],
-            transientData: {
-                asset_properties: JSON.stringify(assetPropertiesJSON),
-                asset_price: JSON.stringify(assetPriceJSON)},
-            endorsingOrganizations:endorsingOrganizations
+            arguments:[assetPrice.assetId, buyerOrgID],
+            transientData: { asset_price: JSON.stringify(assetPriceJSON) },
+            endorsingOrganizations: this.#endorsingOrgs[assetPrice.assetId]
         });
 
         console.log(`${GREEN}*** Result: committed, ${this.#org} has transfered the asset ${assetPrice.assetId} to ${buyerOrgID}.${RESET}`);

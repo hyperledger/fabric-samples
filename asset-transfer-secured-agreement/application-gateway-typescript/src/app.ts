@@ -15,7 +15,7 @@ const chaincodeName = 'secured';
 
 //Use a random key so that we can run multiple times
 const now = Date.now().toString();
-const assetKey = `asset${now}`;
+let assetKey: string;
 
 async function main(): Promise<void> {
 
@@ -57,9 +57,8 @@ async function main(): Promise<void> {
         const contractWrapperOrg2  = new ContractWrapper(contractOrg2, mspIdOrg2);
 
         // Create an asset by organization Org1, this only requires the owning organization to endorse.
-        await contractWrapperOrg1.createAsset({ assetId: assetKey,
-            ownerOrg: mspIdOrg1,
-            publicDescription: `Asset ${assetKey} owned by ${mspIdOrg1} is not for sale`}, { ObjectType: 'asset_properties', Color: 'blue', Size: 35 });
+        assetKey = await contractWrapperOrg1.createAsset(mspIdOrg1,
+            `Asset owned by ${mspIdOrg1} is not for sale`, { ObjectType: 'asset_properties', Color: 'blue', Size: 35 });
 
         // Read the public details by org1.
         await contractWrapperOrg1.readAsset(assetKey, mspIdOrg1);
@@ -109,16 +108,16 @@ async function main(): Promise<void> {
             assetId: assetKey,
             price: 110,
             tradeId: now,
-        });
+        }, mspIdOrg2);
 
         // Check the private information about the asset from Org2. Org1 would have to send Org2 asset details,
         // so the hash of the details may be checked by the chaincode.
-        await contractWrapperOrg2.verifyAssetProperties({ assetId:assetKey, color:'blue', size:35});
+        await contractWrapperOrg2.verifyAssetProperties(assetKey, {color:'blue', size:35});
 
         // Agree to a buy by org2.
         await contractWrapperOrg2.agreeToBuy( {assetId: assetKey,
             price: 100,
-            tradeId: now});
+            tradeId: now}, { ObjectType: 'asset_properties', Color: 'blue', Size: 35 });
 
         // Org1 should be able to read the sale price of this asset.
         await contractWrapperOrg1.getAssetSalesPrice(assetKey, mspIdOrg1);
@@ -142,12 +141,12 @@ async function main(): Promise<void> {
         // Org1 will try to transfer the asset to Org2
         // This will fail due to the sell price and the bid price are not the same.
         try{
-            await contractWrapperOrg1.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { assetId: assetKey, price: 110, tradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
+            await contractWrapperOrg1.transferAsset({ assetId: assetKey, price: 110, tradeId: now}, mspIdOrg1, mspIdOrg2);
         } catch(e) {
             console.log(`${RED}*** Failed: transferAsset - ${e}${RESET}`);
         }
         // Agree to a sell by Org1, the seller will agree to the bid price of Org2.
-        await contractWrapperOrg1.agreeToSell({assetId:assetKey, price:100, tradeId:now});
+        await contractWrapperOrg1.agreeToSell({assetId:assetKey, price:100, tradeId:now}, mspIdOrg2);
 
         // Read the public details by  org1.
         await contractWrapperOrg1.readAsset(assetKey, mspIdOrg1);
@@ -167,14 +166,14 @@ async function main(): Promise<void> {
         // Org2 user will try to transfer the asset to Org1.
         // This will fail as the owner is Org1.
         try{
-            await contractWrapperOrg2.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { assetId: assetKey, price: 100, tradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
+            await contractWrapperOrg2.transferAsset({ assetId: assetKey, price: 100, tradeId: now}, mspIdOrg1, mspIdOrg2);
         } catch(e) {
             console.log(`${RED}*** Failed: transferAsset - ${e}${RESET}`);
         }
 
         // Org1 will transfer the asset to Org2.
         // This will now complete as the sell price and the bid price are the same.
-        await contractWrapperOrg1.transferAsset({ObjectType: 'asset_properties', Color: 'blue', Size: 35}, { assetId: assetKey, price: 100, tradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
+        await contractWrapperOrg1.transferAsset({ assetId: assetKey, price: 100, tradeId: now}, mspIdOrg1, mspIdOrg2);
 
         // Read the public details by  org1.
         await contractWrapperOrg1.readAsset(assetKey, mspIdOrg2);

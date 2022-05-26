@@ -7,6 +7,7 @@ package main
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -42,24 +43,29 @@ type receipt struct {
 	timestamp time.Time
 }
 
-// CreateAsset creates an asset and sets it as owned by the client's org
-func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface, assetID, publicDescription string) error {
+// CreateAsset creates an asset, sets it as owned by the client's org and returns its id
+// the id of the asset corresponds to the hash of the properties of the asset that are  passed by transiet field
+func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface, publicDescription string) (string, error) {
 	transientMap, err := ctx.GetStub().GetTransient()
 	if err != nil {
-		return fmt.Errorf("error getting transient: %v", err)
+		return "", fmt.Errorf("error getting transient: %v", err)
 	}
 
 	// Asset properties must be retrieved from the transient field as they are private
 	immutablePropertiesJSON, ok := transientMap["asset_properties"]
 	if !ok {
-		return fmt.Errorf("asset_properties key not found in the transient map")
+		return "", fmt.Errorf("asset_properties key not found in the transient map")
 	}
+
+	hash := sha256.New()
+	hash.Write(immutablePropertiesJSON)
+	assetID := hex.EncodeToString(hash.Sum(nil))
 
 	// Get client org id and verify it matches peer org id.
 	// In this scenario, client is only authorized to read/write private data from its own peer.
-	clientOrgID, err := getClientOrgID(ctx, true)
+	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get verified OrgID: %v", err)
+		return "", fmt.Errorf("failed to get verified OrgID: %v", err)
 	}
 
 	asset := Asset{
@@ -70,34 +76,35 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 	}
 	assetBytes, err := json.Marshal(asset)
 	if err != nil {
-		return fmt.Errorf("failed to create asset JSON: %v", err)
+		return "", fmt.Errorf("failed to create asset JSON: %v", err)
 	}
 
-	err = ctx.GetStub().PutState(asset.ID, assetBytes)
+	err = ctx.GetStub().PutState(assetID, assetBytes)
 	if err != nil {
-		return fmt.Errorf("failed to put asset in public data: %v", err)
+		return "", fmt.Errorf("failed to put asset in public data: %v", err)
 	}
 
 	// Set the endorsement policy such that an owner org peer is required to endorse future updates
-	err = setAssetStateBasedEndorsement(ctx, asset.ID, clientOrgID)
+	endorsingOrgs := []string{clientOrgID}
+	err = setAssetStateBasedEndorsement(ctx, asset.ID, endorsingOrgs)
 	if err != nil {
-		return fmt.Errorf("failed setting state based endorsement for owner: %v", err)
+		return "", fmt.Errorf("failed setting state based endorsement for buyer and seller: %v", err)
 	}
 
 	// Persist private immutable asset properties to owner's private data collection
 	collection := buildCollectionName(clientOrgID)
-	err = ctx.GetStub().PutPrivateData(collection, asset.ID, immutablePropertiesJSON)
+	err = ctx.GetStub().PutPrivateData(collection, assetID, immutablePropertiesJSON)
 	if err != nil {
-		return fmt.Errorf("failed to put Asset private details: %v", err)
+		return "", fmt.Errorf("failed to put Asset private details: %v", err)
 	}
 
-	return nil
+	return assetID, nil
 }
 
 // ChangePublicDescription updates the assets public description. Only the current owner can update the public description
 func (s *SmartContract) ChangePublicDescription(ctx contractapi.TransactionContextInterface, assetID string, newDescription string) error {
 	// No need to check client org id matches peer org id, rely on the asset ownership check instead.
-	clientOrgID, err := getClientOrgID(ctx, false)
+	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get verified OrgID: %v", err)
 	}
@@ -121,14 +128,15 @@ func (s *SmartContract) ChangePublicDescription(ctx contractapi.TransactionConte
 	return ctx.GetStub().PutState(assetID, updatedAssetJSON)
 }
 
-// AgreeToSell adds seller's asking price to seller's implicit private data collection
-func (s *SmartContract) AgreeToSell(ctx contractapi.TransactionContextInterface, assetID string) error {
+// AgreeToSell adds seller's asking price to seller's implicit private data collection and requires to specify the next possible buyer
+// Set the endorsement policy such that seller org and passed target buyer org peers are both required to endorse the tranfer
+func (s *SmartContract) AgreeToSell(ctx contractapi.TransactionContextInterface, assetID string, buyerOrgID string) error {
 	asset, err := s.ReadAsset(ctx, assetID)
 	if err != nil {
 		return err
 	}
 
-	clientOrgID, err := getClientOrgID(ctx, true)
+	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get verified OrgID: %v", err)
 	}
@@ -138,18 +146,48 @@ func (s *SmartContract) AgreeToSell(ctx contractapi.TransactionContextInterface,
 		return fmt.Errorf("a client from %s cannot sell an asset owned by %s", clientOrgID, asset.OwnerOrg)
 	}
 
+	// Set the endorsement policy such that owner org and seller org peers are both required to endorse the tranfer
+	endorsingOrgs := []string{clientOrgID, buyerOrgID}
+	err = setAssetStateBasedEndorsement(ctx, asset.ID, endorsingOrgs)
+	if err != nil {
+		return fmt.Errorf("failed setting state based endorsement for buyer and future seller: %v", err)
+	}
+
 	return agreeToPrice(ctx, assetID, typeAssetForSale)
 }
 
-// AgreeToBuy adds buyer's bid price to buyer's implicit private data collection
+// AgreeToBuy adds buyer's bid price and asset properties to buyer's implicit private data collection
 func (s *SmartContract) AgreeToBuy(ctx contractapi.TransactionContextInterface, assetID string) error {
+	transientMap, err := ctx.GetStub().GetTransient()
+	if err != nil {
+		return fmt.Errorf("error getting transient: %v", err)
+	}
+
+	clientOrgID, err := getClientOrgID(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get verified OrgID: %v", err)
+	}
+
+	// Asset properties must be retrieved from the transient field as they are private
+	immutablePropertiesJSON, ok := transientMap["asset_properties"]
+	if !ok {
+		return fmt.Errorf("asset_properties key not found in the transient map")
+	}
+
+	// Persist private immutable asset properties to seller's private data collection
+	collection := buildCollectionName(clientOrgID)
+	err = ctx.GetStub().PutPrivateData(collection, assetID, immutablePropertiesJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put Asset private details: %v", err)
+	}
+
 	return agreeToPrice(ctx, assetID, typeAssetBid)
 }
 
 // agreeToPrice adds a bid or ask price to caller's implicit private data collection
 func agreeToPrice(ctx contractapi.TransactionContextInterface, assetID string, priceType string) error {
 	// In this scenario, client is only authorized to read/write private data from its own peer.
-	clientOrgID, err := getClientOrgID(ctx, true)
+	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get verified OrgID: %v", err)
 	}
@@ -186,6 +224,7 @@ func agreeToPrice(ctx contractapi.TransactionContextInterface, assetID string, p
 
 // VerifyAssetProperties  Allows a buyer to validate the properties of
 // an asset against the owner's implicit private data collection
+// and verifies that the asset properties never changed from the origin of the asset by checking their hash against the assetID
 func (s *SmartContract) VerifyAssetProperties(ctx contractapi.TransactionContextInterface, assetID string) (bool, error) {
 	transMap, err := ctx.GetStub().GetTransient()
 	if err != nil {
@@ -225,13 +264,22 @@ func (s *SmartContract) VerifyAssetProperties(ctx contractapi.TransactionContext
 		)
 	}
 
+	// verify that the hash of the passed immutable properties and on chain hash matches the assetID
+	if !(hex.EncodeToString(immutablePropertiesOnChainHash) == assetID) {
+		return false, fmt.Errorf("hash %x for passed immutable properties %s does match on-chain hash %x but do not match assetID %s: asset was altered from its initial form",
+			calculatedPropertiesHash,
+			immutablePropertiesJSON,
+			immutablePropertiesOnChainHash,
+			assetID)
+	}
+
 	return true, nil
 }
 
 // TransferAsset checks transfer conditions and then transfers asset state to buyer.
 // TransferAsset can only be called by current owner
 func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, assetID string, buyerOrgID string) error {
-	clientOrgID, err := getClientOrgID(ctx, false)
+	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get verified OrgID: %v", err)
 	}
@@ -239,11 +287,6 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 	transMap, err := ctx.GetStub().GetTransient()
 	if err != nil {
 		return fmt.Errorf("error getting transient data: %v", err)
-	}
-
-	immutablePropertiesJSON, ok := transMap["asset_properties"]
-	if !ok {
-		return fmt.Errorf("asset_properties key not found in the transient map")
 	}
 
 	priceJSON, ok := transMap["asset_price"]
@@ -262,12 +305,12 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 		return fmt.Errorf("failed to get asset: %v", err)
 	}
 
-	err = verifyTransferConditions(ctx, asset, immutablePropertiesJSON, clientOrgID, buyerOrgID, priceJSON)
+	err = verifyTransferConditions(ctx, asset, clientOrgID, buyerOrgID, priceJSON)
 	if err != nil {
 		return fmt.Errorf("failed transfer verification: %v", err)
 	}
 
-	err = transferAssetState(ctx, asset, immutablePropertiesJSON, clientOrgID, buyerOrgID, agreement.Price)
+	err = transferAssetState(ctx, asset, clientOrgID, buyerOrgID, agreement.Price)
 	if err != nil {
 		return fmt.Errorf("failed asset transfer: %v", err)
 	}
@@ -279,7 +322,6 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 // verifyTransferConditions checks that client org currently owns asset and that both parties have agreed on price
 func verifyTransferConditions(ctx contractapi.TransactionContextInterface,
 	asset *Asset,
-	immutablePropertiesJSON []byte,
 	clientOrgID string,
 	buyerOrgID string,
 	priceJSON []byte) error {
@@ -290,27 +332,30 @@ func verifyTransferConditions(ctx contractapi.TransactionContextInterface,
 		return fmt.Errorf("a client from %s cannot transfer a asset owned by %s", clientOrgID, asset.OwnerOrg)
 	}
 
-	// CHECK2: Verify that the hash of the passed immutable properties matches the on-chain hash
+	// CHECK2: Verify that both buyers and seller on-chain asset defintion hash matches
 
 	collectionSeller := buildCollectionName(clientOrgID)
-	immutablePropertiesOnChainHash, err := ctx.GetStub().GetPrivateDataHash(collectionSeller, asset.ID)
+	collectionBuyer := buildCollectionName(buyerOrgID)
+	sellerPropertiesOnChainHash, err := ctx.GetStub().GetPrivateDataHash(collectionSeller, asset.ID)
 	if err != nil {
 		return fmt.Errorf("failed to read asset private properties hash from seller's collection: %v", err)
 	}
-	if immutablePropertiesOnChainHash == nil {
+	if sellerPropertiesOnChainHash == nil {
+		return fmt.Errorf("asset private properties hash does not exist: %s", asset.ID)
+	}
+	buyerPropertiesOnChainHash, err := ctx.GetStub().GetPrivateDataHash(collectionBuyer, asset.ID)
+	if err != nil {
+		return fmt.Errorf("failed to read asset private properties hash from seller's collection: %v", err)
+	}
+	if buyerPropertiesOnChainHash == nil {
 		return fmt.Errorf("asset private properties hash does not exist: %s", asset.ID)
 	}
 
-	hash := sha256.New()
-	hash.Write(immutablePropertiesJSON)
-	calculatedPropertiesHash := hash.Sum(nil)
-
 	// verify that the hash of the passed immutable properties matches the on-chain hash
-	if !bytes.Equal(immutablePropertiesOnChainHash, calculatedPropertiesHash) {
-		return fmt.Errorf("hash %x for passed immutable properties %s does not match on-chain hash %x",
-			calculatedPropertiesHash,
-			immutablePropertiesJSON,
-			immutablePropertiesOnChainHash,
+	if !bytes.Equal(sellerPropertiesOnChainHash, buyerPropertiesOnChainHash) {
+		return fmt.Errorf("on chain hash of seller %x does not match on-chain hash of buyer %x",
+			sellerPropertiesOnChainHash,
+			buyerPropertiesOnChainHash,
 		)
 	}
 
@@ -330,7 +375,6 @@ func verifyTransferConditions(ctx contractapi.TransactionContextInterface,
 	}
 
 	// Get buyers bid price
-	collectionBuyer := buildCollectionName(buyerOrgID)
 	assetBidKey, err := ctx.GetStub().CreateCompositeKey(typeAssetBid, []string{asset.ID})
 	if err != nil {
 		return fmt.Errorf("failed to create composite key: %v", err)
@@ -343,7 +387,7 @@ func verifyTransferConditions(ctx contractapi.TransactionContextInterface,
 		return fmt.Errorf("buyer price for %s does not exist", asset.ID)
 	}
 
-	hash = sha256.New()
+	hash := sha256.New()
 	hash.Write(priceJSON)
 	calculatedPriceHash := hash.Sum(nil)
 
@@ -369,7 +413,8 @@ func verifyTransferConditions(ctx contractapi.TransactionContextInterface,
 }
 
 // transferAssetState performs the public and private state updates for the transferred asset
-func transferAssetState(ctx contractapi.TransactionContextInterface, asset *Asset, immutablePropertiesJSON []byte, clientOrgID string, buyerOrgID string, price int) error {
+// changes the endorsement for the transferred asset sbe to the new owner org
+func transferAssetState(ctx contractapi.TransactionContextInterface, asset *Asset, clientOrgID string, buyerOrgID string, price int) error {
 	asset.OwnerOrg = buyerOrgID
 	updatedAsset, err := json.Marshal(asset)
 	if err != nil {
@@ -381,8 +426,9 @@ func transferAssetState(ctx contractapi.TransactionContextInterface, asset *Asse
 		return fmt.Errorf("failed to write asset for buyer: %v", err)
 	}
 
-	// Change the endorsement policy to the new owner
-	err = setAssetStateBasedEndorsement(ctx, asset.ID, buyerOrgID)
+	// Changes the endorsement policy to the new owner org
+	endorsingOrgs := []string{buyerOrgID}
+	err = setAssetStateBasedEndorsement(ctx, asset.ID, endorsingOrgs)
 	if err != nil {
 		return fmt.Errorf("failed setting state based endorsement for new owner: %v", err)
 	}
@@ -395,10 +441,6 @@ func transferAssetState(ctx contractapi.TransactionContextInterface, asset *Asse
 	}
 
 	collectionBuyer := buildCollectionName(buyerOrgID)
-	err = ctx.GetStub().PutPrivateData(collectionBuyer, asset.ID, immutablePropertiesJSON)
-	if err != nil {
-		return fmt.Errorf("failed to put Asset private properties for buyer: %v", err)
-	}
 
 	// Delete the price records for seller
 	assetPriceKey, err := ctx.GetStub().CreateCompositeKey(typeAssetForSale, []string{asset.ID})
@@ -466,21 +508,10 @@ func transferAssetState(ctx contractapi.TransactionContextInterface, asset *Asse
 }
 
 // getClientOrgID gets the client org ID.
-// The client org ID can optionally be verified against the peer org ID, to ensure that a client
-// from another org doesn't attempt to read or write private data from this peer.
-// The only exception in this scenario is for TransferAsset, since the current owner
-// needs to get an endorsement from the buyer's peer.
-func getClientOrgID(ctx contractapi.TransactionContextInterface, verifyOrg bool) (string, error) {
+func getClientOrgID(ctx contractapi.TransactionContextInterface) (string, error) {
 	clientOrgID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
 		return "", fmt.Errorf("failed getting client's orgID: %v", err)
-	}
-
-	if verifyOrg {
-		err = verifyClientOrgMatchesPeerOrg(clientOrgID)
-		if err != nil {
-			return "", err
-		}
 	}
 
 	return clientOrgID, nil
@@ -503,14 +534,13 @@ func verifyClientOrgMatchesPeerOrg(clientOrgID string) error {
 	return nil
 }
 
-// setAssetStateBasedEndorsement adds an endorsement policy to a asset so that only a peer from an owning org
-// can update or transfer the asset.
-func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, assetID string, orgToEndorse string) error {
+// setAssetStateBasedEndorsement adds an endorsement policy to an asset so that the passed orgs need to agree upon transfer
+func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, assetID string, orgsToEndorse []string) error {
 	endorsementPolicy, err := statebased.NewStateEP(nil)
 	if err != nil {
 		return err
 	}
-	err = endorsementPolicy.AddOrgs(statebased.RoleTypePeer, orgToEndorse)
+	err = endorsementPolicy.AddOrgs(statebased.RoleTypePeer, orgsToEndorse...)
 	if err != nil {
 		return fmt.Errorf("failed to add org to endorsement policy: %v", err)
 	}
@@ -526,12 +556,40 @@ func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, 
 	return nil
 }
 
+// GetAssetHash Allows a buyer to validate the properties of
+// an asset against the asset Id and return the hash
+func (s *SmartContract) GetAssetHashId(ctx contractapi.TransactionContextInterface) (string, error) {
+	transientMap, err := ctx.GetStub().GetTransient()
+	if err != nil {
+		return "", fmt.Errorf("error getting transient: %v", err)
+	}
+
+	// Asset properties must be retrieved from the transient field as they are private
+	propertiesJSON, ok := transientMap["asset_properties"]
+	if !ok {
+		return "", fmt.Errorf("asset_properties key not found in the transient map")
+	}
+
+	hash := sha256.New()
+	hash.Write(propertiesJSON)
+	assetID := hex.EncodeToString(hash.Sum(nil))
+
+	asset, err := s.ReadAsset(ctx, assetID)
+	if err != nil {
+		return "", fmt.Errorf("failed to get asset: %v, asset properies provided do not represent any on chain asset", err)
+	}
+	if asset.ID != assetID {
+		return "", fmt.Errorf("Asset properies provided do not correpond to any on chain asset")
+	}
+	return asset.ID, nil
+}
+
 func buildCollectionName(clientOrgID string) string {
 	return fmt.Sprintf("_implicit_org_%s", clientOrgID)
 }
 
 func getClientImplicitCollectionName(ctx contractapi.TransactionContextInterface) (string, error) {
-	clientOrgID, err := getClientOrgID(ctx, true)
+	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to get verified OrgID: %v", err)
 	}

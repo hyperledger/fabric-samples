@@ -207,8 +207,7 @@ async function main() {
 	console.log(`${GREEN} **** START ****${RESET}`);
 	try {
 		const randomNumber = Math.floor(Math.random() * 100) + 1;
-		// use a random key so that we can run multiple times
-		const assetKey = `asset-${randomNumber}`;
+		let assetKey;
 
 		/** ******* Fabric client init: Using Org1 identity to Org1 Peer ******* */
 		const gatewayOrg1 = await initGatewayForOrg1();
@@ -231,20 +230,19 @@ async function main() {
 				// the actual peers that may be active at any given time.
 				const asset_properties = {
 					object_type: 'asset_properties',
-					asset_id: assetKey,
 					color: 'blue',
 					size: 35,
 					salt: Buffer.from(randomNumber.toString()).toString('hex')
 				};
 				const asset_properties_string = JSON.stringify(asset_properties);
-				console.log(`${GREEN}--> Submit Transaction: CreateAsset, ${assetKey} as Org1 - endorsed by Org1${RESET}`);
+				console.log(`${GREEN}--> Submit Transaction: CreateAsset as Org1 - endorsed by Org1${RESET}`);
 				console.log(`${asset_properties_string}`);
 				transaction = contractOrg1.createTransaction('CreateAsset');
 				transaction.setEndorsingOrganizations(org1);
 				transaction.setTransient({
 					asset_properties: Buffer.from(asset_properties_string)
 				});
-				await transaction.submit(assetKey, `Asset ${assetKey} owned by ${org1} is not for sale`);
+				assetKey = await transaction.submit( `Asset owned by ${org1} is not for sale`);
 				console.log(`*** Result: committed, asset ${assetKey} is owned by Org1`);
 			} catch (createError) {
 				console.log(`${RED}*** Failed: CreateAsset - ${createError}${RESET}`);
@@ -314,7 +312,8 @@ async function main() {
 				transaction.setTransient({
 					asset_price: Buffer.from(asset_price_string)
 				});
-				await transaction.submit(assetKey);
+				//call agree to sell with desired price and target buyer organization
+				await transaction.submit(assetKey, org2);
 				console.log(`*** Result: committed, Org1 has agreed to sell asset ${assetKey} for 110`);
 			} catch (sellError) {
 				console.log(`${RED}*** Failed: AgreeToSell - ${sellError}${RESET}`);
@@ -326,7 +325,6 @@ async function main() {
 				// details may be checked by the chaincode.
 				const asset_properties = {
 					object_type: 'asset_properties',
-					asset_id: assetKey,
 					color: 'blue',
 					size: 35,
 					salt: Buffer.from(randomNumber.toString()).toString('hex')
@@ -356,16 +354,24 @@ async function main() {
 			try {
 				// Agree to a buy by Org2
 				const asset_price = {
-					asset_id: assetKey,
+					asset_id: assetKey.toString(),
 					price: 100,
 					trade_id: randomNumber.toString()
 				};
 				const asset_price_string = JSON.stringify(asset_price);
+				const asset_properties = {
+					object_type: 'asset_properties',
+					color: 'blue',
+					size: 35,
+					salt: Buffer.from(randomNumber.toString()).toString('hex')
+				};
+				const asset_properties_string = JSON.stringify(asset_properties);
 				console.log(`${GREEN}--> Submit Transaction: AgreeToBuy, ${assetKey} as Org2 - endorsed by Org2${RESET}`);
 				transaction = contractOrg2.createTransaction('AgreeToBuy');
-				transaction.setEndorsingOrganizations(org2);
+				transaction.setEndorsingOrganizations(org1, org2);
 				transaction.setTransient({
-					asset_price: Buffer.from(asset_price_string)
+					asset_price: Buffer.from(asset_price_string),
+					asset_properties: Buffer.from(asset_properties_string)
 				});
 				await transaction.submit(assetKey);
 				console.log(`*** Result: committed, Org2 has agreed to buy asset ${assetKey} for 100`);
@@ -395,14 +401,6 @@ async function main() {
 				// Org1 will try to transfer the asset to Org2
 				// This will fail due to the sell price and the bid price
 				// are not the same
-				const asset_properties = {
-					object_type: 'asset_properties',
-					asset_id: assetKey,
-					color: 'blue',
-					size: 35,
-					salt: Buffer.from(randomNumber.toString()).toString('hex')
-				};
-				const asset_properties_string = JSON.stringify(asset_properties);
 				const asset_price = {
 					asset_id: assetKey,
 					price: 110,
@@ -411,11 +409,9 @@ async function main() {
 				const asset_price_string = JSON.stringify(asset_price);
 
 				console.log(`${GREEN}--> Submit Transaction: TransferAsset, ${assetKey} as Org1 - endorsed by Org1${RESET}`);
-				console.log(`${asset_properties_string}`);
 				transaction = contractOrg1.createTransaction('TransferAsset');
 				transaction.setEndorsingOrganizations(org1);
 				transaction.setTransient({
-					asset_properties: Buffer.from(asset_properties_string),
 					asset_price: Buffer.from(asset_price_string)
 				});
 				await transaction.submit(assetKey, org2);
@@ -428,18 +424,18 @@ async function main() {
 				// Agree to a sell by Org1
 				// Org1, the seller will agree to the bid price of Org2
 				const asset_price = {
-					asset_id: assetKey,
+					asset_id: assetKey.toString(),
 					price: 100,
 					trade_id: randomNumber.toString()
 				};
 				const asset_price_string = JSON.stringify(asset_price);
 				console.log(`${GREEN}--> Submit Transaction: AgreeToSell, ${assetKey} as Org1 - endorsed by Org1${RESET}`);
 				transaction = contractOrg1.createTransaction('AgreeToSell');
-				transaction.setEndorsingOrganizations(org1);
+				transaction.setEndorsingOrganizations(org1, org2);
 				transaction.setTransient({
 					asset_price: Buffer.from(asset_price_string)
 				});
-				await transaction.submit(assetKey);
+				await transaction.submit(assetKey, org2);
 				console.log(`*** Result: committed, Org1 has agreed to sell asset ${assetKey} for 100`);
 			} catch (sellError) {
 				console.log(`${RED}*** Failed: AgreeToSell - ${sellError}${RESET}`);
@@ -460,27 +456,17 @@ async function main() {
 			try {
 				// Org2 user will try to transfer the asset to Org2
 				// This will fail as the owner is Org1
-				const asset_properties = {
-					object_type: 'asset_properties',
-					asset_id: assetKey,
-					color: 'blue',
-					size: 35,
-					salt: Buffer.from(randomNumber.toString()).toString('hex')
-				};
-				const asset_properties_string = JSON.stringify(asset_properties);
 				const asset_price = {
-					asset_id: assetKey,
+					asset_id: assetKey.toString(),
 					price: 100,
 					trade_id: randomNumber.toString()
 				};
 				const asset_price_string = JSON.stringify(asset_price);
 
 				console.log(`${GREEN}--> Submit Transaction: TransferAsset, ${assetKey} as Org2 - endorsed by Org1${RESET}`);
-				console.log(`${asset_properties_string}`);
 				transaction = contractOrg2.createTransaction('TransferAsset');
 				transaction.setEndorsingOrganizations(org1, org2);
 				transaction.setTransient({
-					asset_properties: Buffer.from(asset_properties_string),
 					asset_price: Buffer.from(asset_price_string)
 				});
 				await transaction.submit(assetKey, org2);
@@ -492,27 +478,18 @@ async function main() {
 			try {
 				// Org1 will transfer the asset to Org2
 				// This will now complete as the sell price and the bid price are the same
-				const asset_properties = {
-					object_type: 'asset_properties',
-					asset_id: assetKey,
-					color: 'blue',
-					size: 35,
-					salt: Buffer.from(randomNumber.toString()).toString('hex')
-				};
-				const asset_properties_string = JSON.stringify(asset_properties);
 				const asset_price = {
-					asset_id: assetKey,
+					asset_id: assetKey.toString(),
 					price: 100,
 					trade_id: randomNumber.toString()
 				};
 				const asset_price_string = JSON.stringify(asset_price);
 
 				console.log(`${GREEN}--> Submit Transaction: TransferAsset, ${assetKey} as Org1 - endorsed by Org1${RESET}`);
-				console.log(`${asset_properties_string}`);
+
 				transaction = contractOrg1.createTransaction('TransferAsset');
 				transaction.setEndorsingOrganizations(org1, org2);
 				transaction.setTransient({
-					asset_properties: Buffer.from(asset_properties_string),
 					asset_price: Buffer.from(asset_price_string)
 				});
 				await transaction.submit(assetKey, org2);
