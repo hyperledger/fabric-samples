@@ -69,38 +69,61 @@ function chaincode_command_group() {
 # Convenience routine to "do everything" required to bring up a sample CC.
 function deploy_chaincode() {
   local cc_name=$1
-  local cc_label=$2
-  local cc_folder=$(absolute_path $3)
-
+  local cc_label=$1
+  local cc_folder=$(absolute_path $2)
   local temp_folder=$(mktemp -d)
   local cc_package=${temp_folder}/${cc_name}.tgz
 
-  package_chaincode       ${cc_label} ${cc_name} ${cc_package}
+  prepare_chaincode_image ${cc_folder} ${cc_name}
+  package_chaincode       ${cc_name} ${cc_label} ${cc_package}
 
-  set_chaincode_id        ${cc_package}
-  set_chaincode_image     ${cc_folder}
-
-  build_chaincode_image   ${cc_folder} ${CHAINCODE_IMAGE}
-
-  if [ "${CLUSTER_RUNTIME}" == "kind" ]; then
-    kind_load_image       ${CHAINCODE_IMAGE}
+  if [ "${CHAINCODE_BUILDER}" == "ccaas" ]; then
+    set_chaincode_id      ${cc_package}
+    launch_chaincode      ${cc_name} ${CHAINCODE_ID} ${CHAINCODE_IMAGE}
   fi
 
-  launch_chaincode        ${cc_name} ${CHAINCODE_ID} ${CHAINCODE_IMAGE}
   activate_chaincode      ${cc_name} ${cc_package}
 }
 
-# Infer a reasonable name for the chaincode image based on the folder path conventions, or
-# allow the user to override with TEST_NETWORK_CHAINCODE_IMAGE.
-function set_chaincode_image() {
+# Prepare a chaincode image for use in a builder package.
+# Sets the CHAINCODE_IMAGE environment variable
+function prepare_chaincode_image() {
   local cc_folder=$1
+  local cc_name=$2
 
-  if [ -z "$TEST_NETWORK_CHAINCODE_IMAGE" ]; then
-    # cc_folder path starting with first index of "fabric-samples"
-    CHAINCODE_IMAGE=${cc_folder/*fabric-samples/fabric-samples}
+  build_chaincode_image ${cc_folder} ${cc_name}
+
+  if [ "${CLUSTER_RUNTIME}" == "k3s" ]; then
+    # For rancher / k3s runtimes, bypass the local container registry and load images directly from the image cache.
+    export CHAINCODE_IMAGE=${cc_name}
   else
-    CHAINCODE_IMAGE=${TEST_NETWORK_CHAINCODE_IMAGE}
+    # For KIND and k8s-builder environments, publish the image to a local docker registry
+    export CHAINCODE_IMAGE=localhost:${LOCAL_REGISTRY_PORT}/${cc_name}
+    publish_chaincode_image ${cc_name} ${CHAINCODE_IMAGE}
   fi
+}
+
+function build_chaincode_image() {
+  local cc_folder=$1
+  local cc_name=$2
+
+  push_fn "Building chaincode image ${cc_name}"
+
+  $CONTAINER_CLI build ${CONTAINER_NAMESPACE} -t ${cc_name} ${cc_folder}
+
+  pop_fn
+}
+
+# tag a docker image with a new name and publish to a remote container registry
+function publish_chaincode_image() {
+  local cc_name=$1
+  local cc_url=$2
+  push_fn "Publishing chaincode image ${cc_url}"
+
+  ${CONTAINER_CLI} tag  ${cc_name} ${cc_url}
+  ${CONTAINER_CLI} push ${cc_url}
+
+  pop_fn
 }
 
 # Convenience routine to "do everything other than package and launch" a sample CC.
@@ -168,36 +191,67 @@ function invoke_chaincode() {
   sleep 2
 }
 
-function build_chaincode_image() {
-  local cc_folder=$1
-  local cc_image=$2
-
-  push_fn "Building chaincode image ${cc_image}"
-
-  $CONTAINER_CLI build ${CONTAINER_NAMESPACE} -t ${cc_image} ${cc_folder}
-
-  pop_fn
-}
-
-function kind_load_image() {
-  local cc_image=$1
-
-  push_fn "Loading chaincode to kind image plane"
-
-  kind load docker-image ${cc_image}
-
-  pop_fn
-}
-
 function package_chaincode() {
-  local cc_label=$1
-  local cc_name=$2
+
+  if [ "${CHAINCODE_BUILDER}" == "k8s" ]; then
+    package_k8s_chaincode $@
+
+  elif [ "${CHAINCODE_BUILDER}" == "ccaas" ]; then
+    package_ccaas_chaincode $@
+
+  else
+    log "Unknown CHAINCODE_BUILDER ${CHAINCODE_BUILDER}"
+    exit 1
+  fi
+}
+
+# The k8s builder expects EXACTLY an IMMUTABLE image digest referencing a SPECIFIC image layer at a container registry.
+function package_k8s_chaincode() {
+  local cc_name=$1
+  local cc_label=$2
   local cc_archive=$3
 
   local cc_folder=$(dirname $cc_archive)
   local archive_name=$(basename $cc_archive)
 
-  push_fn "Packaging chaincode ${cc_label}"
+  push_fn "Packaging k8s chaincode ${cc_archive}"
+
+  mkdir -p ${cc_folder}
+
+  # Find the docker image digest associated with the image at the container registry
+  local cc_digest=$(${CONTAINER_CLI} inspect --format='{{index .RepoDigests 0}}' ${CHAINCODE_IMAGE} | cut -d'@' -f2)
+
+  cat << IMAGEJSON-EOF > ${cc_folder}/image.json
+{
+  "name": "${CHAINCODE_IMAGE}",
+  "digest": "${cc_digest}"
+}
+IMAGEJSON-EOF
+
+  cat << METADATAJSON-EOF > ${cc_folder}/metadata.json
+{
+    "type": "k8s",
+    "label": "${cc_label}"
+}
+METADATAJSON-EOF
+
+  tar -C ${cc_folder} -zcf ${cc_folder}/code.tar.gz image.json
+  tar -C ${cc_folder} -zcf ${cc_archive} code.tar.gz metadata.json
+
+  rm ${cc_folder}/code.tar.gz
+
+  pop_fn
+}
+
+function package_ccaas_chaincode() {
+  local cc_name=$1
+  local cc_label=$2
+  local cc_archive=$3
+
+  local cc_folder=$(dirname $cc_archive)
+  local archive_name=$(basename $cc_archive)
+
+  push_fn "Packaging ccaas chaincode ${cc_label}"
 
   mkdir -p ${cc_folder}
 

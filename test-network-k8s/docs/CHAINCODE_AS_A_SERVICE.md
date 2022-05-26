@@ -28,7 +28,7 @@ network up
 network channel create
 ```
 ```
-network chaincode deploy    asset-transfer-basic basic_1.0 ${PWD}
+network chaincode deploy    asset-transfer-basic ${PWD}
 ```
 ```
 network chaincode metadata  asset-transfer-basic
@@ -55,7 +55,7 @@ kind load docker-image fabric-samples/asset-transfer-basic/chaincode-java
 
 ```shell
 # Assemble the chaincode package archive 
-network chaincode package basic_1.0 asset-transfer-basic $PWD/build/asset-transfer.tgz
+network chaincode package asset-transfer-basic asset-transfer-basic $PWD/build/asset-transfer.tgz
 
 # Determine the ID for the chaincode package 
 CORE_CHAINCODE_ID_NAME=$(network chaincode id $PWD/build/asset-transfer.tgz)

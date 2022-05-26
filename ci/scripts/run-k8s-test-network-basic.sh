@@ -10,6 +10,7 @@ set -euo pipefail
 export CONTAINER_CLI=${CONTAINER_CLI:-docker}
 export CLIENT_LANGUAGE=${CLIENT_LANGUAGE:-typescript}
 export CHAINCODE_LANGUAGE=${CHAINCODE_LANGUAGE:-java}
+export TEST_NETWORK_CHAINCODE_BUILDER=${CHAINCODE_BUILDER:-ccaas}
 
 # Fabric version and Docker registry source: use the latest stable tag image from JFrog
 export FABRIC_VERSION=${FABRIC_VERSION:-2.4}
@@ -70,7 +71,7 @@ function createNetwork() {
   ./network channel create
 
   print "Deploying chaincode"
-  ./network chaincode deploy asset-transfer-basic basic_1.0 $TEST_NETWORK_CHAINCODE_PATH
+  ./network chaincode deploy $CHAINCODE_NAME $TEST_NETWORK_CHAINCODE_PATH
 }
 
 function stopNetwork() {

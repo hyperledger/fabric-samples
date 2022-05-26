@@ -121,6 +121,7 @@ jobs:
         Basic-Typescript:
           CHAINCODE_NAME: basic
           CHAINCODE_LANGUAGE: typescript
+
     steps:
       - template: templates/install-deps.yml
       - script: sudo apt-get install softhsm2
@@ -135,12 +136,17 @@ jobs:
       vmImage: ubuntu-20.04
     strategy:
       matrix:
-        Typescript-Java:
+        CCaaS-Java:
           CLIENT_LANGUAGE: typescript
           CHAINCODE_LANGUAGE: java
-        Typescript-Golang:
+        CCaaS-Golang:
           CLIENT_LANGUAGE: typescript
           CHAINCODE_LANGUAGE: external
+        K8s-Builder-Java:
+          CHAINCODE_NAME: basic
+          CHAINCODE_LANGUAGE: java
+          CHAINCODE_BUILDER: k8s
+
     steps:
       - template: templates/install-k8s-deps.yml
       - script: ../ci/scripts/run-k8s-test-network-basic.sh
