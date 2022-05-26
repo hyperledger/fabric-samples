@@ -14,7 +14,7 @@ export interface Asset {
     Color: string;
     Size: number;
     Owner: string;
-    AppriasedValue: number;
+    AppraisedValue: number;
 }
 
 export class AssetTransferBasic {
@@ -26,7 +26,7 @@ export class AssetTransferBasic {
 
     async createAsset(asset: Asset): Promise<void> {
         await this.#contract.submit('CreateAsset', {
-            arguments: [asset.ID, asset.Color, String(asset.Size), asset.Owner, String(asset.AppriasedValue)],
+            arguments: [asset.ID, asset.Color, String(asset.Size), asset.Owner, String(asset.AppraisedValue)],
         });
     }
 

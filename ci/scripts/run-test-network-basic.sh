@@ -123,3 +123,14 @@ SIMULATED_FAILURE_COUNT=1 npm start getAllAssets transact getAllAssets listen
 SIMULATED_FAILURE_COUNT=1 npm start listen
 popd
 stopNetwork
+
+# Run off-chain data Java application
+createNetwork
+print "Initializing Typescript off-chain data application"
+pushd ../off_chain_data/application-java
+rm -f app/checkpoint.json app/store.log
+print "Running the output app"
+SIMULATED_FAILURE_COUNT=1 ./gradlew run --quiet --args='getAllAssets transact getAllAssets listen'
+SIMULATED_FAILURE_COUNT=1 ./gradlew run --quiet --args=listen
+popd
+stopNetwork

@@ -1,0 +1,38 @@
+/*
+ * Copyright IBM Corp. All Rights Reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+plugins {
+    id 'application' // Support for building a CLI application in Java.
+    id 'checkstyle'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://hyperledger-fabric.jfrog.io/artifactory/fabric-maven'
+    }
+}
+
+dependencies {
+//    implementation 'com.google.guava:guava:30.1.1-jre'
+    implementation 'io.grpc:grpc-netty-shaded:1.46.0'
+    implementation 'org.hyperledger.fabric:fabric-gateway:1.0.2-dev-20220518-1'
+    implementation 'com.google.code.gson:gson:2.9.0'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
+checkstyle {
+    toolVersion '10.2'
+}
+
+application {
+    mainClass = 'App'
+}
