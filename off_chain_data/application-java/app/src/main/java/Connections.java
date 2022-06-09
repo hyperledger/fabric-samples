@@ -20,7 +20,6 @@ import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import org.hyperledger.fabric.client.CallOption;
 import org.hyperledger.fabric.client.Gateway;
 import org.hyperledger.fabric.client.identity.Identities;
 import org.hyperledger.fabric.client.identity.Identity;
@@ -92,10 +91,10 @@ public final class Connections {
                 .identity(newIdentity())
                 .signer(newSigner())
                 .connection(grpcChannel)
-                .evaluateOptions(CallOption.deadlineAfter(EVALUATE_TIMEOUT_SECONDS, TimeUnit.SECONDS))
-                .endorseOptions(CallOption.deadlineAfter(ENDORSE_TIMEOUT_SECONDS, TimeUnit.SECONDS))
-                .submitOptions(CallOption.deadlineAfter(SUBMIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
-                .commitStatusOptions(CallOption.deadlineAfter(COMMIT_STATUS_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+                .evaluateOptions(options -> options.withDeadlineAfter(EVALUATE_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .endorseOptions(options -> options.withDeadlineAfter(ENDORSE_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .submitOptions(options -> options.withDeadlineAfter(SUBMIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .commitStatusOptions(options -> options.withDeadlineAfter(COMMIT_STATUS_TIMEOUT_SECONDS, TimeUnit.SECONDS));
     }
 
     private static Identity newIdentity() throws IOException, CertificateException {
