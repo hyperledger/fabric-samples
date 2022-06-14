@@ -315,7 +315,7 @@ class TokenERC20Contract extends Contract {
 
         //check contract options are not already set, client is not authorized to change them once intitialized
         const nameBytes = await ctx.stub.getState(nameKey);
-        if (nameBytes !== undefined) {
+        if (nameBytes && nameBytes.length > 0) {
             throw new Error('contract options are already set, client is not authorized to change them');
         }
 
@@ -476,7 +476,7 @@ class TokenERC20Contract extends Contract {
     //Checks that contract options have been already initialized
     async CheckInitialized(ctx){
         const nameBytes = await ctx.stub.getState(nameKey);
-        if (nameBytes === undefined) {
+        if (!nameBytes || nameBytes.length === 0) {
             throw new Error('contract options need to be set before calling any function, call Initialize() to initialize contract');
         }
     }
