@@ -312,7 +312,7 @@ class TokenERC721Contract extends Contract {
 
         //check contract options are not already set, client is not authorized to change them once intitialized
         const nameBytes = await ctx.stub.getState(nameKey);
-        if (!nameBytes || nameBytes.length !== 0) {
+        if (nameBytes && nameBytes.length > 0) {
             throw new Error('contract options are already set, client is not authorized to change them');
         }
 
