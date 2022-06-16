@@ -17,14 +17,14 @@ This sample uses the block event listening capability of the [Fabric Gateway cli
 The client application provides several "commands" that can be invoked using the command-line:
 
 - **getAllAssets**: Retrieve the current details of all assets recorded on the ledger. See:
-  - TypeScript: `application-typescript/src/getAllAssets.ts`
-  - Java: `application-java/app/src/main/java/GetAllAssets.java`
+  - TypeScript: [application-typescript/src/getAllAssets.ts](application-typescript/src/getAllAssets.ts)
+  - Java: [application-java/app/src/main/java/GetAllAssets.java](application-java/app/src/main/java/GetAllAssets.java)
 - **listen**: Listen for block events, and use them to replicate ledger updates in an off-chain data store. See:
-  - TypeScript: `application-typescript/src/listen.ts`
-  - Java: `application-java/app/src/main/java/Transact.java`
+  - TypeScript: [application-typescript/src/listen.ts](application-typescript/src/listen.ts)
+  - Java: [application-java/app/src/main/java/Transact.java](application-java/app/src/main/java/Transact.java)
 - **transact**: Submit a set of transactions to create, modify and delete assets. See:
-  - TypeScript: `application-typescript/src/transact.ts`
-  - Java: `application-java/app/src/main/java/Transact.java`
+  - TypeScript: [application-typescript/src/transact.ts](application-typescript/src/transact.ts)
+  - Java: [application-java/app/src/main/java/Transact.java](application-java/app/src/main/java/Transact.java)
 
 To keep the sample code concise, the **listen** command writes ledger updates to an output file named `store.log` in the current working directory (which for the Java sample is the `application-java/app` directory). A real implementation could write ledger updates directly to an off-chain data store of choice. You can inspect the information captured in this file as you run the sample.
 
