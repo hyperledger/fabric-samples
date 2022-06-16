@@ -1151,9 +1151,9 @@ func sub(b uint64, q uint64) (uint64, error) {
 
 	// Check overflow
 	var diff uint64
-	diff = q - b
+	diff = b - q
 
-	if diff > q {
+	if diff > b {
 		return 0, fmt.Errorf("Math: subtraction overflow occurred  %d - %d", b, q)
 	}
 
