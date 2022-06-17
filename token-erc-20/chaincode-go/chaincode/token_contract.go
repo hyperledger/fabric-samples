@@ -721,9 +721,9 @@ func sub(b int, q int) (int, error) {
 
 	// Check overflow
 	var diff int
-	diff = q - b
+	diff = b - q
 
-	if (diff > q) == (b >= 0 && q >= 0) {
+	if (diff > b) == (b >= 0 && q >= 0) {
 		return 0, fmt.Errorf("Math: Subtraction overflow occurred  %d - %d", b, q)
 	}
 
