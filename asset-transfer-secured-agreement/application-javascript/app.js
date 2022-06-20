@@ -301,7 +301,7 @@ async function main() {
 			try {
 				// Agree to a sell by Org1
 				const asset_price = {
-					asset_id: assetKey,
+					asset_id: assetKey.toString(),
 					price: 110,
 					trade_id: randomNumber.toString()
 				};
@@ -402,7 +402,7 @@ async function main() {
 				// This will fail due to the sell price and the bid price
 				// are not the same
 				const asset_price = {
-					asset_id: assetKey,
+					asset_id: assetKey.toString(),
 					price: 110,
 					trade_id: randomNumber.toString()
 				};
