@@ -33,7 +33,7 @@ export CHANNEL_NAME=${TEST_NETWORK_CHANNEL_NAME:-mychannel}
 export ORDERER_TIMEOUT=${TEST_NETWORK_ORDERER_TIMEOUT:-10s}         # see https://github.com/hyperledger/fabric/issues/3372
 export TEMP_DIR=${PWD}/build
 export CHAINCODE_BUILDER=${TEST_NETWORK_CHAINCODE_BUILDER:-ccaas}   # see https://github.com/hyperledgendary/fabric-builder-k8s/blob/main/docs/TEST_NETWORK_K8S.md
-export K8S_CHAINCODE_BUILDER_VERSION=${TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION:-v0.4.0}
+export K8S_CHAINCODE_BUILDER_VERSION=${TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION:-v0.6.0}
 
 LOG_FILE=${TEST_NETWORK_LOG_FILE:-network.log}
 DEBUG_FILE=${TEST_NETWORK_DEBUG_FILE:-network-debug.log}
