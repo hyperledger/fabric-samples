@@ -65,7 +65,12 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 	// In this scenario, client is only authorized to read/write private data from its own peer.
 	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to get verified OrgID: %v", err)
+		return "", err
+	}
+
+	err = verifyClientOrgMatchesPeerOrg(clientOrgID)
+	if err != nil {
+		return "", err
 	}
 
 	asset := Asset{
@@ -106,7 +111,12 @@ func (s *SmartContract) ChangePublicDescription(ctx contractapi.TransactionConte
 	// No need to check client org id matches peer org id, rely on the asset ownership check instead.
 	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get verified OrgID: %v", err)
+		return err
+	}
+
+	err = verifyClientOrgMatchesPeerOrg(clientOrgID)
+	if err != nil {
+		return err
 	}
 
 	asset, err := s.ReadAsset(ctx, assetID)
@@ -138,7 +148,7 @@ func (s *SmartContract) AgreeToSell(ctx contractapi.TransactionContextInterface,
 
 	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get verified OrgID: %v", err)
+		return err
 	}
 
 	// Verify that this clientOrgId actually owns the asset.
@@ -165,7 +175,7 @@ func (s *SmartContract) AgreeToBuy(ctx contractapi.TransactionContextInterface, 
 
 	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get verified OrgID: %v", err)
+		return err
 	}
 
 	// Asset properties must be retrieved from the transient field as they are private
@@ -186,10 +196,10 @@ func (s *SmartContract) AgreeToBuy(ctx contractapi.TransactionContextInterface, 
 
 // agreeToPrice adds a bid or ask price to caller's implicit private data collection
 func agreeToPrice(ctx contractapi.TransactionContextInterface, assetID string, priceType string) error {
-	// In this scenario, client is only authorized to read/write private data from its own peer.
+	// In this scenario, both buyer and seller are authoried to read/write private about transfer after seller agrees to sell.
 	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get verified OrgID: %v", err)
+		return err
 	}
 
 	transMap, err := ctx.GetStub().GetTransient()
@@ -281,7 +291,7 @@ func (s *SmartContract) VerifyAssetProperties(ctx contractapi.TransactionContext
 func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, assetID string, buyerOrgID string) error {
 	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get verified OrgID: %v", err)
+		return err
 	}
 
 	transMap, err := ctx.GetStub().GetTransient()
@@ -591,7 +601,7 @@ func buildCollectionName(clientOrgID string) string {
 func getClientImplicitCollectionName(ctx contractapi.TransactionContextInterface) (string, error) {
 	clientOrgID, err := getClientOrgID(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to get verified OrgID: %v", err)
+		return "", err
 	}
 
 	err = verifyClientOrgMatchesPeerOrg(clientOrgID)
