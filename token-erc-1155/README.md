@@ -148,7 +148,7 @@ export CORE_PEER_ADDRESS=localhost:7051
 
 We can then invoke the smart contract to initilize it
 ```bash
-peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n erc1155 -c '{"function":"Initialize","Args":["some name", "some symbol", "2"]}'
+peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n erc1155 -c '{"function":"Initialize","Args":["some name", "some symbol"]}'
 ```
 
 ### Get account ID
