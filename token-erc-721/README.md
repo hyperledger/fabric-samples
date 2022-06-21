@@ -114,7 +114,7 @@ export TARGET_TLS_OPTIONS=(-o localhost:7050 --ordererTLSHostnameOverride ordere
 
 We can then invoke the smart contract to initilize it
 ```
-peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n token_erc721 -c '{"function":"Initialize","Args":["some name", "some symbol", "2"]}'
+peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n token_erc721 -c '{"function":"Initialize","Args":["some name", "some symbol"]}'
 ```
 
 ## Mint a non-fungible token

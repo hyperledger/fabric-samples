@@ -36,12 +36,17 @@ You can use the test network script to deploy the ERC-20 token contract to the c
 ./network.sh deployCC -ccn token_erc20 -ccp ../token-erc-20/chaincode-go/ -ccl go
 ```
 
+**For a Java Contract:**
+```
+./network.sh deployCC -ccn token_erc20 -ccp ../token-erc-20/chaincode-java/ -ccl java
+```
+
 **For a JavaScript Contract:**
 ```
 ./network.sh deployCC -ccn token_erc20 -ccp ../token-erc-20/chaincode-javascript/ -ccl javascript
 ```
 
-The above command deploys the go chaincode with short name `token_erc20`. The smart contract will use the default endorsement policy of majority of channel members.
+The above commands deploys the chaincode with short name `token_erc20`. The smart contract will use the default endorsement policy of majority of channel members.
 Since the channel has two members, this implies that we'll need to get peer endorsements from 2 out of the 2 channel members.
 
 Now you are ready to call the deployed smart contract via peer CLI calls. But let's first create the client identities for our scenario.
@@ -112,6 +117,8 @@ export CORE_PEER_ADDRESS=localhost:7051
 export TARGET_TLS_OPTIONS=(-o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt")
 ```
 
+The last environment variable above will be utilized within the CLI invoke commands to set the target peers for endorsement, and the target ordering service endpoint and TLS options.
+
 We can then invoke the smart contract to initilize it
 ```
 peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n token_erc20 -c '{"function":"Initialize","Args":["some name", "some symbol", "2"]}'
@@ -120,18 +127,6 @@ peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n token_erc20 -c 
 ## Mint some tokens
 
 Now that we have initialized the contract and created the identity of the minter, we can invoke the smart contract to mint some tokens.
-
-Shift back to the Org1 terminal, we'll set the following environment variables to operate the `peer` CLI as the minter identity from Org1.
-```
-export CORE_PEER_TLS_ENABLED=true
-export CORE_PEER_LOCALMSPID="Org1MSP"
-export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/minter@org1.example.com/msp
-export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
-export CORE_PEER_ADDRESS=localhost:7051
-export TARGET_TLS_OPTIONS=(-o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt")
-```
-
-The last environment variable above will be utilized within the CLI invoke commands to set the target peers for endorsement, and the target ordering service endpoint and TLS options.
 
 We can then invoke the smart contract to mint 5000 tokens:
 ```
@@ -184,6 +179,13 @@ The result shows that the subject and issuer is indeed the recipient user from O
 x509::CN=recipient,OU=client,O=Hyperledger,ST=North Carolina,C=US::CN=ca.org2.example.com,O=org2.example.com,L=Hursley,ST=Hampshire,C=UK
 ```
 
+**For a Java Contract**
+
+The function returns of recipient's client ID.
+```
+x509::CN=recipient, OU=client, O=Hyperledger, ST=North Carolina, C=US::CN=ca.org2.example.com, O=org2.example.com, L=Hursley, ST=Hampshire, C=UK
+```
+
 **For a JavaScript Contract:**
 
 The function returns of recipient's client ID.
@@ -198,6 +200,11 @@ Back in the Org1 terminal, request the transfer of 100 tokens to the recipient a
 **For a Go Contract:**
 ```
 export RECIPIENT="eDUwOTo6Q049cmVjaXBpZW50LE9VPWNsaWVudCxPPUh5cGVybGVkZ2VyLFNUPU5vcnRoIENhcm9saW5hLEM9VVM6OkNOPWNhLm9yZzIuZXhhbXBsZS5jb20sTz1vcmcyLmV4YW1wbGUuY29tLEw9SHVyc2xleSxTVD1IYW1wc2hpcmUsQz1VSw=="
+peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n token_erc20 -c '{"function":"Transfer","Args":[ "'"$RECIPIENT"'","100"]}'
+```
+***For a Java Contract**
+```
+export RECIPIENT="x509::CN=recipient, OU=client, O=Hyperledger, ST=North Carolina, C=US::CN=ca.org2.example.com, O=org2.example.com, L=Hursley, ST=Hampshire, C=UK"
 peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n token_erc20 -c '{"function":"Transfer","Args":[ "'"$RECIPIENT"'","100"]}'
 ```
 
@@ -291,6 +298,13 @@ The function returns of spender's account ID:
 eDUwOTo6Q049c3BlbmRlcixPVT1jbGllbnQsTz1IeXBlcmxlZGdlcixTVD1Ob3J0aCBDYXJvbGluYSxDPVVTOjpDTj1jYS5vcmcxLmV4YW1wbGUuY29tLE89b3JnMS5leGFtcGxlLmNvbSxMPUR1cmhhbSxTVD1Ob3J0aCBDYXJvbGluYSxDPVVT
 ```
 
+**For a Java Contract**
+
+The function returns of spenders's client ID.
+```
+x509::CN=spender, OU=client, O=Hyperledger, ST=North Carolina, C=US::CN=ca.org1.example.com, O=org1.example.com, L=Durham, ST=North Carolina, C=US
+```
+
 **For a JavaScript Contract:**
 
 The function returns of spender's client ID.
@@ -309,6 +323,13 @@ export SPENDER="eDUwOTo6Q049c3BlbmRlcixPVT1jbGllbnQsTz1IeXBlcmxlZGdlcixTVD1Ob3J0
 peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n token_erc20 -c '{"function":"Approve","Args":[ "'"$SPENDER"'","500"]}'
 ```
 
+**For a Java Contract:**
+
+```
+export SPENDER="x509::CN=spender, OU=client, O=Hyperledger, ST=North Carolina, C=US::CN=ca.org1.example.com, O=org1.example.com, L=Durham, ST=North Carolina, C=US"
+peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n token_erc20 -c '{"function":"Approve","Args":["'"$SPENDER"'", "500"]}'
+```
+
 **For a JavaScript Contract:**
 
 ```
@@ -324,6 +345,13 @@ Let's request the spender's allowance from the Org1 minter terminal.
 
 ```
 export MINTER="eDUwOTo6Q049bWludGVyLE9VPWNsaWVudCxPPUh5cGVybGVkZ2VyLFNUPU5vcnRoIENhcm9saW5hLEM9VVM6OkNOPWNhLm9yZzEuZXhhbXBsZS5jb20sTz1vcmcxLmV4YW1wbGUuY29tLEw9RHVyaGFtLFNUPU5vcnRoIENhcm9saW5hLEM9VVM="
+peer chaincode query -C mychannel -n token_erc20 -c '{"function":"Allowance","Args":["'"$MINTER"'", "'"$SPENDER"'"]}'
+```
+
+**For a Java Contract:**
+
+```
+export MINTER="x509::CN=minter, OU=client, O=Hyperledger, ST=North Carolina, C=US::CN=ca.org1.example.com, O=org1.example.com, L=Durham, ST=North Carolina, C=US"
 peer chaincode query -C mychannel -n token_erc20 -c '{"function":"Allowance","Args":["'"$MINTER"'", "'"$SPENDER"'"]}'
 ```
 
@@ -350,6 +378,14 @@ Back in the 3rd terminal, request the transfer of 100 tokens to the recipient ac
 ```
 export MINTER="eDUwOTo6Q049bWludGVyLE9VPWNsaWVudCxPPUh5cGVybGVkZ2VyLFNUPU5vcnRoIENhcm9saW5hLEM9VVM6OkNOPWNhLm9yZzEuZXhhbXBsZS5jb20sTz1vcmcxLmV4YW1wbGUuY29tLEw9RHVyaGFtLFNUPU5vcnRoIENhcm9saW5hLEM9VVM="
 export RECIPIENT="eDUwOTo6Q049cmVjaXBpZW50LE9VPWNsaWVudCxPPUh5cGVybGVkZ2VyLFNUPU5vcnRoIENhcm9saW5hLEM9VVM6OkNOPWNhLm9yZzIuZXhhbXBsZS5jb20sTz1vcmcyLmV4YW1wbGUuY29tLEw9SHVyc2xleSxTVD1IYW1wc2hpcmUsQz1VSw=="
+peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n token_erc20 -c '{"function":"TransferFrom","Args":[ "'"$MINTER"'", "'"$RECIPIENT"'", "100"]}'
+```
+
+**For a Java Contract:**
+
+```
+export MINTER="x509::CN=minter, OU=client, O=Hyperledger, ST=North Carolina, C=US::CN=ca.org1.example.com, O=org1.example.com, L=Durham, ST=North Carolina, C=US"
+export RECIPIENT="x509::CN=recipient, OU=client, O=Hyperledger, ST=North Carolina, C=US::CN=ca.org2.example.com, O=org2.example.com, L=Hursley, ST=Hampshire, C=UK"
 peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n token_erc20 -c '{"function":"TransferFrom","Args":[ "'"$MINTER"'", "'"$RECIPIENT"'", "100"]}'
 ```
 
@@ -380,6 +416,13 @@ While still in the 3rd terminal for the spender, let's request the spender's all
 
 ```
 export SPENDER="eDUwOTo6Q049c3BlbmRlcixPVT1jbGllbnQsTz1IeXBlcmxlZGdlcixTVD1Ob3J0aCBDYXJvbGluYSxDPVVTOjpDTj1jYS5vcmcxLmV4YW1wbGUuY29tLE89b3JnMS5leGFtcGxlLmNvbSxMPUR1cmhhbSxTVD1Ob3J0aCBDYXJvbGluYSxDPVVT"
+peer chaincode query -C mychannel -n token_erc20 -c '{"function":"Allowance","Args":["'"$MINTER"'", "'"$SPENDER"'"]}'
+```
+
+**For a Java Contract:**
+
+```
+export SPENDER="x509::CN=spender, OU=client, O=Hyperledger, ST=North Carolina, C=US::CN=ca.org1.example.com, O=org1.example.com, L=Durham, ST=North Carolina, C=US"
 peer chaincode query -C mychannel -n token_erc20 -c '{"function":"Allowance","Args":["'"$MINTER"'", "'"$SPENDER"'"]}'
 ```
 
