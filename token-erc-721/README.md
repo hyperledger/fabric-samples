@@ -304,7 +304,7 @@ And then request the approval for the operator to transfer the token.
 
 ```
 # Issue a new token
-peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n token_erc721 -c '{"function":"MintWithTokenURI","Args":["102", "https://example.com/nft102.json"]}'
+peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n token_erc721 -c '{"function":"MintWithTokenURI","Args":["102", "https://example.com/nft102.json"]}' --waitForEvent 
 
 # The owner approves
 export OPERATOR="x509::/C=US/ST=North Carolina/O=Hyperledger/OU=client/CN=operator::/C=US/ST=North Carolina/L=Durham/O=org1.example.com/CN=ca.org1.example.com"
