@@ -6,10 +6,8 @@
 
 package parser;
 
-import org.hyperledger.fabric.protos.common.Common;
-
 public final class BlockParser {
-    public static Block parseBlock(final Common.Block block) {
+    public static Block parseBlock(final org.hyperledger.fabric.protos.common.Block block) {
         return new ParsedBlock(block);
     }
 

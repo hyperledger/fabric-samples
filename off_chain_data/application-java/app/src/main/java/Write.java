@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import java.nio.charset.StandardCharsets;
+import org.hyperledger.fabric.protos.ledger.rwset.kvrwset.KVWrite;
 
-import org.hyperledger.fabric.protos.ledger.rwset.kvrwset.KvRwset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Description of a ledger write that can be applied to an off-chain data store.
@@ -18,7 +18,7 @@ public final class Write {
     private final boolean isDelete;
     private final String value; // Store as String for readability when serialized to JSON.
 
-    public Write(final String channelName, final String namespace, final KvRwset.KVWrite write) {
+    public Write(final String channelName, final String namespace, final KVWrite write) {
         this.channelName = channelName;
         this.namespace = namespace;
         this.key = write.getKey();

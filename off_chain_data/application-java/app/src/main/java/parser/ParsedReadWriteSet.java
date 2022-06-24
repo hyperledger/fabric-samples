@@ -6,21 +6,22 @@
 
 package parser;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.hyperledger.fabric.protos.ledger.rwset.NsReadWriteSet;
+import org.hyperledger.fabric.protos.ledger.rwset.TxReadWriteSet;
+import org.hyperledger.fabric.protos.ledger.rwset.kvrwset.KVRWSet;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.hyperledger.fabric.protos.ledger.rwset.Rwset;
-import org.hyperledger.fabric.protos.ledger.rwset.kvrwset.KvRwset;
-
 class ParsedReadWriteSet implements NamespaceReadWriteSet {
-    private final Rwset.NsReadWriteSet readWriteSet;
-    private final AtomicReference<KvRwset.KVRWSet> cachedReadWriteSet = new AtomicReference<>();
+    private final NsReadWriteSet readWriteSet;
+    private final AtomicReference<KVRWSet> cachedReadWriteSet = new AtomicReference<>();
 
-    static List<ParsedReadWriteSet> fromTxReadWriteSet(final Rwset.TxReadWriteSet readWriteSet) {
-        Rwset.TxReadWriteSet.DataModel dataModel = readWriteSet.getDataModel();
-        if (dataModel != Rwset.TxReadWriteSet.DataModel.KV) {
+    static List<ParsedReadWriteSet> fromTxReadWriteSet(final TxReadWriteSet readWriteSet) {
+        var dataModel = readWriteSet.getDataModel();
+        if (dataModel != TxReadWriteSet.DataModel.KV) {
             throw new IllegalArgumentException("Unexpected read/write set data model: " + dataModel.name());
         }
 
@@ -29,7 +30,7 @@ class ParsedReadWriteSet implements NamespaceReadWriteSet {
                 .collect(Collectors.toList());
     }
 
-    ParsedReadWriteSet(final Rwset.NsReadWriteSet readWriteSet) {
+    ParsedReadWriteSet(final NsReadWriteSet readWriteSet) {
         this.readWriteSet = readWriteSet;
     }
 
@@ -39,12 +40,12 @@ class ParsedReadWriteSet implements NamespaceReadWriteSet {
     }
 
     @Override
-    public KvRwset.KVRWSet getReadWriteSet() throws InvalidProtocolBufferException {
-        return Utils.getCachedProto(cachedReadWriteSet, () -> KvRwset.KVRWSet.parseFrom(readWriteSet.getRwset()));
+    public KVRWSet getReadWriteSet() throws InvalidProtocolBufferException {
+        return Utils.getCachedProto(cachedReadWriteSet, () -> KVRWSet.parseFrom(readWriteSet.getRwset()));
     }
 
     @Override
-    public Rwset.NsReadWriteSet toProto() {
+    public NsReadWriteSet toProto() {
         return readWriteSet;
     }
 }

@@ -6,13 +6,12 @@
 
 package parser;
 
-import java.util.List;
-
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.hyperledger.fabric.protos.common.Common;
+
+import java.util.List;
 
 public interface Block {
     long getNumber();
     List<Transaction> getTransactions() throws InvalidProtocolBufferException;
-    Common.Block toProto();
+    org.hyperledger.fabric.protos.common.Block toProto();
 }

@@ -6,39 +6,41 @@
 
 package parser;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.hyperledger.fabric.protos.common.ChannelHeader;
+import org.hyperledger.fabric.protos.common.HeaderType;
+import org.hyperledger.fabric.protos.common.Payload;
+import org.hyperledger.fabric.protos.peer.TxValidationCode;
+
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.hyperledger.fabric.protos.common.Common;
-import org.hyperledger.fabric.protos.peer.TransactionPackage;
-
 class ParsedPayload {
-    private final Common.Payload payload;
-    private final TransactionPackage.TxValidationCode statusCode;
-    private final AtomicReference<Common.ChannelHeader> cachedChannelHeader = new AtomicReference<>();
+    private final Payload payload;
+    private final TxValidationCode statusCode;
+    private final AtomicReference<ChannelHeader> cachedChannelHeader = new AtomicReference<>();
 
-    ParsedPayload(final Common.Payload payload, final TransactionPackage.TxValidationCode statusCode) {
+    ParsedPayload(final Payload payload, final TxValidationCode statusCode) {
         this.payload = payload;
         this.statusCode = statusCode;
     }
 
-    public Common.ChannelHeader getChannelHeader() throws InvalidProtocolBufferException {
-        return Utils.getCachedProto(cachedChannelHeader, () -> Common.ChannelHeader.parseFrom(payload.getHeader().getChannelHeader()));
+    public ChannelHeader getChannelHeader() throws InvalidProtocolBufferException {
+        return Utils.getCachedProto(cachedChannelHeader, () -> ChannelHeader.parseFrom(payload.getHeader().getChannelHeader()));
     }
 
-    public TransactionPackage.TxValidationCode getValidationCode() {
+    public TxValidationCode getValidationCode() {
         return statusCode;
     }
 
     public boolean isValid() {
-        return statusCode == TransactionPackage.TxValidationCode.VALID;
+        return statusCode == TxValidationCode.VALID;
     }
 
-    public Common.Payload toProto() {
+    public Payload toProto() {
         return payload;
     }
 
     public boolean isEndorserTransaction() throws InvalidProtocolBufferException {
-        return getChannelHeader().getType() == Common.HeaderType.ENDORSER_TRANSACTION_VALUE;
+        return getChannelHeader().getType() == HeaderType.ENDORSER_TRANSACTION_VALUE;
     }
 }

@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import io.grpc.ManagedChannel;
-
 public final class App {
     private static final long SHUTDOWN_TIMEOUT_SECONDS = 3;
     private static final Map<String, Command> COMMANDS = Map.ofEntries(
@@ -28,10 +26,10 @@ public final class App {
     }
 
     public void run() throws Exception {
-        List<Command> commands = getCommands();
-        ManagedChannel grpcChannel = Connections.newGrpcConnection();
+        var commands = getCommands();
+        var grpcChannel = Connections.newGrpcConnection();
         try {
-            for (Command command : commands) {
+            for (var command : commands) {
                 command.run(grpcChannel);
             }
         } finally {
@@ -40,9 +38,9 @@ public final class App {
     }
 
     private List<Command> getCommands() {
-        List<Command> commands = commandNames.stream()
+        var commands = commandNames.stream()
                 .map(name -> {
-                    Command command = COMMANDS.get(name);
+                    var command = COMMANDS.get(name);
                     if (command == null) {
                         printUsage();
                         throw new IllegalArgumentException("Unknown command: " + name);

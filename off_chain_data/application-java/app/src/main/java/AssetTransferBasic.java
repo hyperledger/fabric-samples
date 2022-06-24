@@ -4,15 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
 import com.google.gson.Gson;
 import org.hyperledger.fabric.client.CommitException;
 import org.hyperledger.fabric.client.CommitStatusException;
 import org.hyperledger.fabric.client.Contract;
 import org.hyperledger.fabric.client.EndorseException;
 import org.hyperledger.fabric.client.SubmitException;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public final class AssetTransferBasic {
     private static final Gson GSON = new Gson();
@@ -34,7 +34,7 @@ public final class AssetTransferBasic {
     }
 
     public String transferAsset(final String id, final String newOwner) throws EndorseException, CommitException, SubmitException, CommitStatusException {
-        byte[] resultBytes = contract.submitTransaction("TransferAsset", id, newOwner);
+        var resultBytes = contract.submitTransaction("TransferAsset", id, newOwner);
         return new String(resultBytes, StandardCharsets.UTF_8);
     }
 
@@ -43,9 +43,9 @@ public final class AssetTransferBasic {
     }
 
     public List<Asset> getAllAssets() throws EndorseException, CommitException, SubmitException, CommitStatusException {
-        byte[] resultBytes = contract.submitTransaction("GetAllAssets");
-        String resultJson = new String(resultBytes, StandardCharsets.UTF_8);
-        Asset[] assets = GSON.fromJson(resultJson, Asset[].class);
+        var resultBytes = contract.submitTransaction("GetAllAssets");
+        var resultJson = new String(resultBytes, StandardCharsets.UTF_8);
+        var assets = GSON.fromJson(resultJson, Asset[].class);
         return assets != null ? List.of(assets) : List.of();
     }
 }
