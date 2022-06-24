@@ -6,20 +6,25 @@ machine as a local binary, attached in an IDE debugger, or in a Docker container
 
 ## TL/DR : 
 ```shell
-$ ./network chaincode deploy 
-✅ - Packaging chaincode folder chaincode/asset-transfer-basic ...
-✅ - Transferring chaincode archive to org1 ...
-✅ - Installing chaincode for org org1 ...
-✅ - Launching chaincode container "ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic" ...
-✅ - Activating chaincode basic_1.0:5e0c4db62c1f91599f58dcbfe2c37566453b1e02933646c49ba46f196723cc30 ...
+$ ./network chaincode deploy asset-transfer-basic ../asset-transfer-basic/chaincode-java 
+Deploying chaincode
+✅ - Building chaincode image asset-transfer-basic ...
+✅ - Publishing chaincode image localhost:5000/asset-transfer-basic ...
+✅ - Packaging ccaas chaincode asset-transfer-basic ...
+✅ - Launching chaincode container "localhost:5000/asset-transfer-basic" ...
+✅ - Launching chaincode container "localhost:5000/asset-transfer-basic" ...
+✅ - Installing chaincode for org org1 peer peer1 ...
+✅ - Installing chaincode for org org1 peer peer2 ...
+✅ - Approving chaincode asset-transfer-basic with ID asset-transfer-basic:eb972467417ca827115c3a6a2629fc14e18741c0613a2a0a78290e3b643a50 ...
+✅ - Committing chaincode asset-transfer-basic ...
 🏁 - Chaincode is ready.
 ```
 
 ```shell
-$ ./network chaincode invoke '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' 
-2021-10-03 17:23:43.508 UTC [chaincodeCmd] chaincodeInvokeOrQuery -> INFO 001 Chaincode invoke successful. result: status:200 
+$ ./network chaincode invoke asset-transfer-basic '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' 
+2022-06-23 06:12:13.150 UTC 0001 INFO [chaincodeCmd] chaincodeInvokeOrQuery -> Chaincode invoke successful. result: status:200 payload:"{\"owner\":\"tom\",\"color\":\"blue\",\"size\":35,\"appraisedValue\":1000,\"assetID\":\"1\"}"
 
-$ ./network chaincode query '{"Args":["ReadAsset","1"]}' | jq 
+$ ./network chaincode query asset-transfer-basic '{"Args":["ReadAsset","1"]}' | jq  
 {
   "ID": "1",
   "color": "blue",
@@ -125,13 +130,13 @@ the test scripts can issue adhoc invoke, query, and metadata requests to the net
 
 ### Invoke 
 ```shell
-$ ./network chaincode invoke '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' 
-2021-10-03 17:23:43.508 UTC [chaincodeCmd] chaincodeInvokeOrQuery -> INFO 001 Chaincode invoke successful. result: status:200 
+$ ./network chaincode invoke asset-transfer-basic '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' 
+2022-06-23 06:12:13.150 UTC 0001 INFO [chaincodeCmd] chaincodeInvokeOrQuery -> Chaincode invoke successful. result: status:200 payload:"{\"owner\":\"tom\",\"color\":\"blue\",\"size\":35,\"appraisedValue\":1000,\"assetID\":\"1\"}"
 ```
 
 ### Query
 ```shell
-$ ./network chaincode query '{"Args":["ReadAsset","1"]}' | jq 
+$ ./network chaincode query asset-transfer-basic '{"Args":["ReadAsset","1"]}' | jq 
 {
   "ID": "1",
   "color": "blue",
@@ -143,7 +148,7 @@ $ ./network chaincode query '{"Args":["ReadAsset","1"]}' | jq
 
 ### Describe 
 ```shell
-$ ./network chaincode metadata | jq | head 
+$ ./network chaincode metadata asset-transfer-basic | jq | head 
 {
   "info": {
     "title": "undefined",

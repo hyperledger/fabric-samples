@@ -21,9 +21,9 @@ curl -s --header "X-Api-Key: ${SAMPLE_APIKEY}" http://localhost/api/assets
 ```shell
 $ export SAMPLE_APIKEY=97834158-3224-4CE7-95F9-A148C886653E
 
-$ ./network chaincode invoke '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' 
+$ ./network chaincode invoke asset-transfer-basic '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' 
 
-$ curl -s --header "X-Api-Key: ${SAMPLE_APIKEY}" http://localhost/api/assets | jq 
+$ curl -s --header "X-Api-Key: ${SAMPLE_APIKEY}" http://fabric-rest-sample.vcap.me/api/assets | jq 
 [
   {
     "Key": "1",
