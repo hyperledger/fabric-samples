@@ -166,9 +166,3 @@ bccsp:
         Label: ForFabric
         hash: SHA2
         security: 256
-    # sw:
-    #     hash: SHA2
-    #     security: 256
-    #     filekeystore:
-    #         # The directory used for the software file-based keystore
-    #         keystore: msp/keystore

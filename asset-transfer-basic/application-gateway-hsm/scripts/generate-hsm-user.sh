@@ -32,7 +32,12 @@ echo 'directory' $PWD
 CLIENT_CONFIG_TEMPLATE=../ca-client-config/fabric-ca-client-config-template.yaml
 CLIENT_CONFIG=../ca-client-config/fabric-ca-client-config.yaml
 cp $CLIENT_CONFIG_TEMPLATE $CLIENT_CONFIG
-sed -i '' -e s+REPLACE_ME_HSMLIB+${HSM2_LIB}+g $CLIENT_CONFIG
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  sed -i '' s+REPLACE_ME_HSMLIB+${HSM2_LIB}+g $CLIENT_CONFIG
+else
+  sed -i s+REPLACE_ME_HSMLIB+${HSM2_LIB}+g $CLIENT_CONFIG
+fi
 
 # create the users, remove any existing users
 CRYPTO_PATH=$PWD/../crypto-material/hsm

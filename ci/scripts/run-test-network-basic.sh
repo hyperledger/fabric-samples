@@ -103,19 +103,39 @@ node dist/app.js
 popd
 stopNetwork
 
-# Run typescript HSM gateway application
+# Run Typescript HSM gateway application
 createNetwork
 print "Initializing Typescript HSM gateway application"
-pushd ../asset-transfer-basic/application-typescript-hsm
+pushd ../asset-transfer-basic/application-gateway-hsm/
 print "Setup SoftHSM"
 export SOFTHSM2_CONF=$PWD/softhsm2.conf
-softhsm2-util --init-token --slot 0 --label "ForFabric" --pin 98765432 --so-pin 1234
+softhsm2-util --init-token --slot 1 --label "ForFabric" --pin 98765432 --so-pin 1234
+pushd scripts
+print "Enroll and register User in HSM"
+./generate-hsm-user.sh HSMUser
+pushd ../node
 print "install dependencies"
 npm install
 print "Building app.ts"
 npm run build
 print "Running the output app"
 node dist/app.js
+popd
+stopNetwork
+
+# Run Go HSM gateway application
+createNetwork
+print "Initializing Go HSM gateway application"
+pushd ../asset-transfer-basic/application-gateway-hsm/
+print "Setup SoftHSM"
+export SOFTHSM2_CONF=$PWD/softhsm2.conf
+softhsm2-util --init-token --slot 2 --label "ForFabric" --pin 98765432 --so-pin 1234
+pushd scripts
+print "Register and enroll user in HSM"
+./generate-hsm-user.sh HSMUser
+pushd ../go
+print "Running the output app"
+go run -tags pkcs11 hsm-sample.go
 popd
 stopNetwork
 
