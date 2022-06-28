@@ -22,7 +22,7 @@ done
 [ -z $HSM2_LIB ] && echo No SoftHSM PKCS11 Library found, ensure you have installed softhsm2 && exit 1
 
 # create a softhsm2.conf file if one doesn't exist
-HSM2_CONF=$HOME/softhsm2.conf
+HSM2_CONF=../softhsm2.conf
 [ ! -f $HSM2_CONF ] && echo directories.tokendir = /tmp > $HSM2_CONF
 
 # Update the client config file to point to the softhsm pkcs11 library

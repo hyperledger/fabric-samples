@@ -65,12 +65,12 @@ Or compiled and installed from source:
 If you have not initialized a token previously (or it has been deleted) then you will need to perform this one time operation
 
 ```bash
-echo directories.tokendir = /tmp > $HOME/softhsm2.conf
-export SOFTHSM2_CONF=$HOME/softhsm2.conf
+echo directories.tokendir = /tmp > ./softhsm2.conf
+export SOFTHSM2_CONF=./softhsm2.conf
 softhsm2-util --init-token --slot 0 --label "ForFabric" --pin 98765432 --so-pin 1234
 ```
 
-This will create a SoftHSM configuration file called `softhsm2.conf` and will be stored in your home directory. This is
+This will create a SoftHSM configuration file called `softhsm2.conf` and will be stored in the current directory. This is
 where the sample expects to find a SoftHSM configuration file
 
 The Security Officer PIN, specified with the `--so-pin` flag, can be used to re-initialize the token,
