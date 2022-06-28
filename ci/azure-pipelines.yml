@@ -124,6 +124,7 @@ jobs:
 
     steps:
       - template: templates/install-deps.yml
+      - template: templates/install_deps_hsm_ca.yml
       - script: sudo apt-get install softhsm2
         displayName: Install SoftHSM
       - script: ../ci/scripts/run-test-network-basic.sh
