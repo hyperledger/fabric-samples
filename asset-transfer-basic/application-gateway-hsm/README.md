@@ -101,14 +101,14 @@ generate a certificate on the file system for use by the sample. The private key
 For HSM support you need to ensure you include the `pkcs11` build tag.
 
 ```
-cd hsm-samples-gateway/go
+cd application-gateway-hsm/go
 go run -tags pkcs11 hsm-sample.go
 ```
 
 ### Node SDK
 
 ```
-cd hsm-samples-gateway/node
+cd application-gateway-hsm/node
 npm install
 npm run build
 npm start
