@@ -10,17 +10,20 @@ import { connect, Gateway, HSMSigner, HSMSignerFactory, HSMSignerOptions, signer
 import * as fs from 'fs';
 import * as jsrsa from 'jsrsasign';
 import * as path from 'path';
+import { TextDecoder } from 'util';
 
 const mspId = 'Org1MSP';
 const user = 'HSMUser';
+const assetId = `asset${Date.now()}`;
+const utf8Decoder = new TextDecoder();
 
 // Sample uses fabric-ca-client generated HSM identities, certificate is located in the signcerts directory
 // and has been stored in a directory of the name given to the identity.
-const cryptoPath = path.resolve(__dirname, '..', '..', '..', 'scenario', 'fixtures', 'crypto-material');
-const certPath = path.resolve(cryptoPath, 'hsm', user, 'signcerts', 'cert.pem');
 
-const tlsCertPath = path.resolve(cryptoPath, 'crypto-config', 'peerOrganizations', 'org1.example.com', 'peers', 'peer0.org1.example.com', 'tls', 'ca.crt');
-const peerEndpoint = 'localhost:7051'
+const certPath = path.resolve(__dirname, '..', '..', 'crypto-material', 'hsm', user, 'signcerts', 'cert.pem');
+
+const tlsCertPath = path.resolve('..', '..','test-network','organizations','peerOrganizations', 'org1.example.com', 'peers', 'peer0.org1.example.com', 'tls', 'ca.crt');
+const peerEndpoint = 'localhost:7051';
 
 async function main() {
     console.log('\nRunning the Node HSM sample');
@@ -43,7 +46,7 @@ async function main() {
     });
 
     try {
-        await exampleSubmit(gateway);
+        await exampleTransaction(gateway);
         console.log();
         console.log('Node HSM sample completed successfully');
     } finally {
@@ -55,22 +58,30 @@ async function main() {
     }
 }
 
-async function exampleSubmit(gateway: Gateway) {
+async function exampleTransaction(gateway: Gateway):Promise<void> {
     const network = gateway.getNetwork('mychannel');
     const contract = network.getContract('basic');
 
-    const timestamp = new Date().toISOString();
-    console.log('Submitting "put" transaction with arguments: time,', timestamp);
+    console.log('\n--> Submit Transaction: CreateAsset, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments');
 
-    // Submit a transaction, blocking until the transaction has been committed on the ledger
-    const submitResult = await contract.submitTransaction('put', 'time', timestamp);
+    await contract.submitTransaction(
+        'CreateAsset',
+        assetId,
+        'yellow',
+        '5',
+        'Tom',
+        '1300',
+    );
 
-    console.log('Submit result:', submitResult.toString());
-    console.log('Evaluating "get" query with arguments: time');
+    console.log('*** Transaction committed successfully');
 
-    const evaluateResult = await contract.evaluateTransaction('get', 'time');
+    console.log('\n--> Evaluate Transaction: ReadAsset, function returns asset attributes');
 
-    console.log('Query result:', evaluateResult.toString());
+    const resultBytes = await contract.evaluateTransaction('ReadAsset', assetId);
+
+    const resultJson = utf8Decoder.decode(resultBytes);
+    const result = JSON.parse(resultJson);
+    console.log('*** Result:', result);
 }
 
 async function newGrpcConnection(): Promise<grpc.Client> {

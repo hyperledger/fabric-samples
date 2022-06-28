@@ -10,9 +10,11 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/sha256"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"os"
@@ -30,11 +32,13 @@ import (
 
 const (
 	mspID        = "Org1MSP"
-	cryptoPath   = "../../scenario/fixtures/crypto-material/"
-	certPath     = cryptoPath + "hsm/HSMUser/signcerts/cert.pem"
-	tlsCertPath  = cryptoPath + "crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+	certPath     = "../crypto-material/hsm/HSMUser/signcerts/cert.pem"
+	tlsCertPath  = "../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
 	peerEndpoint = "localhost:7051"
 )
+
+var now = time.Now()
+var assetId = fmt.Sprintf("asset%d", now.Unix()*1e3+int64(now.Nanosecond())/1e6)
 
 func main() {
 	fmt.Println("Running the GO HSM Sample")
@@ -66,34 +70,34 @@ func main() {
 	}
 	defer gateway.Close()
 
-	exampleSubmit(gateway)
+	exampleTransaction(gateway)
 	fmt.Println()
-	fmt.Println("Go HSM Sample Completed Successfully")
+	fmt.Println("Go HSM Sample completed successfully")
 	fmt.Println()
 }
 
-func exampleSubmit(gateway *client.Gateway) {
+func exampleTransaction(gateway *client.Gateway) {
 	network := gateway.GetNetwork("mychannel")
 	contract := network.GetContract("basic")
 
-	timestamp := time.Now().String()
-	fmt.Printf("Submitting \"put\" transaction with arguments: time, %s\n", timestamp)
+	fmt.Printf("Submit Transaction: CreateAsset, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments \n")
 
-	// Submit transaction, blocking until the transaction has been committed on the ledger
-	submitResult, err := contract.SubmitTransaction("put", "time", timestamp)
+	_, err := contract.SubmitTransaction("CreateAsset", assetId, "yellow", "5", "Tom", "1300")
 	if err != nil {
 		panic(fmt.Errorf("failed to submit transaction: %w", err))
 	}
 
-	fmt.Printf("Submit result: %s\n", string(submitResult))
-	fmt.Println("Evaluating \"get\" query with arguments: time")
+	fmt.Printf("*** Transaction committed successfully\n")
 
-	evaluateResult, err := contract.EvaluateTransaction("get", "time")
+	fmt.Printf("Evaluate Transaction: ReadAsset, function returns asset attributes\n")
+
+	evaluateResult, err := contract.EvaluateTransaction("ReadAsset", assetId)
 	if err != nil {
 		panic(fmt.Errorf("failed to evaluate transaction: %w", err))
 	}
+	result := formatJSON(evaluateResult)
 
-	fmt.Printf("Query result = %s\n", string(evaluateResult))
+	fmt.Printf("*** Result:%s\n", result)
 }
 
 // newGrpcConnection creates a gRPC connection to the Gateway server.
@@ -184,4 +188,13 @@ func findSoftHSMLibrary() string {
 	}
 
 	panic("No SoftHSM library can be found. The Sample requires SoftHSM to be installed")
+}
+
+// Format JSON data
+func formatJSON(data []byte) string {
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, data, " ", ""); err != nil {
+		panic(fmt.Errorf("failed to parse JSON: %w", err))
+	}
+	return prettyJSON.String()
 }

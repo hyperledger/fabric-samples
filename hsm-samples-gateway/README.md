@@ -5,9 +5,28 @@ new embedded Gateway in Fabric.
 
 The samples will only run against Fabric v2.4 and higher.
 
-This will create a local docker network comprising five peers across three organisations and a single ordering node.
-
 Sample client applications are available to demonstrate the features of the Fabric Gateway and associated SDKs using this network.
+
+## Running the sample
+
+The Fabric test network is used to deploy and run this sample. Follow these steps in order:
+
+1. Create the test network and a channel (from the `test-network` folder).
+   ```
+   ./network.sh up createChannel -ca
+   ```
+
+1. Deploy one of the smart contract implementations (from the `test-network` folder).
+   ```
+   # To deploy the TypeScript chaincode implementation
+   ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-typescript/ -ccl typescript
+
+   # To deploy the Go chaincode implementation
+   ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-go/ -ccl go
+
+   # To deploy the Java chaincode implementation
+   ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-java/ -ccl java
+   ```
 
 ## C Compilers
 
@@ -95,6 +114,8 @@ npm run build
 npm start
 ```
 
-When you are finished running the samples, the local docker network can be brought down with the following command:
+When you are finished running the samples, the local test-network can be brought down with the following command (from the `test-network` folder):
 
-`docker rm -f $(docker ps -aq) && docker network prune --force`
+ ```
+./network.sh down
+```
