@@ -108,7 +108,7 @@ async function main(): Promise<void> {
             assetId: assetKey,
             price: 110,
             tradeId: now,
-        }, mspIdOrg2);
+        });
 
         // Check the private information about the asset from Org2. Org1 would have to send Org2 asset details,
         // so the hash of the details may be checked by the chaincode.
@@ -141,12 +141,12 @@ async function main(): Promise<void> {
         // Org1 will try to transfer the asset to Org2
         // This will fail due to the sell price and the bid price are not the same.
         try{
-            await contractWrapperOrg1.transferAsset({ assetId: assetKey, price: 110, tradeId: now}, mspIdOrg1, mspIdOrg2);
+            await contractWrapperOrg1.transferAsset({ assetId: assetKey, price: 110, tradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
         } catch(e) {
             console.log(`${RED}*** Failed: transferAsset - ${e}${RESET}`);
         }
         // Agree to a sell by Org1, the seller will agree to the bid price of Org2.
-        await contractWrapperOrg1.agreeToSell({assetId:assetKey, price:100, tradeId:now}, mspIdOrg2);
+        await contractWrapperOrg1.agreeToSell({assetId:assetKey, price:100, tradeId:now});
 
         // Read the public details by  org1.
         await contractWrapperOrg1.readAsset(assetKey, mspIdOrg1);
@@ -166,14 +166,14 @@ async function main(): Promise<void> {
         // Org2 user will try to transfer the asset to Org1.
         // This will fail as the owner is Org1.
         try{
-            await contractWrapperOrg2.transferAsset({ assetId: assetKey, price: 100, tradeId: now}, mspIdOrg1, mspIdOrg2);
+            await contractWrapperOrg2.transferAsset({ assetId: assetKey, price: 100, tradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
         } catch(e) {
             console.log(`${RED}*** Failed: transferAsset - ${e}${RESET}`);
         }
 
         // Org1 will transfer the asset to Org2.
         // This will now complete as the sell price and the bid price are the same.
-        await contractWrapperOrg1.transferAsset({ assetId: assetKey, price: 100, tradeId: now}, mspIdOrg1, mspIdOrg2);
+        await contractWrapperOrg1.transferAsset({ assetId: assetKey, price: 100, tradeId: now}, [ mspIdOrg1, mspIdOrg2 ], mspIdOrg1, mspIdOrg2);
 
         // Read the public details by  org1.
         await contractWrapperOrg1.readAsset(assetKey, mspIdOrg2);
