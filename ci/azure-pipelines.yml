@@ -11,9 +11,9 @@ variables:
   - name: FABRIC_VERSION
     value: 2.4
   - name: GOPATH
-    value: $(Agent.HomeDirectory)/go
+    value: $(Build.Repository.LocalPath)
   - name: GO_BIN
-    value: $(GOPATH)/bin
+    value: $(Build.Repository.LocalPath)/bin
   - name: GO_VER
     value: 1.16.7
   - name: NODE_VER

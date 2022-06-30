@@ -103,16 +103,38 @@ popd
 stopNetwork
 
 # Run Typescript HSM gateway application
+echo 'list files inside gopath bin'
 
+ls -la $GOPATH/bin
 echo 'delete fabric-ca from samples bin'
 rm ../bin/fabric-ca-client
-echo 'copy fabric-ca-client pkcs11 enables to samples bin'
-cp $GOPATH/bin/fabric-ca-client ../bin
+echo 'go install'
+go install -tags pkcs11 github.com/hyperledger/fabric-ca/cmd/fabric-ca-client@latest
+FILE=../bin/fabric-ca-client
+if test -f "$FILE"; then
+    echo "$FILE exists."
+fi
+echo 'list files in bin'
+ls -la ../bin
+
+# echo 'list files inside gopath'
+# ls -la $GOPATH
+echo 'list files inside gopath bin'
+ls -la $GOPATH/bin
+
+echo 'files inside working dir'
+ls -la $PWD
+BIN=$PWD/bin
+if test -f "$BIN"; then
+    echo "$BIN exists."
+fi
+# echo 'copy fabric-ca-client pkcs11 enables to samples bin'
+# cp $GOPATH/bin/fabric-ca-client ../bin
 
 createNetwork
 print "Initializing Typescript HSM gateway application"
 pushd ../asset-transfer-basic/application-gateway-hsm/scripts/
-
+echo 'newpath after running cretanetwork' $PATH
 print "Enroll and register User in HSM"
 ./generate-hsm-user.sh HSMUser
 pushd ../node/
@@ -136,7 +158,7 @@ print "Register and enroll user in HSM"
 ./generate-hsm-user.sh HSMUser
 pushd ../go
 print "Running the output app"
-GO111MODULE=on go run -tags pkcs11 hsm-sample.go
+GO111MODULE=off go run -tags pkcs11 hsm-sample.go
 popd
 popd
 stopNetwork
