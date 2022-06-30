@@ -13,7 +13,7 @@ variables:
   - name: GO_BIN
     value: $(Build.Repository.LocalPath)/bin
   - name: GO_VER
-    value: 1.16.7
+    value: 1.18.3
   - name: NODE_VER
     value: 16.x
   - name: PATH

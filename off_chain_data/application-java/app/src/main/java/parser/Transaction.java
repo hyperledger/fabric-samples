@@ -6,16 +6,17 @@
 
 package parser;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.hyperledger.fabric.protos.common.ChannelHeader;
+import org.hyperledger.fabric.protos.common.Payload;
+import org.hyperledger.fabric.protos.peer.TxValidationCode;
+
 import java.util.List;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.hyperledger.fabric.protos.common.Common;
-import org.hyperledger.fabric.protos.peer.TransactionPackage;
-
 public interface Transaction {
-    Common.ChannelHeader getChannelHeader() throws InvalidProtocolBufferException;
-    TransactionPackage.TxValidationCode getValidationCode();
+    ChannelHeader getChannelHeader() throws InvalidProtocolBufferException;
+    TxValidationCode getValidationCode();
     boolean isValid();
     List<NamespaceReadWriteSet> getNamespaceReadWriteSets() throws InvalidProtocolBufferException;
-    Common.Payload toProto();
+    Payload toProto();
 }

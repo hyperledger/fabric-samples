@@ -7,11 +7,11 @@
 package parser;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.hyperledger.fabric.protos.ledger.rwset.Rwset;
-import org.hyperledger.fabric.protos.ledger.rwset.kvrwset.KvRwset;
+import org.hyperledger.fabric.protos.ledger.rwset.NsReadWriteSet;
+import org.hyperledger.fabric.protos.ledger.rwset.kvrwset.KVRWSet;
 
 public interface NamespaceReadWriteSet {
     String getNamespace();
-    KvRwset.KVRWSet getReadWriteSet() throws InvalidProtocolBufferException;
-    Rwset.NsReadWriteSet toProto();
+    KVRWSet getReadWriteSet() throws InvalidProtocolBufferException;
+    NsReadWriteSet toProto();
 }

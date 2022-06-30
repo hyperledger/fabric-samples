@@ -4,17 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.hyperledger.fabric.client.Checkpointer;
 import parser.Block;
 import parser.Transaction;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public final class BlockProcessor {
     private final Block block;
@@ -28,18 +27,18 @@ public final class BlockProcessor {
     }
 
     public void process() {
-        long blockNumber = block.getNumber();
+        var blockNumber = block.getNumber();
         System.out.println("\nReceived block " + Long.toUnsignedString(blockNumber));
 
         try {
-            List<Transaction> validTransactions = getNewTransactions().stream()
+            var validTransactions = getNewTransactions().stream()
                     .filter(Transaction::isValid)
                     .collect(Collectors.toList());
 
-            for (Transaction transaction : validTransactions) {
+            for (var transaction : validTransactions) {
                 new TransactionProcessor(transaction, blockNumber, store).process();
 
-                String transactionId = transaction.getChannelHeader().getTxId();
+                var transactionId = transaction.getChannelHeader().getTxId();
                 checkpointer.checkpointTransaction(blockNumber, transactionId);
             }
 
@@ -50,21 +49,21 @@ public final class BlockProcessor {
     }
 
     private List<Transaction> getNewTransactions() throws InvalidProtocolBufferException {
-        List<Transaction> transactions = block.getTransactions();
+        var transactions = block.getTransactions();
 
-        Optional<String> lastTransactionId = checkpointer.getTransactionId();
+        var lastTransactionId = checkpointer.getTransactionId();
         if (lastTransactionId.isEmpty()) {
             // No previously processed transactions within this block so all are new
             return transactions;
         }
 
-        List<String> transactionIds = new ArrayList<>();
-        for (Transaction transaction : transactions) {
+        var transactionIds = new ArrayList<>();
+        for (var transaction : transactions) {
             transactionIds.add(transaction.getChannelHeader().getTxId());
         }
 
         // Ignore transactions up to the last processed transaction ID
-        int lastProcessedIndex = transactionIds.indexOf(lastTransactionId.get());
+        var lastProcessedIndex = transactionIds.indexOf(lastTransactionId.get());
         if (lastProcessedIndex < 0) {
             throw new IllegalArgumentException("Checkpoint transaction ID " + lastTransactionId + " not found in block "
                     + Long.toUnsignedString(block.getNumber()) + " containing transactions: " + transactionIds);

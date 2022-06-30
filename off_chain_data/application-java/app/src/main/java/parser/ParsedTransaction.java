@@ -6,14 +6,15 @@
 
 package parser;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.hyperledger.fabric.protos.common.ChannelHeader;
+import org.hyperledger.fabric.protos.common.Payload;
+import org.hyperledger.fabric.protos.peer.TxValidationCode;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.hyperledger.fabric.protos.common.Common;
-import org.hyperledger.fabric.protos.peer.TransactionPackage;
 
 final class ParsedTransaction implements Transaction {
     private final ParsedPayload payload;
@@ -24,12 +25,12 @@ final class ParsedTransaction implements Transaction {
     }
 
     @Override
-    public Common.ChannelHeader getChannelHeader() throws InvalidProtocolBufferException {
+    public ChannelHeader getChannelHeader() throws InvalidProtocolBufferException {
         return payload.getChannelHeader();
     }
 
     @Override
-    public TransactionPackage.TxValidationCode getValidationCode() {
+    public TxValidationCode getValidationCode() {
         return payload.getValidationCode();
     }
 
@@ -44,13 +45,13 @@ final class ParsedTransaction implements Transaction {
     }
 
     @Override
-    public Common.Payload toProto() {
+    public Payload toProto() {
         return payload.toProto();
     }
 
     private List<ParsedReadWriteSet> getReadWriteSets() throws InvalidProtocolBufferException {
-        List<ParsedReadWriteSet> results = new ArrayList<>();
-        for (ParsedTransactionAction action : getTransactionActions()) {
+        var results = new ArrayList<ParsedReadWriteSet>();
+        for (var action : getTransactionActions()) {
             results.addAll(action.getReadWriteSets());
         }
 
@@ -63,7 +64,7 @@ final class ParsedTransaction implements Transaction {
                 .collect(Collectors.toList());
     }
 
-    private TransactionPackage.Transaction getTransaction() throws InvalidProtocolBufferException {
-        return TransactionPackage.Transaction.parseFrom(payload.toProto().getData());
+    private org.hyperledger.fabric.protos.peer.Transaction getTransaction() throws InvalidProtocolBufferException {
+        return org.hyperledger.fabric.protos.peer.Transaction.parseFrom(payload.toProto().getData());
     }
 }

@@ -4,14 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import parser.Transaction;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import com.google.protobuf.InvalidProtocolBufferException;
-import parser.NamespaceReadWriteSet;
-import parser.Transaction;
 
 public final class TransactionProcessor {
     // Typically we should ignore read/write sets that apply to system chaincode namespaces.
@@ -39,9 +38,9 @@ public final class TransactionProcessor {
     }
 
     public void process() throws IOException {
-        String transactionId = transaction.getChannelHeader().getTxId();
+        var transactionId = transaction.getChannelHeader().getTxId();
 
-        List<Write> writes = getWrites();
+        var writes = getWrites();
         if (writes.isEmpty()) {
             System.out.println("Skipping read-only or system transaction " + transactionId);
             return;
@@ -52,11 +51,11 @@ public final class TransactionProcessor {
     }
 
     private List<Write> getWrites() throws InvalidProtocolBufferException {
-        String channelName = transaction.getChannelHeader().getChannelId();
+        var channelName = transaction.getChannelHeader().getChannelId();
 
-        List<Write> writes = new ArrayList<>();
-        for (NamespaceReadWriteSet readWriteSet : transaction.getNamespaceReadWriteSets()) {
-            String namespace = readWriteSet.getNamespace();
+        var writes = new ArrayList<Write>();
+        for (var readWriteSet : transaction.getNamespaceReadWriteSets()) {
+            var namespace = readWriteSet.getNamespace();
             if (isSystemChaincode(namespace)) {
                 continue;
             }

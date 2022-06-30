@@ -19,11 +19,15 @@ repositories {
 }
 
 dependencies {
-    // This dependency is used by the application.
-    implementation 'org.hyperledger.fabric:fabric-gateway:1.0.0'
-    implementation 'io.grpc:grpc-netty-shaded:1.42.0'
-    implementation 'com.google.code.gson:gson:2.8.9'
-    
+    implementation 'org.hyperledger.fabric:fabric-gateway:1.1.0'
+    implementation 'io.grpc:grpc-netty-shaded:1.47.0'
+    implementation 'com.google.code.gson:gson:2.9.0'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
 }
 
 application {

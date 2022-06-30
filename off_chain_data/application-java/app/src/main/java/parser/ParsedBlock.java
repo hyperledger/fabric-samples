@@ -6,22 +6,23 @@
 
 package parser;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.hyperledger.fabric.protos.common.BlockMetadataIndex;
+import org.hyperledger.fabric.protos.common.Envelope;
+import org.hyperledger.fabric.protos.common.Payload;
+import org.hyperledger.fabric.protos.peer.TxValidationCode;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.hyperledger.fabric.protos.common.Common;
-import org.hyperledger.fabric.protos.peer.TransactionPackage;
-
 class ParsedBlock implements Block {
-    private final Common.Block block;
+    private final org.hyperledger.fabric.protos.common.Block block;
     private final AtomicReference<List<Transaction>> cachedTransactions = new AtomicReference<>();
 
-    ParsedBlock(final Common.Block block) {
+    ParsedBlock(final org.hyperledger.fabric.protos.common.Block block) {
         this.block = block;
     }
 
@@ -33,12 +34,12 @@ class ParsedBlock implements Block {
     @Override
     public List<Transaction> getTransactions() throws InvalidProtocolBufferException {
         return Utils.getCachedProto(cachedTransactions, () -> {
-            List<TransactionPackage.TxValidationCode> validationCodes = getTransactionValidationCodes();
-            List<Common.Payload> payloads = getPayloads();
+            var validationCodes = getTransactionValidationCodes();
+            var payloads = getPayloads();
 
-            List<Transaction> transactions = new ArrayList<>();
+            var transactions = new ArrayList<Transaction>();
             for (int i = 0; i < payloads.size(); i++) {
-                ParsedPayload payload = new ParsedPayload(payloads.get(i), validationCodes.get(i));
+                var payload = new ParsedPayload(payloads.get(i), validationCodes.get(i));
                 if (payload.isEndorserTransaction()) {
                     transactions.add(new ParsedTransaction(payload));
                 }
@@ -49,27 +50,27 @@ class ParsedBlock implements Block {
     }
 
     @Override
-    public Common.Block toProto() {
+    public org.hyperledger.fabric.protos.common.Block toProto() {
         return block;
     }
 
-    private List<Common.Payload> getPayloads() throws InvalidProtocolBufferException {
-        List<Common.Payload> payloads = new ArrayList<>();
+    private List<Payload> getPayloads() throws InvalidProtocolBufferException {
+        var payloads = new ArrayList<Payload>();
 
-        for (ByteString envelopeBytes : block.getData().getDataList()) {
-            Common.Envelope envelope = Common.Envelope.parseFrom(envelopeBytes);
-            Common.Payload payload = Common.Payload.parseFrom(envelope.getPayload());
+        for (var envelopeBytes : block.getData().getDataList()) {
+            var envelope = Envelope.parseFrom(envelopeBytes);
+            var payload = Payload.parseFrom(envelope.getPayload());
             payloads.add(payload);
         }
 
         return payloads;
     }
 
-    private List<TransactionPackage.TxValidationCode> getTransactionValidationCodes() {
-        ByteString transactionsFilter = block.getMetadata().getMetadataList().get(Common.BlockMetadataIndex.TRANSACTIONS_FILTER.getNumber());
+    private List<TxValidationCode> getTransactionValidationCodes() {
+        var transactionsFilter = block.getMetadata().getMetadataList().get(BlockMetadataIndex.TRANSACTIONS_FILTER.getNumber());
         return StreamSupport.stream(transactionsFilter.spliterator(), false)
                 .map(Byte::intValue)
-                .map(TransactionPackage.TxValidationCode::forNumber)
+                .map(TxValidationCode::forNumber)
                 .collect(Collectors.toList());
     }
 }

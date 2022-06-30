@@ -4,18 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.InvalidKeyException;
-import java.security.PrivateKey;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
-
 import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
@@ -26,6 +14,14 @@ import org.hyperledger.fabric.client.identity.Identity;
 import org.hyperledger.fabric.client.identity.Signer;
 import org.hyperledger.fabric.client.identity.Signers;
 import org.hyperledger.fabric.client.identity.X509Identity;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.cert.CertificateException;
+import java.util.concurrent.TimeUnit;
 
 public final class Connections {
     public static final String CHANNEL_NAME = Utils.getEnvOrDefault("CHANNEL_NAME", "mychannel");
@@ -78,8 +74,8 @@ public final class Connections {
     }
 
     public static ManagedChannel newGrpcConnection() throws IOException, CertificateException {
-        Reader tlsCertReader = Files.newBufferedReader(TLS_CERT_PATH);
-        X509Certificate tlsCert = Identities.readX509Certificate(tlsCertReader);
+        var tlsCertReader = Files.newBufferedReader(TLS_CERT_PATH);
+        var tlsCert = Identities.readX509Certificate(tlsCertReader);
 
         return NettyChannelBuilder.forTarget(PEER_ENDPOINT)
                 .sslContext(GrpcSslContexts.forClient().trustManager(tlsCert).build()).overrideAuthority(PEER_HOST_ALIAS)
@@ -98,21 +94,21 @@ public final class Connections {
     }
 
     private static Identity newIdentity() throws IOException, CertificateException {
-        Reader certReader = Files.newBufferedReader(CERT_PATH);
-        X509Certificate certificate = Identities.readX509Certificate(certReader);
+        var certReader = Files.newBufferedReader(CERT_PATH);
+        var certificate = Identities.readX509Certificate(certReader);
 
         return new X509Identity(MSP_ID, certificate);
     }
 
     private static Signer newSigner() throws IOException, InvalidKeyException {
-        Reader keyReader = Files.newBufferedReader(getPrivateKeyPath());
-        PrivateKey privateKey = Identities.readPrivateKey(keyReader);
+        var keyReader = Files.newBufferedReader(getPrivateKeyPath());
+        var privateKey = Identities.readPrivateKey(keyReader);
 
         return Signers.newPrivateKeySigner(privateKey);
     }
 
     private static Path getPrivateKeyPath() throws IOException {
-        try (Stream<Path> keyFiles = Files.list(KEY_DIR_PATH)) {
+        try (var keyFiles = Files.list(KEY_DIR_PATH)) {
             return keyFiles.findFirst().orElseThrow();
         }
     }

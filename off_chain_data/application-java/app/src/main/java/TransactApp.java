@@ -4,16 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import org.hyperledger.fabric.client.CommitException;
+import org.hyperledger.fabric.client.CommitStatusException;
+import org.hyperledger.fabric.client.EndorseException;
+import org.hyperledger.fabric.client.SubmitException;
+
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Stream;
-
-import org.hyperledger.fabric.client.CommitException;
-import org.hyperledger.fabric.client.CommitStatusException;
-import org.hyperledger.fabric.client.EndorseException;
-import org.hyperledger.fabric.client.SubmitException;
 
 public final class TransactApp {
     private static final List<String> COLORS = List.of("red", "green", "blue");
@@ -29,10 +29,10 @@ public final class TransactApp {
     }
 
     public void run() {
-        CompletableFuture<?>[] futures = Stream.generate(this::newCompletableFuture)
+        var futures = Stream.generate(this::newCompletableFuture)
                 .limit(batchSize)
                 .toArray(CompletableFuture[]::new);
-        CompletableFuture<?> allComplete = CompletableFuture.allOf(futures);
+        var allComplete = CompletableFuture.allOf(futures);
         allComplete.join();
     }
 
@@ -47,15 +47,15 @@ public final class TransactApp {
     }
 
     private void transact() throws EndorseException, CommitException, SubmitException, CommitStatusException {
-        Asset asset = newAsset();
+        var asset = newAsset();
 
         smartContract.createAsset(asset);
         System.out.println("Created new asset " + asset.getId());
 
         // Transfer randomly 1 in 2 assets to a new owner.
         if (Utils.randomInt(2) == 0) { // checkstyle:ignore-line:MagicNumber
-            String newOwner = Utils.differentElement(OWNERS, asset.getOwner());
-            String oldOwner = smartContract.transferAsset(asset.getId(), newOwner);
+            var newOwner = Utils.differentElement(OWNERS, asset.getOwner());
+            var oldOwner = smartContract.transferAsset(asset.getId(), newOwner);
             System.out.println("Transferred asset " + asset.getId() + " from " + oldOwner + " to " + newOwner);
         }
 
@@ -67,7 +67,7 @@ public final class TransactApp {
     }
 
     private Asset newAsset() {
-        Asset asset = new Asset(UUID.randomUUID().toString());
+        var asset = new Asset(UUID.randomUUID().toString());
         asset.setColor(Utils.randomElement(COLORS));
         asset.setSize(Utils.randomInt(MAX_INITIAL_SIZE) + 1);
         asset.setOwner(Utils.randomElement(OWNERS));

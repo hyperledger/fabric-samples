@@ -13,16 +13,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/hyperledger/fabric-gateway/pkg/client"
-	"github.com/hyperledger/fabric-gateway/pkg/identity"
-	gwproto "github.com/hyperledger/fabric-protos-go/gateway"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/status"
 	"io/ioutil"
 	"log"
 	"path"
 	"time"
+
+	"github.com/hyperledger/fabric-gateway/pkg/client"
+	"github.com/hyperledger/fabric-gateway/pkg/identity"
+	"github.com/hyperledger/fabric-protos-go-apiv2/gateway"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -157,10 +158,8 @@ func newSign() identity.Sign {
 	return sign
 }
 
-/*
- This type of transaction would typically only be run once by an application the first time it was started after its
- initial deployment. A new version of the chaincode deployed later would likely not need to run an "init" function.
-*/
+// This type of transaction would typically only be run once by an application the first time it was started after its
+// initial deployment. A new version of the chaincode deployed later would likely not need to run an "init" function.
 func initLedger(contract *client.Contract) {
 	fmt.Printf("Submit Transaction: InitLedger, function creates the initial set of assets on the ledger \n")
 
@@ -210,10 +209,8 @@ func readAssetByID(contract *client.Contract) {
 	fmt.Printf("*** Result:%s\n", result)
 }
 
-/*
-Submit transaction asynchronously, blocking until the transaction has been sent to the orderer, and allowing
-this thread to process the chaincode response (e.g. update a UI) without waiting for the commit notification
-*/
+// Submit transaction asynchronously, blocking until the transaction has been sent to the orderer, and allowing
+// this thread to process the chaincode response (e.g. update a UI) without waiting for the commit notification
 func transferAssetAsync(contract *client.Contract) {
 	fmt.Printf("Async Submit Transaction: TransferAsset, updates existing asset owner'\n")
 
@@ -254,19 +251,20 @@ func exampleErrorHandling(contract *client.Contract) {
 		case *client.CommitError:
 			fmt.Printf("Transaction %s failed to commit with status %d: %s\n", err.TransactionID, int32(err.Code), err)
 		}
-		/*
-		 Any error that originates from a peer or orderer node external to the gateway will have its details
-		 embedded within the gRPC status error. The following code shows how to extract that.
-		*/
+
+		// Any error that originates from a peer or orderer node external to the gateway will have its details
+		// embedded within the gRPC status error. The following code shows how to extract that.
 		statusErr := status.Convert(err)
 		for _, detail := range statusErr.Details() {
-			errDetail := detail.(*gwproto.ErrorDetail)
-			fmt.Printf("Error from endpoint: %s, mspId: %s, message: %s\n", errDetail.Address, errDetail.MspId, errDetail.Message)
+			switch detail := detail.(type) {
+			case *gateway.ErrorDetail:
+				fmt.Printf("Error from endpoint: %s, mspId: %s, message: %s\n", detail.Address, detail.MspId, detail.Message)
+			}
 		}
 	}
 }
 
-//Format JSON data
+// Format JSON data
 func formatJSON(data []byte) string {
 	var prettyJSON bytes.Buffer
 	if err := json.Indent(&prettyJSON, data, " ", ""); err != nil {
