@@ -10,8 +10,6 @@ trigger:
 variables:
   - name: FABRIC_VERSION
     value: 2.4
-  - name: GOPATH
-    value: $(Build.Repository.LocalPath)
   - name: GO_BIN
     value: $(Build.Repository.LocalPath)/bin
   - name: GO_VER
@@ -19,7 +17,7 @@ variables:
   - name: NODE_VER
     value: 16.x
   - name: PATH
-    value: $(GOPATH)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+    value: $(Build.Repository.LocalPath)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
   - group: credentials
 
 jobs:
@@ -126,7 +124,7 @@ jobs:
 
     steps:
       - template: templates/install-deps.yml
-      - template: templates/install-deps-hsm-ca.yml
+      - template: templates/install-deps-hsm.yml
       - script: ../ci/scripts/run-test-network-basic.sh
         workingDirectory: test-network
         displayName: Run Test Network Basic Chaincode

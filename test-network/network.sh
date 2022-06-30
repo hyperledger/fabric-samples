@@ -18,13 +18,7 @@
 # this script is actually in and infer location from there. (putting first)
 
 ROOTDIR=$(cd "$(dirname "$0")" && pwd)
-echo "fabric bin path " $PATH
-echo "root directory---"
-echo ${ROOTDIR}
-echo "pwd---"
-echo ${PWD}
 export PATH=${ROOTDIR}/../bin:${PWD}/../bin:$PATH
-echo 'PATH-->' $PATH
 export FABRIC_CFG_PATH=${PWD}/configtx
 export VERBOSE=false
 

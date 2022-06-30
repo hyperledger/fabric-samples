@@ -1,8 +1,0 @@
-#
-# SPDX-License-Identifier: Apache-2.0
-#
-
-steps:
-  - template: install-deps-hsm.yml
-  - script:  go install -tags pkcs11 github.com/hyperledger/fabric-ca/cmd/fabric-ca-client@latest
-    displayName: Install Fabric-ca-client with HSM Support
