@@ -228,6 +228,9 @@ jobs:
         Events-Javascript:
           CHAINCODE_NAME: events
           CHAINCODE_LANGUAGE: javascript
+        Events-Java:
+          CHAINCODE_NAME: events
+          CHAINCODE_LANGUAGE: java
     steps:
       - template: templates/install-deps.yml
       - script: ../ci/scripts/run-test-network-events.sh
