@@ -321,7 +321,7 @@ csr:
     - localhost
     - 127.0.0.1
     - org0-ca
-    - org0-ca.test-network.svc.cluster.local
+    - org0-ca.${NS}.svc.cluster.local
   ca:
     expiry: 131400h
     pathlength: 1
