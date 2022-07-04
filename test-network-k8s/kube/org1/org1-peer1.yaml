@@ -8,7 +8,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: org1-peer1-tls-cert
-  namespace: test-network
+  namespace: ${NS}
 spec:
   isCA: false
   privateKey:
@@ -17,7 +17,7 @@ spec:
   dnsNames:
     - localhost
     - org1-peer1
-    - org1-peer1.test-network.svc.cluster.local
+    - org1-peer1.${NS}.svc.cluster.local
     - org1-peer1.${DOMAIN}
     - org1-peer-gateway-svc
     - org1-peer-gateway-svc.${DOMAIN}

@@ -11,7 +11,7 @@ metadata:
 data:
   HLF_CONNECTION_PROFILE_ORG1: |
     {
-        "name": "test-network-org1",
+        "name": "${NS}-org1",
         "version": "1.0.0",
         "client": {
             "organization": "Org1",
@@ -87,7 +87,7 @@ data:
     -----END PRIVATE KEY-----
   HLF_CONNECTION_PROFILE_ORG2: |
     {
-        "name": "test-network-org2",
+        "name": "${NS}-org2",
         "version": "1.0.0",
         "client": {
             "organization": "Org2",

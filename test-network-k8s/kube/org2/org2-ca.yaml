@@ -16,7 +16,7 @@ spec:
   dnsNames:
     - localhost
     - org2-ca
-    - org2-ca.test-network.svc.cluster.local
+    - org2-ca.${NS}.svc.cluster.local
     - org2-ca.${DOMAIN}
   ipAddresses:
     - 127.0.0.1

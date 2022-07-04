@@ -1,5 +1,5 @@
 {
-    "name": "test-network-org${ORG}",
+    "name": "${NS}-org${ORG}",
     "version": "1.0.0",
     "client": {
         "organization": "Org${ORG}",
