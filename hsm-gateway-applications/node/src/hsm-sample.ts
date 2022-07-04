@@ -22,7 +22,7 @@ const utf8Decoder = new TextDecoder();
 
 const certPath = path.resolve(__dirname, '..', '..', 'crypto-material', 'hsm', user, 'signcerts', 'cert.pem');
 
-const tlsCertPath = path.resolve('..', '..', '..', 'test-network','organizations','peerOrganizations', 'org1.example.com', 'peers', 'peer0.org1.example.com', 'tls', 'ca.crt');
+const tlsCertPath = path.resolve('..', '..', 'test-network','organizations','peerOrganizations', 'org1.example.com', 'peers', 'peer0.org1.example.com', 'tls', 'ca.crt');
 const peerEndpoint = 'localhost:7051';
 
 async function main() {

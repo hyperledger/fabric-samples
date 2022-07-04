@@ -33,7 +33,7 @@ import (
 const (
 	mspID        = "Org1MSP"
 	certPath     = "../crypto-material/hsm/HSMUser/signcerts/cert.pem"
-	tlsCertPath  = "../../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+	tlsCertPath  = "../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
 	peerEndpoint = "localhost:7051"
 )
 

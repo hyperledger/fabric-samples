@@ -4,7 +4,7 @@ set -eo pipefail
 # define the CA setup
 CA_HOST=localhost
 CA_URL=${CA_HOST}:7054
-TLS_CERT='../../../test-network/organizations/fabric-ca/org1/tls-cert.pem'
+TLS_CERT='../../test-network/organizations/fabric-ca/org1/tls-cert.pem'
 
 LocateHsmLib() {
   if [[ -n "${PKCS11_LIB}" && -f "${PKCS11_LIB}" ]]; then
