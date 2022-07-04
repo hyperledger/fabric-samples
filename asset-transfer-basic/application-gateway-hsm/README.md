@@ -82,15 +82,17 @@ To be able to register and enroll identities using an HSM you need a PKCS#11 ena
 To install this use the following command
 
 ```bash
-go get -tags 'pkcs11' github.com/hyperledger/fabric-ca/cmd/fabric-ca-client
+go install -tags 'pkcs11' github.com/hyperledger/fabric-ca/cmd/fabric-ca-client@latest
 ```
 ## Enroll the HSM User
 
-A user, `HSMUser`, who is HSM managed needs to be registered then enrolled for the sample
+A user, `HSMUser`, who is HSM managed needs to be registered then enrolled for the sample.
+
+If the "standard" PKCS11 library locations checked for by the script don't include the library(libsofthsm2.so) location for your environment set the `PKCS11_LIB` environment variable to define the library location.
 
 ```bash
 cd scripts
-./generate-hsm-user.sh HSMUser
+PKCS11_LIB='<path to PKCS11 library location>' ./generate-hsm-user.sh HSMUser
 ```
 
 This will register a user `HSMUser` with the CA in Org1 (if not already registered) and then enroll that user which will
@@ -110,7 +112,6 @@ go run -tags pkcs11 hsm-sample.go
 ```
 cd application-gateway-hsm/node
 npm install
-npm run build
 npm start
 ```
 

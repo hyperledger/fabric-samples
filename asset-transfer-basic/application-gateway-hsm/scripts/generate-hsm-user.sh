@@ -6,19 +6,27 @@ CA_HOST=localhost
 CA_URL=${CA_HOST}:7054
 TLS_CERT='../../../test-network/organizations/fabric-ca/org1/tls-cert.pem'
 
-# try to locate the Soft HSM library
-POSSIBLE_LIB_LOC=('/usr/lib/softhsm/libsofthsm2.so' \
-'/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so' \
-'/usr/local/lib/softhsm/libsofthsm2.so' \
-'/usr/lib/libacsp-pkcs11.so'
-)
-for TEST_LIB in "${POSSIBLE_LIB_LOC[@]}"
-do
-  if [ -f $TEST_LIB ]; then
-     HSM2_LIB=$TEST_LIB
-     break
+LocateHsmLib() {
+  if [[ -n "${PKCS11_LIB}" && -f "${PKCS11_LIB}" ]]; then
+    echo "${PKCS11_LIB}"
+    return
   fi
-done
+
+  local POSSIBLE_LIB_LOC=( \
+    '/usr/lib/softhsm/libsofthsm2.so' \
+    '/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so' \
+    '/usr/local/lib/softhsm/libsofthsm2.so' \
+    '/usr/lib/libacsp-pkcs11.so' \
+  )
+  for TEST_LIB in "${POSSIBLE_LIB_LOC[@]}"; do
+    if [ -f "${TEST_LIB}" ]; then
+      echo "${TEST_LIB}"
+      return
+    fi
+  done
+}
+
+HSM2_LIB=$(LocateHsmLib)
 [ -z $HSM2_LIB ] && echo No SoftHSM PKCS11 Library found, ensure you have installed softhsm2 && exit 1
 
 # create a softhsm2.conf file if one doesn't exist

@@ -113,10 +113,8 @@ pushd ../asset-transfer-basic/application-gateway-hsm/scripts/
 print "Enroll and register User in HSM"
 ./generate-hsm-user.sh HSMUser
 pushd ../node/
-print "install dependencies"
+print "install dependencies and prepare for running"
 npm install
-print "Building hsm-sample.ts"
-npm run build
 print "Running the output app"
 npm run start
 popd
