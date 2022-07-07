@@ -17,7 +17,7 @@ for dir in $dirs; do
     pushd $dir
     if [[ "$dir" =~ "-go" ]]; then
       print "Running go vet"
-      go vet ./...
+      go vet -tags pkcs11 ./...
       print "Running gofmt"
       output=$(gofmt -l -s $(go list -f '{{.Dir}}' ./...))
       if [[ "${output}" != "" ]]; then
