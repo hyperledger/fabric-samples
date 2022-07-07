@@ -38,8 +38,8 @@ HSM2_CONF=$HOME/softhsm2.conf
 # Update the client config file to point to the softhsm pkcs11 library
 # which must be in $HOME/softhsm directory
 
-CLIENT_CONFIG_TEMPLATE=../ca-client-config/fabric-ca-client-config-template.yaml
-CLIENT_CONFIG=../ca-client-config/fabric-ca-client-config.yaml
+CLIENT_CONFIG_TEMPLATE=${SCRIPT_DIR}/../ca-client-config/fabric-ca-client-config-template.yaml
+CLIENT_CONFIG=${SCRIPT_DIR}/../ca-client-config/fabric-ca-client-config.yaml
 cp $CLIENT_CONFIG_TEMPLATE $CLIENT_CONFIG
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -49,7 +49,7 @@ else
 fi
 
 # create the users, remove any existing users
-CRYPTO_PATH=$PWD/../crypto-material/hsm
+CRYPTO_PATH=$SCRIPT_DIR/../crypto-material/hsm
 [ -d "$CRYPTO_PATH" ] && rm -fr "$CRYPTO_PATH"
 
 # user passed in as parameter

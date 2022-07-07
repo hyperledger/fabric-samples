@@ -109,10 +109,10 @@ echo 'go install pkcs11 enabled fabric-ca-client'
 go install -tags pkcs11 github.com/hyperledger/fabric-ca/cmd/fabric-ca-client@latest
 createNetwork
 print "Initializing Typescript HSM gateway application"
-pushd ../hsm-gateway-applications/scripts/
+pushd ../hardware-security-module/scripts/
 print "Enroll and register User in HSM"
 ./generate-hsm-user.sh HSMUser
-pushd ../node/
+pushd ../application-typescript/
 print "install dependencies and prepare for running"
 npm install
 print "Running the output app"
@@ -124,12 +124,12 @@ stopNetwork
 # Run Go HSM gateway application
 createNetwork
 print "Initializing Go HSM gateway application"
-pushd ../hsm-gateway-applications/scripts/
+pushd ../hardware-security-module/scripts/
 print "Register and enroll user in HSM"
 ./generate-hsm-user.sh HSMUser
-pushd ../go
+pushd ../application-go
 print "Running the output app"
-go run -tags pkcs11 hsm-sample.go
+go run -tags pkcs11 .
 popd
 popd
 stopNetwork
