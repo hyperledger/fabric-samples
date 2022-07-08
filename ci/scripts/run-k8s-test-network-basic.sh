@@ -12,12 +12,6 @@ export CLIENT_LANGUAGE=${CLIENT_LANGUAGE:-typescript}
 export CHAINCODE_LANGUAGE=${CHAINCODE_LANGUAGE:-java}
 export TEST_NETWORK_CHAINCODE_BUILDER=${CHAINCODE_BUILDER:-ccaas}
 
-# Fabric version and Docker registry source: use the latest stable tag image from JFrog
-export FABRIC_VERSION=${FABRIC_VERSION:-2.4}
-export TEST_NETWORK_FABRIC_CONTAINER_REGISTRY=hyperledger-fabric.jfrog.io
-export TEST_NETWORK_FABRIC_VERSION=amd64-${FABRIC_VERSION}-stable
-export TEST_NETWORK_FABRIC_CA_VERSION=amd64-${FABRIC_VERSION}-stable
-
 # test-network-k8s parameters
 export TEST_TAG=$(git describe)
 export TEST_NETWORK_KIND_CLUSTER_NAME=${TEST_NETWORK_KIND_CLUSTER_NAME:-kind}
