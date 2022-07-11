@@ -27,34 +27,37 @@ const peerEndpoint = 'localhost:7051';
 
 async function main() {
     console.log('\nRunning the Node HSM sample');
-
-    // The gRPC client connection should be shared by all Gateway connections to this endpoint
-    const client = await newGrpcConnection();
-
-    // get an HSMSigner Factory. You only need to do this once for the application
-    const hsmSignerFactory = signers.newHSMSignerFactory(findSoftHSMPKCS11Lib());
-    const credentials = await fs.promises.readFile(certPath);
-
-    // Get the signer function and a close function. The close function closes the signer
-    // once there is no further need for it.
-    const {signer, close} = await newHSMSigner(hsmSignerFactory, credentials.toString());
-
-    const gateway = connect({
-        client,
-        identity: {mspId, credentials},
-        signer,
-    });
+    let client;
+    let gateway;
+    let hsmSignerFactory;
+    let hsmSigner;
 
     try {
+    // The gRPC client connection should be shared by all Gateway connections to this endpoint
+        client = await newGrpcConnection();
+
+        // get an HSMSigner Factory. You only need to do this once for the application
+        hsmSignerFactory = signers.newHSMSignerFactory(findSoftHSMPKCS11Lib());
+        const credentials = await fs.promises.readFile(certPath);
+
+        // Get the signer function and a close function. The close function closes the signer
+        // once there is no further need for it.
+        hsmSigner = await newHSMSigner(hsmSignerFactory, credentials.toString());
+        gateway = connect({
+            client,
+            identity: { mspId, credentials },
+            signer:hsmSigner.signer,
+        });
+
         await exampleTransaction(gateway);
         console.log();
         console.log('Node HSM sample completed successfully');
     } finally {
-        gateway.close();
-        client.close();
-
+        gateway?.close();
+        client?.close();
+        hsmSignerFactory?.dispose();
         // close the HSM Signer
-        close();
+        hsmSigner?.close();
     }
 }
 
