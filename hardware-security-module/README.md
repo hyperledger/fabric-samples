@@ -91,34 +91,34 @@ generating and retrieving keys.
 
 A user, `HSMUser`, who is HSM managed needs to be registered then enrolled for the sample.
 
-If the "standard" PKCS11 library locations checked for by the script don't include the library(libsofthsm2.so) location for your environment set the `PKCS11_LIB` environment variable to define the library location.
+If your PKCS11 library (libsofthsm2.so) is not located in one of the typical Linux system locations checked by this sample's scripts and applications, you will need to explicitly specify the library location using the `PKCS11_LIB` environment variable.
 
 ```bash
-PKCS11_LIB='<path to PKCS11 library location>' scripts/generate-hsm-user.sh HSMUser
+export PKCS11_LIB='<path to PKCS11 library location>'
 ```
+Register a user `HSMUser` with the CA in Org1 (if not already registered) and then enroll that user which will generate a certificate on the file system for use by the sample. The private key is stored in SoftHSM.
 
-This will register a user `HSMUser` with the CA in Org1 (if not already registered) and then enroll that user which will
-generate a certificate on the file system for use by the sample. The private key is stored in SoftHSM
+```bash
+scripts/generate-hsm-user.sh HSMUser
+```
 
 ### Go SDK
 
 For HSM support you need to ensure you include the `pkcs11` build tag.
-Mention the PKCS11_LIB environment variable in case of a non-standard library location
 
 ```
 cd hardware-security-module/application-go
-go run -tags pkcs11 PKCS11_LIB=<path to PKCS11 library location> .
+go run -tags pkcs11 .
 ```
 
 ### Node SDK
 
-Mention the PKCS11_LIB environment variable in case of a non-standard library location
 ```
-export PKCS11_LIB=<path to PKCS11 library location>
 cd hardware-security-module/application-typescript
 npm install
 npm start
 ```
+## Cleanup
 
 When you are finished running the samples, the local test-network can be brought down with the following command (from the `test-network` folder):
 
