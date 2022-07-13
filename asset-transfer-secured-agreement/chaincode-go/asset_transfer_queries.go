@@ -47,8 +47,8 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, a
 
 // GetAssetPrivateProperties returns the immutable asset properties from owner's private data collection
 func (s *SmartContract) GetAssetPrivateProperties(ctx contractapi.TransactionContextInterface, assetID string) (string, error) {
-	// In this scenario, client is only authorized to read/write private data from its own peer.
-	collection, err := getClientImplicitCollectionName(ctx)
+
+	collection, err := getClientImplicitCollectionNameAndVerifyClientOrg(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -76,7 +76,8 @@ func (s *SmartContract) GetAssetBidPrice(ctx contractapi.TransactionContextInter
 
 // getAssetPrice gets the bid or ask price from caller's implicit private data collection
 func getAssetPrice(ctx contractapi.TransactionContextInterface, assetID string, priceType string) (string, error) {
-	collection, err := getClientImplicitCollectionName(ctx)
+
+	collection, err := getClientImplicitCollectionNameAndVerifyClientOrg(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -108,7 +109,7 @@ func (s *SmartContract) QueryAssetBuyAgreements(ctx contractapi.TransactionConte
 }
 
 func queryAgreementsByType(ctx contractapi.TransactionContextInterface, agreeType string) ([]Agreement, error) {
-	collection, err := getClientImplicitCollectionName(ctx)
+	collection, err := getClientImplicitCollectionNameAndVerifyClientOrg(ctx)
 	if err != nil {
 		return nil, err
 	}
