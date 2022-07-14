@@ -7,6 +7,8 @@ The samples will only run against Fabric v2.4 and higher.
 
 Sample client applications are available to demonstrate the features of the Fabric Gateway and associated SDKs using this network.
 
+> **_NOTE:_**  When you use an HSM, private keys for a Fabric enrollment are stored within a dedicated hardware module, rather than in plain text on a local file system.
+
 ## Installations
 
 ### C Compilers
