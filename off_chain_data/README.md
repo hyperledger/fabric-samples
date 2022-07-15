@@ -21,7 +21,7 @@ The client application provides several "commands" that can be invoked using the
   - Java: [application-java/app/src/main/java/GetAllAssets.java](application-java/app/src/main/java/GetAllAssets.java)
 - **listen**: Listen for block events, and use them to replicate ledger updates in an off-chain data store. See:
   - TypeScript: [application-typescript/src/listen.ts](application-typescript/src/listen.ts)
-  - Java: [application-java/app/src/main/java/Transact.java](application-java/app/src/main/java/Transact.java)
+  - Java: [application-java/app/src/main/java/Listen.java](application-java/app/src/main/java/Listen.java)
 - **transact**: Submit a set of transactions to create, modify and delete assets. See:
   - TypeScript: [application-typescript/src/transact.ts](application-typescript/src/transact.ts)
   - Java: [application-java/app/src/main/java/Transact.java](application-java/app/src/main/java/Transact.java)
