@@ -1,0 +1,13 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+steps:
+  - script: |
+      sudo apt install -y softhsm2
+    displayName: Install SoftHSM
+  - script: |
+      echo directories.tokendir = /tmp > $HOME/softhsm2.conf
+      export SOFTHSM2_CONF=$HOME/softhsm2.conf
+      softhsm2-util --init-token --slot 0 --label "ForFabric" --pin 98765432 --so-pin 1234
+    displayName: Set up SoftHSM

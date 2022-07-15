@@ -93,13 +93,44 @@ print "Initializing Typescript HSM application"
 pushd ../asset-transfer-basic/application-typescript-hsm
 print "Setup SoftHSM"
 export SOFTHSM2_CONF=$PWD/softhsm2.conf
-softhsm2-util --init-token --slot 0 --label "ForFabric" --pin 98765432 --so-pin 1234
 print "install dependencies"
 npm install
 print "Building app.ts"
 npm run build
 print "Running the output app"
 node dist/app.js
+popd
+stopNetwork
+
+# Run Typescript HSM gateway application
+echo 'Delete fabric-ca-client from samples bin'
+rm ../bin/fabric-ca-client
+echo 'go install pkcs11 enabled fabric-ca-client'
+go install -tags pkcs11 github.com/hyperledger/fabric-ca/cmd/fabric-ca-client@latest
+createNetwork
+print "Initializing Typescript HSM gateway application"
+pushd ../hardware-security-module/scripts/
+print "Enroll and register User in HSM"
+./generate-hsm-user.sh HSMUser
+pushd ../application-typescript/
+print "install dependencies and prepare for running"
+npm install
+print "Running the output app"
+npm run start
+popd
+popd
+stopNetwork
+
+# Run Go HSM gateway application
+createNetwork
+print "Initializing Go HSM gateway application"
+pushd ../hardware-security-module/scripts/
+print "Register and enroll user in HSM"
+./generate-hsm-user.sh HSMUser
+pushd ../application-go
+print "Running the output app"
+go run -tags pkcs11 .
+popd
 popd
 stopNetwork
 

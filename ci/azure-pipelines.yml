@@ -10,14 +10,16 @@ trigger:
 variables:
   - name: FABRIC_VERSION
     value: 2.4
+  - name: GOPATH
+    value: $(Build.Repository.LocalPath)
   - name: GO_BIN
-    value: $(Build.Repository.LocalPath)/bin
+    value: $(GOPATH)/bin
   - name: GO_VER
     value: 1.18.3
   - name: NODE_VER
     value: 16.x
   - name: PATH
-    value: $(Build.Repository.LocalPath)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+    value: $(GOPATH)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
   - group: credentials
 
 jobs:
@@ -124,8 +126,7 @@ jobs:
 
     steps:
       - template: templates/install-deps.yml
-      - script: sudo apt-get install softhsm2
-        displayName: Install SoftHSM
+      - template: templates/install-deps-hsm.yml
       - script: ../ci/scripts/run-test-network-basic.sh
         workingDirectory: test-network
         displayName: Run Test Network Basic Chaincode
