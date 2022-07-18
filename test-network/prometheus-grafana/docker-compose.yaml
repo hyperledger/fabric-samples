@@ -62,7 +62,7 @@ services:
       - 9100:9100
     restart: always
 
-networks:
-  default:
-      external: true
-      name: fabric_test
+    networks:
+        default:
+            external:
+                name: test_network
