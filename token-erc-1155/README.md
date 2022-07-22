@@ -37,7 +37,7 @@ Although Mint / Burn are not required, they are necessary to change the supply o
   - Burn
   - BurnBatch
 - Extra/utility functions
-  - BatchTransferFromMultiRecipient: This is not defined in the standard. We created this function to solve an issue we encountered. It is only required if a person wants to send tokens to multiple persons in a blockchain block. If a person doesn't use this function and create two transactions in a single block, there will be key conflicts because the chaincode will try to decrement the balance of the sender twice in a block and this causes a key conflict in Fabric [just like explained in here](https://github.com/hyperledger/fabric-samples/tree/main/high-throughput). This problem does not exist in Ethereum because, in Ethereum, the transactions are ordered before they are executed.
+  - BatchTransferToMultiRecipientFrom: This is not defined in the standard. We created this function to solve an issue we encountered. It is only required if a person wants to send tokens to multiple persons in a blockchain block. If a person doesn't use this function and create two transactions in a single block, there will be key conflicts because the chaincode will try to decrement the balance of the sender twice in a block and this causes a key conflict in Fabric [just like explained in here](https://github.com/hyperledger/fabric-samples/tree/main/high-throughput). This problem does not exist in Ethereum because, in Ethereum, the transactions are ordered before they are executed.
   - BroadcastTokenExistence: Explained in ERC-1155 but it is not required. It is only used if a token minter wants to announce the existence of a token without minting it.
   - ClientAccountID: This function is special for Fabric because we do not have wallet addresses in Fabric and users need to know their account ID to transfer tokens.
   - ClientAccountBalance: A shorthand for BalanceOf function.
@@ -261,9 +261,9 @@ Send Person P2 six token3s, three token4s, and one token2s by calling BatchTrans
 peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n erc1155 -c "{\"function\":\"BatchTransferFrom\",\"Args\":[\"$P1\",\"$P2\",\"[3,4,2]\",\"[6,3,1]\"]}" --waitForEvent
 ```
 
-#### BatchTransferFromMultiReceipent
+#### BatchTransferToMultiReceipentFrom
 
-Call BatchTransferFromMultiReceipent as Person1 in order to send:
+Call BatchTransferToMultiReceipentFrom as Person1 in order to send:
 - six token5s to person P3,
 - six token3s  to person P4,
 - three token4s to person P2,
@@ -271,7 +271,7 @@ Call BatchTransferFromMultiReceipent as Person1 in order to send:
 - and three token6s to person P2.
 
 ```bash
-peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n erc1155 -c "{\"function\":\"BatchTransferFromMultiRecipient\",\"Args\":[\"$P1\",\"[\\\"$P3\\\",\\\"$P4\\\",\\\"$P2\\\",\\\"$P5\\\",\\\"$P2\\\"]\",\"[5,3,4,2,6]\",\"[6,6,3,2,3]\"]}" --waitForEvent
+peer chaincode invoke "${TARGET_TLS_OPTIONS[@]}" -C mychannel -n erc1155 -c "{\"function\":\"BatchTransferToFromMultiRecipientFrom\",\"Args\":[\"$P1\",\"[\\\"$P3\\\",\\\"$P4\\\",\\\"$P2\\\",\\\"$P5\\\",\\\"$P2\\\"]\",\"[5,3,4,2,6]\",\"[6,6,3,2,3]\"]}" --waitForEvent
 ```
 
 ### Clean up

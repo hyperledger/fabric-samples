@@ -417,7 +417,7 @@ func (s *SmartContract) BatchTransferFrom(ctx contractapi.TransactionContextInte
 	return emitTransferBatch(ctx, transferBatchEvent)
 }
 
-// BatchTransferToMultiRecipient transfers multiple tokens from sender account to multiple recipient accounts
+// BatchTransferToMultiRecipientFrom transfers multiple tokens from sender account to multiple recipient accounts
 // recipient account must be a valid clientID as returned by the ClientID() function
 // This function triggers a TransferBatchMultiRecipient event
 func (s *SmartContract) BatchTransferToMultiRecipientFrom(ctx contractapi.TransactionContextInterface, sender string, recipients []string, ids []uint64, amounts []uint64) error {
