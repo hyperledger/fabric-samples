@@ -27,7 +27,7 @@ export class Djinn extends Contract {
         const ageToValidate = Number(age);
         // Validate age
         validation.isValid = (minimumAge <= ageToValidate);
-
+        validation.age = Number(age);
         await ctx.stub.putState('VALIDATION' + validation.id, Buffer.from(JSON.stringify(validation.toString())));
     }
 
