@@ -2,6 +2,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {FabCar} from './fabcar';
+import {Djinn} from './djinn';
 
-export const contracts: any[] = [ FabCar ];
+export const contracts: any[] = [ Djinn ];

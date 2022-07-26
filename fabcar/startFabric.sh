@@ -37,14 +37,14 @@ rm -rf go/wallet/*
 pushd ../test-network
 ./network.sh down
 ./network.sh up createChannel -ca -s couchdb
-./network.sh deployCC -ccn fabcar -ccv 1 -cci initLedger -ccl ${CC_SRC_LANGUAGE} -ccp ${CC_SRC_PATH}
+./network.sh deployCC -ccn djinn -ccv 1 -cci initLedger -ccl ${CC_SRC_LANGUAGE} -ccp ${CC_SRC_PATH}
 popd
 
 cat <<EOF
 
 Total setup execution time : $(($(date +%s) - starttime)) secs ...
 
-Next, use the FabCar applications to interact with the deployed FabCar contract.
+Next, use the Djinn applications to interact with the deployed Djinn contract.
 
 TypeScript:
 
@@ -57,18 +57,17 @@ TypeScript:
   Next, compile the TypeScript code into JavaScript:
     npm run build
 
-  Then run the following applications to enroll the admin user, and register a new user
-  called appUser which will be used by the other applications to interact with the deployed
-  FabCar contract:
+  Register user and admin:
     node dist/enrollAdmin
     node dist/registerUser
 
-  You can run the invoke application as follows. By default, the invoke application will
-  create a new car, but you can update the application to submit other transactions:
+  Add transaction:
     node dist/invoke
 
-  You can run the query application as follows. By default, the query application will
-  return all cars, but you can update the application to evaluate other transactions:
+  Get specific transaction:
+    node dist/getValidationById
+
+  Get all transactions:
     node dist/query
 
 EOF

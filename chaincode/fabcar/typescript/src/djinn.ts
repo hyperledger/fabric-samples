@@ -3,13 +3,13 @@
  */
 
 import { Context, Contract } from 'fabric-contract-api';
-import { Car } from './car';
-import {Ruleset} from './ruleset';
-import {Validation} from './validation';
+import { Ruleset } from './ruleset';
+import { Validation } from './validation';
 
-export class FabCar extends Contract {
+export class Djinn extends Contract {
 
     public currentContractNumber = 0;
+
     public async validateAge(ctx: Context, age: string) {
         const rulesets: Ruleset[] = [
             {
@@ -29,9 +29,8 @@ export class FabCar extends Contract {
         validation.isValid = (minimumAge <= ageToValidate);
 
         await ctx.stub.putState('VALIDATION' + validation.id, Buffer.from(JSON.stringify(validation.toString())));
-        console.log('Added <--> ', validation);
-
     }
+
     public async initLedger(ctx: Context) {
         console.log('============= START : Initialize Ledger ===========');
         console.info('============= END : Initialize Ledger ===========');
@@ -53,17 +52,20 @@ export class FabCar extends Contract {
             }
             allResults.push({ Key: key, Record: record });
         }
+        console.info('allResults');
         console.info(allResults);
         return JSON.stringify(allResults);
     }
+
     public async getValidationById(ctx: Context, validationId: string): Promise<string> {
-        const validationrAsBytes = await ctx.stub.getState(validationId); // get the validation from chaincode state
-        if (!validationrAsBytes || validationrAsBytes.length === 0) {
+        const validationAsBytes = await ctx.stub.getState(validationId); // get the validation from chaincode state
+        if (!validationAsBytes || validationAsBytes.length === 0) {
             throw new Error(`${validationId} does not exist`);
         }
-        console.log(validationrAsBytes.toString());
-        return validationrAsBytes.toString();
+        console.log(validationAsBytes.toString());
+        return validationAsBytes.toString();
     }
+
     private getNewId(): number {
         this.currentContractNumber++;
         return this.currentContractNumber;
