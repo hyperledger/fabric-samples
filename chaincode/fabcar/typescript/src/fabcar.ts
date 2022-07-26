@@ -4,110 +4,44 @@
 
 import { Context, Contract } from 'fabric-contract-api';
 import { Car } from './car';
+import {Ruleset} from './ruleset';
+import {Validation} from './validation';
 
 export class FabCar extends Contract {
 
-    public async initLedger(ctx: Context) {
-        console.info('============= START : Initialize Ledger ===========');
-        const cars: Car[] = [
+    public currentContractNumber = 0;
+    public async validateAge(ctx: Context, age: string) {
+        const rulesets: Ruleset[] = [
             {
-                color: 'blue',
-                make: 'Toyota',
-                model: 'Prius',
-                owner: 'Tomoko',
+                minimumAge: 16,
+                name: 'First ruleset',
             },
             {
-                color: 'red',
-                make: 'Ford',
-                model: 'Mustang',
-                owner: 'Brad',
-            },
-            {
-                color: 'green',
-                make: 'Hyundai',
-                model: 'Tucson',
-                owner: 'Jin Soo',
-            },
-            {
-                color: 'yellow',
-                make: 'Volkswagen',
-                model: 'Passat',
-                owner: 'Max',
-            },
-            {
-                color: 'black',
-                make: 'Tesla',
-                model: 'S',
-                owner: 'Adriana',
-            },
-            {
-                color: 'purple',
-                make: 'Peugeot',
-                model: '205',
-                owner: 'Michel',
-            },
-            {
-                color: 'white',
-                make: 'Chery',
-                model: 'S22L',
-                owner: 'Aarav',
-            },
-            {
-                color: 'violet',
-                make: 'Fiat',
-                model: 'Punto',
-                owner: 'Pari',
-            },
-            {
-                color: 'indigo',
-                make: 'Tata',
-                model: 'Nano',
-                owner: 'Valeria',
-            },
-            {
-                color: 'brown',
-                make: 'Holden',
-                model: 'Barina',
-                owner: 'Shotaro',
+                minimumAge: 18,
+                name: 'Second ruleset',
             },
         ];
+        const validation: Validation = new Validation();
+        validation.id = this.getNewId();
+        const minimumAge: number = Math.max(rulesets[0].minimumAge, rulesets[1].minimumAge);
+        const ageToValidate = Number(age);
+        // Validate age
+        validation.isValid = (minimumAge <= ageToValidate);
 
-        for (let i = 0; i < cars.length; i++) {
-            cars[i].docType = 'car';
-            await ctx.stub.putState('CAR' + i, Buffer.from(JSON.stringify(cars[i])));
-            console.info('Added <--> ', cars[i]);
-        }
+        await ctx.stub.putState('VALIDATION' + validation.id, Buffer.from(JSON.stringify(validation.toString())));
+        console.log('Added <--> ', validation);
+
+    }
+    public async initLedger(ctx: Context) {
+        console.log('============= START : Initialize Ledger ===========');
         console.info('============= END : Initialize Ledger ===========');
     }
 
-    public async queryCar(ctx: Context, carNumber: string): Promise<string> {
-        const carAsBytes = await ctx.stub.getState(carNumber); // get the car from chaincode state
-        if (!carAsBytes || carAsBytes.length === 0) {
-            throw new Error(`${carNumber} does not exist`);
-        }
-        console.log(carAsBytes.toString());
-        return carAsBytes.toString();
-    }
-
-    public async createCar(ctx: Context, carNumber: string, make: string, model: string, color: string, owner: string) {
-        console.info('============= START : Create Car ===========');
-
-        const car: Car = {
-            color,
-            docType: 'car',
-            make,
-            model,
-            owner,
-        };
-
-        await ctx.stub.putState(carNumber, Buffer.from(JSON.stringify(car)));
-        console.info('============= END : Create Car ===========');
-    }
-
-    public async queryAllCars(ctx: Context): Promise<string> {
+    public async queryAllValidations(ctx: Context): Promise<string> {
         const startKey = '';
         const endKey = '';
         const allResults = [];
+
         for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
             const strValue = Buffer.from(value).toString('utf8');
             let record;
@@ -122,19 +56,17 @@ export class FabCar extends Contract {
         console.info(allResults);
         return JSON.stringify(allResults);
     }
-
-    public async changeCarOwner(ctx: Context, carNumber: string, newOwner: string) {
-        console.info('============= START : changeCarOwner ===========');
-
-        const carAsBytes = await ctx.stub.getState(carNumber); // get the car from chaincode state
-        if (!carAsBytes || carAsBytes.length === 0) {
-            throw new Error(`${carNumber} does not exist`);
+    public async getValidationById(ctx: Context, validationId: string): Promise<string> {
+        const validationrAsBytes = await ctx.stub.getState(validationId); // get the validation from chaincode state
+        if (!validationrAsBytes || validationrAsBytes.length === 0) {
+            throw new Error(`${validationId} does not exist`);
         }
-        const car: Car = JSON.parse(carAsBytes.toString());
-        car.owner = newOwner;
-
-        await ctx.stub.putState(carNumber, Buffer.from(JSON.stringify(car)));
-        console.info('============= END : changeCarOwner ===========');
+        console.log(validationrAsBytes.toString());
+        return validationrAsBytes.toString();
+    }
+    private getNewId(): number {
+        this.currentContractNumber++;
+        return this.currentContractNumber;
     }
 
 }
