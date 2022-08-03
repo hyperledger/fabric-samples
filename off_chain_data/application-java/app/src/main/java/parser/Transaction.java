@@ -15,6 +15,7 @@ import java.util.List;
 
 public interface Transaction {
     ChannelHeader getChannelHeader() throws InvalidProtocolBufferException;
+    byte[] getCreator() throws InvalidProtocolBufferException;
     TxValidationCode getValidationCode();
     boolean isValid();
     List<NamespaceReadWriteSet> getNamespaceReadWriteSets() throws InvalidProtocolBufferException;
