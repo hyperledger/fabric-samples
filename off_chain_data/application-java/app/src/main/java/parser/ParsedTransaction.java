@@ -30,6 +30,11 @@ final class ParsedTransaction implements Transaction {
     }
 
     @Override
+    public byte[] getCreator() throws InvalidProtocolBufferException {
+        return payload.getSignatureHeader().getCreator().toByteArray();
+    }
+
+    @Override
     public TxValidationCode getValidationCode() {
         return payload.getValidationCode();
     }

@@ -15,6 +15,7 @@ export interface Block {
 
 export interface Transaction {
     getChannelHeader(): common.ChannelHeader;
+    getCreator(): Uint8Array;
     getValidationCode(): number;
     isValid(): boolean;
     getNamespaceReadWriteSets(): NamespaceReadWriteSet[];
@@ -46,6 +47,7 @@ export function parseBlock(block: common.Block): Block {
 interface Payload {
     getChannelHeader(): common.ChannelHeader;
     getEndorserTransaction(): EndorserTransaction;
+    getSignatureHeader(): common.SignatureHeader;
     getTransactionValidationCode(): number;
     isEndorserTransaction(): boolean;
     isValid(): boolean;
@@ -75,6 +77,7 @@ function parsePayload(payload: common.Payload, statusCode: number): Payload {
             const transaction = peer.Transaction.deserializeBinary(payload.getData_asU8());
             return parseEndorserTransaction(transaction);
         },
+        getSignatureHeader: cache(() => getSignatureHeader(payload)),
         getTransactionValidationCode: () => statusCode,
         isEndorserTransaction,
         isValid: () => statusCode === peer.TxValidationCode.VALID,
@@ -103,6 +106,7 @@ function newTransaction(payload: Payload): Transaction {
 
     return {
         getChannelHeader: () => payload.getChannelHeader(),
+        getCreator: () => payload.getSignatureHeader().getCreator_asU8(),
         getNamespaceReadWriteSets: () => transaction.getReadWriteSets()
             .flatMap(readWriteSet => readWriteSet.getNamespaceReadWriteSets()),
         getValidationCode: () => payload.getTransactionValidationCode(),
@@ -149,6 +153,11 @@ function getPayloads(block: common.Block): common.Payload[] {
 function getChannelHeader(payload: common.Payload): common.ChannelHeader {
     const header = assertDefined(payload.getHeader(), 'Missing payload header');
     return common.ChannelHeader.deserializeBinary(header.getChannelHeader_asU8());
+}
+
+function getSignatureHeader(payload: common.Payload): common.SignatureHeader {
+    const header = assertDefined(payload.getHeader(), 'Missing payload header');
+    return common.SignatureHeader.deserializeBinary(header.getSignatureHeader_asU8());
 }
 
 function getChaincodeActionPayloads(transaction: peer.Transaction): peer.ChaincodeActionPayload[] {
