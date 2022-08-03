@@ -45,25 +45,32 @@ function init_tls_cert_issuers() {
 
 function enroll_bootstrap_ECert_CA_user() {
   local org=$1
-  local auth=$2
-  local ecert_ca=${org}-ca
 
-  echo 'set -x
+  # Determine the CA information and TLS certificate
+  CA_NAME=${org}-ca
+  CA_DIR=${TEMP_DIR}/cas/${CA_NAME}
+  mkdir -p ${CA_DIR}
 
+  # Read the CA's TLS certificate from the cert-manager CA secret
+  echo "retrieving ${CA_NAME} TLS root cert"
+  kubectl -n $NS get secret ${CA_NAME}-tls-cert -o json \
+    | jq -r .data.\"ca.crt\" \
+    | base64 -d \
+    > ${CA_DIR}/tlsca-cert.pem
+
+  # Enroll the root CA user
   fabric-ca-client enroll \
-    --url https://'${auth}'@'${ecert_ca}' \
-    --tls.certfiles /var/hyperledger/fabric/config/tls/ca.crt \
-    --mspdir $FABRIC_CA_CLIENT_HOME/'${ecert_ca}'/rcaadmin/msp
-
-  ' | exec kubectl -n $NS exec deploy/${ecert_ca} -i -- /bin/sh
+    --url https://${RCAADMIN_USER}:${RCAADMIN_PASS}@${CA_NAME}.${DOMAIN}:${NGINX_HTTPS_PORT} \
+    --tls.certfiles $TEMP_DIR/cas/${CA_NAME}/tlsca-cert.pem \
+    --mspdir $TEMP_DIR/enrollments/${org}/users/${RCAADMIN_USER}/msp
 }
 
 function enroll_bootstrap_ECert_CA_users() {
   push_fn "Enrolling bootstrap ECert CA users"
 
-  enroll_bootstrap_ECert_CA_user org0 $RCAADMIN_AUTH
-  enroll_bootstrap_ECert_CA_user org1 $RCAADMIN_AUTH
-  enroll_bootstrap_ECert_CA_user org2 $RCAADMIN_AUTH
+  enroll_bootstrap_ECert_CA_user org0
+  enroll_bootstrap_ECert_CA_user org1
+  enroll_bootstrap_ECert_CA_user org2
 
   pop_fn
 }
