@@ -46,13 +46,19 @@ function create_node_local_MSP() {
   local ca_name=${org}-ca
 
   # Register the node admin
+  rc=0
   fabric-ca-client  register \
     --id.name       ${id_name} \
     --id.secret     ${id_secret} \
     --id.type       ${node_type} \
     --url           https://${ca_name}.${DOMAIN} \
     --tls.certfiles $TEMP_DIR/cas/${ca_name}/tlsca-cert.pem \
-    --mspdir        $TEMP_DIR/enrollments/${org}/users/${RCAADMIN_USER}/msp
+    --mspdir        $TEMP_DIR/enrollments/${org}/users/${RCAADMIN_USER}/msp \
+    || rc=$?        # trap error code from registration without exiting the network driver script"
+
+  if [ $rc -eq 1 ]; then
+    echo "CA admin was (probably) previously registered - continuing"
+  fi
 
   # Enroll the node admin user from within k8s.  This will leave the certificates available on a volume share in the
   # cluster for access by the nodes when launching in a container.
