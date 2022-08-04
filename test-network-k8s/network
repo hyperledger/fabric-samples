@@ -50,7 +50,7 @@ context K8S_CHAINCODE_BUILDER_VERSION v0.6.0
 
 context LOG_FILE                      network.log
 context DEBUG_FILE                    network-debug.log
-context LOG_ERROR_LINE                1
+context LOG_ERROR_LINES               2
 context LOCAL_REGISTRY_NAME           kind-registry
 context LOCAL_REGISTRY_PORT           5000
 context STAGE_DOCKER_IMAGES           false
