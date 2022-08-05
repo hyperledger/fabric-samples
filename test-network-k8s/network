@@ -50,16 +50,15 @@ context K8S_CHAINCODE_BUILDER_VERSION v0.6.0
 
 context LOG_FILE                      network.log
 context DEBUG_FILE                    network-debug.log
-context LOG_ERROR_LINE                1
+context LOG_ERROR_LINES               2
 context LOCAL_REGISTRY_NAME           kind-registry
 context LOCAL_REGISTRY_PORT           5000
 context STAGE_DOCKER_IMAGES           false
 context NGINX_HTTP_PORT               80
 context NGINX_HTTPS_PORT              443
 
-# todo: more complicated config, as these bleed into the yaml descriptors (sed? kustomize? helm (no)? tkn? ansible?...) or other script locations
-context TLSADMIN_AUTH                 tlsadmin:tlsadminpw
-context RCAADMIN_AUTH                 rcaadmin:rcaadminpw
+context RCAADMIN_USER                 rcaadmin
+context RCAADMIN_PASS                 rcaadminpw
 
 function print_help() {
   set +x

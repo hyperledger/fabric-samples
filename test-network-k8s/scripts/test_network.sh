@@ -35,23 +35,6 @@ function launch_peers() {
   pop_fn
 }
 
-# todo: enroll org admin LOCALLY from the host OS
-#  fabric-ca-client register --id.name org1-admin --id.secret org1adminpw  --id.type admin   --url https://org1-ca --mspdir $FABRIC_CA_CLIENT_HOME/org1-ca/rcaadmin/msp --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
-#  fabric-ca-client enroll --url https://org1-admin:org1adminpw@org1-ca  --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
-#  cp /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/*_sk /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/server.key
-#  cp /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/msp/config.yaml /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/config.yaml
-
-#  fabric-ca-client register --id.name org1-admin --id.secret org1adminpw  --id.type admin   --url https://org1-ca --mspdir $FABRIC_CA_CLIENT_HOME/org1-ca/rcaadmin/msp --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
-#  fabric-ca-client enroll --url https://org1-admin:org1adminpw@org1-ca  --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
-#  cp /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/*_sk /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/server.key
-#  cp /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/msp/config.yaml /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/config.yaml
-
-#  fabric-ca-client register --id.name org2-admin --id.secret org2adminpw  --id.type admin   --url https://org2-ca --mspdir $FABRIC_CA_CLIENT_HOME/org2-ca/rcaadmin/msp --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
-#  fabric-ca-client enroll --url https://org2-admin:org2adminpw@org2-ca  --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
-#  cp /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/keystore/*_sk /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/keystore/server.key
-#  cp /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer1.org2.example.com/msp/config.yaml /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/config.yaml
-
-
 # Each network node needs a registration, enrollment, and MSP config.yaml
 function create_node_local_MSP() {
   local node_type=$1
@@ -62,19 +45,28 @@ function create_node_local_MSP() {
   local id_secret=${node_type}pw
   local ca_name=${org}-ca
 
+  # Register the node admin
+  rc=0
+  fabric-ca-client  register \
+    --id.name       ${id_name} \
+    --id.secret     ${id_secret} \
+    --id.type       ${node_type} \
+    --url           https://${ca_name}.${DOMAIN} \
+    --tls.certfiles $TEMP_DIR/cas/${ca_name}/tlsca-cert.pem \
+    --mspdir        $TEMP_DIR/enrollments/${org}/users/${RCAADMIN_USER}/msp \
+    || rc=$?        # trap error code from registration without exiting the network driver script"
+
+  if [ $rc -eq 1 ]; then
+    echo "CA admin was (probably) previously registered - continuing"
+  fi
+
+  # Enroll the node admin user from within k8s.  This will leave the certificates available on a volume share in the
+  # cluster for access by the nodes when launching in a container.
   cat <<EOF | kubectl -n $NS exec deploy/${ca_name} -i -- /bin/sh
 
   set -x
   export FABRIC_CA_CLIENT_HOME=/var/hyperledger/fabric-ca-client
   export FABRIC_CA_CLIENT_TLS_CERTFILES=/var/hyperledger/fabric/config/tls/ca.crt
-
-  # Each identity in the network needs a registration and enrollment.
-  fabric-ca-client register \
-    --id.name ${id_name} \
-    --id.secret ${id_secret} \
-    --id.type ${node_type} \
-    --url https://${ca_name} \
-    --mspdir /var/hyperledger/fabric-ca-client/${ca_name}/rcaadmin/msp
 
   fabric-ca-client enroll \
     --url https://${id_name}:${id_secret}@${ca_name} \
@@ -130,32 +122,6 @@ function create_local_MSP() {
 
   pop_fn
 }
-#
-## TLS certificates are isused by the CA's Issuer, stored in a Kube secret, and mounted into the pod at /var/hyperledger/fabric/config/tls.
-## For consistency with the Fabric-CA guide, his function copies the orderer's TLS certs into the traditional Fabric MSP / folder structure.
-#function extract_orderer_tls_cert() {
-#  local orderer=$1
-#
-#  echo 'set -x
-#
-#  mkdir -p /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/'${orderer}'.org0.example.com/tls/signcerts/
-#
-#  cp \
-#    var/hyperledger/fabric/config/tls/tls.crt \
-#    /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/'${orderer}'.org0.example.com/tls/signcerts/cert.pem
-#
-#  ' | exec kubectl -n $NS exec deploy/${orderer} -i -c main -- /bin/sh
-#}
-#
-#function extract_orderer_tls_certs() {
-#  push_fn "Extracting orderer TLS certs to local MSP folder"
-#
-#  extract_orderer_tls_cert org0-orderer1
-#  extract_orderer_tls_cert org0-orderer2
-#  extract_orderer_tls_cert org0-orderer3
-#
-#  pop_fn
-#}
 
 function network_up() {
 
@@ -182,8 +148,6 @@ function network_up() {
 
   launch_orderers
   launch_peers
-
-#  extract_orderer_tls_certs
 }
 
 function stop_services() {

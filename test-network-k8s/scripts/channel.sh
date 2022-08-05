@@ -54,20 +54,14 @@ function register_org_admin() {
 
   echo "Registering org admin $username"
 
-  cat <<EOF | kubectl -n $NS exec deploy/${ca_name} -i -- /bin/sh
-
-  set -x
-  export FABRIC_CA_CLIENT_HOME=/var/hyperledger/fabric-ca-client
-  export FABRIC_CA_CLIENT_TLS_CERTFILES=/var/hyperledger/fabric/config/tls/ca.crt
-
-  fabric-ca-client register \
-    --id.name   ${id_name} \
-    --id.secret ${id_secret} \
-    --id.type   ${type} \
-    --url       https://${ca_name} \
-    --mspdir    /var/hyperledger/fabric-ca-client/${ca_name}/rcaadmin/msp \
-    --id.attrs  "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
-EOF
+  fabric-ca-client  register \
+    --id.name       ${id_name} \
+    --id.secret     ${id_secret} \
+    --id.type       ${type} \
+    --url           https://${ca_name}.${DOMAIN} \
+    --tls.certfiles $TEMP_DIR/cas/${ca_name}/tlsca-cert.pem \
+    --mspdir        $TEMP_DIR/enrollments/${org}/users/${RCAADMIN_USER}/msp \
+    --id.attrs      "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
 }
 
 function enroll_org_admins() {
@@ -101,19 +95,11 @@ function enroll_org_admin() {
   # Determine the CA information and TLS certificate
   CA_NAME=${org}-ca
   CA_DIR=${TEMP_DIR}/cas/${CA_NAME}
-  mkdir -p ${CA_DIR}
 
   CA_AUTH=${username}:${password}
   CA_HOST=${CA_NAME}.${DOMAIN}
   CA_PORT=${NGINX_HTTPS_PORT}
   CA_URL=https://${CA_AUTH}@${CA_HOST}:${CA_PORT}
-
-  # Read the CA's TLS certificate from the cert-manager CA secret
-  echo "retrieving ${org}-ca TLS root cert"
-  kubectl -n $NS get secret ${org}-ca-tls-cert -o json \
-    | jq -r .data.\"ca.crt\" \
-    | base64 -d \
-    > ${CA_DIR}/tlsca-cert.pem
 
   # enroll the org admin
   FABRIC_CA_CLIENT_HOME=${ORG_ADMIN_DIR} fabric-ca-client enroll \
