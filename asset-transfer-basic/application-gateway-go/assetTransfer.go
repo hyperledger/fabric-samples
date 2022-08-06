@@ -13,8 +13,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"time"
 
@@ -52,7 +52,7 @@ func main() {
 	sign := newSign()
 
 	// Create a Gateway connection for a specific client identity
-	gateway, err := client.Connect(
+	gw, err := client.Connect(
 		id,
 		client.WithSign(sign),
 		client.WithClientConnection(clientConnection),
@@ -65,9 +65,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer gateway.Close()
+	defer gw.Close()
 
-	network := gateway.GetNetwork(channelName)
+	network := gw.GetNetwork(channelName)
 	contract := network.GetContract(chaincodeName)
 
 	fmt.Println("initLedger:")
@@ -126,7 +126,7 @@ func newIdentity() *identity.X509Identity {
 }
 
 func loadCertificate(filename string) (*x509.Certificate, error) {
-	certificatePEM, err := ioutil.ReadFile(filename)
+	certificatePEM, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read certificate file: %w", err)
 	}
@@ -135,11 +135,11 @@ func loadCertificate(filename string) (*x509.Certificate, error) {
 
 // newSign creates a function that generates a digital signature from a message digest using a private key.
 func newSign() identity.Sign {
-	files, err := ioutil.ReadDir(keyPath)
+	files, err := os.ReadDir(keyPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to read private key directory: %w", err))
 	}
-	privateKeyPEM, err := ioutil.ReadFile(path.Join(keyPath, files[0].Name()))
+	privateKeyPEM, err := os.ReadFile(path.Join(keyPath, files[0].Name()))
 
 	if err != nil {
 		panic(fmt.Errorf("failed to read private key file: %w", err))
@@ -222,10 +222,10 @@ func transferAssetAsync(contract *client.Contract) {
 	fmt.Printf("Successfully submitted transaction to transfer ownership from %s to Mark. \n", string(submitResult))
 	fmt.Println("Waiting for transaction commit.")
 
-	if status, err := commit.Status(); err != nil {
+	if commitStatus, err := commit.Status(); err != nil {
 		panic(fmt.Errorf("failed to get commit status: %w", err))
-	} else if !status.Successful {
-		panic(fmt.Errorf("transaction %s failed to commit with status: %d", status.TransactionID, int32(status.Code)))
+	} else if !commitStatus.Successful {
+		panic(fmt.Errorf("transaction %s failed to commit with status: %d", commitStatus.TransactionID, int32(commitStatus.Code)))
 	}
 
 	fmt.Printf("*** Transaction committed successfully\n")
