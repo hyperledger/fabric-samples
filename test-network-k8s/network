@@ -53,6 +53,7 @@ context LOG_FILE                      network.log
 context DEBUG_FILE                    network-debug.log
 context LOG_ERROR_LINES               2
 context LOCAL_REGISTRY_NAME           kind-registry
+context LOCAL_REGISTRY_INTERFACE      127.0.0.1
 context LOCAL_REGISTRY_PORT           5000
 context STAGE_DOCKER_IMAGES           false
 context NGINX_HTTP_PORT               80

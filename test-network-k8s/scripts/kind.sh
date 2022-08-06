@@ -80,11 +80,15 @@ function launch_docker_registry() {
   # create registry container unless it already exists
   local reg_name=${LOCAL_REGISTRY_NAME}
   local reg_port=${LOCAL_REGISTRY_PORT}
+  local reg_interface=${LOCAL_REGISTRY_INTERFACE}
 
   running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)"
   if [ "${running}" != 'true' ]; then
-    docker run \
-      -d --restart=always -p "127.0.0.1:${reg_port}:5000" --name "${reg_name}" \
+    docker run  \
+      --detach  \
+      --restart always \
+      --name    "${reg_name}" \
+      --publish "${reg_interface}:${reg_port}:5000" \
       registry:2
   fi
 
