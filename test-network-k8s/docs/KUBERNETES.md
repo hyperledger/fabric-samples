@@ -220,19 +220,16 @@ secure access to services, client applications must present the TLS root certifi
 organization when connecting to peers, orderers, and CAs.
 
 
-## What is `*.vcap.me` ? 
+## What is `*.localho.st` ? 
 
 In order to expose a dynamic set of DNS host aliases matching the Nginx ingress controller, the test network 
-employs the public DNS wildcard domain `*.vcap.me` to resolve host and subdomains to the local loopback 
+employs the public DNS wildcard domain `*.localho.st` to resolve host and subdomains to the local loopback 
 address 127.0.0.1.  
 
-The vcap.me domain is managed by VMWare and is associated with the 
-[VMWare Cloud Application Platform](https://github.com/cloudfoundry-attic/vcap) (VCAP).
-
-Using this DNS wildcard alias means that all ingress points bound to the *.vcap.me domain will resolve to your 
+Using this DNS wildcard alias means that all ingress points bound to the *.localho.st domain will resolve to your 
 local host, conveniently routing traffic into the KIND cluster on ports :80 and :443. 
 
-To override the *.vcap.me network ingress domain (for example in cloud-based environments supporting a DNS 
+To override the *.localho.st network ingress domain (for example in cloud-based environments supporting a DNS 
 wildcard resolver) set the `TEST_NETWORK_DOMAIN` environment variable before invoking `./network` 
 targets.   E.g.: 
 

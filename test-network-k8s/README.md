@@ -95,16 +95,16 @@ Workarounds to improve DNS resolution time on OSX:
 
 - Add manual DNS overrides for virtual hosts by adding to /etc/hosts:
 ```
-127.0.0.1 org0-ca.vcap.me
-127.0.0.1 org1-ca.vcap.me
-127.0.0.1 org2-ca.vcap.me
-127.0.0.1 org0-orderer1.vcap.me
-127.0.0.1 org0-orderer2.vcap.me
-127.0.0.1 org0-orderer3.vcap.me
-127.0.0.1 org1-peer1.vcap.me
-127.0.0.1 org1-peer2.vcap.me
-127.0.0.1 org2-peer1.vcap.me
-127.0.0.1 org2-peer2.vcap.me
+127.0.0.1 org0-ca.localho.st
+127.0.0.1 org1-ca.localho.st
+127.0.0.1 org2-ca.localho.st
+127.0.0.1 org0-orderer1.localho.st
+127.0.0.1 org0-orderer2.localho.st
+127.0.0.1 org0-orderer3.localho.st
+127.0.0.1 org1-peer1.localho.st
+127.0.0.1 org1-peer2.localho.st
+127.0.0.1 org2-peer1.localho.st
+127.0.0.1 org2-peer2.localho.st
 ```
 
 - Reduce the system resolver timeout from the default 5s by adding to /etc/resolv.conf:
