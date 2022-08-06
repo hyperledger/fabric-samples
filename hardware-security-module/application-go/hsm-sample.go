@@ -21,7 +21,6 @@ import (
 
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"time"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
@@ -53,7 +52,7 @@ func main() {
 	}
 	defer hsmSignerFactory.Dispose()
 
-	certificatePEM, err := ioutil.ReadFile(certPath)
+	certificatePEM, err := os.ReadFile(certPath)
 	if err != nil {
 		panic(err)
 	}
@@ -150,7 +149,7 @@ func newHSMSign(h *identity.HSMSignerFactory, certPEM []byte) (identity.Sign, id
 }
 
 func loadCertificate(filename string) (*x509.Certificate, error) {
-	certificatePEM, err := ioutil.ReadFile(filename) //#nosec G304
+	certificatePEM, err := os.ReadFile(filename) //#nosec G304
 	if err != nil {
 		return nil, err
 	}
