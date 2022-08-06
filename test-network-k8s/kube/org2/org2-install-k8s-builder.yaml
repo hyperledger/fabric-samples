@@ -18,7 +18,7 @@ spec:
       restartPolicy: "Never"
       containers:
         - name: main
-          image: ghcr.io/hyperledgendary/k8s-fabric-peer:${K8S_CHAINCODE_BUILDER_VERSION}
+          image: ${K8S_CHAINCODE_BUILDER_IMAGE}:${K8S_CHAINCODE_BUILDER_VERSION}
           imagePullPolicy: IfNotPresent
           command:
             - sh
