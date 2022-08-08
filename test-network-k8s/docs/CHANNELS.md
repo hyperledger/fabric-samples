@@ -73,9 +73,9 @@ services to register the channel genesis block configuration on the ordering nod
 ```shell
 configtxgen -profile TwoOrgsApplicationGenesis -channelID '${CHANNEL_NAME}' -outputBlock genesis_block.pb
 
-osnadmin channel join --orderer-address org0-orderer1-admin.vcap.me --channelID '${CHANNEL_NAME}' --config-block genesis_block.pb
-osnadmin channel join --orderer-address org0-orderer2-admin.vcap.me --channelID '${CHANNEL_NAME}' --config-block genesis_block.pb
-osnadmin channel join --orderer-address org0-orderer3-admin.vcap.me --channelID '${CHANNEL_NAME}' --config-block genesis_block.pb
+osnadmin channel join --orderer-address org0-orderer1-admin.localho.st --channelID '${CHANNEL_NAME}' --config-block genesis_block.pb
+osnadmin channel join --orderer-address org0-orderer2-admin.localho.st --channelID '${CHANNEL_NAME}' --config-block genesis_block.pb
+osnadmin channel join --orderer-address org0-orderer3-admin.localho.st --channelID '${CHANNEL_NAME}' --config-block genesis_block.pb
 ```
 
 
@@ -95,7 +95,7 @@ by retrieving the genesis block from the orderers and then joining the channel:
     fetch oldest \
     genesis_block.pb \
     -c '${CHANNEL_NAME}' \
-    -o org0-orderer1.vcap.me \
+    -o org0-orderer1.localho.st \
     --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem
 
   # Join peer1 to the channel.
@@ -103,7 +103,7 @@ by retrieving the genesis block from the orderers and then joining the channel:
   peer channel \
     join \
     -b genesis_block.pb \
-    -o org0-orderer1.vcap.me \
+    -o org0-orderer1.localho.st \
     --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem
 
   # Join peer2 to the channel.
@@ -111,7 +111,7 @@ by retrieving the genesis block from the orderers and then joining the channel:
   peer channel \
     join \
     -b genesis_block.pb \
-    -o org0-orderer1.vcap.me \
+    -o org0-orderer1.localho.st \
     --tls --cafile /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem
 ```
 

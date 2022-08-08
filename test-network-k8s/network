@@ -41,17 +41,19 @@ context NETWORK_NAME                  test-network
 context CLUSTER_NAME                  kind
 context KUBE_NAMESPACE                ${NETWORK_NAME}
 context NS                            ${KUBE_NAMESPACE}
-context DOMAIN                        vcap.me
+context DOMAIN                        localho.st
 context CHANNEL_NAME                  mychannel
 context ORDERER_TIMEOUT               10s                   # see https://github.com/hyperledger/fabric/issues/3372
 context TEMP_DIR                      ${PWD}/build
 context CHAINCODE_BUILDER             ccaas                 # see https://github.com/hyperledgendary/fabric-builder-k8s/blob/main/docs/TEST_NETWORK_K8S.md
-context K8S_CHAINCODE_BUILDER_VERSION v0.6.0
+context K8S_CHAINCODE_BUILDER_IMAGE   ghcr.io/hyperledger-labs/k8s-fabric-peer
+context K8S_CHAINCODE_BUILDER_VERSION v0.7.2
 
 context LOG_FILE                      network.log
 context DEBUG_FILE                    network-debug.log
 context LOG_ERROR_LINES               2
 context LOCAL_REGISTRY_NAME           kind-registry
+context LOCAL_REGISTRY_INTERFACE      127.0.0.1
 context LOCAL_REGISTRY_PORT           5000
 context STAGE_DOCKER_IMAGES           false
 context NGINX_HTTP_PORT               80

@@ -30,8 +30,8 @@ export CRYPTO_PATH=${CRYPTO_PATH:-../../test-network-k8s/build/channel-msp/peerO
 export KEY_DIRECTORY_PATH=${KEY_DIRECTORY_PATH:-../../test-network-k8s/build/enrollments/org1/users/org1admin/msp/keystore}
 export CERT_PATH=${CERT_PATH:-../../test-network-k8s/build/enrollments/org1/users/org1admin/msp/signcerts/cert.pem}
 export TLS_CERT_PATH=${TLS_CERT_PATH:-../../test-network-k8s/build/channel-msp/peerOrganizations/org1/msp/tlscacerts/tlsca-signcert.pem}
-export PEER_ENDPOINT=${PEER_ENDPOINT:-org1-peer1.vcap.me:443}
-export PEER_HOST_ALIAS=${PEER_HOST_ALIAS:-org1-peer1.vcap.me}
+export PEER_ENDPOINT=${PEER_ENDPOINT:-org1-peer1.localho.st:443}
+export PEER_HOST_ALIAS=${PEER_HOST_ALIAS:-org1-peer1.localho.st}
 
 function print() {
   GREEN='\033[0;32m'
@@ -90,7 +90,7 @@ print "Running rest-easy test"
 ( ./network rest-easy \
   && sleep 5 \
   && export SAMPLE_APIKEY='97834158-3224-4CE7-95F9-A148C886653E' \
-  && curl -s --header "X-Api-Key: ${SAMPLE_APIKEY}" "http://fabric-rest-sample.vcap.me/api/assets/asset1" | jq )
+  && curl -s --header "X-Api-Key: ${SAMPLE_APIKEY}" "http://fabric-rest-sample.localho.st/api/assets/asset1" | jq )
 print "OK"
 
 stopNetwork
