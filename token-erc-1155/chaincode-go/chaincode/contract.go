@@ -811,7 +811,7 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 	if err != nil {
 		return false, fmt.Errorf("failed to get MSPID: %v", err)
 	}
-	if clientMSPID != "Org1MSP" {
+	if clientMSPID != minterMSPID {
 		return false, fmt.Errorf("client is not authorized to initialize contract")
 	}
 
