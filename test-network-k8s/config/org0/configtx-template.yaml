@@ -25,7 +25,7 @@ Organizations:
     ID: OrdererMSP
 
     # MSPDir is the filesystem path which contains the MSP configuration
-    MSPDir: ../../build/channel-msp/ordererOrganizations/org0/msp
+    MSPDir: ./channel-msp/ordererOrganizations/org0/msp
 
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
@@ -42,9 +42,9 @@ Organizations:
         Rule: "OR('OrdererMSP.admin')"
 
     OrdererEndpoints:
-      - org0-orderer1:6050
-      - org0-orderer2:6050
-      - org0-orderer3:6050
+      - org0-orderer1.${ORG0_NS}.svc.cluster.local:6050
+      - org0-orderer2.${ORG0_NS}.svc.cluster.local:6050
+      - org0-orderer3.${ORG0_NS}.svc.cluster.local:6050
 
   - &Org1
     # DefaultOrg defines the organization which is used in the sampleconfig
@@ -54,7 +54,7 @@ Organizations:
     # ID to load the MSP definition as
     ID: Org1MSP
 
-    MSPDir: ../../build/channel-msp/peerOrganizations/org1/msp
+    MSPDir: ./channel-msp/peerOrganizations/org1/msp
 
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
@@ -78,7 +78,7 @@ Organizations:
       # AnchorPeers defines the location of peers which can be used
       # for cross org gossip communication.  Note, this value is only
       # encoded in the genesis block in the Application section context
-      - Host: org1-peer1
+      - Host: org1-peer1.${ORG1_NS}.svc.cluster.local
         Port: 7051
 
   - &Org2
@@ -89,7 +89,7 @@ Organizations:
     # ID to load the MSP definition as
     ID: Org2MSP
 
-    MSPDir: ../../build/channel-msp/peerOrganizations/org2/msp
+    MSPDir: ./channel-msp/peerOrganizations/org2/msp
 
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
@@ -112,7 +112,7 @@ Organizations:
       # AnchorPeers defines the location of peers which can be used
       # for cross org gossip communication.  Note, this value is only
       # encoded in the genesis block in the Application section context
-      - Host: org2-peer1
+      - Host: org2-peer1.${ORG2_NS}.svc.cluster.local
         Port: 7051
 
 ################################################################################
@@ -224,16 +224,16 @@ Orderer: &OrdererDefaults
     Consenters:
       - Host: org0-orderer1
         Port: 6050
-        ClientTLSCert: ../../build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
-        ServerTLSCert: ../../build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
+        ClientTLSCert: ./channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
+        ServerTLSCert: ./channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
       - Host: org0-orderer2
         Port: 6050
-        ClientTLSCert: ../../build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer2/tls/signcerts/tls-cert.pem
-        ServerTLSCert: ../../build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer2/tls/signcerts/tls-cert.pem
+        ClientTLSCert: ./channel-msp/ordererOrganizations/org0/orderers/org0-orderer2/tls/signcerts/tls-cert.pem
+        ServerTLSCert: ./channel-msp/ordererOrganizations/org0/orderers/org0-orderer2/tls/signcerts/tls-cert.pem
       - Host: org0-orderer3
         Port: 6050
-        ClientTLSCert: ../../build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer3/tls/signcerts/tls-cert.pem
-        ServerTLSCert: ../../build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer3/tls/signcerts/tls-cert.pem
+        ClientTLSCert: ./channel-msp/ordererOrganizations/org0/orderers/org0-orderer3/tls/signcerts/tls-cert.pem
+        ServerTLSCert: ./channel-msp/ordererOrganizations/org0/orderers/org0-orderer3/tls/signcerts/tls-cert.pem
 
 
     # Options to be specified for all the etcd/raft nodes. The values here

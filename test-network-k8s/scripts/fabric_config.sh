@@ -7,18 +7,18 @@
 
 function init_namespace() {
   push_fn "Creating namespace \"$NS\""
-
-  kubectl create namespace $NS || true
-
+  for ns in $ORG0_NS $ORG1_NS $ORG2_NS; do
+    kubectl create namespace $ns || true
+  done
   pop_fn
 }
 
 function delete_namespace() {
-  push_fn "Deleting namespace \"$NS\""
-
-  kubectl delete namespace $NS || true
-
-  pop_fn
+  for ns in $ORG0_NS $ORG1_NS $ORG2_NS; do
+    push_fn "Deleting namespace \"$ns\""
+    kubectl delete namespace $ns || true
+    pop_fn
+  done
 }
 
 function init_storage_volumes() {
@@ -37,9 +37,9 @@ function init_storage_volumes() {
     exit 1
   fi
 
-  cat kube/pvc-fabric-org0.yaml | envsubst | kubectl -n $NS create -f - || true
-  cat kube/pvc-fabric-org1.yaml | envsubst | kubectl -n $NS create -f - || true
-  cat kube/pvc-fabric-org2.yaml | envsubst | kubectl -n $NS create -f - || true
+  cat kube/pvc-fabric-org0.yaml | envsubst | kubectl -n $ORG0_NS create -f - || true
+  cat kube/pvc-fabric-org1.yaml | envsubst | kubectl -n $ORG1_NS create -f - || true
+  cat kube/pvc-fabric-org2.yaml | envsubst | kubectl -n $ORG2_NS create -f - || true
 
   pop_fn
 }
@@ -47,13 +47,13 @@ function init_storage_volumes() {
 function load_org_config() {
   push_fn "Creating fabric config maps"
 
-  kubectl -n $NS delete configmap org0-config || true
-  kubectl -n $NS delete configmap org1-config || true
-  kubectl -n $NS delete configmap org2-config || true
+  kubectl -n $ORG0_NS delete configmap org0-config || true
+  kubectl -n $ORG1_NS delete configmap org1-config || true
+  kubectl -n $ORG2_NS delete configmap org2-config || true
 
-  kubectl -n $NS create configmap org0-config --from-file=config/org0
-  kubectl -n $NS create configmap org1-config --from-file=config/org1
-  kubectl -n $NS create configmap org2-config --from-file=config/org2
+  kubectl -n $ORG0_NS create configmap org0-config --from-file=config/org0
+  kubectl -n $ORG1_NS create configmap org1-config --from-file=config/org1
+  kubectl -n $ORG2_NS create configmap org2-config --from-file=config/org2
 
   pop_fn
 }

@@ -8,7 +8,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: org1-peer1-tls-cert
-  namespace: ${NS}
+  namespace: ${ORG1_NS}
 spec:
   isCA: false
   privateKey:
@@ -17,7 +17,7 @@ spec:
   dnsNames:
     - localhost
     - org1-peer1
-    - org1-peer1.${NS}.svc.cluster.local
+    - org1-peer1.${ORG1_NS}.svc.cluster.local
     - org1-peer1.${DOMAIN}
     - org1-peer-gateway-svc
     - org1-peer-gateway-svc.${DOMAIN}
@@ -46,7 +46,7 @@ data:
   CORE_PEER_CHAINCODELISTENADDRESS: 0.0.0.0:7052
   # bootstrap peer is the other peer in the same org
   CORE_PEER_GOSSIP_BOOTSTRAP: org1-peer2:7051
-  CORE_PEER_GOSSIP_EXTERNALENDPOINT: org1-peer1:7051
+  CORE_PEER_GOSSIP_EXTERNALENDPOINT: org1-peer1.${ORG1_NS}.svc.cluster.local:7051
   CORE_PEER_LOCALMSPID: Org1MSP
   CORE_PEER_MSPCONFIGPATH: /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/msp
   CORE_OPERATIONS_LISTENADDRESS: 0.0.0.0:9443
