@@ -15,13 +15,16 @@ function json_ccp {
   local ORG=$1
   local PP=$(one_line_pem $2)
   local CP=$(one_line_pem $3)
+  local NS=$4
   sed -e "s/\${ORG}/$ORG/" \
       -e "s#\${PEERPEM}#$PP#" \
       -e "s#\${CAPEM}#$CP#" \
+      -e "s#\${NS}#$NS#" \
       scripts/ccp-template.json
 }
 
 function construct_rest_sample_configmap() {
+  local ns=$ORG1_NS
   push_fn "Constructing fabric-rest-sample connection profiles"
 
   ENROLLMENT_DIR=${TEMP_DIR}/enrollments
@@ -32,11 +35,11 @@ function construct_rest_sample_configmap() {
 
   local peer_pem=$CHANNEL_MSP_DIR/peerOrganizations/org1/msp/tlscacerts/tlsca-signcert.pem
   local ca_pem=$CHANNEL_MSP_DIR/peerOrganizations/org1/msp/cacerts/ca-signcert.pem
-  echo "$(json_ccp 1 $peer_pem $ca_pem)" > build/fabric-rest-sample-config/HLF_CONNECTION_PROFILE_ORG1
+  echo "$(json_ccp 1 $peer_pem $ca_pem $ORG1_NS)" > build/fabric-rest-sample-config/HLF_CONNECTION_PROFILE_ORG1
 
   peer_pem=$CHANNEL_MSP_DIR/peerOrganizations/org2/msp/tlscacerts/tlsca-signcert.pem
   ca_pem=$CHANNEL_MSP_DIR/peerOrganizations/org2/msp/cacerts/ca-signcert.pem
-  echo "$(json_ccp 2 $peer_pem $ca_pem)" > build/fabric-rest-sample-config/HLF_CONNECTION_PROFILE_ORG2
+  echo "$(json_ccp 2 $peer_pem $ca_pem $ORG2_NS)" > build/fabric-rest-sample-config/HLF_CONNECTION_PROFILE_ORG2
 
   cp $ENROLLMENT_DIR/org1/users/org1admin/msp/signcerts/cert.pem $CONFIG_DIR/HLF_CERTIFICATE_ORG1
   cp $ENROLLMENT_DIR/org2/users/org2admin/msp/signcerts/cert.pem $CONFIG_DIR/HLF_CERTIFICATE_ORG2
@@ -44,28 +47,29 @@ function construct_rest_sample_configmap() {
   cp $ENROLLMENT_DIR/org1/users/org1admin/msp/keystore/key.pem $CONFIG_DIR/HLF_PRIVATE_KEY_ORG1
   cp $ENROLLMENT_DIR/org2/users/org2admin/msp/keystore/key.pem $CONFIG_DIR/HLF_PRIVATE_KEY_ORG2
 
-  kubectl -n $NS delete configmap fabric-rest-sample-config || true
-  kubectl -n $NS create configmap fabric-rest-sample-config --from-file=$CONFIG_DIR
+  kubectl -n $ns delete configmap fabric-rest-sample-config || true
+  kubectl -n $ns create configmap fabric-rest-sample-config --from-file=$CONFIG_DIR
 
   pop_fn
 }
 
 function rollout_rest_sample() {
+  local ns=$ORG1_NS
   push_fn "Starting fabric-rest-sample"
 
-  kubectl -n $NS apply -f kube/fabric-rest-sample.yaml
-  kubectl -n $NS rollout status deploy/fabric-rest-sample
+  kubectl -n $ns apply -f kube/fabric-rest-sample.yaml
+  kubectl -n $ns rollout status deploy/fabric-rest-sample
 
   pop_fn
 }
 
 function launch_rest_sample() {
-
+  local ns=$ORG1_NS
   construct_rest_sample_configmap
 
-  apply_template kube/fabric-rest-sample.yaml
+  apply_template kube/fabric-rest-sample.yaml $ns
 
-  kubectl -n $NS rollout status deploy/fabric-rest-sample
+  kubectl -n $ns rollout status deploy/fabric-rest-sample
 
   log ""
   log "The fabric-rest-sample has started."

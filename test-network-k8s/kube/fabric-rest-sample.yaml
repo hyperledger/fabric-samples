@@ -11,7 +11,7 @@ metadata:
 data:
   HLF_CONNECTION_PROFILE_ORG1: |
     {
-        "name": "${NS}-org1",
+        "name": "Org1",
         "version": "1.0.0",
         "client": {
             "organization": "Org1",
@@ -36,14 +36,14 @@ data:
         },
         "peers": {
             "org1-peers": {
-                "url": "grpcs://org1-peer-gateway-svc:7051",
+                "url": "grpcs://org1-peer1.${ORG1_NS}.svc.cluster.local:7051",
                 "tlsCACerts": {
                     "pem": "-----BEGIN CERTIFICATE-----\\nMIICvzCCAmWgAwIBAgIULJGws7jbEY6ruSgDuvi9L7VphvIwCgYIKoZIzj0EAwIw\\naDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQK\\nEwtIeXBlcmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMt\\nY2Etc2VydmVyMB4XDTIxMDkyMDE2MDkwMFoXDTIyMDkyMDE2MTQwMFowYDELMAkG\\nA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQKEwtIeXBl\\ncmxlZGdlcjENMAsGA1UECxMEcGVlcjETMBEGA1UEAxMKb3JnMS1wZWVyMTBZMBMG\\nByqGSM49AgEGCCqGSM49AwEHA0IABL9e3GZBf1MeoObGxwSHkcgDEjMo+/13Qc4u\\nfSG2MKrveHBIEA4MRkHNqd+sTjoz0/1B15y2n+RiPo8uJvlyC/CjgfQwgfEwDgYD\\nVR0PAQH/BAQDAgOoMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAMBgNV\\nHRMBAf8EAjAAMB0GA1UdDgQWBBSeytspiXlEzMAsnF9/wxqc9fydETAfBgNVHSME\\nGDAWgBQwru1VH0OwH3dxfPdD8w74ZIlLRzAVBgNVHREEDjAMggpvcmcxLXBlZXIx\\nMFsGCCoDBAUGBwgBBE97ImF0dHJzIjp7ImhmLkFmZmlsaWF0aW9uIjoiIiwiaGYu\\nRW5yb2xsbWVudElEIjoib3JnMS1wZWVyMSIsImhmLlR5cGUiOiJwZWVyIn19MAoG\\nCCqGSM49BAMCA0gAMEUCIQDJEjPxceCfXU5B/emrHE4JbEzrZKxLVViBWCNMsHiR\\nFgIgY+8jsvr3rlBPkpRhl8CtT2DgaP7iWvovtMYsPKhLAqk=\\n-----END CERTIFICATE-----\\n"
                   },
                 "grpcOptions": {
                     "grpc-wait-for-ready-timeout": 100000,
-                    "ssl-target-name-override": "org1-peer-gateway-svc",
-                    "hostnameOverride": "org1-peer-gateway-svc"
+                    "ssl-target-name-override": "org1-peer1.${ORG1_NS}.svc.cluster.local",
+                    "hostnameOverride": "org1-peer1.${ORG1_NS}.svc.cluster.local"
                 }
             }
         },
@@ -87,7 +87,7 @@ data:
     -----END PRIVATE KEY-----
   HLF_CONNECTION_PROFILE_ORG2: |
     {
-        "name": "${NS}-org2",
+        "name": "Org2",
         "version": "1.0.0",
         "client": {
             "organization": "Org2",
@@ -112,13 +112,13 @@ data:
         },
         "peers": {
             "org2-peers": {
-                "url": "grpcs://org2-peer-gateway-svc:7051",
+                "url": "org2-peer1.${ORG2_NS}.svc.cluster.local:7051",
                 "tlsCACerts": {
                     "pem": "-----BEGIN CERTIFICATE-----\\nMIICKDCCAc6gAwIBAgIUJJ4wGOSCfw8XOOIx29o67wBpFB4wCgYIKoZIzj0EAwIw\\naDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQK\\nEwtIeXBlcmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMt\\nY2Etc2VydmVyMB4XDTIxMDkyMDExNDEwMFoXDTM2MDkxNjExNDEwMFowaDELMAkG\\nA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQKEwtIeXBl\\ncmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMtY2Etc2Vy\\ndmVyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEyzGJLZX6pe59QAIBacjfzU4I\\nHezBYLyEu4ySpFx4xwxNLE4BWqLhB1VaOuenSQATM8pmSAy7i1830oM9elKWK6NW\\nMFQwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYE\\nFEoAAhmjq/3M8CFPc7N8SL53erL5MA8GA1UdEQQIMAaHBH8AAAEwCgYIKoZIzj0E\\nAwIDSAAwRQIhAJQ5PJOT4Gg8oiBU2KthMPkZqOLeu3Li4S3yBpLFgbsgAiB960P2\\nXPMu3HLoNXrktYOL9JzWlGyYRSPAnkap5Bsj0w==\\n-----END CERTIFICATE-----\\n"
                 },
                 "grpcOptions": {
-                    "ssl-target-name-override": "org2-peer-gateway-svc",
-                    "hostnameOverride": "org2-peer-gateway-svc"
+                    "ssl-target-name-override": "org2-peer1.${ORG2_NS}.svc.cluster.local",
+                    "hostnameOverride": "org2-peer1.${ORG2_NS}.svc.cluster.local"
                 }
             }
         },
