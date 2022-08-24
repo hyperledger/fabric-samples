@@ -6,15 +6,17 @@
 #
 
 function init_namespace() {
-  push_fn "Creating namespace \"$NS\""
-  for ns in $ORG0_NS $ORG1_NS $ORG2_NS; do
+  local namespaces=$(echo "$ORG0_NS $ORG1_NS $ORG2_NS" | xargs -n1 | sort -u)
+  for ns in $namespaces; do
+    push_fn "Creating namespace \"$ns\""
     kubectl create namespace $ns || true
+    pop_fn
   done
-  pop_fn
 }
 
 function delete_namespace() {
-  for ns in $ORG0_NS $ORG1_NS $ORG2_NS; do
+  local namespaces=$(echo "$ORG0_NS $ORG1_NS $ORG2_NS" | xargs -n1 | sort -u)
+  for ns in $namespaces; do
     push_fn "Deleting namespace \"$ns\""
     kubectl delete namespace $ns || true
     pop_fn
@@ -61,8 +63,8 @@ function load_org_config() {
 function apply_k8s_builder_roles() {
   push_fn "Applying k8s chaincode builder roles"
 
-  apply_template kube/fabric-builder-role.yaml
-  apply_template kube/fabric-builder-rolebinding.yaml
+  apply_template kube/fabric-builder-role.yaml $ORG1_NS
+  apply_template kube/fabric-builder-rolebinding.yaml $ORG1_NS
 
   pop_fn
 }
@@ -70,8 +72,8 @@ function apply_k8s_builder_roles() {
 function apply_k8s_builders() {
   push_fn "Installing k8s chaincode builders"
 
-  apply_template kube/org1/org1-install-k8s-builder.yaml
-  apply_template kube/org2/org2-install-k8s-builder.yaml
+  apply_template kube/org1/org1-install-k8s-builder.yaml $ORG1_NS
+  apply_template kube/org2/org2-install-k8s-builder.yaml $ORG1_NS
 
   pop_fn
 }
