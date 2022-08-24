@@ -147,6 +147,13 @@ jobs:
           CHAINCODE_NAME: basic
           CHAINCODE_LANGUAGE: java
           CHAINCODE_BUILDER: k8s
+        Multi-Namespace:
+          ORG0_NS: org0-namespace
+          ORG1_NS: org1-namespace
+          ORG2_NS: org2-namespace
+          CHAINCODE_NAME: basic
+          CHAINCODE_LANGUAGE: java
+          CHAINCODE_BUILDER: k8s
 
     steps:
       - template: templates/install-k8s-deps.yml
