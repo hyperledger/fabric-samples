@@ -1,7 +1,7 @@
 package org.hyperledger.fabric.samples.insfraudcheck;
 
-//import java.util.ArrayList;
-//import java.util.List;
+import java.util.ArrayList;
+import java.util.List;
 
 
 import org.hyperledger.fabric.contract.Context;
@@ -15,8 +15,8 @@ import org.hyperledger.fabric.contract.annotation.Transaction;
 //import org.hyperledger.fabric.samples.insfraudcheck.InsClaim;
 import org.hyperledger.fabric.shim.ChaincodeException;
 import org.hyperledger.fabric.shim.ChaincodeStub;
-//import org.hyperledger.fabric.shim.ledger.KeyValue;
-//import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
+import org.hyperledger.fabric.shim.ledger.KeyValue;
+import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 
 import com.owlike.genson.Genson;
 
@@ -57,11 +57,11 @@ public final class ClaimProcessing implements ContractInterface {
     }
 
     /**
-     * Checks the existence of the asset on the ledger
+     * Checks the existence of the Claim on the ledger
      *
      * @param ctx the transaction context
-     * @param assetID the ID of the asset
-     * @return boolean indicating the existence of the asset
+     * @param claimID the ID of the claim
+     * @return boolean indicating the existence of the Claim
      */
     @Transaction(intent = Transaction.TYPE.EVALUATE)
     public boolean ClaimExists(final Context ctx, final String claimID) {
@@ -99,6 +99,58 @@ public final class ClaimProcessing implements ContractInterface {
         stub.putStringState(claimID, sortedJson);
 
         return claim;
+    }
+
+    /**
+     * Retrieves an claim with the specified ID from the ledger.
+     *
+     * @param ctx the transaction context
+     * @param claimID the ID of the claim
+     * @return the claim found on the ledger if there was one
+     */
+    @Transaction(intent = Transaction.TYPE.EVALUATE)
+    public InsClaim ReadClaim(final Context ctx, final String claimID) {
+        ChaincodeStub stub = ctx.getStub();
+        String claimJSON = stub.getStringState(claimID);
+
+        if (claimJSON == null || claimJSON.isEmpty()) {
+            String errorMessage = String.format("Claim %s does not exist", claimID);
+            System.out.println(errorMessage);
+            throw new ChaincodeException(errorMessage, ClaimProcessingErrors.CLAIM_NOT_FOUND.toString());
+        }
+
+        InsClaim claim = genson.deserialize(claimJSON, InsClaim.class);
+        return claim;
+    }
+
+
+    /**
+     * Retrieves all claims from the ledger.
+     *
+     * @param ctx the transaction context
+     * @return array of claims found on the ledger
+     */
+    @Transaction(intent = Transaction.TYPE.EVALUATE)
+    public String GetAllClaims(final Context ctx) {
+        ChaincodeStub stub = ctx.getStub();
+
+        List<InsClaim> queryResults = new ArrayList<InsClaim>();
+
+        // To retrieve all claims from the ledger use getStateByRange with empty startKey & endKey.
+        // Giving empty startKey & endKey is interpreted as all the keys from beginning to end.
+        // As another example, if you use startKey = 'claim0', endKey = 'claim9' ,
+        // then getStateByRange will retrieve claim with keys between claim0 (inclusive) and claim9 (exclusive) in lexical order.
+        QueryResultsIterator<KeyValue> results = stub.getStateByRange("", "");
+
+        for (KeyValue result: results) {
+            InsClaim claim = genson.deserialize(result.getStringValue(), InsClaim.class);
+            System.out.println(claim);
+            queryResults.add(claim);
+        }
+
+        final String response = genson.serialize(queryResults);
+
+        return response;
     }
 
 }
