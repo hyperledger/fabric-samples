@@ -78,7 +78,7 @@ public final class ClaimProcessing implements ContractInterface {
             throw new ChaincodeException(errorMessage, ClaimProcessingErrors.CLAIM_ALREADY_EXISTS.toString());
         }
 
-        InsClaim claim = new InsClaim(claimID, color, size, owner, appraisedValue);
+        InsClaim claim = new InsClaim(claimID, vin, custId, insuranceId, claimAmount);
         //Use Genson to convert the Claim into string, sort it alphabetically and serialize it into a json string
         String sortedJson = genson.serialize(claim);
         stub.putStringState(claimID, sortedJson);
