@@ -57,6 +57,21 @@ public final class ClaimProcessing implements ContractInterface {
     }
 
     /**
+     * Checks the existence of the asset on the ledger
+     *
+     * @param ctx the transaction context
+     * @param assetID the ID of the asset
+     * @return boolean indicating the existence of the asset
+     */
+    @Transaction(intent = Transaction.TYPE.EVALUATE)
+    public boolean ClaimExists(final Context ctx, final String claimID) {
+        ChaincodeStub stub = ctx.getStub();
+        String claimJSON = stub.getStringState(claimID);
+
+        return (claimJSON != null && !claimJSON.isEmpty());
+    }
+
+    /**
      * Creates a new claim on the ledger.
      *
      * @param ctx the transaction context
