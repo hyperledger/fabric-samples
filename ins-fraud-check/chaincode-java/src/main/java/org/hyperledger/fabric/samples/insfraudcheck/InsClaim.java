@@ -4,7 +4,7 @@
 
 package org.hyperledger.fabric.samples.insfraudcheck;
 
-import java.util.Objects;
+//import java.util.Objects;
 
 import org.hyperledger.fabric.contract.annotation.DataType;
 import org.hyperledger.fabric.contract.annotation.Property;
@@ -50,8 +50,6 @@ public final class InsClaim {
         return claimAmount;
     }
 
-    
-
     public InsClaim(@JsonProperty("claimID") final String claimID, @JsonProperty("vin") final String vin, @JsonProperty("custId") final int custId, @JsonProperty("insuranceId") final String insuranceId, @JsonProperty("claimAmount") final int claimAmount) {
         this.claimID = claimID;
         this.vin = vin;
@@ -75,32 +73,43 @@ public final class InsClaim {
 
     @Override
     public boolean equals(final Object obj) {
-        if (this == obj)
+        if (this == obj){
             return true;
-        if (obj == null)
+        }
+        if (obj == null){
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()){
             return false;
+        }
         InsClaim other = (InsClaim) obj;
-        if (claimAmount != other.claimAmount)
+        if (claimAmount != other.claimAmount){
             return false;
+        }
         if (claimID == null) {
-            if (other.claimID != null)
+            if (other.claimID != null){
                 return false;
-        } else if (!claimID.equals(other.claimID))
+            }
+        } else if (!claimID.equals(other.claimID)){
             return false;
-        if (custId != other.custId)
+        }
+        if (custId != other.custId){
             return false;
+        }
         if (insuranceId == null) {
-            if (other.insuranceId != null)
+            if (other.insuranceId != null){
                 return false;
-        } else if (!insuranceId.equals(other.insuranceId))
+            }
+        } else if (!insuranceId.equals(other.insuranceId)){
             return false;
+        }
         if (vin == null) {
-            if (other.vin != null)
+            if (other.vin != null){
                 return false;
-        } else if (!vin.equals(other.vin))
+            }
+        } else if (!vin.equals(other.vin)){
             return false;
+        }
         return true;
     }
 
@@ -110,5 +119,4 @@ public final class InsClaim {
                 + insuranceId + ", vin=" + vin + "]";
     }
 
-    
 }

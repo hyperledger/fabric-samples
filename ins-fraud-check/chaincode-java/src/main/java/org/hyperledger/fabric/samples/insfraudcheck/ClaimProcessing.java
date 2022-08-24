@@ -1,7 +1,7 @@
 package org.hyperledger.fabric.samples.insfraudcheck;
 
-import java.util.ArrayList;
-import java.util.List;
+//import java.util.ArrayList;
+//import java.util.List;
 
 
 import org.hyperledger.fabric.contract.Context;
@@ -12,11 +12,11 @@ import org.hyperledger.fabric.contract.annotation.Default;
 import org.hyperledger.fabric.contract.annotation.Info;
 import org.hyperledger.fabric.contract.annotation.License;
 import org.hyperledger.fabric.contract.annotation.Transaction;
-import org.hyperledger.fabric.samples.insfraudcheck.InsClaim;
+//import org.hyperledger.fabric.samples.insfraudcheck.InsClaim;
 import org.hyperledger.fabric.shim.ChaincodeException;
 import org.hyperledger.fabric.shim.ChaincodeStub;
-import org.hyperledger.fabric.shim.ledger.KeyValue;
-import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
+//import org.hyperledger.fabric.shim.ledger.KeyValue;
+//import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 
 import com.owlike.genson.Genson;
 
@@ -52,7 +52,7 @@ public final class ClaimProcessing implements ContractInterface {
     public void InitLedger(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
 
-        CreateClaim(ctx, "cl-1", "v-123", 1, "ins-1", 3000);        
+        CreateClaim(ctx, "cl-1", "v-123", 1, "ins-1", 3000);
 
     }
 
