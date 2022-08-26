@@ -299,9 +299,9 @@ function launch_chaincode_service() {
     | sed 's,{{CHAINCODE_ID}},'${cc_id}',g' \
     | sed 's,{{CHAINCODE_IMAGE}},'${cc_image}',g' \
     | sed 's,{{PEER_NAME}},'${peer}',g' \
-    | exec kubectl -n $NS apply -f -
+    | exec kubectl -n $ORG1_NS apply -f -
 
-  kubectl -n $NS rollout status deploy/${org}${peer}-ccaas-${cc_name}
+  kubectl -n $ORG1_NS rollout status deploy/${org}${peer}-ccaas-${cc_name}
 
   pop_fn
 }

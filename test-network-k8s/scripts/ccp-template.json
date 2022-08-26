@@ -24,13 +24,13 @@
     },
     "peers": {
         "org${ORG}-peers": {
-            "url": "grpcs://org${ORG}-peer-gateway-svc:7051",
+            "url": "grpcs://org${ORG}-peer1.${NS}.svc.cluster.local:7051",
             "tlsCACerts": {
                 "pem": "${PEERPEM}"
             },
             "grpcOptions": {
-                "ssl-target-name-override": "org${ORG}-peer-gateway-svc",
-                "hostnameOverride": "org${ORG}-peer-gateway-svc"
+                "ssl-target-name-override": "org${ORG}-peer1.${NS}.svc.cluster.local",
+                "hostnameOverride": "org${ORG}-peer1.${NS}.svc.cluster.local"
             }
         }
     },

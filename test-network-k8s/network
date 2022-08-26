@@ -41,6 +41,9 @@ context NETWORK_NAME                  test-network
 context CLUSTER_NAME                  kind
 context KUBE_NAMESPACE                ${NETWORK_NAME}
 context NS                            ${KUBE_NAMESPACE}
+context ORG0_NS                       ${NS}
+context ORG1_NS                       ${NS}
+context ORG2_NS                       ${NS}
 context DOMAIN                        localho.st
 context CHANNEL_NAME                  mychannel
 context ORDERER_TIMEOUT               10s                   # see https://github.com/hyperledger/fabric/issues/3372

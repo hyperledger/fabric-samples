@@ -11,7 +11,7 @@ metadata:
 data:
   HLF_CONNECTION_PROFILE_ORG1: |
     {
-        "name": "${NS}-org1",
+        "name": "Org1",
         "version": "1.0.0",
         "client": {
             "organization": "Org1",
@@ -87,7 +87,7 @@ data:
     -----END PRIVATE KEY-----
   HLF_CONNECTION_PROFILE_ORG2: |
     {
-        "name": "${NS}-org2",
+        "name": "Org2",
         "version": "1.0.0",
         "client": {
             "organization": "Org2",
@@ -112,7 +112,7 @@ data:
         },
         "peers": {
             "org2-peers": {
-                "url": "grpcs://org2-peer-gateway-svc:7051",
+                "url": "org2-peer-gateway-svc:7051",
                 "tlsCACerts": {
                     "pem": "-----BEGIN CERTIFICATE-----\\nMIICKDCCAc6gAwIBAgIUJJ4wGOSCfw8XOOIx29o67wBpFB4wCgYIKoZIzj0EAwIw\\naDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQK\\nEwtIeXBlcmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMt\\nY2Etc2VydmVyMB4XDTIxMDkyMDExNDEwMFoXDTM2MDkxNjExNDEwMFowaDELMAkG\\nA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQKEwtIeXBl\\ncmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMtY2Etc2Vy\\ndmVyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEyzGJLZX6pe59QAIBacjfzU4I\\nHezBYLyEu4ySpFx4xwxNLE4BWqLhB1VaOuenSQATM8pmSAy7i1830oM9elKWK6NW\\nMFQwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYE\\nFEoAAhmjq/3M8CFPc7N8SL53erL5MA8GA1UdEQQIMAaHBH8AAAEwCgYIKoZIzj0E\\nAwIDSAAwRQIhAJQ5PJOT4Gg8oiBU2KthMPkZqOLeu3Li4S3yBpLFgbsgAiB960P2\\nXPMu3HLoNXrktYOL9JzWlGyYRSPAnkap5Bsj0w==\\n-----END CERTIFICATE-----\\n"
                 },

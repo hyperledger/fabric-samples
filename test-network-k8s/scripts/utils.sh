@@ -84,7 +84,7 @@ function apply_template() {
   echo "Applying template $1:"
   cat $1 | envsubst
 
-  cat $1 | envsubst | kubectl -n $NS apply -f -
+  cat $1 | envsubst | kubectl -n $2 apply -f -
 }
 
 # Set the calling context to refer the peer binary to the correct org / peer instance

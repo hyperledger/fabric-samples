@@ -13,6 +13,6 @@ roleRef:
   kind: Role
   name: fabric-builder-role
 subjects:
-  - namespace: ${NS}
+  - namespace: ${ORG1_NS}
     kind: ServiceAccount
     name: default
