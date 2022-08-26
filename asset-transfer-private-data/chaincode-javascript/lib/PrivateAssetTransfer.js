@@ -102,11 +102,26 @@ class PrivateAssetTransfer extends Contract {
         const promiseOfIterator = response.iterator.response.results;
 
         const allResults = [];
-        for await (const res of promiseOfIterator) {
-            allResults.push(res.resultBytes.toString());
+        let result = await promiseOfIterator.next();
+        while (!result.done) {
+            const strValue = Buffer.from(result.value.value.toString()).toString('utf8');
+            let record;
+            try {
+                record = JSON.parse(strValue);
+            } catch (err) {
+                console.log(err);
+                record = strValue;
+            }
+            allResults.push(record);
+            result = await promiseOfIterator.next();
         }
 
-        return allResults;
+        // for await(const res of promiseOfIterator) {
+        //     allResults.push(res.resultBytes.toString());
+        // }
+
+
+        return JSON.stringify(allResults);
     }
 
     // ReadAssetPrivateDetails reads the asset private details in organization specific collection
@@ -223,7 +238,7 @@ class PrivateAssetTransfer extends Contract {
         let valueJSON = JSON.parse(transientAssetJSON);
 
         // Do some error checking since we get the chance
-        if (!valueJSON.assetID && valueJSON.assetID === "") {
+        if (!valueJSON.assetID && valueJSON.assetID === '') {
             throw new Error(`assetID field must be a non-empty string`);
         }
 
@@ -412,7 +427,7 @@ class PrivateAssetTransfer extends Contract {
 
         // Get hash of owners agreed to value
         const ownerAppraisedValueHash = await ctx.stub.getPrivateDataHash(collectionOwner, assetID);
-    
+
         if (!ownerAppraisedValueHash) {
             throw Error(`Hash of appraised value for ${assetID} does not exist in collection ${collectionOwner}.`)
         }
