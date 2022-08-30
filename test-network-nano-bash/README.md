@@ -183,3 +183,78 @@ Congratulations, you have deployed a minimal Fabric network! Inspect the scripts
 If you started the Fabric componentes individually, utilize `Ctrl-C` in the orderer and peer terminal windows to kill the orderer and peer processes. You can run the scripts again to restart the components with their existing data, or run `./generate_artifacts` again to clean up the existing artifacts and data if you would like to restart with a clean environment.
 
 If you used the `network.sh` script, utilize `Ctrl-C` to kill the orderer and peer processes. You can restart the network with the existing data, or run `./network.sh clean` to remove old data before restarting.
+
+# Running the network in a docker container
+
+It's possible to run the nano test network inside a docker container, for example if you do not want to install prereqs first.
+
+The docker image is not currently published anywhere so you'll need to build it using the following command.
+
+```shell
+docker build -t nanofab .
+```
+
+Then start the network using the `docker run` command. For example, to start the network with the orderer1 and peer1 ports exposed, and an entry in the hosts file to resolve the internal IP address used by the host.
+
+```shell
+docker run --name nanofab -it --rm -p 6050:6050 -p 7051:7051 --add-host=host.docker.internal:host-gateway nanofab
+```
+
+When the network is running, you can use `docker exec` to run peer commands in another terminal, e.g.
+
+```shell
+docker exec -it nanofab /bin/sh -c '. ./peer1admin.sh ; /usr/local/bin/peer channel list'
+```
+
+**Note:** `peer1admin.sh` selects which peer to run the command against and there are equivelents for the other three peers.
+
+The following commands demonstrate how to deploy and use the basic asset transfer sample chaincode.
+Start by installing the chaincode on peer1.
+
+```shell
+docker exec -it nanofab /bin/sh -c '. ./peer1admin.sh ; /usr/local/bin/peer lifecycle chaincode install /home/nanofab/chaincode-external/external-chaincode.tar.gz'
+```
+
+Capture the chaincode ID in an environment variable.
+
+```shell
+export CHAINCODE_ID=$(docker exec -it nanofab /bin/sh -c '. ./peer1admin.sh ; /usr/local/bin/peer lifecycle chaincode calculatepackageid /home/nanofab/chaincode-external/external-chaincode.tar.gz') && echo $CHAINCODE_ID
+```
+
+Start external chaincode outside the container by following the instructions in the [Running the chaincode as a service](#running-the-network-in-a-docker-container) section above.
+
+**Important:** you must use the following `CHAINCODE_SERVER_ADDRESS` in order for the peer to be able to connect from inside the container.
+
+```shell
+export CHAINCODE_SERVER_ADDRESS=0.0.0.0:9999
+```
+
+Approve the chaincode for peer1's organisation.
+
+```shell
+docker exec --env CHAINCODE_ID -it nanofab /bin/sh -c '. ./peer1admin.sh ; /usr/local/bin/peer lifecycle chaincode approveformyorg -o 127.0.0.1:6050 --channelID mychannel --name basic --version 1 --package-id $CHAINCODE_ID --sequence 1 --tls --cafile ${PWD}/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt'
+```
+
+Commit the chaincode.
+
+```shell
+docker exec -it nanofab /bin/sh -c '. ./peer1admin.sh ; /usr/local/bin/peer lifecycle chaincode commit -o 127.0.0.1:6050 --channelID mychannel --name basic --version 1 --sequence 1 --tls --cafile "${PWD}"/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt'
+```
+
+If all goes well, you should be able to create an asset.
+
+```shell
+docker exec -it nanofab /bin/sh -c '. ./peer1admin.sh ; /usr/local/bin/peer chaincode invoke -o 127.0.0.1:6050 -C mychannel -n basic -c '\''{"Args":["CreateAsset","1","blue","35","tom","1000"]}'\'' --tls --cafile "${PWD}"/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt'
+```
+
+And read the new asset!
+
+```shell
+docker exec -it nanofab /bin/sh -c '. ./peer1admin.sh ; /usr/local/bin/peer chaincode query -C mychannel -n basic -c '\''{"Args":["ReadAsset","1"]}'\'''
+```
+
+If you need the credentials used in the test network, run the following command to copy them out of the running container.
+
+```shell
+docker cp nanofab:/home/nanofab/network/crypto-config ./crypto-config
+```
