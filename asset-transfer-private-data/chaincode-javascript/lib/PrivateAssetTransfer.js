@@ -420,7 +420,6 @@ class PrivateAssetTransfer extends Contract {
 
         // Check 2: verify that the buyer has agreed to the appraised value
 
-        
 	    // Get collection names
         const collectionOwner = await this.getCollectionName(ctx); // get owner collection from caller identity
 
