@@ -123,7 +123,7 @@ class PrivateAssetTransfer extends Contract {
 
         return JSON.stringify(allResults);
     }
-
+    
     // ReadAssetPrivateDetails reads the asset private details in organization specific collection
     async ReadAssetPrivateDetails(ctx, collection, assetID){
         const assetDetailsJSON = await ctx.stub.getPrivateData(collection, assetID);
