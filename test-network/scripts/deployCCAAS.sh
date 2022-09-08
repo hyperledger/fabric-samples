@@ -101,10 +101,11 @@ METADATA-EOF
 
     tar -C "$tempdir/src" -czf "$tempdir/pkg/code.tar.gz" .
     tar -C "$tempdir/pkg" -czf "$CC_NAME.tar.gz" metadata.json code.tar.gz
-     rm -Rf "$tempdir"
+    rm -Rf "$tempdir"
+
+    PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid ${CC_NAME}.tar.gz)
   
     successln "Chaincode is packaged  ${address}"
-
 }
 
 buildDockerImages() {
