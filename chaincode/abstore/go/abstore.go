@@ -50,6 +50,9 @@ func (t *ABstore) Init(ctx contractapi.TransactionContextInterface, A string, Av
 
 // Transaction makes payment of X units from A to B
 func (t *ABstore) Invoke(ctx contractapi.TransactionContextInterface, A, B string, X int) error {
+	if X < 0 {
+		return fmt.Errorf("X input is wrong, it should be greater than 0")
+	}
 	var err error
 	var Aval int
 	var Bval int
@@ -63,6 +66,9 @@ func (t *ABstore) Invoke(ctx contractapi.TransactionContextInterface, A, B strin
 		return fmt.Errorf("Entity not found")
 	}
 	Aval, _ = strconv.Atoi(string(Avalbytes))
+	if Aval < X {
+		return fmt.Errorf("The value of A is not enough to make the payment.")
+	}
 
 	Bvalbytes, err := ctx.GetStub().GetState(B)
 	if err != nil {
