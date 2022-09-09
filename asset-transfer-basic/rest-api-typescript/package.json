@@ -18,7 +18,7 @@
     "helmet": "^4.6.0",
     "http-status-codes": "^2.1.4",
     "ioredis": "^4.27.8",
-    "passport": "^0.4.1",
+    "passport": "^0.6.0",
     "passport-headerapikey": "^1.2.2",
     "pino": "^6.11.3",
     "pino-http": "^5.5.0",
