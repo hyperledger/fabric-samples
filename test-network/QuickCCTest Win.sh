@@ -11,6 +11,7 @@ cd $HOME/OSC-IS/fabric-samples/asset-transfer-basic/chaincode-go
 GO111MODULE=on go mod vendor
 cd ../../test-network
 export PATH=${PWD}/../bin:$PATH
+export PATH=$PATH:/usr/local/go/bin
 export FABRIC_CFG_PATH=$PWD/../config/
 peer version
 
@@ -40,7 +41,7 @@ echo "========= chaincode queryinstalled ==========="
 
 peer lifecycle chaincode queryinstalled
 var=$(peer lifecycle chaincode queryinstalled)
-var2=$(echo $var | tail -n 1 | cut -f 3 -d ' ')
+var2=$(echo $var | tail -n 1 | cut -f 7 -d ' ')
 export CC_PACKAGE_ID=$(echo $var2 | sed 's/.$//')
 echo $CC_PACKAGE_ID
 
@@ -82,7 +83,18 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 
 echo "========= Check creation of a new sample wit id = '00001' ==========="
 
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"CreateDataSample","Args":["docTypeTest2","00001","TestTitle2","Desc2","Neuroscience","TestDOI","www.ncis.edu","TestManifest","TestFootPrint", "Neuroscience, brain", "None", "None", "None","None","None","None","None", "None"]}'
+# peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"CreateDataSample","Args":["docTypeTest2","00001","TestTitle2","Desc2","Neuroscience","TestDOI","www.ncis.edu","TestManifest","TestFootPrint", "Neuroscience, brain", "None", "None", "None","None","None","None","None", "None"]}'
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"CreateDataSample","Args":["UCSD-SDSC", "Contributor123", "PhonyHash!@#$$%#@", "00001", ["DOE"] ["SOE"] ["SAE"]]}'
+
+#peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile \
+#"${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" \ 
+# -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles \
+# "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 \
+# --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" \
+# -c '{"function":"CreateDataSample","Args":["UCSD-SDSC", "PhonyHash!@#$$%#@", "00001", DOE SOE SAE]}'
+
+
 
 echo "========= The code below will upgrade an existing ChainCode ==========="
 

@@ -1,0 +1,52 @@
+[
+    {
+        "contributor": "stillsame2016@gmail.com",
+        "contributor_id": "serverA_users_3074021",
+        "description": "In an effort to keep the maps current, the CGS has been compiling a new series of Regional Geologic Maps (RGM), starting in 1981. The new maps cover the same areas as the older Geologic Atlas of Arizona, but show more detail and use geologic formations rather than the simplified geologic time-based units.",
+        "docType": "org.osc.Data",
+        "footprint": "6Uznnp1ihszFdOn0I5mF/tWZKQ3xY5xm8rGAcfaZNPg=",
+        "fundingAgencies": ["NASA"],
+        "id": "osc-c1865f4c-05b1-4da7-93dc-d2e9ddc72d8e",
+        "keywords": "geologic map",
+        "manifest": [
+            {
+                "algorithm": "sha256",
+                "filename": "data_1_arizona_geologic_map/azgeol_arc_dd.dbf",
+                "hash": "0836628beb8f7df9e241d4a3ca990a20eec5d1a964824e64e8748bf17f0c76cd"
+            },
+            {
+                "algorithm": "sha256",
+                "filename": "data_1_arizona_geologic_map/azgeol_arc_dd.prj",
+                "hash": "7e6d48de4af1034b12b3fdd80946a77e9f6c7c26b840fa383e000b1f5b9786d8"
+            },
+            {
+                "algorithm": "sha256",
+                "filename": "data_1_arizona_geologic_map/azgeol_arc_dd.sbn",
+                "hash": "18cdce0ae7cc108dc0321e02555cfb7baaef3c6435fe797bf6a82d991767858c"
+            },
+            {
+                "algorithm": "sha256",
+                "filename": "data_1_arizona_geologic_map/azgeol_arc_dd.sbx",
+                "hash": "af51cccd6e08decea0ac26a0aefd1c9644bc27458062cb66d5fdfedeb92d2661"
+            },
+            {
+                "algorithm": "sha256",
+                "filename": "data_1_arizona_geologic_map/azgeol_arc_dd.shp",
+                "hash": "96ffebc40a3632bbe98035ca095a6d10c46d1be9bab6471757a39492128d48ef"
+            },
+            {
+                "algorithm": "sha256",
+                "filename": "data_1_arizona_geologic_map/azgeol_arc_dd.shp.xml",
+                "hash": "14a596504330c2e511ebb3490ec684f4af2920a56ac3819e392bd3066a1f7d1c"
+            },
+            {
+                "algorithm": "sha256",
+                "filename": "data_1_arizona_geologic_map/azgeol_arc_dd.shx",
+                "hash": "20b04563116894db331a4823d3726324fb4bec97e414e00143ac4fef7df8f41f"
+            }
+    ],
+    "otherDataIdName": "None",
+    "title": "Arizona Geological Map",
+    "url": "http://www.sdsc.edu"
+  }
+]
