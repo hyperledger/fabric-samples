@@ -3,7 +3,7 @@
 See the "Chaincode as an external service" documentation for running chaincode as an external service.
 This includes details of the external builder and launcher scripts which will peers in your Fabric network will require.
 
-The FabCar chaincode requires two environment variables to run, `CHAINCODE_SERVER_ADDRESS` and `CHAINCODE_ID`, which are described in the `chaincode.env.example` file. Copy this file to `chaincode.env` before continuing.
+The FabCar chaincode requires two environment variables to run, `CHAINCODE_SERVER_ADDRESS` and `CORE_CHAINCODE_ID_NAME`, which are described in the `chaincode.env.example` file. Copy this file to `chaincode.env` before continuing.
 
 **Note:** each organization in a Fabric network will need to follow the instructions below to host their own instance of the FabCar external service.
 
