@@ -413,6 +413,18 @@ type ChaincodeStub struct {
 	invokeChaincodeReturnsOnCall map[int]struct {
 		result1 peer.Response
 	}
+	PurgePrivateDataStub        func(string, string) error
+	purgePrivateDataMutex       sync.RWMutex
+	purgePrivateDataArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	purgePrivateDataReturns struct {
+		result1 error
+	}
+	purgePrivateDataReturnsOnCall map[int]struct {
+		result1 error
+	}
 	PutPrivateDataStub        func(string, string, []byte) error
 	putPrivateDataMutex       sync.RWMutex
 	putPrivateDataArgsForCall []struct {
@@ -2383,6 +2395,67 @@ func (fake *ChaincodeStub) InvokeChaincodeReturnsOnCall(i int, result1 peer.Resp
 	}{result1}
 }
 
+func (fake *ChaincodeStub) PurgePrivateData(arg1 string, arg2 string) error {
+	fake.purgePrivateDataMutex.Lock()
+	ret, specificReturn := fake.purgePrivateDataReturnsOnCall[len(fake.purgePrivateDataArgsForCall)]
+	fake.purgePrivateDataArgsForCall = append(fake.purgePrivateDataArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("PurgePrivateData", []interface{}{arg1, arg2})
+	fake.purgePrivateDataMutex.Unlock()
+	if fake.PurgePrivateDataStub != nil {
+		return fake.PurgePrivateDataStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.purgePrivateDataReturns
+	return fakeReturns.result1
+}
+
+func (fake *ChaincodeStub) PurgePrivateDataCallCount() int {
+	fake.purgePrivateDataMutex.RLock()
+	defer fake.purgePrivateDataMutex.RUnlock()
+	return len(fake.purgePrivateDataArgsForCall)
+}
+
+func (fake *ChaincodeStub) PurgePrivateDataCalls(stub func(string, string) error) {
+	fake.purgePrivateDataMutex.Lock()
+	defer fake.purgePrivateDataMutex.Unlock()
+	fake.PurgePrivateDataStub = stub
+}
+
+func (fake *ChaincodeStub) PurgePrivateDataArgsForCall(i int) (string, string) {
+	fake.purgePrivateDataMutex.RLock()
+	defer fake.purgePrivateDataMutex.RUnlock()
+	argsForCall := fake.purgePrivateDataArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *ChaincodeStub) PurgePrivateDataReturns(result1 error) {
+	fake.purgePrivateDataMutex.Lock()
+	defer fake.purgePrivateDataMutex.Unlock()
+	fake.PurgePrivateDataStub = nil
+	fake.purgePrivateDataReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *ChaincodeStub) PurgePrivateDataReturnsOnCall(i int, result1 error) {
+	fake.purgePrivateDataMutex.Lock()
+	defer fake.purgePrivateDataMutex.Unlock()
+	fake.PurgePrivateDataStub = nil
+	if fake.purgePrivateDataReturnsOnCall == nil {
+		fake.purgePrivateDataReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.purgePrivateDataReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *ChaincodeStub) PutPrivateData(arg1 string, arg2 string, arg3 []byte) error {
 	var arg3Copy []byte
 	if arg3 != nil {
@@ -2846,6 +2919,8 @@ func (fake *ChaincodeStub) Invocations() map[string][][]interface{} {
 	defer fake.getTxTimestampMutex.RUnlock()
 	fake.invokeChaincodeMutex.RLock()
 	defer fake.invokeChaincodeMutex.RUnlock()
+	fake.purgePrivateDataMutex.RLock()
+	defer fake.purgePrivateDataMutex.RUnlock()
 	fake.putPrivateDataMutex.RLock()
 	defer fake.putPrivateDataMutex.RUnlock()
 	fake.putStateMutex.RLock()
