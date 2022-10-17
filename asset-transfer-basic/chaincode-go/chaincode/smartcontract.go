@@ -3,6 +3,7 @@ package chaincode
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -15,7 +16,6 @@ type SmartContract struct {
 // Asset describes basic details of what makes up a simple asset
 // Insert struct field in alphabetic order => to achieve determinism across languages
 // golang keeps the order when marshal to json but doesn't order automatically
-
 
 /*type Data struct {
 	docType          string `json:"docType"`
@@ -37,16 +37,15 @@ type SmartContract struct {
 	contributor_id   string `json:"contributor_id"`
 }*/
 
-
 // Asset describes basic details of what makes up a simple asset
 // Insert struct field in alphabetic order => to achieve determinism across languages
 // golang keeps the order when marshal to json but doesn't order automatically
 
 type Data struct {
-	Contributor   string `json:"Contributor"`
-	ContributorId string `json:"ContributorId"`
-	ContentHash   string `json:"ContentHash"`
-	Id            string `json:"Id"`
+	Contributor   string   `json:"Contributor"`
+	ContributorId string   `json:"ContributorId"`
+	ContentHash   string   `json:"ContentHash"`
+	Id            string   `json:"Id"`
 	Owners        []string `json:"Owners"`
 }
 
@@ -111,10 +110,13 @@ func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface,
 
 // JSON Validation
 
-func (s *SmartContract) validJson() (bool, error) {
-	
-	schemaLoader := gojsonschema.NewReferenceLoader("file:///home/ofgarzon2662/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/Schema.json")
-	documentLoader := gojsonschema.NewReferenceLoader("file:////home/ofgarzon2662/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/testFile.json")
+func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface) (bool, error) {
+
+	//schemaLoader := gojsonschema.NewReferenceLoader("file:///Users/fernando/Projects/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/Schema.json")
+	//documentLoader := gojsonschema.NewReferenceLoader("file:////Users/fernando/Projects/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/testFile.json")
+
+	schemaLoader := gojsonschema.NewReferenceLoader("file:///home/chaincode/Schema.json")
+	documentLoader := gojsonschema.NewReferenceLoader("file:////home/chaincode/testFile.json")
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 
@@ -145,26 +147,26 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 		return fmt.Errorf("the asset %s already exists", Id)
 	}
 
-	//valid, err := s.validJson()
-	//if err != nil {
-	//	return err
-	//}
-	//if !valid {
-	//	return fmt.Errorf("The Json file provided is not valid")
-	//} else {
-	data := Data{
-		Contributor   :Contributor,
-		ContributorId :ContributorId,
-		ContentHash   :ContentHash,
-		Id            :Id,
-		Owners        :[]string{"DOE", "DOS", "DOJ"}}
-
-	assetJSON, err := json.Marshal(data)
+	valid, err := s.ValidJson(ctx)
 	if err != nil {
 		return err
 	}
-	return ctx.GetStub().PutState(Id, assetJSON)
-	//}	
+	if !valid {
+		return fmt.Errorf("the json file provided is not valid")
+	} else {
+		data := Data{
+			Contributor:   Contributor,
+			ContributorId: ContributorId,
+			ContentHash:   ContentHash,
+			Id:            Id,
+			Owners:        []string{"DOE", "DOS", "DOJ"}}
+
+		assetJSON, err := json.Marshal(data)
+		if err != nil {
+			return err
+		}
+		return ctx.GetStub().PutState(Id, assetJSON)
+	}
 }
 
 // UpdateAsset updates an existing asset in the world state with provided parameters.
@@ -181,11 +183,11 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 	// overwriting original asset with new asset
 
 	data := Data{
-			Contributor   :Contributor,
-			ContributorId :ContributorId,
-			ContentHash   :ContentHash,
-			Id            :Id,
-			Owners        :[]string{"DOE", "DOS", "DOJ"},
+		Contributor:   Contributor,
+		ContributorId: ContributorId,
+		ContentHash:   ContentHash,
+		Id:            Id,
+		Owners:        []string{"DOE", "DOS", "DOJ"},
 	}
 
 	assetJSON, err := json.Marshal(data)

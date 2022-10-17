@@ -1,0 +1,31 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/xeipuuv/gojsonschema"
+)
+
+func main() {
+	//data := Data{
+	//"DocType": "TestType", "Id": "00000", "Title": "TestSample", "Description": "description", "Type": "TestType", "DOI": "https://doi.org/10.57873/T34W2R", "Url": "sdsc.edu", "Manifest": "TestManifest", "Footprint": "", "Keywords": '["SmartContrac", "ChainCode", "Peer"]'ß, "OtherDataIdName": "None", "OtherDataIdValue": "None", "FundingAgencies": ["DOS", "NASA"], "Acknowledgment": "SDSC", "NoteForChange": "NONE", "Contributor": "AveryhardworkingUser@email.com", "Contributor_id": "ABC123"
+	//}
+
+	schemaLoader := gojsonschema.NewReferenceLoader("file:///Users/fernando/Projects/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/Schema.json")
+	documentLoader := gojsonschema.NewReferenceLoader("file:////Users/fernando/Projects/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/testFile.json")
+
+	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	//fmt.Printf(result.Valid())
+	if err != nil {
+		panic(err.Error())
+	}
+
+	if result.Valid() {
+		fmt.Printf("The document is valid\n")
+	} else {
+		fmt.Printf("The document is not valid. see errors :\n")
+		for _, desc := range result.Errors() {
+			fmt.Printf("- %s\n", desc)
+		}
+	}
+}
