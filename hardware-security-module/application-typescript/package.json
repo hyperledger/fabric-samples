@@ -17,8 +17,8 @@
     "author": "",
     "license": "Apache-2.0",
     "dependencies": {
-        "@grpc/grpc-js": "~1.6.7",
-        "@hyperledger/fabric-gateway": "^1.1.0",
+        "@grpc/grpc-js": "~1.7.2",
+        "@hyperledger/fabric-gateway": "^1.1.1",
         "jsrsasign": "^10.3.0"
     },
     "devDependencies": {
