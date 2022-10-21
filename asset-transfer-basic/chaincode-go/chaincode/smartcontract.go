@@ -161,7 +161,7 @@ func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface,
 
 // JSON Validation
 
-func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface) (bool, error) {
+func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, AbsolutePathToJsonFile string) (bool, error) {
 
 	//schemaLoader := gojsonschema.NewReferenceLoader("file:///Users/fernando/Projects/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/Schema.json")
 	//documentLoader := gojsonschema.NewReferenceLoader("file:////Users/fernando/Projects/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/testFile.json")
@@ -169,9 +169,12 @@ func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface) (
 	//schemaLoader := gojsonschema.NewReferenceLoader("file:///home/chaincode/Schema.json")
 	//documentLoader := gojsonschema.NewReferenceLoader("file:////home/chaincode/testFile.json")
 
+	```
+	PATH Needs to be absolute path (From root '/'). Add something that takes care of that. 
+	```
 	m := schema.JsonFileContent.JsonFileContent
 	schemaLoader := gojsonschema.NewGoLoader(m)
-	documentLoader := gojsonschema.NewReferenceLoader("file:////home/chaincode/testFile.json")
+	documentLoader := gojsonschema.NewReferenceLoader("file://" + AbsolutePathToJsonFile)
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 
@@ -192,7 +195,7 @@ func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface) (
 
 // CreateDataSample issues a new Data Sample to the world state with given details.
 func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInterface,
-	Contributor string, ContributorId string, ContentHash string, Id string) error {
+	Contributor string, ContributorId string, ContentHash string, Id string, AbsolutePathToJsonFile string) error {
 
 	exists, err := s.AssetExists(ctx, Id)
 	if err != nil {
@@ -202,7 +205,7 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 		return fmt.Errorf("the asset %s already exists", Id)
 	}
 
-	valid, err := s.ValidJson(ctx)
+	valid, err := s.ValidJson(ctx, AbsolutePathToJsonFile)
 	if err != nil {
 		return err
 	}
