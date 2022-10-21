@@ -6,6 +6,9 @@ import (
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/xeipuuv/gojsonschema"
+
+	"io/ioutil"
+	"log"
 )
 
 // SmartContract provides functions for managing an Asset
@@ -42,17 +45,49 @@ type SmartContract struct {
 // golang keeps the order when marshal to json but doesn't order automatically
 
 type Data struct {
-	Contributor   string   `json:"Contributor"`
-	ContributorId string   `json:"ContributorId"`
-	ContentHash   string   `json:"ContentHash"`
-	Id            string   `json:"Id"`
-	Owners        []string `json:"Owners"`
+	Contributor     string   `json:"Contributor"`
+	ContributorId   string   `json:"ContributorId"`
+	ContentHash     string   `json:"ContentHash"`
+	Id              string   `json:"Id"`
+	Owners          []string `json:"Owners"`
+	JsonFileContent map[string]interface{}
+}
+
+type Schema struct {
+	Contributor     string   `json:"Contributor"`
+	ContributorId   string   `json:"ContributorId"`
+	ContentHash     string   `json:"ContentHash"`
+	Id              string   `json:"Id"`
+	Owners          []string `json:"Owners"`
+	JsonFileContent map[string]interface{}
 }
 
 // InitLedger adds a base set of Data entries to the ledger
-func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
+func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, pathSchema string, pathFirstJsonFile string) (error) {
+
+	// We use the function jsonReader in order to read the content of the shcema Json File. The schema Json file is composed by us and inserted into
+	// the docker container of the commited chaincode (For now)
+	schemaJsonFileContent := jsonReader(ctx, pathSchema)
+	firstJsonFileContent := jsonReader(ctx, pathFirstJsonFile)
+
 	dataEntries := []Data{
-		{Contributor: "pepitoperes@email.com", ContributorId: "ABC123", ContentHash: "ZXCVBNM", Id: "00000", Owners: []string{"CIA", "DEA", "FBI"}},
+		{Contributor: "pepitoperes@email.com", ContributorId: "ABC123", ContentHash: "ZXCVBNM", Id: "00000", Owners: []string{"CIA", "DEA", "FBI"}, firstJsonFileContent},
+	}
+
+	schema := Schema{
+		{Contributor: "pepitoperes@email.com", ContributorId: "ABC123", ContentHash: "ZXCVBNM", Id: "00000", Owners: []string{"CIA", "DEA", "FBI"}, schemaJsonFileContent},
+	}
+
+	for _, data := range schema {
+		assetJSON, err := json.Marshal(data)
+		if err != nil {
+			return err
+		}
+
+		err = ctx.GetStub().PutState(data.Id, assetJSON)
+		if err != nil {
+			return fmt.Errorf("failed to put to world state. %v", err)
+		}
 	}
 
 	for _, data := range dataEntries {
@@ -67,7 +102,23 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 		}
 	}
 
-	return nil
+	return schema, nil
+}
+
+func (s *SmartContract) JsonReader(ctx contractapi.TransactionContextInterface, path string) (map[string]interface{}, error) {
+
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatal("Error when opening file: ", err)
+	}
+
+	// Now let's unmarshall the data into `payload`
+	var payload map[string]interface{}
+	err = json.Unmarshal(content, &payload)
+	if err != nil {
+		log.Fatal("Error during Unmarshal(): ", err)
+	}
+	return payload != nil, nil
 }
 
 // GetAllAssets returns all assets found in world state
@@ -115,7 +166,11 @@ func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface) (
 	//schemaLoader := gojsonschema.NewReferenceLoader("file:///Users/fernando/Projects/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/Schema.json")
 	//documentLoader := gojsonschema.NewReferenceLoader("file:////Users/fernando/Projects/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/testFile.json")
 
-	schemaLoader := gojsonschema.NewReferenceLoader("file:///home/chaincode/Schema.json")
+	//schemaLoader := gojsonschema.NewReferenceLoader("file:///home/chaincode/Schema.json")
+	//documentLoader := gojsonschema.NewReferenceLoader("file:////home/chaincode/testFile.json")
+
+	m := schema.JsonFileContent.JsonFileContent
+	schemaLoader := gojsonschema.NewGoLoader(m)
 	documentLoader := gojsonschema.NewReferenceLoader("file:////home/chaincode/testFile.json")
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
@@ -159,7 +214,8 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 			ContributorId: ContributorId,
 			ContentHash:   ContentHash,
 			Id:            Id,
-			Owners:        []string{"DOE", "DOS", "DOJ"}}
+			Owners:        []string{"DOE", "DOS", "DOJ"}},
+			JsonFileContent: 
 
 		assetJSON, err := json.Marshal(data)
 		if err != nil {
