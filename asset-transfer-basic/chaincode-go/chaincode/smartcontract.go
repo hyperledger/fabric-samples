@@ -63,46 +63,53 @@ type Schema struct {
 }
 
 // InitLedger adds a base set of Data entries to the ledger
-func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, pathSchema string, pathFirstJsonFile string) (error) {
+func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, pathSchema string, pathFirstJsonFile string) error {
 
 	// We use the function jsonReader in order to read the content of the shcema Json File. The schema Json file is composed by us and inserted into
 	// the docker container of the commited chaincode (For now)
-	schemaJsonFileContent := jsonReader(ctx, pathSchema)
-	firstJsonFileContent := jsonReader(ctx, pathFirstJsonFile)
+	schemaJsonFileContent, error_schema := s.JsonReader(ctx, pathSchema)
+	firstJsonFileContent, error_file := s.JsonReader(ctx, pathFirstJsonFile)
 
-	dataEntries := []Data{
-		{Contributor: "pepitoperes@email.com", ContributorId: "ABC123", ContentHash: "ZXCVBNM", Id: "00000", Owners: []string{"CIA", "DEA", "FBI"}, firstJsonFileContent},
-	}
-
-	schema := Schema{
-		{Contributor: "pepitoperes@email.com", ContributorId: "ABC123", ContentHash: "ZXCVBNM", Id: "00000", Owners: []string{"CIA", "DEA", "FBI"}, schemaJsonFileContent},
-	}
-
-	for _, data := range schema {
-		assetJSON, err := json.Marshal(data)
-		if err != nil {
-			return err
+	if error_schema != nil {
+		return fmt.Errorf("failed to read shcema.json file or NewJsonFile: %v", error_schema)
+	} else if error_file != nil {
+		return fmt.Errorf("failed to read shcema.json file or NewJsonFile: %v", error_file)
+	} else {
+		dataEntries := []Data{
+			{Contributor: "pepitoperes@email.com", ContributorId: "ABC123", ContentHash: "ZXCVBNM", Id: "00000", Owners: []string{"CIA", "DEA", "FBI"}, JsonFileContent: firstJsonFileContent},
 		}
 
-		err = ctx.GetStub().PutState(data.Id, assetJSON)
-		if err != nil {
-			return fmt.Errorf("failed to put to world state. %v", err)
+		//This is the definition of the Schema that we should use for validate all the JSON files from now on.
+		schema := []Schema{
+			{Contributor: "pepitoperes@email.com", ContributorId: "ABC123", ContentHash: "ZXCVBNM", Id: "00000", Owners: []string{"CIA", "DEA", "FBI"}, JsonFileContent: schemaJsonFileContent},
 		}
+
+		for _, data := range schema {
+			assetJSON, err := json.Marshal(data)
+			if err != nil {
+				return err
+			}
+
+			err = ctx.GetStub().PutState(data.Id, assetJSON)
+			if err != nil {
+				return fmt.Errorf("failed to put to world state. %v", err)
+			}
+		}
+
+		for _, data := range dataEntries {
+			assetJSON, err := json.Marshal(data)
+			if err != nil {
+				return err
+			}
+
+			err = ctx.GetStub().PutState(data.Id, assetJSON)
+			if err != nil {
+				return fmt.Errorf("failed to put to world state. %v", err)
+			}
+		}
+
 	}
-
-	for _, data := range dataEntries {
-		assetJSON, err := json.Marshal(data)
-		if err != nil {
-			return err
-		}
-
-		err = ctx.GetStub().PutState(data.Id, assetJSON)
-		if err != nil {
-			return fmt.Errorf("failed to put to world state. %v", err)
-		}
-	}
-
-	return schema, nil
+	return nil
 }
 
 func (s *SmartContract) JsonReader(ctx contractapi.TransactionContextInterface, path string) (map[string]interface{}, error) {
@@ -118,7 +125,7 @@ func (s *SmartContract) JsonReader(ctx contractapi.TransactionContextInterface, 
 	if err != nil {
 		log.Fatal("Error during Unmarshal(): ", err)
 	}
-	return payload != nil, nil
+	return payload, nil
 }
 
 // GetAllAssets returns all assets found in world state
@@ -169,9 +176,8 @@ func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, A
 	//schemaLoader := gojsonschema.NewReferenceLoader("file:///home/chaincode/Schema.json")
 	//documentLoader := gojsonschema.NewReferenceLoader("file:////home/chaincode/testFile.json")
 
-	```
-	PATH Needs to be absolute path (From root '/'). Add something that takes care of that. 
-	```
+	// PATH Needs to be absolute path (From root '/'). Add something that takes care of that.
+
 	m := schema.JsonFileContent.JsonFileContent
 	schemaLoader := gojsonschema.NewGoLoader(m)
 	documentLoader := gojsonschema.NewReferenceLoader("file://" + AbsolutePathToJsonFile)
@@ -212,13 +218,15 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 	if !valid {
 		return fmt.Errorf("the json file provided is not valid")
 	} else {
+		jsonFileContent := s.JsonReader(ctx, AbsolutePathToJsonFile)
 		data := Data{
-			Contributor:   Contributor,
-			ContributorId: ContributorId,
-			ContentHash:   ContentHash,
-			Id:            Id,
-			Owners:        []string{"DOE", "DOS", "DOJ"}},
-			JsonFileContent: 
+			Contributor:     Contributor,
+			ContributorId:   ContributorId,
+			ContentHash:     ContentHash,
+			Id:              Id,
+			Owners:          []string{"DOE", "DOS", "DOJ"},
+			JsonFileContent: jsonFileContent,
+		}
 
 		assetJSON, err := json.Marshal(data)
 		if err != nil {
