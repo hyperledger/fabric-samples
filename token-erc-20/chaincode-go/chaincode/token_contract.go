@@ -702,7 +702,7 @@ func add(b int, q int) (int, error) {
 	return sum, nil
 }
 
-//Checks that contract options have been already initialized
+// Checks that contract options have been already initialized
 func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error) {
 	tokenName, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {
