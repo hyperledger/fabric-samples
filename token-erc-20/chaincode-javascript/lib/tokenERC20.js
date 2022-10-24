@@ -31,7 +31,7 @@ class TokenERC20Contract extends Contract {
     */
     async TokenName(ctx) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const nameBytes = await ctx.stub.getState(nameKey);
@@ -47,7 +47,7 @@ class TokenERC20Contract extends Contract {
     */
     async Symbol(ctx) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const symbolBytes = await ctx.stub.getState(symbolKey);
@@ -63,7 +63,7 @@ class TokenERC20Contract extends Contract {
     */
     async Decimals(ctx) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const decimalsBytes = await ctx.stub.getState(decimalsKey);
@@ -79,7 +79,7 @@ class TokenERC20Contract extends Contract {
     */
     async TotalSupply(ctx) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const totalSupplyBytes = await ctx.stub.getState(totalSupplyKey);
@@ -96,7 +96,7 @@ class TokenERC20Contract extends Contract {
      */
     async BalanceOf(ctx, owner) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const balanceKey = ctx.stub.createCompositeKey(balancePrefix, [owner]);
@@ -121,7 +121,7 @@ class TokenERC20Contract extends Contract {
      */
     async Transfer(ctx, to, value) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const from = ctx.clientIdentity.getID();
@@ -149,7 +149,7 @@ class TokenERC20Contract extends Contract {
     */
     async TransferFrom(ctx, from, to, value) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const spender = ctx.clientIdentity.getID();
@@ -253,7 +253,7 @@ class TokenERC20Contract extends Contract {
      */
     async Approve(ctx, spender, value) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const owner = ctx.clientIdentity.getID();
@@ -281,7 +281,7 @@ class TokenERC20Contract extends Contract {
      */
     async Allowance(ctx, owner, spender) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const allowanceKey = ctx.stub.createCompositeKey(allowancePrefix, [owner, spender]);
@@ -313,7 +313,7 @@ class TokenERC20Contract extends Contract {
             throw new Error('client is not authorized to initialize contract');
         }
 
-        //check contract options are not already set, client is not authorized to change them once intitialized
+        // Check contract options are not already set, client is not authorized to change them once intitialized
         const nameBytes = await ctx.stub.getState(nameKey);
         if (nameBytes && nameBytes.length > 0) {
             throw new Error('contract options are already set, client is not authorized to change them');
@@ -336,7 +336,7 @@ class TokenERC20Contract extends Contract {
      */
     async Mint(ctx, amount) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         // Check minter authorization - this sample assumes Org1 is the central banker with privilege to mint new tokens
@@ -396,7 +396,7 @@ class TokenERC20Contract extends Contract {
      */
     async Burn(ctx, amount) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         // Check minter authorization - this sample assumes Org1 is the central banker with privilege to burn tokens
@@ -444,7 +444,7 @@ class TokenERC20Contract extends Contract {
      */
     async ClientAccountBalance(ctx) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         // Get ID of submitting client identity
@@ -465,7 +465,7 @@ class TokenERC20Contract extends Contract {
     // Users can use this function to get their own account id, which they can then give to others as the payment address
     async ClientAccountID(ctx) {
 
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         // Get ID of submitting client identity
@@ -473,7 +473,7 @@ class TokenERC20Contract extends Contract {
         return clientAccountID;
     }
 
-    //Checks that contract options have been already initialized
+    // Checks that contract options have been already initialized
     async CheckInitialized(ctx){
         const nameBytes = await ctx.stub.getState(nameKey);
         if (!nameBytes || nameBytes.length === 0) {

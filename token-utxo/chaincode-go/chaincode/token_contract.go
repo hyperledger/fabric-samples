@@ -28,7 +28,7 @@ const totalSupplyKey = "totalSupply"
 // Mint creates a new unspent transaction output (UTXO) owned by the minter
 func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount int) (*UTXO, error) {
 
-	//check if contract has been intilized first
+	// check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
@@ -77,7 +77,7 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 // Transfer transfers UTXOs containing tokens from client to recipient(s)
 func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, utxoInputKeys []string, utxoOutputs []UTXO) ([]UTXO, error) {
 
-	//check if contract has been intilized first
+	// check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
@@ -181,7 +181,7 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, ut
 // ClientUTXOs returns all UTXOs owned by the calling client
 func (s *SmartContract) ClientUTXOs(ctx contractapi.TransactionContextInterface) ([]*UTXO, error) {
 
-	//check if contract has been intilized first
+	// check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
@@ -243,7 +243,7 @@ func (s *SmartContract) ClientUTXOs(ctx contractapi.TransactionContextInterface)
 // Users can use this function to get their own client id, which they can then give to others as the payment address
 func (s *SmartContract) ClientID(ctx contractapi.TransactionContextInterface) (string, error) {
 
-	//check if contract has been intilized first
+	// check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
@@ -266,7 +266,7 @@ func (s *SmartContract) ClientID(ctx contractapi.TransactionContextInterface) (s
 
 func (s *SmartContract) Name(ctx contractapi.TransactionContextInterface) (string, error) {
 
-	//check if contract has been intilized first
+	// check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
@@ -288,7 +288,7 @@ func (s *SmartContract) Name(ctx contractapi.TransactionContextInterface) (strin
 
 func (s *SmartContract) Symbol(ctx contractapi.TransactionContextInterface) (string, error) {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
@@ -319,7 +319,7 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 		return false, fmt.Errorf("client is not authorized to initialize contract")
 	}
 
-	//check contract options are not already set, client is not authorized to change them once intitialized
+	// check contract options are not already set, client is not authorized to change them once intitialized
 	bytes, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {
 		return false, fmt.Errorf("failed to get Name: %v", err)
@@ -343,7 +343,7 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 	return true, nil
 }
 
-//Checks that contract options have been already initialized
+// Checks that contract options have been already initialized
 func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error) {
 	tokenName, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {

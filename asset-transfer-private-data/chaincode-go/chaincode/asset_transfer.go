@@ -450,7 +450,7 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface)
 		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
 	}
 
-	//check the asset is in the caller org's private collection
+	// Check the asset is in the caller org's private collection
 	valAsbytes, err = ctx.GetStub().GetPrivateData(ownerCollection, assetDeleteInput.ID)
 	if err != nil {
 		return fmt.Errorf("failed to read asset from owner's Collection: %v", err)
