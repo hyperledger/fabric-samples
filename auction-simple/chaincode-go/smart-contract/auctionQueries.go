@@ -93,7 +93,7 @@ func checkForHigherBid(ctx contractapi.TransactionContextInterface, auctionPrice
 
 		if _, bidInAuction := revealedBidders[bidKey]; bidInAuction {
 
-			//bid is already revealed, no action to take
+			// bid is already revealed, no action to take
 
 		} else {
 

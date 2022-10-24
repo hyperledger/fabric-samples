@@ -27,7 +27,7 @@ async function addBid(ccp,wallet,user,auctionID,bidID) {
 		let bidString = await contract.evaluateTransaction('QueryBid',auctionID,bidID);
 		let bidJSON = JSON.parse(bidString);
 
-		//console.log('\n--> Evaluate Transaction: query the auction you want to join');
+		// console.log('\n--> Evaluate Transaction: query the auction you want to join');
 		let auctionString = await contract.evaluateTransaction('QueryAuction',auctionID);
 		// console.log('*** Result:  Bid: ' + prettyJSONString(auctionString.toString()));
 		let auctionJSON = JSON.parse(auctionString);

@@ -18,7 +18,7 @@ async function queryBid(ccp,wallet,user,auctionID,bidID) {
 
 		const gateway = new Gateway();
 
-		//connect using Discovery enabled
+		// Connect using Discovery enabled
 		await gateway.connect(ccp,
 			{ wallet: wallet, identity: user, discovery: { enabled: true, asLocalhost: true } });
 
