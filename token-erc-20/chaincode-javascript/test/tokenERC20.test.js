@@ -202,14 +202,14 @@ describe('Chaincode', () => {
 
     describe('#Initialize', () => {
         it('should work', async () => {
-            //we consider it has already been initialized in the before-each statement
+            // We consider it has already been initialized in the before-each statement
             sinon.assert.calledWith(mockStub.putState, 'name', Buffer.from('some name'));
             sinon.assert.calledWith(mockStub.putState, 'symbol', Buffer.from('some symbol'));
             sinon.assert.calledWith(mockStub.putState, 'decimals', Buffer.from('2'));
         });
 
         it('should failed if called a second time', async () => {
-            //we consider it has already been initialized in the before-each statement
+            // We consider it has already been initialized in the before-each statement
             await expect(await token.Initialize(ctx, 'some name', 'some symbol', '2'))
                 .to.be.rejectedWith(Error, 'contract options are already set, client is not authorized to change them');
         });
