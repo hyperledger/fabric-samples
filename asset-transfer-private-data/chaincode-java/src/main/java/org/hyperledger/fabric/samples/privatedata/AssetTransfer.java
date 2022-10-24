@@ -319,7 +319,7 @@ public final class AssetTransfer implements ContractInterface {
         // write private data from this peer.
         verifyClientOrgMatchesPeerOrg(ctx);
 
-        //Make submitting client the owner
+        // Make submitting client the owner
         asset.setOwner(clientID);
         System.out.printf("CreateAsset Put: collection %s, ID %s\n", ASSET_COLLECTION_NAME, assetID);
         System.out.printf("Put: collection %s, ID %s\n", ASSET_COLLECTION_NAME, new String(asset.serialize()));
@@ -328,7 +328,7 @@ public final class AssetTransfer implements ContractInterface {
         // Get collection name for this organization.
         String orgCollectionName = getCollectionName(ctx);
 
-        //Save AssetPrivateDetails to org collection
+        // Save AssetPrivateDetails to org collection
         AssetPrivateDetails assetPriv = new AssetPrivateDetails(assetID, appraisedValue);
         System.out.printf("Put AssetPrivateDetails: collection %s, ID %s\n", orgCollectionName, assetID);
         stub.putPrivateData(orgCollectionName, assetID, assetPriv.serialize());
@@ -392,12 +392,12 @@ public final class AssetTransfer implements ContractInterface {
 
         verifyClientOrgMatchesPeerOrg(ctx);
 
-        //Save AssetPrivateDetails to org collection
+        // Save AssetPrivateDetails to org collection
         System.out.printf("Put AssetPrivateDetails: collection %s, ID %s\n", orgCollectionName, assetID);
         stub.putPrivateData(orgCollectionName, assetID, assetPriv.serialize());
 
         String clientID = ctx.getClientIdentity().getId();
-        //Write the AgreeToTransfer key in assetCollection
+        // Write the AgreeToTransfer key in assetCollection
         CompositeKey aggKey = stub.createCompositeKey(AGREEMENT_KEYPREFIX, assetID);
         System.out.printf("AgreeToTransfer Put: collection %s, ID %s, Key %s\n", ASSET_COLLECTION_NAME, assetID, aggKey);
         stub.putPrivateData(ASSET_COLLECTION_NAME, aggKey.toString(), clientID);
@@ -470,15 +470,15 @@ public final class AssetTransfer implements ContractInterface {
         String newOwner = transferAgreement.getBuyerID();
         thisAsset.setOwner(newOwner);
 
-        //Save updated Asset to collection
+        // Save updated Asset to collection
         System.out.printf("Transfer Asset: collection %s, ID %s to owner %s\n", ASSET_COLLECTION_NAME, assetID, newOwner);
         stub.putPrivateData(ASSET_COLLECTION_NAME, assetID, thisAsset.serialize());
 
-        // delete the key from owners collection
+        // Delete the key from owners collection
         String ownersCollectionName = getCollectionName(ctx);
         stub.delPrivateData(ownersCollectionName, assetID);
 
-        //Delete the transfer agreement from the asset collection
+        // Delete the transfer agreement from the asset collection
         CompositeKey aggKey = stub.createCompositeKey(AGREEMENT_KEYPREFIX, assetID);
         System.out.printf("AgreeToTransfer deleteKey: collection %s, ID %s, Key %s\n", ASSET_COLLECTION_NAME, assetID, aggKey);
         stub.delPrivateData(ASSET_COLLECTION_NAME, aggKey.toString());

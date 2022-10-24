@@ -134,7 +134,7 @@ export class AssetContract extends Contract {
             sigsPolicies.push(signedBy);
         });
 
-        // create the policy such that it requires any N signature's from all of the principals provided
+        // Create the policy such that it requires any N signature's from all of the principals provided
         const allOf = {
             n: nOrgs,
             rules: sigsPolicies
