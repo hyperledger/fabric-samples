@@ -105,12 +105,11 @@ export class FabCar extends Contract {
     }
 
     public async queryAllCars(ctx: Context): Promise<string> {
-        const startKey = '';
-        const endKey = '';
+        const noKey = '';
         const allResults = [];
-        for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
+        for await (const {key, value} of ctx.stub.getStateByRange(noKey, noKey)) {
             const strValue = Buffer.from(value).toString('utf8');
-            let record;
+            let record: string;
             try {
                 record = JSON.parse(strValue);
             } catch (err) {

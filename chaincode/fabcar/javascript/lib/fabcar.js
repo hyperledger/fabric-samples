@@ -111,7 +111,7 @@ class FabCar extends Contract {
         const startKey = '';
         const endKey = '';
         const allResults = [];
-        for await (const {key, value} of ctx.stub.getStateByRange(startKey, endKey)) {
+        for await (const { key, value } of ctx.stub.getStateByRange(startKey, endKey)) {
             const strValue = Buffer.from(value).toString('utf8');
             let record;
             try {
@@ -130,7 +130,7 @@ class FabCar extends Contract {
         console.info('============= START : changeCarOwner ===========');
 
         const carAsBytes = await ctx.stub.getState(carNumber); // get the car from chaincode state
-        if (!carAsBytes || carAsBytes.length === 0) {
+        if (!carAsBytes || !carAsBytes.length) {
             throw new Error(`${carNumber} does not exist`);
         }
         const car = JSON.parse(carAsBytes.toString());
