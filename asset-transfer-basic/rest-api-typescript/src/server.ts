@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import express, { Application, NextFunction, Request, Response } from 'express';
+import connect, { Application, NextFunction, Request, Response } from 'connect';
 import helmet from 'helmet';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import passport from 'passport';
@@ -18,7 +18,7 @@ import cors from 'cors';
 const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = StatusCodes;
 
 export const createServer = async (): Promise<Application> => {
-  const app = express();
+  const app = connect();
 
   app.use(
     pinoMiddleware({
@@ -40,8 +40,8 @@ export const createServer = async (): Promise<Application> => {
     })
   );
 
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  app.use(connect.json());
+  app.use(connect.urlencoded({ extended: true }));
 
   //define passport startegy
   passport.use(fabricAPIKeyStrategy);
