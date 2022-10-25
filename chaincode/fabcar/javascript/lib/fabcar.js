@@ -111,7 +111,7 @@ class FabCar extends Contract {
         const startKey = '';
         const endKey = '';
         const allResults = [];
-        for await (const { key, value } of ctx.stub.getStateByRange(startKey, endKey)) {
+        for (const { key, value } of ctx.stub.getStateByRange(startKey, endKey)) {
             const strValue = Buffer.from(value).toString('utf8');
             let record;
             try {
