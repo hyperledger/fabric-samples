@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-samples/asset-transfer-basic/application-gateway-hsm/go
 
-go 1.19
+go 1.18
 
 require (
 	github.com/hyperledger/fabric-gateway v1.1.1
