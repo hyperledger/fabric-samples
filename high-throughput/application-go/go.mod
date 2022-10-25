@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-samples/high-throughput/application-go
 
-go 1.19
+go 1.18
 
 require github.com/hyperledger/fabric-sdk-go v1.0.0
 
