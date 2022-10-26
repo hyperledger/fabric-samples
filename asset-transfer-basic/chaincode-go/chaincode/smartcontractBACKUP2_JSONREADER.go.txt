@@ -65,24 +65,18 @@ type Schema struct {
 }
 
 // InitLedger adds a base set of Data entries to the ledger
-func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, pathSchema string, pathFirstJsonFile string) ([]Data, []Schema) {
+func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, pathSchema string, pathFirstJsonFile string) error {
 
 	// We use the function jsonReader in order to read the content of the shcema Json File. The schema Json file is composed by us and inserted into
 	// the docker container of the commited chaincode (For now)
 	schemaJsonFileContent, error_schema := s.JsonReader(ctx, pathSchema)
 	firstJsonFileContent, error_file := s.JsonReader(ctx, pathFirstJsonFile)
 
-	dataEntries := []Data
-	initSchema := []Schema
-
 	if error_schema != nil {
-		return dataEntries, initSchema //, fmt.Errorf("failed to read shcema.json file or NewJsonFile: %v", error_schema)
+		return fmt.Errorf("failed to read shcema.json file or NewJsonFile: %v", error_schema)
 	} else if error_file != nil {
-		return dataEntries, initSchema//, fmt.Errorf("failed to read shcema.json file or NewJsonFile: %v", error_file)
+		return fmt.Errorf("failed to read shcema.json file or NewJsonFile: %v", error_file)
 	} else {
-		fmt.Printf("Schema Content: %v", schemaJsonFileContent)
-		fmt.Printf("Test Json file Content: %v", firstJsonFileContent)
-		
 		dataEntries := []Data{
 			{Contributor: "pepitoperes@email.com", ContributorId: "ABC123", ContentHash: "ZXCVBNM", Id: "00000", Owners: []string{"CIA", "DEA", "FBI"}, JsonFileContent: firstJsonFileContent},
 		}
@@ -90,8 +84,33 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, 
 		//This is the definition of the Schema that we should use for validate all the JSON files from now on.
 		initSchema := Schema{Contributor: "pepitoperes@email.com", ContributorId: "ABC123", ContentHash: "ZXCVBNM", Id: "00000", Owners: []string{"CIA", "DEA", "FBI"}, JsonFileContent: schemaJsonFileContent}
 		schemas = append(schemas, initSchema)
-		return dataEntries, schemas //, nil
+
+		for _, data := range schemas {
+			assetJSON, err := json.Marshal(data)
+			if err != nil {
+				return err
+			}
+
+			err = ctx.GetStub().PutState(data.Id, assetJSON)
+			if err != nil {
+				return fmt.Errorf("failed to put to world state. %v", err)
+			}
+		}
+
+		for _, data := range dataEntries {
+			assetJSON, err := json.Marshal(data)
+			if err != nil {
+				return err
+			}
+
+			err = ctx.GetStub().PutState(data.Id, assetJSON)
+			if err != nil {
+				return fmt.Errorf("failed to put to world state. %v", err)
+			}
+		}
+
 	}
+	return nil
 }
 
 func (s *SmartContract) JsonReader(ctx contractapi.TransactionContextInterface, path string) (map[string]interface{}, error) {
@@ -216,7 +235,7 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 			assetJSON, err := json.Marshal(data)
 			if err != nil {
 				return err
-
+				
 			}
 			return ctx.GetStub().PutState(Id, assetJSON)
 			}
