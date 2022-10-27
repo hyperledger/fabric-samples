@@ -1,0 +1,10 @@
+{
+    "type": "object",
+    "properties": {
+      "number": { "type": "number" },
+      "street_name": { "type": "string" },
+      "street_type": { "enum": ["Street", "Avenue", "Boulevard"] }
+    },
+    "additionalProperties": false,
+    "required": [ "number", "street_name", "street_type"]
+  }

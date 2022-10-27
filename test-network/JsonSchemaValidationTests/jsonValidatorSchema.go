@@ -50,9 +50,6 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 */
 
 func main() {
-	//data := Data{
-	//"DocType": "TestType", "Id": "00000", "Title": "TestSample", "Description": "description", "Type": "TestType", "DOI": "https://doi.org/10.57873/T34W2R", "Url": "sdsc.edu", "Manifest": "TestManifest", "Footprint": "", "Keywords": '["SmartContrac", "ChainCode", "Peer"]'ß, "OtherDataIdName": "None", "OtherDataIdValue": "None", "FundingAgencies": ["DOS", "NASA"], "Acknowledgment": "SDSC", "NoteForChange": "NONE", "Contributor": "AveryhardworkingUser@email.com", "Contributor_id": "ABC123"
-	//}
 
 	schemaLoader := gojsonschema.NewReferenceLoader("file:///home/ofgarzon2662/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/Schema.json")
 	documentLoader := gojsonschema.NewReferenceLoader("file:////home/ofgarzon2662/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/testFile.json")

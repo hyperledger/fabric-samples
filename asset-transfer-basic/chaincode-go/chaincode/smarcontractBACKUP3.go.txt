@@ -160,67 +160,6 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 	return dataSamples, nil
 }
 
-func (s *SmartContract) CreateNewSchema(ctx contractapi.TransactionContextInterface,
-	Contributor string, ContributorId string, ContentHash string, Id string, AbsolutePathToJsonFile string) error {
-
-	// We assume this new schema is different from what existed previously
-	//exists, err := s.AssetExists(ctx, Id)
-	//if err != nil {
-	//	return err
-	//}
-	//if exists {
-	//	return fmt.Errorf("the asset %s already exists", Id)
-	//}
-
-	jsonFileContent, err := s.JsonReader(ctx, AbsolutePathToJsonFile)
-	if err != nil {
-		return err
-	} else {
-		newSchema := Schema{
-			Contributor:     Contributor,
-			ContributorId:   ContributorId,
-			ContentHash:     ContentHash,
-			Id:              Id,
-			Owners:          []string{"DOE", "DOS", "DOJ"},
-			JsonFileContent: jsonFileContent,
-		}
-		
-		schemas = append(schemas, newSchema)
-
-		return nil
-		}
-	}
-
-
-// GetAllSchemas returns all schemas found in world state
-
-func (s *SmartContract) GetAllSchemas(ctx contractapi.TransactionContextInterface) ([]Schema, error) {
-	// range query with empty string for startKey and endKey does an
-	// open-ended query of all schemas in the chaincode namespace.
-	//resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
-	//if err != nil {
-	//	return nil, err
-	//}
-	//defer resultsIterator.Close()
-
-	//var schemaSamples []*Schema
-	//for resultsIterator.HasNext() {
-	//	queryResponse, err := resultsIterator.Next()
-	//	if err != nil {
-	//		return nil, err
-	//	}
-
-	//	var schm Schema
-	//	err = json.Unmarshal(queryResponse.Value, &schm)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	schemaSamples = append(schemaSamples, &schm)
-	//}
-
-	return schemas, nil
-}
-
 // AssetExists returns true when asset with given ID exists in world state
 func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface, Id string) (bool, error) {
 	assetJSON, err := ctx.GetStub().GetState(Id)
