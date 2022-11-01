@@ -7,8 +7,9 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/xeipuuv/gojsonschema"
 
-	"io/ioutil"
 	"log"
+	"crypto/sha256"
+    "encoding/hex"
 )
 
 // SmartContract provides functions for managing an Asset
@@ -44,7 +45,7 @@ type SmartContract struct {
 // Insert struct field in alphabetic order => to achieve determinism across languages
 // golang keeps the order when marshal to json but doesn't order automatically
 
-var lastSchemaHash String 
+var lastSchemaHash string 
 
 type Data struct {
 	Contributor     string   `json:"Contributor"`
@@ -75,8 +76,8 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, 
 		return fmt.Errorf("failed to read 1st json files: %v", error_file)
 	} else {
 		
-		firstJsonFileHash = Hash(InitData)
-		schemaJsonFileHash = Hash(InitSchema)
+		firstJsonFileHash, _ := s.Hash(InitData)
+		schemaJsonFileHash, _ := s.Hash(InitSchema)
 		lastSchemaHash = schemaJsonFileHash
 
 		data := Data{
@@ -88,15 +89,6 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, 
 			JsonFileContent: firstJsonFileContent,
 		}
 
-		//This is the definition of the Schema that we should use for validate all the JSON files from now on.
-		
-		initSchema := Schema{
-			Version: "1.0",
-			Hash: schemaJsonFileHash,
-			JsonSchemaContent: schemaJsonFileContent,
-		}
-
-		
 		assetJSON, err := json.Marshal(data)
 		if err != nil {
 			return err
@@ -106,10 +98,16 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, 
 		if err != nil {
 			return fmt.Errorf("failed to put to world state. %v", err)
 		}
-		
 
+		//This is the definition of the Schema that we should use for validate all the JSON files from now on.
+		
+		initSchema := Schema{
+			Version: 1,
+			Hash: schemaJsonFileHash,
+			JsonSchemaContent: schemaJsonFileContent,
+		}
 	
-		assetJSON, err := json.Marshal(initSchema)
+		assetJSON, err = json.Marshal(initSchema)
 		if err != nil {
 			return err
 		}
@@ -128,13 +126,13 @@ func (s *SmartContract) LastSchemaHash() (string) {
 	return lastSchemaHash
 }
 
-func (s *SmartContract) Hash(doc string) string, err {
-	result = isJSON(doc)
+func (s *SmartContract) Hash(doc string) (string, error) {
+	result := s.isJSON(doc)
 	if !result{
 		return "HASH CRASH", fmt.Errorf("String passed as parameter is not in JSON format")
 	} else{
 		var v interface{}
-		err = json.Unmarshal([]byte(doc), &v)
+		err := json.Unmarshal([]byte(doc), &v)
 		if err != nil{
 			return "HASH CRASH", fmt.Errorf("Unable to unmarshal Json String passed as parameter. No hash calculation can be completed: %v", err)
 		} else {
@@ -145,6 +143,7 @@ func (s *SmartContract) Hash(doc string) string, err {
 				sum := sha256.Sum256(cdoc)
 				return hex.EncodeToString(sum[0:]), nil
 			}
+		}
 	}
 }
 
@@ -156,15 +155,15 @@ func (smct *SmartContract) isJSON(s string) bool {
 func (s *SmartContract) JsonReader(ctx contractapi.TransactionContextInterface, content string) (map[string]interface{}, error) {
 
 	var payload map[string]interface{}
-	IsJson := isJSON(content)
+	IsJson := s.isJSON(content)
 
-	if !content {
-		return payload, log.Fatal("The String passed is not in JSON format. Check the string: %v", IsJson)
+	if !IsJson {
+		return payload, log.Fatal("The String passed is not in JSON format. Check String", interface{})
 	} else {
 		// Now let's unmarshall the data into `payload`
-		err = json.Unmarshal(IsJson, &payload)
+		err := json.Unmarshal([]byte(content), &payload)
 		if err != nil {
-			log.Fatal("Error during Unmarshal() of string into type Interface: %v", err)
+			log.Fatal("Error during Unmarshal() of string into type Interface: ", err)
 		}
 		return payload, nil
 	}
@@ -208,7 +207,7 @@ func (s *SmartContract) SchemaExists(ctx contractapi.TransactionContextInterface
 }
 
 func (s *SmartContract) CreateNewSchema(ctx contractapi.TransactionContextInterface,
-	version string, newSchemaContent string) error {
+	version int, newSchemaContent string) error {
 
 	// We assume this new schema is different from what existed previously
 	//exists, err := s.AssetExists(ctx, Id)
@@ -224,8 +223,8 @@ func (s *SmartContract) CreateNewSchema(ctx contractapi.TransactionContextInterf
 		return err
 	} else {
 		// Verify that an schema with exact same structure doesn't exist yet.
-		hashContent = Hash(newSchemaContent)
-		exists, err = SchemaExists(hashContent)
+		hashContent, _ := s.Hash(newSchemaContent)
+		exists, err := s.SchemaExists(ctx, hashContent)
 		if exists{
 			return fmt.Errorf("Schema already exists: %v", err)
 		} else {
@@ -234,6 +233,16 @@ func (s *SmartContract) CreateNewSchema(ctx contractapi.TransactionContextInterf
 				Version:           version,
 				Hash:              hashContent,
 				JsonSchemaContent: jsonFileContent,
+			}
+
+			assetJSON, err := json.Marshal(newSchema)
+			if err != nil {
+				return err
+			}
+
+			err = ctx.GetStub().PutState(newSchema.Hash, assetJSON)
+			if err != nil {
+				return fmt.Errorf("failed to put to world state. %v", err)
 			}
 		}
 		
@@ -295,8 +304,8 @@ func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, J
 
 	//m := schemas[len(schemas) - 1].JsonFileContent
 
-	CurrentSchemaHash = LastSchemaHash()
-	schema = ReadSchema(CurrentSchemaHash)
+	CurrentSchemaHash := s.LastSchemaHash()
+	schema, _ := s.ReadSchema(ctx, CurrentSchemaHash)
 
 	schemaLoader := gojsonschema.NewGoLoader(schema.JsonSchemaContent)
 	documentLoader := gojsonschema.NewStringLoader(JsonContent)
@@ -322,7 +331,7 @@ func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, J
 func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInterface,
 	Contributor string, ContributorId string, Id string, JsonFileContent string) error {
 	
-	ContentHash = Hash(JsonFileContent)
+	ContentHash, err := s.Hash(JsonFileContent)
 	exists, err := s.AssetExists(ctx, ContentHash)
 	if err != nil {
 		return err
@@ -435,7 +444,7 @@ func (s *SmartContract) ReadSchema(ctx contractapi.TransactionContextInterface, 
 		return nil, err
 	}
 
-	return &scehma, nil
+	return &schema, nil
 }
 
 // TransferAsset updates the owner field of asset with given id in world state, and returns the old owner.
