@@ -8,3 +8,8 @@
     "additionalProperties": false,
     "required": [ "number", "street_name"]
   }
+
+  "{ \"bar\": { \"abc\": 12, \"baz\": true }, \"foo\": 12.3 "
+
+
+  "{\"type\": object, \"properties\": { \"number\": { \"type\": number }, \"street_name\": { \"type\": string }, \"street_type\": { \"enum\": [Street, Avenue,Boulevard] }}, \"additionalProperties\": false, \"required\": [ number, street_name]}"

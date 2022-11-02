@@ -10,6 +10,7 @@ import (
 	"log"
 	"crypto/sha256"
     "encoding/hex"
+	"reflect"
 )
 
 // SmartContract provides functions for managing an Asset
@@ -76,97 +77,87 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, 
 		return fmt.Errorf("failed to read 1st json files: %v", error_file)
 	} else {
 		
-		firstJsonFileHash, _ := s.Hash(InitData)
-		schemaJsonFileHash, _ := s.Hash(InitSchema)
+		firstJsonFileHash, initDataHashError := s.Hash(ctx, InitData)
+		schemaJsonFileHash, schemaHashError := s.Hash(ctx, InitSchema)
 		lastSchemaHash = schemaJsonFileHash
-
-		data := Data{
+		if initDataHashError != nil {
+			return fmt.Errorf("failed to calculate 1st json file hash: %v", initDataHashError)
+		} else if schemaHashError != nil {
+			return fmt.Errorf("failed to calculate schema hash: %v", schemaHashError)
+		} else{
+			data := Data{
 			Contributor: "pepitoperes@email.com", 
 			ContributorId: "ABC123", 
 			ContentHash: firstJsonFileHash, 
 			Id: "00000", 
 			Owners: []string{"CIA", "DEA", "FBI"}, 
 			JsonFileContent: firstJsonFileContent,
-		}
+			}
 
-		assetJSON, err := json.Marshal(data)
-		if err != nil {
-			return err
-		}
+			assetJSON, err := json.Marshal(data)
+			if err != nil {
+				return err
+			}
 
-		err = ctx.GetStub().PutState(data.ContentHash, assetJSON)
-		if err != nil {
-			return fmt.Errorf("failed to put to world state. %v", err)
-		}
+			err = ctx.GetStub().PutState(data.ContentHash, assetJSON)
+			if err != nil {
+				return fmt.Errorf("failed to put to world state. %v", err)
+			}
 
-		//This is the definition of the Schema that we should use for validate all the JSON files from now on.
+			//This is the definition of the Schema that we should use for validate all the JSON files from now on.
+			
+			initSchema := Schema{
+				Version: 1,
+				Hash: schemaJsonFileHash,
+				JsonSchemaContent: schemaJsonFileContent,
+			}
 		
-		initSchema := Schema{
-			Version: 1,
-			Hash: schemaJsonFileHash,
-			JsonSchemaContent: schemaJsonFileContent,
-		}
-	
-		assetJSON, err = json.Marshal(initSchema)
-		if err != nil {
-			return err
-		}
+			assetJSON, err = json.Marshal(initSchema)
+			if err != nil {
+				return err
+			}
 
-		err = ctx.GetStub().PutState(initSchema.Hash, assetJSON)
-		if err != nil {
-			return fmt.Errorf("failed to put to world state. %v", err)
+			err = ctx.GetStub().PutState(initSchema.Hash, assetJSON)
+			if err != nil {
+				return fmt.Errorf("failed to put to world state. %v", err)
+			}
 		}
-		
-
 	}
 	return nil
 }
 
-func (s *SmartContract) LastSchemaHash() (string) {
+func (s *SmartContract) LastSchemaHash(ctx contractapi.TransactionContextInterface) (string) {
 	return lastSchemaHash
 }
 
-func (s *SmartContract) Hash(doc string) (string, error) {
-	result := s.isJSON(doc)
-	if !result{
-		return "HASH CRASH", fmt.Errorf("String passed as parameter is not in JSON format")
-	} else{
-		var v interface{}
-		err := json.Unmarshal([]byte(doc), &v)
+func (s *SmartContract) Hash(ctx contractapi.TransactionContextInterface, doc string) (string, error) {
+	
+	var v interface{}
+	err := json.Unmarshal([]byte(doc), &v)
+	if err != nil{
+		return "HASH CRASH", fmt.Errorf("Unable to unmarshal Json String passed as parameter. No hash calculation can be completed: %v", err)
+	} else {
+		cdoc, err := json.Marshal(v)
 		if err != nil{
-			return "HASH CRASH", fmt.Errorf("Unable to unmarshal Json String passed as parameter. No hash calculation can be completed: %v", err)
-		} else {
-			cdoc, err := json.Marshal(v)
-			if err != nil{
-				return "HASH CRASH", fmt.Errorf("Unable to re-marshal interface into json format. No hash calculation can be completed: %v", err)
-			} else{
-				sum := sha256.Sum256(cdoc)
-				return hex.EncodeToString(sum[0:]), nil
-			}
+			return "HASH CRASH", fmt.Errorf("Unable to re-marshal interface into json format. No hash calculation can be completed: %v", err)
+		} else{
+			sum := sha256.Sum256(cdoc)
+			return hex.EncodeToString(sum[0:]), nil
 		}
 	}
 }
 
-func (smct *SmartContract) isJSON(s string) bool {
-	var js interface{}
-	return json.Unmarshal([]byte(s), &js) == nil
-}
 
 func (s *SmartContract) JsonReader(ctx contractapi.TransactionContextInterface, content string) (map[string]interface{}, error) {
 
 	var payload map[string]interface{}
-	IsJson := s.isJSON(content)
-
-	if !IsJson {
-		return payload, log.Fatal("The String passed is not in JSON format. Check String", interface{})
-	} else {
-		// Now let's unmarshall the data into `payload`
-		err := json.Unmarshal([]byte(content), &payload)
-		if err != nil {
-			log.Fatal("Error during Unmarshal() of string into type Interface: ", err)
-		}
-		return payload, nil
+	// Now let's unmarshall the data into `payload`
+	err := json.Unmarshal([]byte(content), &payload)
+	if err != nil {
+		log.Fatal("Error during Unmarshal() of string into type Interface: ", err)
 	}
+	return payload, nil
+	
 }
 
 // GetAllAssets returns all assets found in world state
@@ -187,11 +178,21 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 		}
 
 		var data Data
-		err = json.Unmarshal(queryResponse.Value, &data)
+		func PrintRandomDiv() {
+			defer func() {
+			  if panicInfo := recover(); panicInfo != nil {
+				fmt.Printf("%v, %s", panicInfo, string(debug.Stack()))
+			  }
+			}()  
+			err = json.Unmarshal(queryResponse.Value, &data)
+		  }
+		
 		if err != nil {
+			log.Fatal("Error during Unmarshal() of string into type Data: ", err)
 			return nil, err
 		}
 		dataSamples = append(dataSamples, &data)
+		
 	}
 
 	return dataSamples, nil
@@ -223,7 +224,7 @@ func (s *SmartContract) CreateNewSchema(ctx contractapi.TransactionContextInterf
 		return err
 	} else {
 		// Verify that an schema with exact same structure doesn't exist yet.
-		hashContent, _ := s.Hash(newSchemaContent)
+		hashContent, _ := s.Hash(ctx, newSchemaContent)
 		exists, err := s.SchemaExists(ctx, hashContent)
 		if exists{
 			return fmt.Errorf("Schema already exists: %v", err)
@@ -304,7 +305,7 @@ func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, J
 
 	//m := schemas[len(schemas) - 1].JsonFileContent
 
-	CurrentSchemaHash := s.LastSchemaHash()
+	CurrentSchemaHash := s.LastSchemaHash(ctx)
 	schema, _ := s.ReadSchema(ctx, CurrentSchemaHash)
 
 	schemaLoader := gojsonschema.NewGoLoader(schema.JsonSchemaContent)
@@ -331,7 +332,7 @@ func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, J
 func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInterface,
 	Contributor string, ContributorId string, Id string, JsonFileContent string) error {
 	
-	ContentHash, err := s.Hash(JsonFileContent)
+	ContentHash, err := s.Hash(ctx, JsonFileContent)
 	exists, err := s.AssetExists(ctx, ContentHash)
 	if err != nil {
 		return err

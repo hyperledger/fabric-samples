@@ -1,1 +1,3 @@
 { "number": 1600, "street_name": "Pennsylvania", "street_type": "Avenue" }
+
+"{ \"number\": 1600, \"street_name\": Pennsylvania, \"street_type\": Avenue }"
