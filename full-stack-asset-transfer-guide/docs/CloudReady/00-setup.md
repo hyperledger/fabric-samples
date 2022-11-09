@@ -58,10 +58,8 @@ Here are some key points to keep in mind to help stay "grounded" on your voyage 
 ## Ready?
 
 ```shell
-
 # If the check passes, proceed to "Deploy a Kube":
 ./check.sh
-
 ```
 
 
@@ -71,13 +69,10 @@ To run the cloud workshop, a number of client applications are necessary to inte
 
 Install the workshop prerequisites with instructions from running `./check.sh`, or see detailed guides from the web:
 
-- [full-stack-asset-transfer-guide](https://github.com/hyperledgendary/full-stack-asset-transfer-guide) (this GitHub project):
+- [fabric-samples](https://github.com/hyperledger/fabric-samples) (This GitHub project):
 ```shell
-
-git clone https://github.com/hyperledgendary/full-stack-asset-transfer-guide.git workshop
-cd workshop
-
-
+git clone https://github.com/hyperledger/fabric-samples.git fabric-samples
+cd fabric-samples/full-stack-asset-transfer-guide
 ```
 
 - [docker](https://www.docker.com/get-started/)
