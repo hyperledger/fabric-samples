@@ -90,7 +90,7 @@ function launch_network_CAs() {
   apply_kustomization config/cas
 
   # give the operator a chance to run the first reconciliation on the new resource
-  sleep 1
+  sleep 10
 
   wait_for ibpca org0-ca
   wait_for ibpca org1-ca

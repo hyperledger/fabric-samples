@@ -41,7 +41,7 @@ context CONTAINER_CLI             docker                # or nerdctl for contain
 context CONTAINER_NAMESPACE       ""                    # or "--namespace k8s.io" for containerd / nerdctl
 context STORAGE_CLASS             standard
 context KUSTOMIZE_BUILD           "kubectl kustomize"
-context STAGE_DOCKER_IMAGES       true
+context STAGE_DOCKER_IMAGES       false
 context FABRIC_CONTAINER_REGISTRY hyperledger
 
 context NAME                      test-network

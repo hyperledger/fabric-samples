@@ -49,26 +49,26 @@ spec:
         productChargedContainers: ""
         productMetric: "VIRTUAL_PROCESSOR_CORE"
     spec:
+      serviceAccountName: fabric-operator
       # hostIPC: false
       # hostNetwork: false
       # hostPID: false
-      serviceAccountName: fabric-operator
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: kubernetes.io/arch
-                    operator: In
-                    values:
-                      - amd64
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #         - matchExpressions:
+      #             - key: kubernetes.io/arch
+      #               operator: In
+      #               values:
+      #                 - amd64
       # securityContext:
       #   runAsNonRoot: true
       #   runAsUser: 1001
       #   fsGroup: 2000
 
       imagePullSecrets:
-        - name: ghcr-pull-secret
+        - name: image-pull-secret
 
       containers:
         - name: fabric-operator
