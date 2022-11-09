@@ -1,0 +1,24 @@
+name: Asset Tx Contract Image CI
+
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+    paths:
+      - 'contracts/asset-transfer-typescript/**'
+  pull_request:
+    branches:
+      - 'main'
+    paths:
+      - 'contracts/asset-transfer-typescript/**'
+
+jobs:
+  docker_build:
+    name: Docker build
+    uses: ./.github/workflows/docker-build.yaml
+    with:
+      imagename: full-stack-asset-transfer-guide/contracts/asset-transfer-typescript
+      path: contracts/asset-transfer-typescript
+      chaincode-label: asset-transfer-typescript
