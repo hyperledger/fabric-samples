@@ -6,9 +6,10 @@
 
 Make sure you have cloned the workshop:
 
-```
-git clone https://github.com/hyperledgendary/full-stack-asset-transfer-guide.git workshop
-cd workshop
+```bash
+git clone https://github.com/hyperledger/fabric-samples.git fabric-samples
+cd fabric-samples/full-stack-asset-transfer-guide
+
 export WORKSHOP_PATH=$(pwd)
 ```
 
@@ -201,7 +202,7 @@ We'll use the example typescript contract already written in `$WORKSHOP_PATH/con
 Use another terminal window for the chaincode. Make sure the terminal is setup with the same environment variables as the first terminal:
 
 ```
-cd full-stack-asset-transfer-guide
+cd fabric-samples/full-stack-asset-transfer-guide
 export WORKSHOP_PATH=$(pwd)
 export PATH=${WORKSHOP_PATH}/bin:$PATH
 export FABRIC_CFG_PATH=${WORKSHOP_PATH}/config
@@ -254,7 +255,7 @@ Choose a terminal window to run the transactions from; initially we'll use the `
 If this is a new terminal window set the environment variables:
 
 ```
-cd full-stack-asset-transfer-guide
+cd fabric-samples/full-stack-asset-transfer-guide
 export WORKSHOP_PATH=$(pwd)
 export PATH=${WORKSHOP_PATH}/bin:$PATH
 export FABRIC_CFG_PATH=${WORKSHOP_PATH}/config
@@ -314,7 +315,10 @@ Let's say we want to change that error message to something else.
 - Stop the running chaincode (CTRL-C in the chaincode terminal)
 - Load the `src/assetTransfer.ts` file into an editor of your choice
 - Around line 51, find the error string and make a modification. Remember to save the change.
-- Rebuild this as it's typescript with "npm run build"
+- Rebuild the typescript contract:
+```
+npm run build
+```
 
 You can now restart the contract as before
 
