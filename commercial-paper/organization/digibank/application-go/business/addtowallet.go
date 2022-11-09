@@ -1,7 +1,6 @@
 package business
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -42,11 +41,11 @@ func AddUser() error {
 	privateKeyPath := filepath.Join(credPath, "keystore", "priv_sk")
 	log.Println("privateKeyPath: " + privateKeyPath)
 	// read the certificate pem
-	certificate, err := ioutil.ReadFile(filepath.Clean(certPath))
+	certificate, err := os.ReadFile(filepath.Clean(certPath))
 	if err != nil {
 		return err
 	}
-	privateKey, err := ioutil.ReadFile(filepath.Clean(privateKeyPath))
+	privateKey, err := os.ReadFile(filepath.Clean(privateKeyPath))
 	if err != nil {
 		return err
 	}
