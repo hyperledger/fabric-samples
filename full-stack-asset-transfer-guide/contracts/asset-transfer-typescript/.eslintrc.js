@@ -76,8 +76,10 @@ module.exports = {
                     4,
                     {
                         SwitchCase: 0,
+                        ignoredNodes: ["PropertyDefinition"]
                     },
                 ],
+
                 '@typescript-eslint/prefer-nullish-coalescing': ['error'],
                 '@typescript-eslint/prefer-optional-chain': ['error'],
                 '@typescript-eslint/prefer-reduce-type-parameter': ['error'],

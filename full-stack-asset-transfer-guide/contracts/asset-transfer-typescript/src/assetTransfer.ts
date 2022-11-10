@@ -195,7 +195,7 @@ function hasWritePermission(ctx: Context, asset: Asset): boolean {
 function clientIdentifier(ctx: Context, user?: string): OwnerIdentifier {
     return {
         org: ctx.clientIdentity.getMSPID(),
-        user: user || clientCommonName(ctx),
+        user: user ?? clientCommonName(ctx),
     };
 }
 
