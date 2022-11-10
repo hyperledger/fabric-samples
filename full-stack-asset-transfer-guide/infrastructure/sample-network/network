@@ -1,0 +1,201 @@
+#!/bin/bash
+#
+# Copyright contributors to the Hyperledger Fabric Operator project
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+# 	  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+set -o errexit
+
+cd "$(dirname "$0")"
+
+# Set an environment variable based on an optional override ($PREFIX_${name})
+# from the calling shell.  If the override is not available, assign the parameter
+# to a default value.
+CONTEXT_PREFIX="WORKSHOP"
+
+function context() {
+  local name=$1
+  local default_value=$2
+  local override_name=${CONTEXT_PREFIX}_${name}
+
+  export ${name}="${!override_name:-${default_value}}"
+}
+
+context FABRIC_VERSION            2.4.4
+context FABRIC_CA_VERSION         1.5.5
+
+context CLUSTER_RUNTIME           kind                  # or k3s for Rancher
+context CONTAINER_CLI             docker                # or nerdctl for containerd
+context CONTAINER_NAMESPACE       ""                    # or "--namespace k8s.io" for containerd / nerdctl
+context STORAGE_CLASS             standard
+context KUSTOMIZE_BUILD           "kubectl kustomize"
+context STAGE_DOCKER_IMAGES       false
+context FABRIC_CONTAINER_REGISTRY hyperledger
+
+context NAME                      test-network
+context NAMESPACE                 $NAME
+context NS                        $NAMESPACE
+context CLUSTER_NAME              $CLUSTER_RUNTIME
+context KUBE_DNS_DOMAIN           ${NS}.svc.cluster.local
+context INGRESS_DOMAIN            localho.st
+context COREDNS_DOMAIN_OVERRIDE   true
+context LOG_FILE                  network.log
+context DEBUG_FILE                network-debug.log
+context LOG_ERROR_LINES           1
+context USE_LOCAL_REGISTRY        true
+context LOCAL_REGISTRY_NAME       kind-registry
+context LOCAL_REGISTRY_PORT       5000
+context LOCAL_REGISTRY_INTERFACE  127.0.0.1
+context NGINX_HTTP_PORT           80
+context NGINX_HTTPS_PORT          443
+
+context CONSOLE_DOMAIN            ${INGRESS_DOMAIN}
+context CONSOLE_USERNAME          admin
+context CONSOLE_PASSWORD          password
+
+# TODO: use new cc logic from test-network
+context CHANNEL_NAME              mychannel
+context ORDERER_TIMEOUT           15s
+context CHAINCODE_NAME            asset-transfer-basic
+context CHAINCODE_IMAGE           ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic:latest
+context CHAINCODE_LABEL           basic_1.0
+
+context CA_IMAGE                  ${FABRIC_CONTAINER_REGISTRY}/fabric-ca
+context CA_IMAGE_LABEL            ${FABRIC_CA_VERSION}
+# todo: use ghcr.io fabric-peer when k8s-builder is automatically deployed by the operator
+#context PEER_IMAGE                ${FABRIC_CONTAINER_REGISTRY}/fabric-peer
+#context PEER_IMAGE_LABEL          ${FABRIC_VERSION}
+context PEER_IMAGE                ghcr.io/hyperledger-labs/k8s-fabric-peer
+context PEER_IMAGE_LABEL          v0.7.2    # FROM fabric-peer 2.4
+context ORDERER_IMAGE             ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer
+context ORDERER_IMAGE_LABEL       ${FABRIC_VERSION}
+context TOOLS_IMAGE               ${FABRIC_CONTAINER_REGISTRY}/fabric-tools
+context TOOLS_IMAGE_LABEL         ${FABRIC_VERSION}
+context OPERATOR_IMAGE            ghcr.io/hyperledger-labs/fabric-operator
+context OPERATOR_IMAGE_LABEL      latest-amd64
+context INIT_IMAGE                registry.access.redhat.com/ubi8/ubi-minimal
+context INIT_IMAGE_LABEL          latest
+context GRPCWEB_IMAGE             ghcr.io/hyperledger-labs/grpc-web
+context GRPCWEB_IMAGE_LABEL       latest
+context COUCHDB_IMAGE             couchdb
+context COUCHDB_IMAGE_LABEL       3.2.1
+context CONSOLE_IMAGE             ghcr.io/hyperledger-labs/fabric-console
+context CONSOLE_IMAGE_LABEL       latest
+context DEPLOYER_IMAGE            ghcr.io/ibm-blockchain/fabric-deployer
+context DEPLOYER_IMAGE_LABEL      latest-amd64
+
+export FABRIC_OPERATOR_IMAGE=${OPERATOR_IMAGE}:${OPERATOR_IMAGE_LABEL}
+export FABRIC_CONSOLE_IMAGE=${CONSOLE_IMAGE}:${CONSOLE_IMAGE_LABEL}
+export FABRIC_DEPLOYER_IMAGE=${DEPLOYER_IMAGE}:${DEPLOYER_IMAGE_LABEL}
+export FABRIC_CA_IMAGE=${CA_IMAGE}:${CA_IMAGE_LABEL}
+export FABRIC_PEER_IMAGE=${PEER_IMAGE}:${PEER_IMAGE_LABEL}
+export FABRIC_ORDERER_IMAGE=${ORDERER_IMAGE}:${ORDERER_IMAGE_LABEL}
+export FABRIC_TOOLS_IMAGE=${TOOLS_IMAGE}:${TOOLS_IMAGE_LABEL}
+
+export TEMP_DIR=${PWD}/temp
+
+
+function print_help() {
+  log
+  log "--- Fabric Information"
+  log "Fabric Version     \t\t: ${FABRIC_VERSION}"
+  log "Fabric CA Version    \t: ${FABRIC_CA_VERSION}"
+  log "Container Registry   \t: ${FABRIC_CONTAINER_REGISTRY}"
+  log "Network name       \t\t: ${NAME}"
+  log "Channel name       \t\t: ${CHANNEL_NAME}"
+  log
+  log "--- Chaincode Information"
+  log "Chaincode name      \t\t: ${CHAINCODE_NAME}"
+  log "Chaincode image      \t: ${CHAINCODE_IMAGE}"
+  log "Chaincode label      \t: ${CHAINCODE_LABEL}"
+  log
+  log "--- Cluster Information"
+  log "Cluster runtime      \t: ${CLUSTER_RUNTIME}"
+  log "Cluster name       \t\t: ${CLUSTER_NAME}"
+  log "Cluster namespace    \t: ${NS}"
+  log "Fabric Registry      \t: ${FABRIC_CONTAINER_REGISTRY}"
+  log "Local Registry     \t\t: ${LOCAL_REGISTRY_NAME}"
+  log "Local Registry port  \t: ${LOCAL_REGISTRY_PORT}"
+  log "nginx http port      \t: ${NGINX_HTTP_PORT}"
+  log "nginx https port     \t: ${NGINX_HTTPS_PORT}"
+  log
+  log "--- Script Information"
+  log "Log file           \t\t: ${LOG_FILE}"
+  log "Debug log file     \t\t: ${DEBUG_FILE}"
+  log
+
+  echo todo: help output, parse mode, flags, env, etc.
+}
+
+. scripts/utils.sh
+. scripts/prereqs.sh
+. scripts/sample_network.sh
+. scripts/console.sh
+. scripts/channel.sh
+. scripts/rest_sample.sh
+. scripts/frontend_build.sh
+
+# check for kind, kubectl, etc.
+check_prereqs
+
+# Initialize the logging system - control output to 'network.log' and everything else to 'network-debug.log'
+logging_init
+
+## Parse mode
+if [[ $# -lt 1 ]] ; then
+  print_help
+  exit 0
+else
+  MODE=$1
+  shift
+fi
+
+if [ "${MODE}" == "up" ]; then
+  log "Launching network \"${NAME}\":"
+  network_up
+  log "🏁 - Network is ready."
+
+elif [ "${MODE}" == "down" ]; then
+  log "Shutting down sample network  \"${NAME}\":"
+  network_down
+  log "🏁 - Fabric network is down."
+
+elif [ "${MODE}" == "channel" ]; then
+  log "Creating channel \"${CHANNEL_NAME}\":"
+  channel_up
+  log "🏁 - Channel is ready."
+
+elif [ "${MODE}" == "operator" ]; then
+  log "Launching Fabric operator"
+  launch_operator
+  log "🏁 - Operator is ready."
+
+elif [ "${MODE}" == "console" ]; then
+  log "Launching Fabric Operations Console"
+  console_up
+  log "🏁 - Console is ready"
+elif [ "${MODE}" == "rest-easy" ]; then
+  log "Launching Rest API"
+  launch_rest_sample
+  log "🏁 - Rest API is ready at https://restapi.localho.st"
+elif [ "${MODE}" == "frontend" ]; then
+  log "Launching frontend"
+  launch_frontend
+  log "🏁 - Frontend is ready at https://frontend.localho.st"
+
+else
+  print_help
+  exit 1
+fi

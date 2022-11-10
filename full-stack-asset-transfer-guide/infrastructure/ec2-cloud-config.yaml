@@ -1,0 +1,59 @@
+#cloud-config
+
+write_files:
+  - path: /config/provision-root.sh
+    permissions: '0744'
+    content: |
+      #!/usr/bin/env bash
+      set -ex
+      # set -o errexit
+      # set -o pipefail
+
+      # APT setup for kubectl
+      curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+      apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+
+      # Install kubectl
+      apt-get -y --no-upgrade install kubectl
+
+      # Install yq
+      YQ_VERSION=4.23.1
+      if [ ! -x "/usr/local/bin/yq" ]; then
+        curl --fail --silent --show-error -L "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" -o /usr/local/bin/yq
+        chmod 755 /usr/local/bin/yq
+      fi
+
+      # Install kind
+      KIND_VERSION=0.14.0
+      if [ ! -x "/usr/local/bin/kind" ]; then
+        curl --fail --silent --show-error -L "https://kind.sigs.k8s.io/dl/v${KIND_VERSION}/kind-linux-amd64" -o /usr/local/bin/kind
+        chmod 755 /usr/local/bin/kind
+      fi
+
+      # Install k9s
+      K9S_VERSION=0.25.3
+      if [ ! -x "/usr/local/bin/k9s" ]; then
+        curl --fail --silent --show-error -L "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_x86_64.tar.gz" -o "/tmp/k9s_Linux_x86_64.tar.gz"
+        tar -zxf "/tmp/k9s_Linux_x86_64.tar.gz" -C /usr/local/bin k9s
+        chown root:root /usr/local/bin/k9s
+        chmod 755 /usr/local/bin/k9s
+      fi
+
+      # Install just
+      JUST_VERSION=1.2.0
+      if [ ! -x "/usr/local/bin/just" ]; then
+        curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --tag ${JUST_VERSION} --to /usr/local/bin
+        chown root:root /usr/local/bin/just
+        chmod 755 /usr/local/bin/just
+      fi
+
+runcmd:
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+  - add-apt-repository "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - apt-get update -y
+  - apt-get install -y docker.io
+  - usermod -a -G docker ubuntu
+  - apt-get install -y jq
+  - /config/provision-root.sh
+
+final_message: "The system is finally up, after $UPTIME seconds"

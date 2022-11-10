@@ -1,0 +1,78 @@
+name: Docker CI
+
+on:
+  workflow_call:
+    inputs:
+      imagename:
+        description: 'A Docker image name passed from the caller workflow'
+        required: true
+        type: string
+      path:
+        description: 'A path containing a Dockerfile passed from the caller workflow'
+        required: true
+        type: string
+      chaincode-label:
+        description: 'An optional chaincode package label passed from the caller workflow.  If present, will prepare a chaincode package.'
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image_digest: ${{ steps.publish_image.outputs.image_digest }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docker image
+        run: |
+          docker build ${DOCKER_BUILD_PATH} --file ${DOCKER_BUILD_PATH}/Dockerfile --label "org.opencontainers.image.revision=${GITHUB_SHA}" --tag ${IMAGE_NAME}
+          docker tag ${IMAGE_NAME} ghcr.io/hyperledgendary/${IMAGE_NAME}:${GITHUB_SHA}
+          if [ "${GITHUB_REF:0:10}" = "refs/tags/" ]; then
+            docker tag ${IMAGE_NAME} ghcr.io/hyperledgendary/${IMAGE_NAME}:${GITHUB_REF_NAME}
+            docker tag ${IMAGE_NAME} ghcr.io/hyperledgendary/${IMAGE_NAME}:latest
+          fi
+        env:
+          DOCKER_BUILD_PATH: ${{ inputs.path }}
+          IMAGE_NAME: ${{ inputs.imagename }}
+      - name: Publish Docker image
+        id: publish_image
+        if: github.event_name != 'pull_request'
+        run: |
+          echo ${DOCKER_PW} | docker login ghcr.io -u ${DOCKER_USER} --password-stdin
+          docker push ghcr.io/hyperledgendary/${IMAGE_NAME}:${GITHUB_SHA}
+          if [ "${GITHUB_REF:0:10}" = "refs/tags/" ]; then
+            docker push ghcr.io/hyperledgendary/${IMAGE_NAME}:${GITHUB_REF_NAME}
+            docker push ghcr.io/hyperledgendary/${IMAGE_NAME}:latest
+          fi
+          echo ::set-output name=image_digest::$(docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/hyperledgendary/${IMAGE_NAME}:${GITHUB_SHA} | cut -d'@' -f2)
+        env:
+          IMAGE_NAME: ${{ inputs.imagename }}
+          DOCKER_USER: ${{ github.actor }}
+          DOCKER_PW: ${{ secrets.GITHUB_TOKEN }}
+
+  package:
+    if: inputs.chaincode-label != '' && needs.build.outputs.image_digest != ''
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create package
+        uses: hyperledgendary/package-k8s-chaincode-action@ba10aea43e3d4f7991116527faf96e3c2b07abc7
+        with:
+          chaincode-label: ${{ inputs.chaincode-label }}
+          chaincode-image: ghcr.io/hyperledgendary/${{ inputs.imagename }}
+          chaincode-digest: ${{ needs.build.outputs.image_digest }}
+
+      - name: Rename package
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: mv ${{ inputs.chaincode-label }}.tgz ${{ inputs.chaincode-label }}-${CHAINCODE_VERSION}.tgz
+        env:
+          IMAGE_NAME: ${{ inputs.imagename }}
+          CHAINCODE_VERSION: ${{ github.ref_name }}
+
+      - name: Release package
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ inputs.chaincode-label }}-${{ github.ref_name }}.tgz

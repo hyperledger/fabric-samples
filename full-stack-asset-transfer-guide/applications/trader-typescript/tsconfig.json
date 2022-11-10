@@ -1,0 +1,19 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "@tsconfig/node16/tsconfig.json",
+    "compilerOptions": {
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "noUnusedLocals": true,
+        "noImplicitReturns": true
+    },
+    "include": [
+        "src/"
+    ],
+    "exclude": [
+        "src/**/*.spec.ts"
+    ]
+}
