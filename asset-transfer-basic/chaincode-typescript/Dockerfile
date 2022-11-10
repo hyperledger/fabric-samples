@@ -16,7 +16,7 @@ ARG CC_SERVER_PORT
 
 # Setup tini to work better handle signals
 ENV TINI_VERSION v0.19.0
-ENV PLATFORM=arm64
+ENV PLATFORM=amd64
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${PLATFORM} /tini
 RUN chmod +x /tini
 
