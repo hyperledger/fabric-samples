@@ -26,7 +26,7 @@ jobs:
   - job: Foo
     displayName: Bar
     steps:
-      - script: curl www.google.com 
+      - script: curl www.google.com
 
 
 jobs_:

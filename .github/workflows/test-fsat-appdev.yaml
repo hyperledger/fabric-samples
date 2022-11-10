@@ -9,8 +9,13 @@ on:
   pull_request:
     branches:
       - '**'
-    paths:
-      - 'full-stack-asset-transfer-guide/**'
+#    paths:
+#      - 'full-stack-asset-transfer-guide/**'
+
+
+
+
+
 
 jobs:
   test-appdev:
