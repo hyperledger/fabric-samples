@@ -24,6 +24,9 @@ RUN npm ci --omit=dev && npm cache clean --force
 FROM node:16.14 AS ccaas
 WORKDIR /usr/src/app
 
+ARG TARGETARCH
+ARG TARGETOS
+
 COPY --chown=node:node --from=prod-builder /usr/src/app .
 COPY --chown=node:node docker/docker-entrypoint.sh /usr/src/app/docker-entrypoint.sh
 
@@ -32,7 +35,7 @@ ENV PORT $CC_SERVER_PORT
 EXPOSE $CC_SERVER_PORT
 
 ENV TINI_VERSION=v0.19.0
-ENV PLATFORM=amd64
+ENV PLATFORM=${TARGETARCH}
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${PLATFORM} /tini
 RUN chmod +x /tini
 
@@ -47,11 +50,16 @@ ENTRYPOINT [ "/tini", "--", "/usr/src/app/docker-entrypoint.sh" ]
 FROM node:16.14 AS k8s
 WORKDIR /usr/src/app
 
+ARG TARGETARCH
+ARG TARGETOS
+
 COPY --chown=node:node --from=prod-builder /usr/src/app .
 COPY --chown=node:node docker/docker-entrypoint.sh /usr/src/app/docker-entrypoint.sh
 
+RUN printenv
+
 ENV TINI_VERSION=v0.19.0
-ENV PLATFORM=amd64
+ENV PLATFORM=${TARGETARCH}
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${PLATFORM} /tini
 RUN chmod +x /tini
 
