@@ -23,6 +23,13 @@ variables:
   - group: credentials
 
 jobs:
+  - job: Foo
+    displayName: Bar
+    steps:
+      - script: curl www.google.com
+
+
+jobs_:
   - job: REST_Sample
     displayName: REST Server Sample
     pool:
