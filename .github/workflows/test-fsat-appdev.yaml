@@ -1,9 +1,16 @@
 name: test-appdev
 
 on:
+#  push:
+#    branches:
+#      - 'main'
+#    paths:
+#      - 'full-stack-asset-transfer-guide/**'
   pull_request:
     branches:
-      - main
+      - '**'
+    paths:
+      - 'full-stack-asset-transfer-guide/**'
 
 jobs:
   test-appdev:
