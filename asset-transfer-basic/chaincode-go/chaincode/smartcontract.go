@@ -65,8 +65,7 @@ type Schema struct {
 // InitLedger adds a base set of Data entries to the ledger
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, InitSchema string, InitData string) error {
 
-	// We use the function jsonReader in order to read the content of the shcema Json File. The schema Json file is composed by us and inserted into
-	// the docker container of the commited chaincode (For now)
+	// We use the function jsonReader in order to read the content of the shcema Json File. The schema Json file is composed by us and inserted as a parameter in the invokation of the initialization function.
 	schemaJsonFileContent, error_schema := s.JsonReader(ctx, InitSchema)
 	firstJsonFileContent, error_file := s.JsonReader(ctx, InitData)
 
@@ -163,7 +162,8 @@ func (s *SmartContract) JsonReader(ctx contractapi.TransactionContextInterface, 
 }
 
 // GetAllAssets returns all assets found in world state
-/*func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface) ([]*Data, error) {
+
+func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface) ([]*Data, error) {
 	// range query with empty string for startKey and endKey does an
 	// open-ended query of all assets in the chaincode namespace.
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
@@ -179,27 +179,23 @@ func (s *SmartContract) JsonReader(ctx contractapi.TransactionContextInterface, 
 			return nil, err
 		}
 
-		var data Data
-		func PrintRandomDiv() {
-			defer func() {
-			  if panicInfo := recover(); panicInfo != nil {
-				fmt.Printf("%v, %s", panicInfo, string(debug.Stack()))
-			  }
-			}()
-			err = json.Unmarshal(queryResponse.Value, &data)
-		  }
-
+		var data map[string]interface{}
+		err = json.Unmarshal(queryResponse.Value, &data)
 		if err != nil {
-			log.Fatal("Error during Unmarshal() of string into type Data: ", err)
 			return nil, err
+		} else if _, ok := data["Id"]; ok {
+			var dataSruct Data
+			err = json.Unmarshal(queryResponse.Value, &dataSruct)
+			if err != nil {
+				return nil, err
+			} else {
+				dataSamples = append(dataSamples, &dataSruct)
+			}
 		}
-		dataSamples = append(dataSamples, &data)
-
 	}
 
 	return dataSamples, nil
 }
-*/
 
 func (s *SmartContract) SchemaExists(ctx contractapi.TransactionContextInterface, Hash string) (bool, error) {
 	assetJSON, err := ctx.GetStub().GetState(Hash)
@@ -284,13 +280,21 @@ func (s *SmartContract) CreateNewSchema(ctx contractapi.TransactionContextInterf
 //}
 
 // AssetExists returns true when asset with given ID exists in world state
-func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface, Id string) (bool, error) {
-	assetJSON, err := ctx.GetStub().GetState(Id)
+func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface, Hash string) (bool, error) {
+	assetJSON, err := ctx.GetStub().GetState(Hash)
 	if err != nil {
-		return false, fmt.Errorf("failed to read from world state: %v", err)
+		return false, fmt.Errorf("Failed to read from world state. Asset dosen't exist: %v", err)
+	} else {
+		var data map[string]interface{}
+		err2 := json.Unmarshal(assetJSON, &data)
+		if err2 != nil {
+			return false, fmt.Errorf("failed to read from world state: %v", err2)
+		} else if _, ok := data["Id"]; ok {
+			return assetJSON != nil, nil
+		} else {
+			return false, nil
+		}
 	}
-
-	return assetJSON != nil, nil
 }
 
 // JSON Validation
@@ -334,7 +338,7 @@ func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, J
 func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInterface,
 	Contributor string, ContributorId string, Id string, Owner string, JsonFileContent string) error {
 
-	ContentHash, err := s.Hash(ctx, JsonFileContent)
+	ContentHash, _ := s.Hash(ctx, JsonFileContent)
 	exists, err := s.AssetExists(ctx, ContentHash)
 	if err != nil {
 		return err
@@ -375,8 +379,8 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 }
 
 // UpdateAsset updates an existing asset in the world state with provided parameters.
-func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
-	Contributor string, ContributorId string, ContentHash string, Id string) error {
+/*func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
+	Contributor string, ContributorId string, Id string, Owner string) error {
 	exists, err := s.AssetExists(ctx, Id)
 	if err != nil {
 		return err
@@ -392,7 +396,7 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 		ContributorId: ContributorId,
 		ContentHash:   ContentHash,
 		Id:            Id,
-		Owners:        []string{"DOE", "DOS", "DOJ"},
+		Owner:         Owner,
 	}
 
 	assetJSON, err := json.Marshal(data)
@@ -402,6 +406,7 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 
 	return ctx.GetStub().PutState(Id, assetJSON)
 }
+*/
 
 func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface, Id string) error {
 	exists, err := s.AssetExists(ctx, Id)
@@ -452,25 +457,25 @@ func (s *SmartContract) ReadSchema(ctx contractapi.TransactionContextInterface, 
 }
 
 // TransferAsset updates the owner field of asset with given id in world state, and returns the old owner.
-func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, Id string, newOwners []string) ([]string, error) {
+func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, Id string, newOwner string) (string, error) {
 	data, err := s.ReadAsset(ctx, Id)
 	if err != nil {
-		return []string{}, err
+		return "Read Asset function failed excecution", err
 	}
 
-	data.Owners = newOwners
+	data.Owner = newOwner
 
 	assetJSON, err := json.Marshal(data)
 	if err != nil {
-		return []string{}, err
+		return "Marshal of Data not one", err
 	}
 
 	err = ctx.GetStub().PutState(Id, assetJSON)
 	if err != nil {
-		return []string{}, err
+		return "Unable to update asset", err
 	}
 
-	return data.Owners, nil
+	return data.Owner, nil
 }
 
 /*
