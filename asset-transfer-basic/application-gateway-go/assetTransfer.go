@@ -34,8 +34,6 @@ const (
 	tlsCertPath   = cryptoPath + "/peers/peer0.org1.example.com/tls/ca.crt"
 	peerEndpoint  = "localhost:7051"
 	gatewayPeer   = "peer0.org1.example.com"
-	channelName   = "mychannel"
-	chaincodeName = "basic"
 )
 
 var now = time.Now()
@@ -66,6 +64,17 @@ func main() {
 		panic(err)
 	}
 	defer gw.Close()
+
+    // Override default values for chaincode and channel name as they may differ in testing contexts.
+    chaincodeName := "basic"
+    if ccname := os.Getenv("CHAINCODE_NAME"); ccname != "" {
+        chaincodeName = ccname
+    }
+
+    channelName := "mychannel"
+    if cname := os.Getenv("CHANNEL_NAME"); cname != "" {
+        channelName = cname
+    }
 
 	network := gw.GetNetwork(channelName)
 	contract := network.GetContract(chaincodeName)

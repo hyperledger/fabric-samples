@@ -23,6 +23,7 @@ variables:
   - group: credentials
 
 jobs:
+
   - job: REST_Sample
     displayName: REST Server Sample
     pool:
@@ -104,32 +105,6 @@ jobs:
         displayName: Lint Shell Scripts
       - script: ./ci/scripts/lint.sh
         displayName: Lint Code
-
-  - job: TestNetworkBasic
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        Basic-Go:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: go
-        Basic-Java:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: java
-        Basic-Javascript:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: javascript
-        Basic-Typescript:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: typescript
-
-    steps:
-      - template: templates/install-deps.yml
-      - template: templates/install-deps-hsm.yml
-      - script: ../ci/scripts/run-test-network-basic.sh
-        workingDirectory: test-network
-        displayName: Run Test Network Basic Chaincode
 
   - job: KubeTestNetworkBasic
     displayName: Kube Test Network

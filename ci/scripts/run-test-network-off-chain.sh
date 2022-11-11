@@ -34,46 +34,28 @@ function stopNetwork() {
 # Each test will create an independent scope by installing a new chaincode contract to the channel.
 createNetwork
 
-
-# Run Go application
-print "Initializing Go application"
-export CHAINCODE_NAME=basic_go
+# Run off-chain data TypeScript application
+export CHAINCODE_NAME=ts_off_chain_data
 deployChaincode
-pushd ../asset-transfer-basic/application-go
-print "Executing AssetTransfer.go"
-go run .
-popd
-
-# Run Java application
-print "Initializing Java application"
-export CHAINCODE_NAME=basic_java
-deployChaincode
-pushd ../asset-transfer-basic/application-java
-print "Executing Gradle Run"
-gradle run
-popd
-
-# Run Javascript application
-print "Initializing Javascript application"
-export CHAINCODE_NAME=basic_javascript
-deployChaincode
-pushd ../asset-transfer-basic/application-javascript
+print "Initializing Typescript off-chain data application"
+pushd ../off_chain_data/application-typescript
+rm -f checkpoint.json store.log
 npm install
-print "Executing app.js"
-node app.js
-popd
-
-# Run typescript application
-print "Initializing Typescript application"
-export CHAINCODE_NAME=basic_typescript
-deployChaincode
-pushd ../asset-transfer-basic/application-typescript
-npm install
-print "Building app.ts"
-npm run build
 print "Running the output app"
-node dist/app.js
+SIMULATED_FAILURE_COUNT=1 npm start getAllAssets transact getAllAssets listen
+SIMULATED_FAILURE_COUNT=1 npm start listen
 popd
 
+# Run off-chain data Java application
+#createNetwork
+export CHAINCODE_NAME=off_chain_data
+deployChaincode
+print "Initializing off-chain data application"
+pushd ../off_chain_data/application-java
+rm -f app/checkpoint.json app/store.log
+print "Running the output app"
+SIMULATED_FAILURE_COUNT=1 ./gradlew run --quiet --args='getAllAssets transact getAllAssets listen'
+SIMULATED_FAILURE_COUNT=1 ./gradlew run --quiet --args=listen
+popd
 
 stopNetwork

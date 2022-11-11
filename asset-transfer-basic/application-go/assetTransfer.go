@@ -55,12 +55,24 @@ func main() {
 	}
 	defer gw.Close()
 
-	network, err := gw.GetNetwork("mychannel")
+    channelName := "mychannel"
+    if cname := os.Getenv("CHANNEL_NAME"); cname != "" {
+        channelName = cname
+    }
+
+    log.Println("--> Connecting to channel", channelName)
+	network, err := gw.GetNetwork(channelName)
 	if err != nil {
 		log.Fatalf("Failed to get network: %v", err)
 	}
 
-	contract := network.GetContract("basic")
+    chaincodeName := "basic"
+    if ccname := os.Getenv("CHAINCODE_NAME"); ccname != "" {
+        chaincodeName = ccname
+    }
+
+    log.Println("--> Using chaincode", chaincodeName)
+	contract := network.GetContract(chaincodeName)
 
 	log.Println("--> Submit Transaction: InitLedger, function creates the initial set of assets on the ledger")
 	result, err := contract.SubmitTransaction("InitLedger")

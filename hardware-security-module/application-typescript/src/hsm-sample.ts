@@ -62,8 +62,12 @@ async function main() {
 }
 
 async function exampleTransaction(gateway: Gateway):Promise<void> {
-    const network = gateway.getNetwork('mychannel');
-    const contract = network.getContract('basic');
+
+    const channelName = envOrDefault('CHANNEL_NAME', 'mychannel');
+    const chaincodeName = envOrDefault('CHAINCODE_NAME', 'default-basic');
+
+    const network = gateway.getNetwork(channelName);
+    const contract = network.getContract(chaincodeName);
 
     console.log('\n--> Submit Transaction: CreateAsset, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments');
 
@@ -152,6 +156,13 @@ function getUncompressedPointOnCurve(key: jsrsa.KJUR.crypto.ECDSA): Buffer {
     const uncompressedPrefix = Buffer.from('04', 'hex');
     const uncompressedPoint = Buffer.concat([uncompressedPrefix, xBuffer, yBuffer]);
     return uncompressedPoint;
+}
+
+/**
+ * envOrDefault() will return the value of an environment variable, or a default value if the variable is undefined.
+ */
+function envOrDefault(key: string, defaultValue: string): string {
+    return process.env[key] || defaultValue;
 }
 
 main().catch(console.error);
