@@ -1,15 +1,23 @@
-name: test-appdev
+name: Full Stack AppDev E2E Test
+run-name: ${{ github.actor }} is running the FSAT E2E Test 🚀
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
-      - main
+    - "main"
+    paths:
+    - "full-stack-asset-transfer-guide/**"
 
 jobs:
-  test-appdev:
+  test-fsat-appdev:
     runs-on: ubuntu-latest
 
     steps:
+    - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+    - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+    - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+
     - name: checkout
       uses: actions/checkout@v3
 
@@ -32,18 +40,14 @@ jobs:
       run: |
         npm install -g @hyperledger-labs/weft
 
-    - name: fabric
+    - name: Install fabric CLI
+      working-directory: full-stack-asset-transfer-guide
       run: |
         curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- binary
-
-    - name: check prereqs
-      run: |
-        export WORKSHOP_PATH="${PWD}"
-        export PATH="${WORKSHOP_PATH}/bin:${PATH}"
-        export FABRIC_CFG_PATH="${WORKSHOP_PATH}/config"
-
-        ./check.sh
+        echo ${PWD}/bin >> $GITHUB_PATH
 
     - name: just test-appdev
-      run: |
-        just test-appdev
+      working-directory: full-stack-asset-transfer-guide
+      run: just test-appdev
+
+    - run: echo "🍏 This job's status is ${{ job.status }}."
