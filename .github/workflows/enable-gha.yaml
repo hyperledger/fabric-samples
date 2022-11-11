@@ -1,11 +1,9 @@
 name: Enable GitHub Actions
-run-name: ${{ github.actor }} is activating GitHub Actions on the main branch 🚀
+run-name: ${{ github.actor }} is activating GitHub Actions on a PR to the main branch 🚀
 
 on:
-  push:
-    branches: ["**"]
   pull_request:
-    branches: ["**"]
+    branches: ["main"]
   workflow_dispatch:
     
 jobs:
