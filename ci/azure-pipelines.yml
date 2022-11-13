@@ -87,25 +87,6 @@ jobs:
       - template: templates/install-deps.yml
       - template: templates/fabcar/azure-pipelines-typescript.yml
 
-  - job: Lint
-    displayName: Lint
-    pool:
-      vmImage: ubuntu-20.04
-    steps:
-      - task: GoTool@0
-        inputs:
-          goBin: $(GO_BIN)
-          version: $(GO_VER)
-        displayName: Install GoLang
-      - task: NodeTool@0
-        inputs:
-          versionSpec: $(NODE_VER)
-        displayName: Install Node.js
-      - script: ./ci/scripts/shellcheck.sh
-        displayName: Lint Shell Scripts
-      - script: ./ci/scripts/lint.sh
-        displayName: Lint Code
-
   - job: KubeTestNetworkBasic
     displayName: Kube Test Network
     pool:
