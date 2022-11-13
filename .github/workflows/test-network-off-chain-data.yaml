@@ -5,14 +5,14 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "main"
+      - main
   pull_request:
     branches:
-      - "main"
+      - main
 
 jobs:
-  test-network-off-chain:
-    runs-on: ubuntu-latest
+  off-chain:
+    runs-on: ubuntu-20.04
 
     strategy:
       matrix:
@@ -23,8 +23,6 @@ jobs:
           - java
 
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-
       - name: checkout
         uses: actions/checkout@v3
 
@@ -33,11 +31,11 @@ jobs:
           curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- binary
           echo ${PWD}/bin >> $GITHUB_PATH
 
+      - name: Pull Fabric Docker Images
+        run: curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- docker
+
       - name: Install retry CLI
         run: curl -sSL https://raw.githubusercontent.com/kadwanev/retry/master/retry -o ./bin/retry && chmod +x ./bin/retry
-
-      - name: Pull Fabric Docker Images
-        run: ./ci/scripts/pullFabricImages.sh
 
       - name: Run Test Network Off Chain
         working-directory: test-network

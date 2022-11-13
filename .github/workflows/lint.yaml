@@ -9,13 +9,9 @@ on:
   push:
     branches:
       - main
-      - release-1.4
-      - release-2.2
   pull_request:
     branches:
       - main
-      - release-1.4
-      - release-2.2
 
 env:
   GO_VER: 1.18.3
@@ -24,7 +20,7 @@ env:
 
 jobs:
   go:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/setup-go@v3
         with:
@@ -34,7 +30,7 @@ jobs:
       - run: ci/scripts/lint-go.sh
 
   typescript:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -43,7 +39,7 @@ jobs:
       - run: ci/scripts/lint-typescript.sh
 
   javascript:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -52,7 +48,7 @@ jobs:
       - run: ci/scripts/lint-javascript.sh
 
   java:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
@@ -62,7 +58,7 @@ jobs:
       - run: ci/scripts/lint-java.sh
 
   shell:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - run: ci/scripts/lint-shell.sh

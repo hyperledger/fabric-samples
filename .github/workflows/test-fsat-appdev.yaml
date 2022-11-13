@@ -9,34 +9,39 @@ on:
     paths:
     - "full-stack-asset-transfer-guide/**"
 
+env:
+  GO_VER: 1.18.3
+  NODE_VER: 16.x
+  K9S_VERSION: v0.25.3
+  JUST_VERSION: 1.2.0
+
 jobs:
-  test-fsat-appdev:
-    runs-on: ubuntu-latest
+  appdev:
+    runs-on: ubuntu-20.04
 
     steps:
-    - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-    - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-    - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+    - uses: actions/checkout@v3
 
-    - name: checkout
-      uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version: ${{ env.GO_VER }}
 
-    - name: k9s
-      env:
-        K9S_VERSION: v0.25.3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VER }}
+
+    - name: Install k9s
       run: |
         curl --fail --silent --show-error -L https://github.com/derailed/k9s/releases/download/${K9S_VERSION}/k9s_Linux_x86_64.tar.gz -o /tmp/k9s_Linux_x86_64.tar.gz
         tar -zxf /tmp/k9s_Linux_x86_64.tar.gz -C /usr/local/bin k9s
         sudo chown root /usr/local/bin/k9s
         sudo chmod 755 /usr/local/bin/k9s
 
-    - name: just
-      env:
-        JUST_VERSION: 1.2.0
+    - name: Install just
       run: |
         curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --tag ${JUST_VERSION} --to /usr/local/bin
 
-    - name: weft
+    - name: Install weft
       run: |
         npm install -g @hyperledger-labs/weft
 
