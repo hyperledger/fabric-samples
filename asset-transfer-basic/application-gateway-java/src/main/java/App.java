@@ -34,22 +34,22 @@ import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 public final class App {
-	private static final String mspID = "Org1MSP";
-	private static final String channelName = "mychannel";
-	private static final String chaincodeName = "basic";
+	private static final String MSP_ID = System.getenv().getOrDefault("MSP_ID", "Org1MSP");
+	private static final String CHANNEL_NAME = System.getenv().getOrDefault("CHANNEL_NAME", "mychannel");
+	private static final String CHAINCODE_NAME = System.getenv().getOrDefault("CHAINCODE_NAME", "basic");
 
 	// Path to crypto materials.
-	private static final Path cryptoPath = Paths.get("..", "..", "test-network", "organizations", "peerOrganizations", "org1.example.com");
+	private static final Path CRYPTO_PATH = Paths.get("../../test-network/organizations/peerOrganizations/org1.example.com");
 	// Path to user certificate.
-	private static final Path certPath = cryptoPath.resolve(Paths.get("users", "User1@org1.example.com", "msp", "signcerts", "cert.pem"));
+	private static final Path CERT_PATH = CRYPTO_PATH.resolve(Paths.get("users/User1@org1.example.com/msp/signcerts/cert.pem"));
 	// Path to user private key directory.
-	private static final Path keyDirPath = cryptoPath.resolve(Paths.get("users", "User1@org1.example.com", "msp", "keystore"));
+	private static final Path KEY_DIR_PATH = CRYPTO_PATH.resolve(Paths.get("users/User1@org1.example.com/msp/keystore"));
 	// Path to peer tls certificate.
-	private static final Path tlsCertPath = cryptoPath.resolve(Paths.get("peers", "peer0.org1.example.com", "tls", "ca.crt"));
+	private static final Path TLS_CERT_PATH = CRYPTO_PATH.resolve(Paths.get("peers/peer0.org1.example.com/tls/ca.crt"));
 
 	// Gateway peer end point.
-	private static final String peerEndpoint = "localhost:7051";
-	private static final String overrideAuth = "peer0.org1.example.com";
+	private static final String PEER_ENDPOINT = "localhost:7051";
+	private static final String OVERRIDE_AUTH = "peer0.org1.example.com";
 
 	private final Contract contract;
 	private final String assetId = "asset" + Instant.now().toEpochMilli();
@@ -75,19 +75,19 @@ public final class App {
 	}
 
 	private static ManagedChannel newGrpcConnection() throws IOException, CertificateException {
-		var tlsCertReader = Files.newBufferedReader(tlsCertPath);
+		var tlsCertReader = Files.newBufferedReader(TLS_CERT_PATH);
 		var tlsCert = Identities.readX509Certificate(tlsCertReader);
 
-		return NettyChannelBuilder.forTarget(peerEndpoint)
-				.sslContext(GrpcSslContexts.forClient().trustManager(tlsCert).build()).overrideAuthority(overrideAuth)
+		return NettyChannelBuilder.forTarget(PEER_ENDPOINT)
+				.sslContext(GrpcSslContexts.forClient().trustManager(tlsCert).build()).overrideAuthority(OVERRIDE_AUTH)
 				.build();
 	}
 
 	private static Identity newIdentity() throws IOException, CertificateException {
-		var certReader = Files.newBufferedReader(certPath);
+		var certReader = Files.newBufferedReader(CERT_PATH);
 		var certificate = Identities.readX509Certificate(certReader);
 
-		return new X509Identity(mspID, certificate);
+		return new X509Identity(MSP_ID, certificate);
 	}
 
 	private static Signer newSigner() throws IOException, InvalidKeyException {
@@ -98,7 +98,7 @@ public final class App {
 	}
 
 	private static Path getPrivateKeyPath() throws IOException {
-		try (var keyFiles = Files.list(keyDirPath)) {
+		try (var keyFiles = Files.list(KEY_DIR_PATH)) {
 			return keyFiles.findFirst().orElseThrow();
 		}
 	}
@@ -106,10 +106,10 @@ public final class App {
 	public App(final Gateway gateway) {
 		// Get a network instance representing the channel where the smart contract is
 		// deployed.
-		var network = gateway.getNetwork(channelName);
+		var network = gateway.getNetwork(CHANNEL_NAME);
 
 		// Get the smart contract from the network.
-		contract = network.getContract(chaincodeName);
+		contract = network.getContract(CHAINCODE_NAME);
 	}
 
 	public void run() throws GatewayException, CommitException {

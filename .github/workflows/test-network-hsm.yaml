@@ -1,0 +1,54 @@
+name: Test Network HSM
+run-name: ${{ github.actor }} is running the test-network HSM tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  hsm:
+    runs-on: ubuntu-20.04
+
+    strategy:
+      matrix:
+        chaincode-language:
+          - go
+          - javascript
+          - typescript
+          - java
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Install fabric CLI
+        run: |
+          curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- binary
+          echo ${PWD}/bin >> $GITHUB_PATH
+
+      - name: Pull Fabric Docker Images
+        run: curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- docker
+
+      - name: Install retry CLI
+        run: curl -sSL https://raw.githubusercontent.com/kadwanev/retry/master/retry -o ./bin/retry && chmod +x ./bin/retry
+
+      - name: Install SoftHSM
+        run: sudo apt install -y softhsm2
+
+      - name: Set up SoftHSM
+        run: |
+          echo directories.tokendir = /tmp > $HOME/softhsm2.conf
+          export SOFTHSM2_CONF=$HOME/softhsm2.conf
+          softhsm2-util --init-token --slot 0 --label "ForFabric" --pin 98765432 --so-pin 1234
+
+      - name: Run Test Network HSM
+        working-directory: test-network
+        env:
+          CHAINCODE_LANGUAGE: ${{ matrix.chaincode-language }}
+        run: ../ci/scripts/run-test-network-hsm.sh
+

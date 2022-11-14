@@ -23,6 +23,7 @@ variables:
   - group: credentials
 
 jobs:
+
   - job: REST_Sample
     displayName: REST Server Sample
     pool:
@@ -85,51 +86,6 @@ jobs:
     steps:
       - template: templates/install-deps.yml
       - template: templates/fabcar/azure-pipelines-typescript.yml
-
-  - job: Lint
-    displayName: Lint
-    pool:
-      vmImage: ubuntu-20.04
-    steps:
-      - task: GoTool@0
-        inputs:
-          goBin: $(GO_BIN)
-          version: $(GO_VER)
-        displayName: Install GoLang
-      - task: NodeTool@0
-        inputs:
-          versionSpec: $(NODE_VER)
-        displayName: Install Node.js
-      - script: ./ci/scripts/shellcheck.sh
-        displayName: Lint Shell Scripts
-      - script: ./ci/scripts/lint.sh
-        displayName: Lint Code
-
-  - job: TestNetworkBasic
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        Basic-Go:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: go
-        Basic-Java:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: java
-        Basic-Javascript:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: javascript
-        Basic-Typescript:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: typescript
-
-    steps:
-      - template: templates/install-deps.yml
-      - template: templates/install-deps-hsm.yml
-      - script: ../ci/scripts/run-test-network-basic.sh
-        workingDirectory: test-network
-        displayName: Run Test Network Basic Chaincode
 
   - job: KubeTestNetworkBasic
     displayName: Kube Test Network
