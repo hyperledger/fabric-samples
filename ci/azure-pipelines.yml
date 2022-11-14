@@ -31,36 +31,6 @@ jobs:
     steps:
       - template: templates/asset-transfer-basic/azure-pipelines-rest.yml
 
-  - job: KubeTestNetworkBasic
-    displayName: Kube Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        CCaaS-Java:
-          CLIENT_LANGUAGE: typescript
-          CHAINCODE_LANGUAGE: java
-        CCaaS-Golang:
-          CLIENT_LANGUAGE: typescript
-          CHAINCODE_LANGUAGE: external
-        K8s-Builder-Java:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: java
-          CHAINCODE_BUILDER: k8s
-        Multi-Namespace:
-          ORG0_NS: org0-namespace
-          ORG1_NS: org1-namespace
-          ORG2_NS: org2-namespace
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: java
-          CHAINCODE_BUILDER: k8s
-
-    steps:
-      - template: templates/install-k8s-deps.yml
-      - script: ../ci/scripts/run-k8s-test-network-basic.sh
-        workingDirectory: test-network-k8s
-        displayName: Run Kubernetes Test Network Basic Asset Transfer
-
   - job: TestNetworkLedger
     displayName: Test Network
     pool:
