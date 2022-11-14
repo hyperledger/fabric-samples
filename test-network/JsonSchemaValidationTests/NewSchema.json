@@ -3,8 +3,12 @@
     "properties": {
       "number": { "type": "number" },
       "street_name": { "type": "string" },
-      "street_type": { "enum": ["Street", "Avenue", "Boulevard"] }
+      "street_type": { "enum": ["Street", "Avenue", "Boulevard"] },
+      "City": {"type": "string"}
     },
     "additionalProperties": false,
-    "required": [ "number", "street_name", "street_type"]
+    "required": [ "number", "street_name", "street_type", "City"]
   }
+
+
+  "{\"type\": \"object\", \"properties\": { \"number\": { \"type\": \"number\" }, \"street_name\": { \"type\": \"string\" }, \"street_type\": { \"enum\": [\"Street\", \"Avenue\",\"Boulevard\"] }}, \"additionalProperties\": false, \"required\": [ \"number\", \"street_name\", \"city\"]}"
