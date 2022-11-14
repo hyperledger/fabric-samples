@@ -1,0 +1,110 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+name: Test Network
+run-name: ${{ github.actor }} is testing the Test Network
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  basic:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        chaincode-language:
+          - go
+          - javascript
+          - typescript
+          - java
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up the test network runtime
+        uses: ./.github/actions/test-network-setup
+
+      - name: Run Test Network Basic
+        working-directory: test-network
+        run: ../ci/scripts/run-test-network-basic.sh
+        env:
+          CHAINCODE_LANGUAGE: ${{ matrix.chaincode-language }}
+
+  off-chain:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        chaincode-language:
+          - go
+          - javascript
+          - typescript
+          - java
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up the test network runtime
+        uses: ./.github/actions/test-network-setup
+
+      - name: Run Test Network Off Chain
+        working-directory: test-network
+        env:
+          CHAINCODE_LANGUAGE: ${{ matrix.chaincode-language }}
+        run: ../ci/scripts/run-test-network-off-chain.sh
+
+  hsm:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        chaincode-language:
+          - go
+          - javascript
+          - typescript
+          - java
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up the test network runtime
+        uses: ./.github/actions/test-network-setup
+
+      - name: Install SoftHSM
+        run: sudo apt install -y softhsm2
+
+      - name: Set up SoftHSM
+        run: |
+          echo directories.tokendir = /tmp > $HOME/softhsm2.conf
+          export SOFTHSM2_CONF=$HOME/softhsm2.conf
+          softhsm2-util --init-token --slot 0 --label "ForFabric" --pin 98765432 --so-pin 1234
+
+      - name: Run Test Network HSM
+        working-directory: test-network
+        env:
+          CHAINCODE_LANGUAGE: ${{ matrix.chaincode-language }}
+        run: ../ci/scripts/run-test-network-hsm.sh
+
+  gateway:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        chaincode-language:
+          - go
+          - javascript
+          - typescript
+          - java
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up the test network runtime
+        uses: ./.github/actions/test-network-setup
+
+      - name: Run Test Network Off Chain
+        working-directory: test-network
+        env:
+          CHAINCODE_LANGUAGE: ${{ matrix.chaincode-language }}
+        run: ../ci/scripts/run-test-network-gateway.sh
