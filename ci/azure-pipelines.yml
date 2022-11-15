@@ -29,3 +29,90 @@ jobs:
       vmImage: ubuntu-20.04
     steps:
       - template: templates/asset-transfer-basic/azure-pipelines-rest.yml
+<<<<<<< HEAD
+=======
+
+  - job: TestNetworkLedger
+    displayName: Test Network
+    pool:
+      vmImage: ubuntu-20.04
+    strategy:
+      matrix:
+        Ledger-Go:
+          CHAINCODE_NAME: ledger
+          CHAINCODE_LANGUAGE: go
+        Ledger-Javascript:
+          CHAINCODE_NAME: ledger
+          CHAINCODE_LANGUAGE: javascript
+    steps:
+      - template: templates/install-deps.yml
+      - script: ../ci/scripts/run-test-network-ledger.sh
+        workingDirectory: test-network
+        displayName: Run Test Network Ledger Chaincode
+
+  - job: TestNetworkPrivate
+    displayName: Test Network
+    pool:
+      vmImage: ubuntu-20.04
+    strategy:
+      matrix:
+        Private-Go:
+          CHAINCODE_NAME: private
+          CHAINCODE_LANGUAGE: go
+    steps:
+      - template: templates/install-deps.yml
+      - script: ../ci/scripts/run-test-network-private.sh
+        workingDirectory: test-network
+        displayName: Run Test Network Private Chaincode
+
+  - job: TestNetworkSBE
+    displayName: Test Network
+    pool:
+      vmImage: ubuntu-20.04
+    strategy:
+      matrix:
+        SBE-Typescript:
+          CHAINCODE_NAME: sbe
+          CHAINCODE_LANGUAGE: typescript
+        SBE-Java:
+          CHAINCODE_NAME: sbe
+          CHAINCODE_LANGUAGE: java
+    steps:
+      - template: templates/install-deps.yml
+      - script: ../ci/scripts/run-test-network-sbe.sh
+        workingDirectory: test-network
+        displayName: Run Test Network SBE Chaincode
+
+  - job: TestNetworkSecured
+    displayName: Test Network
+    pool:
+      vmImage: ubuntu-20.04
+    strategy:
+      matrix:
+        Secured-Go:
+          CHAINCODE_NAME: secured
+          CHAINCODE_LANGUAGE: go
+    steps:
+      - template: templates/install-deps.yml
+      - script: ../ci/scripts/run-test-network-secured.sh
+        workingDirectory: test-network
+        displayName: Run Test Network Secured Chaincode
+
+  - job: TestNetworkEvents
+    displayName: Test Network
+    pool:
+      vmImage: ubuntu-20.04
+    strategy:
+      matrix:
+        Events-Javascript:
+          CHAINCODE_NAME: events
+          CHAINCODE_LANGUAGE: javascript
+        Events-Java:
+          CHAINCODE_NAME: events
+          CHAINCODE_LANGUAGE: java
+    steps:
+      - template: templates/install-deps.yml
+      - script: ../ci/scripts/run-test-network-events.sh
+        workingDirectory: test-network
+        displayName: Run Test Network Events Chaincode
+>>>>>>> b7b06b9 (Move Kube Test Network tests from Azure -> GHA)
