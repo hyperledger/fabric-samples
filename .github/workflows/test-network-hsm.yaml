@@ -11,7 +11,7 @@ on:
   pull_request:
     branches: [ "foobar" ]
 
-run:
+jobs:
   hsm:
     runs-on: ubuntu-20.04
     strategy:
