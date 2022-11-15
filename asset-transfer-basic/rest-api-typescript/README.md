@@ -251,3 +251,4 @@ curl --include --header "Content-Type: application/json" --header "X-Api-Key: ${
 ```shell
 curl --include --header "X-Api-Key: ${SAMPLE_APIKEY}" --request DELETE http://localhost:3000/api/assets/asset7
 ```
+
