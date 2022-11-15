@@ -7,11 +7,9 @@ run-name: ${{ github.actor }} is linting fabric-samples
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   pull_request:
-    branches:
-      - main
+    branches: [ "main" ]
 
 env:
   GO_VER: 1.18.3

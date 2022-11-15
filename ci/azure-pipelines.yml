@@ -8,109 +8,39 @@ trigger:
   - release-2.2
 
 variables:
-  - name: FABRIC_VERSION
-    value: 2.4
-  - name: GOPATH
-    value: $(Build.Repository.LocalPath)
-  - name: GO_BIN
-    value: $(GOPATH)/bin
-  - name: GO_VER
-    value: 1.18.3
   - name: NODE_VER
     value: 16.x
-  - name: PATH
-    value: $(GOPATH)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
   - group: credentials
 
 jobs:
-
   - job: REST_Sample
     displayName: REST Server Sample
     pool:
       vmImage: ubuntu-20.04
     steps:
-      - template: templates/asset-transfer-basic/azure-pipelines-rest.yml
-
-  - job: TestNetworkLedger
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        Ledger-Go:
-          CHAINCODE_NAME: ledger
-          CHAINCODE_LANGUAGE: go
-        Ledger-Javascript:
-          CHAINCODE_NAME: ledger
-          CHAINCODE_LANGUAGE: javascript
-    steps:
-      - template: templates/install-deps.yml
-      - script: ../ci/scripts/run-test-network-ledger.sh
-        workingDirectory: test-network
-        displayName: Run Test Network Ledger Chaincode
-
-  - job: TestNetworkPrivate
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        Private-Go:
-          CHAINCODE_NAME: private
-          CHAINCODE_LANGUAGE: go
-    steps:
-      - template: templates/install-deps.yml
-      - script: ../ci/scripts/run-test-network-private.sh
-        workingDirectory: test-network
-        displayName: Run Test Network Private Chaincode
-
-  - job: TestNetworkSBE
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        SBE-Typescript:
-          CHAINCODE_NAME: sbe
-          CHAINCODE_LANGUAGE: typescript
-        SBE-Java:
-          CHAINCODE_NAME: sbe
-          CHAINCODE_LANGUAGE: java
-    steps:
-      - template: templates/install-deps.yml
-      - script: ../ci/scripts/run-test-network-sbe.sh
-        workingDirectory: test-network
-        displayName: Run Test Network SBE Chaincode
-
-  - job: TestNetworkSecured
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        Secured-Go:
-          CHAINCODE_NAME: secured
-          CHAINCODE_LANGUAGE: go
-    steps:
-      - template: templates/install-deps.yml
-      - script: ../ci/scripts/run-test-network-secured.sh
-        workingDirectory: test-network
-        displayName: Run Test Network Secured Chaincode
-
-  - job: TestNetworkEvents
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        Events-Javascript:
-          CHAINCODE_NAME: events
-          CHAINCODE_LANGUAGE: javascript
-        Events-Java:
-          CHAINCODE_NAME: events
-          CHAINCODE_LANGUAGE: java
-    steps:
-      - template: templates/install-deps.yml
-      - script: ../ci/scripts/run-test-network-events.sh
-        workingDirectory: test-network
-        displayName: Run Test Network Events Chaincode
+      - task: NodeTool@0
+        inputs:
+          versionSpec: $(NODE_VER)
+        displayName: Install Node.js
+      - script: npm install
+        workingDirectory: asset-transfer-basic/rest-api-typescript
+        displayName: Install REST Sample Dependencies
+      - script: npm run build
+        workingDirectory: asset-transfer-basic/rest-api-typescript
+        displayName: Build REST Sample Application
+      - script: npm test
+        workingDirectory: asset-transfer-basic/rest-api-typescript
+        displayName: Test REST Sample Application
+      - script: |
+          docker build -t ghcr.io/hyperledger/fabric-rest-sample .
+        workingDirectory: asset-transfer-basic/rest-api-typescript
+        displayName: Build REST Sample Docker Image
+      - script: |
+          echo ${GITHUB_PAT} | docker login ghcr.io -u ${GITHUB_USER} --password-stdin
+          docker push ghcr.io/hyperledger/fabric-rest-sample:latest
+        condition: and(succeeded(),eq(variables['Build.Reason'], 'IndividualCI'))
+        workingDirectory: asset-transfer-basic/rest-api-typescript
+        displayName: Publish REST Sample Docker Image
+        env:
+          GITHUB_USER: $(GITHUB_USER)
+          GITHUB_PAT: $(GITHUB_PAT)
