@@ -1,8 +1,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-name: Test Network
-run-name: ${{ github.actor }} is testing the Test Network
+name: Test Network Basic
+run-name: ${{ github.actor }} is running the Test Network Basic tests
 
 on:
   workflow_dispatch:
