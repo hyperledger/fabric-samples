@@ -7,9 +7,9 @@ run-name: ${{ github.actor }} is running the Test Network HSM tests
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: [ "foobar" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "foobar" ]
 
 run:
   hsm:
