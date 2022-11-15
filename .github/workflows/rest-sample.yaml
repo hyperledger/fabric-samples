@@ -11,9 +11,9 @@ env:
 on:
   workflow_dispatch:
   push:
-    branches: [ "foobar" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "foobar" ]
+    branches: [ "main" ]
 
 jobs:
   test-sample:
