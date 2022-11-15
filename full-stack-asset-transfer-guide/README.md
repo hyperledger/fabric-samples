@@ -106,4 +106,3 @@ We'll create a digital representation of these cards on the blockchain ledger. T
 
 - [Go Bananas](docs/CloudReady/40-bananas.md)
 - [Bring it Home](docs/CloudReady/90-teardown.md)
-

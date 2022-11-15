@@ -1,0 +1,58 @@
+name: Full Stack Asset Transfer Guide 🚀
+run-name: ${{ github.actor }} is testing the Full Stack Asset Transfer Guide 🚀
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - "full-stack-asset-transfer-guide/**"
+
+jobs:
+  ansible:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Full Stack Runtime
+        uses: ./.github/actions/fsat-setup
+      - run: just test-ansible
+        working-directory: full-stack-asset-transfer-guide
+
+  appdev:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Full Stack Runtime
+        uses: ./.github/actions/fsat-setup
+      - run: just test-appdev
+        working-directory: full-stack-asset-transfer-guide
+
+  chaincode:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Full Stack Runtime
+        uses: ./.github/actions/fsat-setup
+      - run: just test-chaincode
+        working-directory: full-stack-asset-transfer-guide
+
+  cloud:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Full Stack Runtime
+        uses: ./.github/actions/fsat-setup
+      - run: just test-cloud
+        working-directory: full-stack-asset-transfer-guide
+
+  console:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Full Stack Runtime
+        uses: ./.github/actions/fsat-setup
+      - run: just test-console
+        working-directory: full-stack-asset-transfer-guide
+
+

@@ -1,8 +1,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-name: Test Network Secured
-run-name: ${{ github.actor }} is running the Test Network Secured tests
+name: Test Network Secured 🔔
+run-name: ${{ github.actor }} is running the Test Network Secured tests 🔔
 
 on:
   workflow_dispatch:

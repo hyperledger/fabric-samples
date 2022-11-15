@@ -1,8 +1,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-name: Test Network Events
-run-name: ${{ github.actor }} is running the Test Network Events tests
+name: Test Network Events 💡
+run-name: ${{ github.actor }} is running the Test Network Events tests 💡
 
 on:
   workflow_dispatch:

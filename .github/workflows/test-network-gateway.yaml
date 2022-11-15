@@ -1,8 +1,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-name: Test Network Gateway
-run-name: ${{ github.actor }} is running the Test Network Gateway tests
+name: Test Network Gateway 🖥️
+run-name: ${{ github.actor }} is running the Test Network Gateway tests 🖥️
 
 on:
   workflow_dispatch:

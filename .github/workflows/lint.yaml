@@ -1,8 +1,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-name: Lint
-run-name: ${{ github.actor }} is linting fabric-samples
+name: Lint 🎉
+run-name: ${{ github.actor }} is linting fabric-samples 🎉
 
 on:
   workflow_dispatch:
