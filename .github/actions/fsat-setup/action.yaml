@@ -4,9 +4,6 @@ inputs:
   node-version:
     description: Version of node
     default: 16.x
-  fabric-version:
-    description: Version of Fabric
-    default: 2.4.7
   just-version:
     description: Just Version
     default: 1.2.0
@@ -45,5 +42,5 @@ runs:
       shell: bash
       working-directory: full-stack-asset-transfer-guide
       run: |
-        curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- -f ${{ inputs.fabric-version }} binary
+        curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- binary
         echo ${PWD}/bin >> $GITHUB_PATH

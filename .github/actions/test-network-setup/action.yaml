@@ -10,9 +10,6 @@ inputs:
   java-version:
     description: Version of JDK
     default: 11.x
-  fabric-version:
-    description: Version of Fabric
-    default: 2.4.7
 
 runs:
   using: "composite"
@@ -38,7 +35,7 @@ runs:
     - name: Install fabric CLI
       shell: bash
       run: |
-        curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- -f ${{ inputs.fabric-version }} binary
+        curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- binary
         echo ${PWD}/bin >> $GITHUB_PATH
 
     - name: Pull Fabric Docker Images
