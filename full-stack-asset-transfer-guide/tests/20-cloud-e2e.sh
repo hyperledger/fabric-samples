@@ -188,7 +188,8 @@ function build_cc() {
   CHAINCODE_IMAGE=$CONTAINER_REGISTRY/$CHAINCODE_NAME
 
   # Build the chaincode image
-  docker build -t $CHAINCODE_IMAGE contracts/$CHAINCODE_NAME-typescript
+  # TODO: configure buildx builders on the CI runners to ensure target arch and os are automatically set.
+  docker build --build-arg TARGETARCH=amd64 -t $CHAINCODE_IMAGE contracts/$CHAINCODE_NAME-typescript
 
   # Push the image to the insecure container registry
   docker push $CHAINCODE_IMAGE

@@ -1,8 +1,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-name: REST Sample
-run-name: ${{ github.actor }} is testing the REST Sample
+name: REST Sample 🐧
+run-name: ${{ github.actor }} is testing the REST Sample 🐧
 
 env:
   NODE_VER: 16.x

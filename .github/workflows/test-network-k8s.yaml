@@ -1,8 +1,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-name: Kubernetes Test Network
-run-name: ${{ github.actor }} is testing the Kubernetes Test Network
+name: Kubernetes Test Network 🍒
+run-name: ${{ github.actor }} is testing the Kubernetes Test Network 🍒
 
 on:
   workflow_dispatch:
