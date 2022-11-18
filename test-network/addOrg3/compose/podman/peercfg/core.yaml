@@ -342,7 +342,7 @@ peer:
             Security:
 
     # Path on the file system where peer will find MSP local configurations
-    mspConfigPath: mspreally
+    mspConfigPath: msp
     # Identifier of the local MSP
     # ----!!!!IMPORTANT!!!-!!!IMPORTANT!!!-!!!IMPORTANT!!!!----
     # Deployers need to change the value of the localMspId string.
