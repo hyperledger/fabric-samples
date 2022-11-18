@@ -1001,8 +1001,8 @@ func removeBalance(ctx contractapi.TransactionContextInterface, sender string, i
 				}
 			}
 
-		} else {
-			// Delete self recipient key
+		} else if selfRecipientKeyNeedsToBeRemoved {
+			// Delete self recipient key if required
 			err = ctx.GetStub().DelState(selfRecipientKey)
 			if err != nil {
 				return fmt.Errorf("failed to delete the state of %v: %v", selfRecipientKey, err)
