@@ -10,6 +10,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"log"
+
+	"strconv"
 )
 
 // SmartContract provides functions for managing an Asset
@@ -46,6 +48,8 @@ type SmartContract struct {
 // golang keeps the order when marshal to json but doesn't order automatically
 
 var lastSchemaHash string
+var UserCount int
+var OIDCs []string
 
 type Data struct {
 	Contributor     string `json:"Contributor"`
@@ -60,6 +64,12 @@ type Schema struct {
 	Version           int    `json:"Version"`
 	Hash              string `json:"Hash"`
 	JsonSchemaContent map[string]interface{}
+}
+
+type User struct {
+	UUID    string   `json:UUID`
+	UserIds []string `json:"UserIDs"`
+	OIDC    string   `json:"OIDC"`
 }
 
 // InitLedger adds a base set of Data entries to the ledger
@@ -457,6 +467,24 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, I
 	return &data, nil
 }
 
+func (s *SmartContract) ReadUser(ctx contractapi.TransactionContextInterface, UUID string) (*User, error) {
+	assetJSON, err := ctx.GetStub().GetState(UUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if assetJSON == nil {
+		return nil, fmt.Errorf("the User %s does not exist", UUID)
+	}
+
+	var user User
+	err = json.Unmarshal(assetJSON, &user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (s *SmartContract) ReadSchema(ctx contractapi.TransactionContextInterface, hash string) (*Schema, error) {
 	assetJSON, err := ctx.GetStub().GetState(hash)
 	if err != nil {
@@ -495,6 +523,131 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 	}
 
 	return data.Owner, nil
+}
+
+func (s *SmartContract) contains(ctx contractapi.TransactionContextInterface, st []string, str string) bool {
+	for _, v := range st {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *SmartContract) GetUserCount(ctx contractapi.TransactionContextInterface) int {
+	return UserCount
+}
+
+func (s *SmartContract) UserExists(ctx contractapi.TransactionContextInterface, OIDC string) bool {
+	return s.contains(ctx, OIDCs, OIDC)
+
+	/**assetJSON, err := ctx.GetStub().GetState(UUID)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state. User dosen't exist: %v", err)
+	} else if assetJSON != nil {
+		var user map[string]interface{}
+		err2 := json.Unmarshal(assetJSON, &user)
+		if err2 != nil {
+			return false, fmt.Errorf("failed to read from world state: %v", err2)
+		} else if err3, ok := user["UUID"]; ok {
+			return assetJSON != nil, nil
+		} else {
+			return false, fmt.Errorf("failed to read from world state. UUID passed as parameter may correspond to a Schema struct rather than to a Data Struct: %v", err3)
+		}
+	} else {
+		return assetJSON != nil, nil
+	}**/
+
+}
+
+func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface, OIDC string, APIId string) error {
+	userExists := s.UserExists(ctx, OIDC)
+	if userExists {
+		return fmt.Errorf("the user with OIDC %s already exists", OIDC)
+	} else {
+		UC := s.GetUserCount(ctx)
+		UserCount = UC + 1
+		UUID := strconv.FormatInt(int64(UserCount), 10)
+		user := User{
+			UUID:    UUID,
+			UserIds: []string{APIId},
+			OIDC:    OIDC,
+		}
+
+		assetJSON, err := json.Marshal(user)
+		if err != nil {
+			return err
+		}
+
+		err = ctx.GetStub().PutState(user.UUID, assetJSON)
+		if err != nil {
+			return fmt.Errorf("failed to create new user. %v", err)
+		} else {
+			fmt.Print("A new User has been created with the UUID %v", UUID)
+			OIDCs = append(OIDCs, OIDC)
+			return nil
+		}
+
+	}
+
+}
+
+func (s *SmartContract) AsociateUserWithUUID(ctx contractapi.TransactionContextInterface, UUID string, APIId string) (string, error) {
+	user, err := s.ReadUser(ctx, UUID)
+	if err != nil {
+		return "Read User function failed excecution", err
+	}
+	if s.contains(ctx, user.UserIds, APIId) {
+		return "APIId provided is already associated with user " + UUID, nil
+	}
+	user.UserIds = append(user.UserIds, APIId)
+
+	assetJSON, err := json.Marshal(user)
+	if err != nil {
+		return "Marshal of Data not done", err
+	}
+
+	err = ctx.GetStub().PutState(UUID, assetJSON)
+	if err != nil {
+		return "Unable to update asset", err
+	}
+
+	return "APIId added to map for user " + UUID, nil
+}
+
+func (s *SmartContract) GetAllUsers(ctx contractapi.TransactionContextInterface) ([]*User, error) {
+	// range query with empty string for startKey and endKey does an
+	// open-ended query of all schemas in the chaincode namespace.
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var UserSamples []*User
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var user map[string]interface{}
+		err = json.Unmarshal(queryResponse.Value, &user)
+		if err != nil {
+			return nil, err
+		} else if _, ok := user["UUID"]; ok {
+			var userStruct User
+			err = json.Unmarshal(queryResponse.Value, &userStruct)
+			if err != nil {
+				return nil, err
+			} else {
+				UserSamples = append(UserSamples, &userStruct)
+			}
+		}
+	}
+
+	return UserSamples, nil
 }
 
 /*
