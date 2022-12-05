@@ -475,6 +475,68 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface)
 
 }
 
+// PurgeAsset can be used by the owner of the asset to delete the asset
+// Trigger removal of the asset
+func (s *SmartContract) PurgeAsset(ctx contractapi.TransactionContextInterface) error {
+
+	transientMap, err := ctx.GetStub().GetTransient()
+	if err != nil {
+		return fmt.Errorf("Error getting transient: %v", err)
+	}
+
+	// Asset properties are private, therefore they get passed in transient field
+	transientDeleteJSON, ok := transientMap["asset_purge"]
+	if !ok {
+		return fmt.Errorf("asset to purge not found in the transient map")
+	}
+
+	type assetPurge struct {
+		ID string `json:"assetID"`
+	}
+
+	var assetPurgeInput assetPurge
+	err = json.Unmarshal(transientDeleteJSON, &assetPurgeInput)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %v", err)
+	}
+
+	if len(assetPurgeInput.ID) == 0 {
+		return fmt.Errorf("assetID field must be a non-empty string")
+	}
+
+	// Verify that the client is submitting request to peer in their organization
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("PurgeAsset cannot be performed: Error %v", err)
+	}
+
+	log.Printf("Purging Asset: %v", assetPurgeInput.ID)
+
+	// Note that there is no check here to see if the id exist; it might have been 'deleted' already
+	// so a check here is pointless. We would need to call purge irrespective of the result
+	// A delete can be called before purge, but is not essential
+
+	ownerCollection, err := getCollectionName(ctx) // Get owners collection
+	if err != nil {
+		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+	}
+
+	// delete the asset from state
+	err = ctx.GetStub().PurgePrivateData(assetCollection, assetPurgeInput.ID)
+	if err != nil {
+		return fmt.Errorf("failed to purge state from asset collection: %v", err)
+	}
+
+	// Finally, delete private details of asset
+	err = ctx.GetStub().PurgePrivateData(ownerCollection, assetPurgeInput.ID)
+	if err != nil {
+		return fmt.Errorf("failed to purge state from owner collection: %v", err)
+	}
+
+	return nil
+
+}
+
 // DeleteTranferAgreement can be used by the buyer to withdraw a proposal from
 // the asset collection and from his own collection.
 func (s *SmartContract) DeleteTranferAgreement(ctx contractapi.TransactionContextInterface) error {
