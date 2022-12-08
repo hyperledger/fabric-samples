@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/gofiber/fiber/v2/internal/uuid"
+	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/xeipuuv/gojsonschema"
 
 	"crypto/sha256"
 	"encoding/hex"
 	"log"
-
-	"strconv"
 )
 
 // SmartContract provides functions for managing an Asset
@@ -20,36 +20,13 @@ type SmartContract struct {
 }
 
 // Asset describes basic details of what makes up a simple asset
-// Insert struct field in alphabetic order => to achieve determinism across languages
-// golang keeps the order when marshal to json but doesn't order automatically
-
-/*type Data struct {
-	docType          string `json:"docType"`
-	id               string `json:"id"`
-	title            string `json:"title"`
-	description      string `json:"description"`
-	Type             string `json:"Type"`
-	DOI              string `json:"DOI"`
-	url              string `json:"url"`
-	manifest         string `json:"manifest"`
-	footprint        string `json:"footprint"`
-	keywords         string `json:"keywords"`
-	otherDataIdName  string `json:"otherDataIdName"`
-	otherDataIdValue string `json:"otherDataIdValue"`
-	fundingAgencies  string `json:"fundingAgencies"`
-	acknowledgment   string `json:"acknowledgment"`
-	noteForChange    string `json:"noteForChange"`
-	contributor      string `json:"contributor"`
-	contributor_id   string `json:"contributor_id"`
-}*/
 
 // Asset describes basic details of what makes up a simple asset
 // Insert struct field in alphabetic order => to achieve determinism across languages
 // golang keeps the order when marshal to json but doesn't order automatically
 
 var lastSchemaHash string
-var UserCount int
-var OIDCs []string
+var APIUserIds []string
 
 type Data struct {
 	Contributor     string `json:"Contributor"`
@@ -67,9 +44,16 @@ type Schema struct {
 }
 
 type User struct {
-	UUID    string   `json:UUID`
-	UserIds []string `json:"UserIDs"`
-	OIDC    string   `json:"OIDC"`
+	UUID      string   `json:UUID`
+	APIUserId []string `json:"APIUserId"`
+}
+
+type Group struct {
+	GroupName string   `json:GroupName`
+	UUIDs     []string `json:UUIDs`
+	Project   string   `json:Project`
+	Org       string   `json:Org`
+	Hash      string   `json:Hash`
 }
 
 // InitLedger adds a base set of Data entries to the ledger
@@ -531,48 +515,22 @@ func (s *SmartContract) contains(ctx contractapi.TransactionContextInterface, st
 			return true
 		}
 	}
-
 	return false
 }
 
-func (s *SmartContract) GetUserCount(ctx contractapi.TransactionContextInterface) int {
-	return UserCount
+func (s *SmartContract) UserExists(ctx contractapi.TransactionContextInterface, APIUserId string) bool {
+	return s.contains(s, APIUserIds, APIUserId)
 }
 
-func (s *SmartContract) UserExists(ctx contractapi.TransactionContextInterface, OIDC string) bool {
-	return s.contains(ctx, OIDCs, OIDC)
-
-	/**assetJSON, err := ctx.GetStub().GetState(UUID)
-	if err != nil {
-		return false, fmt.Errorf("failed to read from world state. User dosen't exist: %v", err)
-	} else if assetJSON != nil {
-		var user map[string]interface{}
-		err2 := json.Unmarshal(assetJSON, &user)
-		if err2 != nil {
-			return false, fmt.Errorf("failed to read from world state: %v", err2)
-		} else if err3, ok := user["UUID"]; ok {
-			return assetJSON != nil, nil
-		} else {
-			return false, fmt.Errorf("failed to read from world state. UUID passed as parameter may correspond to a Schema struct rather than to a Data Struct: %v", err3)
-		}
-	} else {
-		return assetJSON != nil, nil
-	}**/
-
-}
-
-func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface, OIDC string, APIId string) error {
-	userExists := s.UserExists(ctx, OIDC)
+func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface, APIId string) error {
+	userExists := s.UserExists(ctx, APIId) //Add a function to check whether a user already exists or not.
 	if userExists {
-		return fmt.Errorf("the user with OIDC %s already exists", OIDC)
+		return fmt.Errorf("the user with APIId %s already exists", APIId)
 	} else {
-		UC := s.GetUserCount(ctx)
-		UserCount = UC + 1
-		UUID := strconv.FormatInt(int64(UserCount), 10)
+		UUID := uuid.NewRandom()
 		user := User{
-			UUID:    UUID,
-			UserIds: []string{APIId},
-			OIDC:    OIDC,
+			UUID:      UUID,
+			APIUserId: []string{"APIId"},
 		}
 
 		assetJSON, err := json.Marshal(user)
@@ -585,7 +543,6 @@ func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface
 			return fmt.Errorf("failed to create new user. %v", err)
 		} else {
 			fmt.Print("A new User has been created with the UUID %v", UUID)
-			OIDCs = append(OIDCs, OIDC)
 			return nil
 		}
 
@@ -593,15 +550,15 @@ func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface
 
 }
 
-func (s *SmartContract) AsociateUserWithUUID(ctx contractapi.TransactionContextInterface, UUID string, APIId string) (string, error) {
+func (s *SmartContract) AssociateUserWithUUID(ctx contractapi.TransactionContextInterface, UUID string, APIId string) (string, error) {
 	user, err := s.ReadUser(ctx, UUID)
 	if err != nil {
-		return "Read User function failed excecution", err
+		return "Error", fmt.Errorf("read User function failed excecution: %v", err)
 	}
-	if s.contains(ctx, user.UserIds, APIId) {
+	if s.contains(ctx, user.APIUserId, APIId) {
 		return "APIId provided is already associated with user " + UUID, nil
 	}
-	user.UserIds = append(user.UserIds, APIId)
+	user.APIUserId = append(user.APIUserId, APIId)
 
 	assetJSON, err := json.Marshal(user)
 	if err != nil {
@@ -649,10 +606,195 @@ func (s *SmartContract) GetAllUsers(ctx contractapi.TransactionContextInterface)
 
 	return UserSamples, nil
 }
+func (s *SmartContract) GroupExists(ctx contractapi.TransactionContextInterface, Hash string) (bool, error) {
+	assetJSON, err := ctx.GetStub().GetState(Hash)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state: %v", err)
+	}
+
+	if assetJSON != nil {
+		var data map[string]interface{}
+		err2 := json.Unmarshal(assetJSON, &data)
+		if err2 != nil {
+			return false, fmt.Errorf("failed to read from world state: %v", err2)
+		}
+		if err3, ok := data["GroupName"]; ok {
+			return assetJSON != nil, nil
+		} else {
+			return false, fmt.Errorf("failed to read from world state. Hash passed as parameter may correspond to a Schema struct or Data Struc rather than to a Group Struct: %v", err3)
+		}
+	} else {
+		return assetJSON != nil, nil
+	}
+}
+
+func (s *SmartContract) CreateGroup(ctx contractapi.TransactionContextInterface, GroupName string, Project string, Org string) error {
+	//Create a function that checks that a group already exists. Maybe combining GroupName, Group Name and project, and turn that into a Hash? Use the Hash to determine if the group exists.
+	doc := GroupName + Project + Org
+	hash, err := s.Hash(s, doc)
+	if err != nil {
+		return fmt.Errorf("Unable to perform Hash calculation: %v", err)
+	}
+
+	groupExists, err := s.GroupExists(ctx, hash)
+	if err != nil {
+		return fmt.Errorf("Unable to check whether Group exists or not: %v", err)
+	}
+
+	if groupExists {
+		return fmt.Errorf("the group with name %s already exists", GroupName)
+	}
+
+	group := Group{
+		GroupName: GroupName,
+		UUIDs:     []string{},
+		Project:   Project,
+		Org:       Org,
+		Hash:      hash,
+	}
+
+	assetJSON, err := json.Marshal(group)
+	if err != nil {
+		return err
+	}
+
+	err = ctx.GetStub().PutState(group.Hash, assetJSON)
+	if err != nil {
+		return fmt.Errorf("failed to create new Group. %v", err)
+	}
+
+	fmt.Print("The Group %v has been created ", group.GroupName)
+
+	return nil
+
+	/**var v interface{}
+	err := json.Unmarshal([]byte(doc), &v)
+	if err != nil {
+		return fmt.Errorf("HASH CRASH -- Unable to unmarshal Json String passed as parameter. No hash calculation can be completed: %v", err)
+	}
+	cdoc, err := json.Marshal(v)
+	if err != nil {
+		return fmt.Errorf("HASH CRASH -- Unable to re-marshal interface into json format. No hash calculation can be completed: %v", err)
+	}
+	sum := sha256.Sum256(cdoc)
+	hash := hex.EncodeToString(sum[0:])
+	groupExists, err := s.GroupExists(ctx, hash)
+
+	if err != nil {
+		return fmt.Errorf("Error trying to read from world state: %v", err)
+	}
+	if groupExists {
+		return fmt.Errorf("the group with name %s already exists", GroupName)
+	}
+	**/
+}
+
+func (s *SmartContract) ReadGroup(ctx contractapi.TransactionContextInterface, Hash string) (*Group, error) {
+	exists, err := s.GroupExists(ctx, Hash)
+	if (err != nil) || (exists != true) {
+		return nil, fmt.Errorf("Failed to read Group: % v", err)
+	}
+	assetJSON, err := ctx.GetStub().GetState(Hash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if assetJSON == nil {
+		return nil, fmt.Errorf("the Group with Hash %s does not exist", Hash)
+	}
+
+	var group Group
+	err = json.Unmarshal(assetJSON, &group)
+	if err != nil {
+		return nil, err
+	}
+
+	return &group, nil
+}
+
+func (s *SmartContract) AddUserIDToGroup(ctx contractapi.TransactionContextInterface, UUID string, Hash string) ([]string, error) {
+	group, err := s.ReadGroup(ctx, Hash)
+	if err != nil {
+		return nil, fmt.Errorf("Read Group function failed excecution: %v", err)
+	}
+
+	contained := s.contains(ctx, group.UUIDs, UUID)
+	if contained {
+		return nil, fmt.Errorf("User %v already contained in Group", UUID)
+	}
+
+	group.UUIDs = append(group.UUIDs, UUID)
+
+	assetJSON, err := json.Marshal(group)
+	if err != nil {
+		return nil, fmt.Errorf("Marshal of Group Struct not done: %v", err)
+	}
+
+	err = ctx.GetStub().PutState(Hash, assetJSON)
+
+	if err != nil {
+		return nil, fmt.Errorf("Unable to update asset: %v", err)
+	}
+
+	return group.UUIDs, nil
+}
+
+func (s *SmartContract) LinearSearch(ctx contractapi.TransactionContextInterface, list []string, element string) int {
+	for i, n := range list {
+		if n == element {
+			return i
+		}
+	}
+	return -1
+}
+
+func (s *SmartContract) RemoveElement(ctx contractapi.TransactionContextInterface, list []string, element string) []string {
+	index := s.LinearSearch(ctx, list, element)
+	if index != -1 {
+		return append(list[:index])
+	} else {
+		return list
+	}
+}
+
+func (s *SmartContract) DelUserIDFromGroup(ctx contractapi.TransactionContextInterface, UUID string, Hash string) ([]string, error) {
+	group, err := s.ReadGroup(ctx, Hash)
+	if err != nil {
+		return nil, fmt.Errorf("Read Group function failed excecution: %v", err)
+	}
+
+	contained := s.contains(ctx, group.UUIDs, UUID)
+	if !contained {
+		return nil, fmt.Errorf("User %v already removed from Group or unexisting", UUID)
+	}
+
+	uuids := group.UUIDs
+	uuids = s.RemoveElement(s, uuids, UUID)
+	group.UUIDs = uuids
+
+	assetJSON, err := json.Marshal(group)
+	if err != nil {
+		return nil, fmt.Errorf("Marshal of Group Struct not done: %v", err)
+	}
+
+	err = ctx.GetStub().PutState(Hash, assetJSON)
+
+	if err != nil {
+		return nil, fmt.Errorf("Unable to update asset: %v", err)
+	}
+
+	return group.UUIDs, nil
+}
+
+func (s *SmartContract) GetAPIUserByUUID(ctx contractapi.TransactionContextInterface, UUID string) ([]string, error) {
+	user, err := s.ReadUser(s, UUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read User %v from Wrold State", UUID)
+	}
+	return user.APIUserId, nil
+
+}
 
 /*
-
-
 // ReadAsset returns the asset stored in the world state with given id.
 func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, id string) (*Asset, error) {
 	assetJSON, err := ctx.GetStub().GetState(id)
