@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/gofiber/fiber/v2/internal/uuid"
+	//"github.com/gofiber/fiber/v2/internal/uuid"
 	"github.com/google/uuid"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/xeipuuv/gojsonschema"
@@ -519,7 +519,7 @@ func (s *SmartContract) contains(ctx contractapi.TransactionContextInterface, st
 }
 
 func (s *SmartContract) UserExists(ctx contractapi.TransactionContextInterface, APIUserId string) bool {
-	return s.contains(s, APIUserIds, APIUserId)
+	return s.contains(ctx, APIUserIds, APIUserId)
 }
 
 func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface, APIId string) error {
@@ -527,9 +527,12 @@ func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface
 	if userExists {
 		return fmt.Errorf("the user with APIId %s already exists", APIId)
 	} else {
-		UUID := uuid.NewRandom()
+		UUID, err := uuid.NewRandom()
+		if err != nil {
+			return fmt.Errorf("unable to calculate a new UUID: %v", err)
+		}
 		user := User{
-			UUID:      UUID,
+			UUID:      UUID.String(),
 			APIUserId: []string{"APIId"},
 		}
 
@@ -631,7 +634,7 @@ func (s *SmartContract) GroupExists(ctx contractapi.TransactionContextInterface,
 func (s *SmartContract) CreateGroup(ctx contractapi.TransactionContextInterface, GroupName string, Project string, Org string) error {
 	//Create a function that checks that a group already exists. Maybe combining GroupName, Group Name and project, and turn that into a Hash? Use the Hash to determine if the group exists.
 	doc := GroupName + Project + Org
-	hash, err := s.Hash(s, doc)
+	hash, err := s.Hash(ctx, doc)
 	if err != nil {
 		return fmt.Errorf("Unable to perform Hash calculation: %v", err)
 	}
@@ -768,7 +771,7 @@ func (s *SmartContract) DelUserIDFromGroup(ctx contractapi.TransactionContextInt
 	}
 
 	uuids := group.UUIDs
-	uuids = s.RemoveElement(s, uuids, UUID)
+	uuids = s.RemoveElement(ctx, uuids, UUID)
 	group.UUIDs = uuids
 
 	assetJSON, err := json.Marshal(group)
@@ -786,7 +789,7 @@ func (s *SmartContract) DelUserIDFromGroup(ctx contractapi.TransactionContextInt
 }
 
 func (s *SmartContract) GetAPIUserByUUID(ctx contractapi.TransactionContextInterface, UUID string) ([]string, error) {
-	user, err := s.ReadUser(s, UUID)
+	user, err := s.ReadUser(ctx, UUID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read User %v from Wrold State", UUID)
 	}
