@@ -122,6 +122,21 @@ packageChaincode() {
   successln "Chaincode is packaged"
 }
 
+function checkPrereqs() {
+  jq --version > /dev/null 2>&1
+
+  if [[ $? -ne 0 ]]; then
+    errorln "jq command not found..."
+    errorln
+    errorln "Follow the instructions in the Fabric docs to install the prereqs"
+    errorln "https://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html"
+    exit 1
+  fi
+}
+
+#check for prerequisites
+checkPrereqs
+
 ## package the chaincode
 packageChaincode
 
