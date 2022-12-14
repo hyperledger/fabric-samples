@@ -59,7 +59,7 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface)
 	// Asset properties are private, therefore they get passed in transient field, instead of func args
 	transientAssetJSON, ok := transientMap["asset_properties"]
 	if !ok {
-		//log error to stdout
+		// log error to stdout
 		return fmt.Errorf("asset not found in the transient map input")
 	}
 
@@ -450,7 +450,7 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface)
 		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
 	}
 
-	//check the asset is in the caller org's private collection
+	// Check the asset is in the caller org's private collection
 	valAsbytes, err = ctx.GetStub().GetPrivateData(ownerCollection, assetDeleteInput.ID)
 	if err != nil {
 		return fmt.Errorf("failed to read asset from owner's Collection: %v", err)

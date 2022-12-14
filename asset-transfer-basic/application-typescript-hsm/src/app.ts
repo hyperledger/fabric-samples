@@ -232,9 +232,9 @@ async function findSoftHSMPKCS11Lib() {
     if (typeof process.env.PKCS11_LIB === 'string' && process.env.PKCS11_LIB !== '') {
         pkcsLibPath = process.env.PKCS11_LIB;
     } else {
-        //
+
         // Check common locations for PKCS library
-        //
+
         for (const pathnameToTry of commonSoftHSMPathNames) {
             if (fs.existsSync(pathnameToTry)) {
                 pkcsLibPath = pathnameToTry;

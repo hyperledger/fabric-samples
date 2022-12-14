@@ -33,7 +33,7 @@ import (
 	pb "github.com/hyperledger/fabric-protos-go/peer"
 )
 
-//SmartContract is the data structure which represents this contract and on which  various contract lifecycle functions are attached
+// SmartContract is the data structure which represents this contract and on which various contract lifecycle functions are attached
 type SmartContract struct {
 }
 

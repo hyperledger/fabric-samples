@@ -23,7 +23,7 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, a
 		return nil, fmt.Errorf("failed to read asset: %v", err)
 	}
 
-	//No Asset found, return empty response
+	// No Asset found, return empty response
 	if assetJSON == nil {
 		log.Printf("%v does not exist in collection %v", assetID, assetCollection)
 		return nil, nil

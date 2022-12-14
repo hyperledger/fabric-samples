@@ -75,7 +75,7 @@ async function main(): Promise<void> {
         await getAssetsByRange(contractOrg1);
 
         try{
-            //Attempt to transfer asset without prior aprroval from Org2, transaction expected to fail.
+            // Attempt to transfer asset without prior aprroval from Org2, transaction expected to fail.
             console.log('\nAttempt TransferAsset without prior AgreeToTransfer');
             await transferAsset(contractOrg1, assetID1);
             doFail('TransferAsset transaction succeeded when it was expected to fail');

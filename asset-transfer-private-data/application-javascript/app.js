@@ -121,7 +121,7 @@ async function initContractFromOrg1Identity() {
     try {
         // Create a new gateway for connecting to Org's peer node.
         const gatewayOrg1 = new Gateway();
-        //connect using Discovery enabled
+        // Connect using Discovery enabled
         await gatewayOrg1.connect(ccpOrg1,
             { wallet: walletOrg1, identity: Org1UserId, discovery: { enabled: true, asLocalhost: true } });
 
@@ -191,15 +191,15 @@ async function main() {
             console.log('\n**************** As Org1 Client ****************');
             console.log('Adding Assets to work with:\n--> Submit Transaction: CreateAsset ' + assetID1);
             let statefulTxn = contractOrg1.createTransaction('CreateAsset');
-            //if you need to customize endorsement to specific set of Orgs, use setEndorsingOrganizations
-            //statefulTxn.setEndorsingOrganizations(mspOrg1);
+            // if you need to customize endorsement to specific set of Orgs, use setEndorsingOrganizations
+            // statefulTxn.setEndorsingOrganizations(mspOrg1);
             let tmapData = Buffer.from(JSON.stringify(asset1Data));
             statefulTxn.setTransient({
                 asset_properties: tmapData
             });
             result = await statefulTxn.submit();
 
-            //Add asset2
+            // Add asset2
             console.log('\n--> Submit Transaction: CreateAsset ' + assetID2);
             statefulTxn = contractOrg1.createTransaction('CreateAsset');
             tmapData = Buffer.from(JSON.stringify(asset2Data));
@@ -285,13 +285,13 @@ async function main() {
             });
             result = await statefulTxn.submit();
 
-            //Again ReadAsset : results will show that the buyer identity now owns the asset:
+            // Again ReadAsset : results will show that the buyer identity now owns the asset:
             console.log('\n--> Evaluate Transaction: ReadAsset ' + assetID1);
             result = await contractOrg1.evaluateTransaction('ReadAsset', assetID1);
             console.log(`<-- result: ${prettyJSONString(result.toString())}`);
             verifyAssetData(mspOrg1, result, assetID1, 'green', 20, Org2UserId);
 
-            //Confirm that transfer removed the private details from the Org1 collection:
+            // Confirm that transfer removed the private details from the Org1 collection:
             console.log('\n--> Evaluate Transaction: ReadAssetPrivateDetails');
             // ReadAssetPrivateDetails reads data from Org's private collection: Should return empty
             result = await contractOrg1.evaluateTransaction('ReadAssetPrivateDetails', org1PrivateCollectionName, assetID1);
@@ -307,7 +307,7 @@ async function main() {
             console.log('\n********* Demo deleting asset **************');
             let dataForDelete = { assetID: assetID2 };
             try {
-                //Non-owner Org2 should not be able to DeleteAsset. Expect an error from DeleteAsset
+                // Non-owner Org2 should not be able to DeleteAsset. Expect an error from DeleteAsset
                 console.log('--> Attempt Transaction: as Org2 DeleteAsset ' + assetID2);
                 statefulTxn = contractOrg2.createTransaction('DeleteAsset');
                 tmapData = Buffer.from(JSON.stringify(dataForDelete));

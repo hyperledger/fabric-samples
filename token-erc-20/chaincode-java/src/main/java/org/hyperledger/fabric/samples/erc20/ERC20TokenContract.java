@@ -77,7 +77,7 @@ public final class ERC20TokenContract implements ContractInterface {
           "Client is not authorized to mint new tokens", UNAUTHORIZED_SENDER.toString());
     }
 
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
 
     // Get ID of submitting client identity
@@ -132,7 +132,7 @@ public final class ERC20TokenContract implements ContractInterface {
           "Client is not authorized to burn tokens", UNAUTHORIZED_SENDER.toString());
     }
 
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
 
     String minter = ctx.getClientIdentity().getId();
@@ -181,7 +181,7 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void Transfer(final Context ctx, final String to, final long value) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     String from = ctx.getClientIdentity().getId();
     this.transferHelper(ctx, from, to, value);
@@ -198,7 +198,7 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public long BalanceOf(final Context ctx, final String owner) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     ChaincodeStub stub = ctx.getStub();
     CompositeKey balanceKey = stub.createCompositeKey(BALANCE_PREFIX.getValue(), owner);
@@ -219,7 +219,7 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public long ClientAccountBalance(final Context ctx) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     // Get ID of submitting client identity
     ChaincodeStub stub = ctx.getStub();
@@ -244,7 +244,7 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String ClientAccountID(final Context ctx) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     // Get ID of submitting client identity
     return ctx.getClientIdentity().getId();
@@ -258,7 +258,7 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public long TotalSupply(final Context ctx) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     String totalSupply = ctx.getStub().getStringState(TOTAL_SUPPLY_KEY.getValue());
     if (stringIsNullOrEmpty(totalSupply)) {
@@ -277,7 +277,7 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void Approve(final Context ctx, final String spender, final long value) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     ChaincodeStub stub = ctx.getStub();
     String owner = ctx.getClientIdentity().getId();
@@ -302,7 +302,7 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public long Allowance(final Context ctx, final String owner, final String spender) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     ChaincodeStub stub = ctx.getStub();
     CompositeKey allowanceKey =
@@ -330,7 +330,7 @@ public final class ERC20TokenContract implements ContractInterface {
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void TransferFrom(
       final Context ctx, final String from, final String to, final long value) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     String spender = ctx.getClientIdentity().getId();
     ChaincodeStub stub = ctx.getStub();
@@ -437,7 +437,7 @@ public final class ERC20TokenContract implements ContractInterface {
           "Client is not authorized to initialize contract", UNAUTHORIZED_SENDER.toString());
     }
 
-    //check contract options are not already set, client is not authorized to change them once intitialized
+    // Check contract options are not already set, client is not authorized to change them once intitialized
     String tokenName = stub.getStringState(ContractConstants.NAME_KEY.getValue());
     if (!stringIsNullOrEmpty(tokenName)) {
       throw new ChaincodeException("contract options are already set, client is not authorized to change them");
@@ -458,7 +458,7 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String TokenName(final Context ctx) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     String tokenName = ctx.getStub().getStringState(ContractConstants.NAME_KEY.getValue());
     if (stringIsNullOrEmpty(tokenName)) {
@@ -475,7 +475,7 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String TokenSymbol(final Context ctx) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     String tokenSymbol = ctx.getStub().getStringState(SYMBOL_KEY.getValue());
     if (stringIsNullOrEmpty(tokenSymbol)) {
@@ -493,7 +493,7 @@ public final class ERC20TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public int Decimals(final Context ctx) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     String decimals = ctx.getStub().getStringState(DECIMALS_KEY.getValue());
     if (stringIsNullOrEmpty(decimals)) {

@@ -13,7 +13,7 @@ type SmartContract struct {
 }
 
 // Asset describes basic details of what makes up a simple asset
-//Insert struct field in alphabetic order => to achieve determinism across languages
+// Insert struct field in alphabetic order => to achieve determinism across languages
 // golang keeps the order when marshal to json but doesn't order automatically
 type Asset struct {
 	AppraisedValue int    `json:"AppraisedValue"`

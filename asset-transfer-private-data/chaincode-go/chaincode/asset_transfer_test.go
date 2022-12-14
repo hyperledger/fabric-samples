@@ -127,7 +127,7 @@ func TestCreateAssetSuccessful(t *testing.T) {
 	setReturnAssetPropsInTransientMap(t, chaincodeStub, testAsset)
 	err := assetTransferCC.CreateAsset(transactionContext)
 	require.NoError(t, err)
-	//Validate PutPrivateData calls
+	// Validate PutPrivateData calls
 	calledCollection, calledId, _ := chaincodeStub.PutPrivateDataArgsForCall(0)
 	require.Equal(t, assetCollectionName, calledCollection)
 	require.Equal(t, "id1", calledId)
@@ -149,7 +149,7 @@ func TestAgreeToTransferBadInput(t *testing.T) {
 
 	assetPrivDetail := &chaincode.AssetPrivateDetails{
 		ID: "id1",
-		//no AppraisedValue
+		// no AppraisedValue
 	}
 	setReturnAssetPrivateDetailsInTransientMap(t, chaincodeStub, assetPrivDetail)
 	origAsset := chaincode.Asset{
@@ -165,7 +165,7 @@ func TestAgreeToTransferBadInput(t *testing.T) {
 	require.EqualError(t, err, "appraisedValue field must be a positive integer")
 
 	assetPrivDetail = &chaincode.AssetPrivateDetails{
-		//no ID
+		// no ID
 		AppraisedValue: 500,
 	}
 	setReturnAssetPrivateDetailsInTransientMap(t, chaincodeStub, assetPrivDetail)
@@ -177,7 +177,7 @@ func TestAgreeToTransferBadInput(t *testing.T) {
 		AppraisedValue: 500,
 	}
 	setReturnAssetPrivateDetailsInTransientMap(t, chaincodeStub, assetPrivDetail)
-	//asset does not exist
+	// asset does not exist
 	setReturnPrivateDataInStub(t, chaincodeStub, nil)
 	err = assetTransferCC.AgreeToTransfer(transactionContext)
 	require.EqualError(t, err, "id1 does not exist")
@@ -232,7 +232,7 @@ func TestTransferAssetBadInput(t *testing.T) {
 		BuyerMSP: myOrg2Msp,
 	}
 	setReturnAssetOwnerInTransientMap(t, chaincodeStub, assetNewOwner)
-	//asset does not exist
+	// asset does not exist
 	setReturnPrivateDataInStub(t, chaincodeStub, nil)
 	err = assetTransferCC.TransferAsset(transactionContext)
 	require.EqualError(t, err, "id1 does not exist")
@@ -254,15 +254,15 @@ func TestTransferAssetSuccessful(t *testing.T) {
 		Owner: myOrg1Clientid,
 	}
 	setReturnPrivateDataInStub(t, chaincodeStub, &origAsset)
-	//to ensure we pass data hash verification
+	// to ensure we pass data hash verification
 	chaincodeStub.GetPrivateDataHashReturns([]byte("datahash"), nil)
-	//to ensure that ReadTransferAgreement call returns org2 client ID
+	// to ensure that ReadTransferAgreement call returns org2 client ID
 	chaincodeStub.GetPrivateDataReturnsOnCall(1, []byte(myOrg2Clientid), nil)
 	chaincodeStub.CreateCompositeKeyReturns(transferAgreementObjectType+"id1", nil)
 
 	err := assetTransferCC.TransferAsset(transactionContext)
 	require.NoError(t, err)
-	//Validate PutPrivateData calls
+	// Validate PutPrivateData calls
 	expectedNewAsset := origAsset
 	expectedNewAsset.Owner = myOrg2Clientid
 	expectedNewAssetBytes, err := json.Marshal(expectedNewAsset)
@@ -289,7 +289,7 @@ func TestTransferAssetByNonOwner(t *testing.T) {
 		BuyerMSP: myOrg1Msp,
 	}
 	setReturnAssetOwnerInTransientMap(t, chaincodeStub, assetNewOwner)
-	//Try to transfer asset owned by Org2
+	// Try to transfer asset owned by Org2
 	org2Asset := chaincode.Asset{
 		ID:    "id1",
 		Type:  "testfulasset",
@@ -318,10 +318,10 @@ func TestTransferAssetWithoutAnAgreement(t *testing.T) {
 		Owner: myOrg1Clientid,
 	}
 	setReturnPrivateDataInStub(t, chaincodeStub, &orgAsset)
-	//to ensure we pass data hash verification
+	// to ensure we pass data hash verification
 	chaincodeStub.GetPrivateDataHashReturns([]byte("datahash"), nil)
 	chaincodeStub.CreateCompositeKeyReturns(transferAgreementObjectType+"id1", nil)
-	//ReadTransferAgreement call returns no buyer client ID
+	// ReadTransferAgreement call returns no buyer client ID
 	chaincodeStub.GetPrivateDataReturnsOnCall(1, []byte{}, nil)
 
 	err := assetTransferCC.TransferAsset(transactionContext)
@@ -346,7 +346,7 @@ func TestTransferAssetNonMatchingAppraisalValue(t *testing.T) {
 	}
 	setReturnPrivateDataInStub(t, chaincodeStub, &orgAsset)
 	chaincodeStub.CreateCompositeKeyReturns(transferAgreementObjectType+"id1", nil)
-	//data hash different in each collection
+	// data hash different in each collection
 	chaincodeStub.GetPrivateDataHashReturnsOnCall(0, []byte("datahash1"), nil)
 	chaincodeStub.GetPrivateDataHashReturnsOnCall(1, []byte("datahash2"), nil)
 
@@ -369,7 +369,7 @@ func prepMocks(orgMSP, clientId string) (*mocks.TransactionContext, *mocks.Chain
 	clientIdentity := &mocks.ClientIdentity{}
 	clientIdentity.GetMSPIDReturns(orgMSP, nil)
 	clientIdentity.GetIDReturns(clientId, nil)
-	//set matching msp ID using peer shim env variable
+	// set matching msp ID using peer shim env variable
 	os.Setenv("CORE_PEER_LOCALMSPID", orgMSP)
 	transactionContext.GetClientIdentityReturns(clientIdentity)
 	return transactionContext, chaincodeStub
