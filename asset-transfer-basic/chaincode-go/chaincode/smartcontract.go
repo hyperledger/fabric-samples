@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	//"github.com/gofiber/fiber/v2/internal/uuid"
-	"github.com/google/uuid"
+
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/xeipuuv/gojsonschema"
 
@@ -44,16 +44,17 @@ type Schema struct {
 }
 
 type User struct {
-	UUID      string   `json:UUID`
+	UUID      string   `json:"UUID"`
 	APIUserId []string `json:"APIUserId"`
+	Org       string   `json:"Org"`
 }
 
 type Group struct {
-	GroupName string   `json:GroupName`
-	UUIDs     []string `json:UUIDs`
-	Project   string   `json:Project`
-	Org       string   `json:Org`
-	Hash      string   `json:Hash`
+	GroupName string   `json:"GroupName"`
+	UUIDs     []string `json:"UUIDs"`
+	Project   string   `json:"Project"`
+	Org       string   `json:"Org"`
+	GroupId   string   `json:"GroupId"`
 }
 
 // InitLedger adds a base set of Data entries to the ledger
@@ -522,28 +523,32 @@ func (s *SmartContract) UserExists(ctx contractapi.TransactionContextInterface, 
 	return s.contains(ctx, APIUserIds, APIUserId)
 }
 
-func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface, APIId string) error {
+func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface, APIId string, Org string) error {
 	userExists := s.UserExists(ctx, APIId) //Add a function to check whether a user already exists or not.
 	if userExists {
 		return fmt.Errorf("the user with APIId %s already exists", APIId)
 	} else {
-		UUID, err := uuid.NewRandom()
-		if err != nil {
+		//UUID, err := uuid.NewRandom()
+		UUID, err := "Random String", "Even a more random string"
+		if err == "Random" {
+			//if err != nil {
 			return fmt.Errorf("unable to calculate a new UUID: %v", err)
 		}
 		user := User{
-			UUID:      UUID.String(),
-			APIUserId: []string{"APIId"},
+			//UUID: UUID.String(),
+			UUID:      UUID,
+			APIUserId: []string{APIId},
+			Org:       Org,
 		}
 
-		assetJSON, err := json.Marshal(user)
-		if err != nil {
-			return err
+		assetJSON, err2 := json.Marshal(user)
+		if err2 != nil {
+			return err2
 		}
 
-		err = ctx.GetStub().PutState(user.UUID, assetJSON)
-		if err != nil {
-			return fmt.Errorf("failed to create new user. %v", err)
+		err3 := ctx.GetStub().PutState(user.UUID, assetJSON)
+		if err3 != nil {
+			return fmt.Errorf("failed to create new user. %v", err3)
 		} else {
 			fmt.Print("A new User has been created with the UUID %v", UUID)
 			return nil
@@ -609,8 +614,9 @@ func (s *SmartContract) GetAllUsers(ctx contractapi.TransactionContextInterface)
 
 	return UserSamples, nil
 }
-func (s *SmartContract) GroupExists(ctx contractapi.TransactionContextInterface, Hash string) (bool, error) {
-	assetJSON, err := ctx.GetStub().GetState(Hash)
+
+func (s *SmartContract) GroupExists(ctx contractapi.TransactionContextInterface, GroupId string) (bool, error) {
+	assetJSON, err := ctx.GetStub().GetState(GroupId)
 	if err != nil {
 		return false, fmt.Errorf("failed to read from world state: %v", err)
 	}
@@ -633,15 +639,11 @@ func (s *SmartContract) GroupExists(ctx contractapi.TransactionContextInterface,
 
 func (s *SmartContract) CreateGroup(ctx contractapi.TransactionContextInterface, GroupName string, Project string, Org string) error {
 	//Create a function that checks that a group already exists. Maybe combining GroupName, Group Name and project, and turn that into a Hash? Use the Hash to determine if the group exists.
-	doc := GroupName + Project + Org
-	hash, err := s.Hash(ctx, doc)
-	if err != nil {
-		return fmt.Errorf("Unable to perform Hash calculation: %v", err)
-	}
+	GroupId := GroupName + "." + Project + "." + Org
 
-	groupExists, err := s.GroupExists(ctx, hash)
+	groupExists, err := s.GroupExists(ctx, GroupId)
 	if err != nil {
-		return fmt.Errorf("Unable to check whether Group exists or not: %v", err)
+		return fmt.Errorf("unable to check whether Group exists or not: %v", err)
 	}
 
 	if groupExists {
@@ -653,7 +655,7 @@ func (s *SmartContract) CreateGroup(ctx contractapi.TransactionContextInterface,
 		UUIDs:     []string{},
 		Project:   Project,
 		Org:       Org,
-		Hash:      hash,
+		GroupId:   GroupId,
 	}
 
 	assetJSON, err := json.Marshal(group)
@@ -661,7 +663,7 @@ func (s *SmartContract) CreateGroup(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 
-	err = ctx.GetStub().PutState(group.Hash, assetJSON)
+	err = ctx.GetStub().PutState(group.GroupId, assetJSON)
 	if err != nil {
 		return fmt.Errorf("failed to create new Group. %v", err)
 	}
@@ -669,40 +671,19 @@ func (s *SmartContract) CreateGroup(ctx contractapi.TransactionContextInterface,
 	fmt.Print("The Group %v has been created ", group.GroupName)
 
 	return nil
-
-	/**var v interface{}
-	err := json.Unmarshal([]byte(doc), &v)
-	if err != nil {
-		return fmt.Errorf("HASH CRASH -- Unable to unmarshal Json String passed as parameter. No hash calculation can be completed: %v", err)
-	}
-	cdoc, err := json.Marshal(v)
-	if err != nil {
-		return fmt.Errorf("HASH CRASH -- Unable to re-marshal interface into json format. No hash calculation can be completed: %v", err)
-	}
-	sum := sha256.Sum256(cdoc)
-	hash := hex.EncodeToString(sum[0:])
-	groupExists, err := s.GroupExists(ctx, hash)
-
-	if err != nil {
-		return fmt.Errorf("Error trying to read from world state: %v", err)
-	}
-	if groupExists {
-		return fmt.Errorf("the group with name %s already exists", GroupName)
-	}
-	**/
 }
 
-func (s *SmartContract) ReadGroup(ctx contractapi.TransactionContextInterface, Hash string) (*Group, error) {
-	exists, err := s.GroupExists(ctx, Hash)
-	if (err != nil) || (exists != true) {
-		return nil, fmt.Errorf("Failed to read Group: % v", err)
+func (s *SmartContract) ReadGroup(ctx contractapi.TransactionContextInterface, GroupId string) (*Group, error) {
+	exists, err := s.GroupExists(ctx, GroupId)
+	if (err != nil) || (!exists) {
+		return nil, fmt.Errorf("failed to read Group: % v", err)
 	}
-	assetJSON, err := ctx.GetStub().GetState(Hash)
+	assetJSON, err := ctx.GetStub().GetState(GroupId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read from world state: %v", err)
 	}
 	if assetJSON == nil {
-		return nil, fmt.Errorf("the Group with Hash %s does not exist", Hash)
+		return nil, fmt.Errorf("the Group with Hash %s does not exist", GroupId)
 	}
 
 	var group Group
@@ -714,28 +695,28 @@ func (s *SmartContract) ReadGroup(ctx contractapi.TransactionContextInterface, H
 	return &group, nil
 }
 
-func (s *SmartContract) AddUserIDToGroup(ctx contractapi.TransactionContextInterface, UUID string, Hash string) ([]string, error) {
-	group, err := s.ReadGroup(ctx, Hash)
+func (s *SmartContract) AddUserIDToGroup(ctx contractapi.TransactionContextInterface, UUID string, GroupId string) ([]string, error) {
+	group, err := s.ReadGroup(ctx, GroupId)
 	if err != nil {
-		return nil, fmt.Errorf("Read Group function failed excecution: %v", err)
+		return nil, fmt.Errorf("read Group function failed excecution: %v", err)
 	}
 
 	contained := s.contains(ctx, group.UUIDs, UUID)
 	if contained {
-		return nil, fmt.Errorf("User %v already contained in Group", UUID)
+		return nil, fmt.Errorf("user %v already contained in Group %v", UUID, GroupId)
 	}
 
 	group.UUIDs = append(group.UUIDs, UUID)
 
 	assetJSON, err := json.Marshal(group)
 	if err != nil {
-		return nil, fmt.Errorf("Marshal of Group Struct not done: %v", err)
+		return nil, fmt.Errorf("marshal of Group Struct not done: %v", err)
 	}
 
-	err = ctx.GetStub().PutState(Hash, assetJSON)
+	err = ctx.GetStub().PutState(GroupId, assetJSON)
 
 	if err != nil {
-		return nil, fmt.Errorf("Unable to update asset: %v", err)
+		return nil, fmt.Errorf("unable to update asset: %v", err)
 	}
 
 	return group.UUIDs, nil
@@ -762,7 +743,7 @@ func (s *SmartContract) RemoveElement(ctx contractapi.TransactionContextInterfac
 func (s *SmartContract) DelUserIDFromGroup(ctx contractapi.TransactionContextInterface, UUID string, Hash string) ([]string, error) {
 	group, err := s.ReadGroup(ctx, Hash)
 	if err != nil {
-		return nil, fmt.Errorf("Read Group function failed excecution: %v", err)
+		return nil, fmt.Errorf("read Group function failed excecution: %v", err)
 	}
 
 	contained := s.contains(ctx, group.UUIDs, UUID)
@@ -776,13 +757,13 @@ func (s *SmartContract) DelUserIDFromGroup(ctx contractapi.TransactionContextInt
 
 	assetJSON, err := json.Marshal(group)
 	if err != nil {
-		return nil, fmt.Errorf("Marshal of Group Struct not done: %v", err)
+		return nil, fmt.Errorf("marshal of Group Struct not done: %v", err)
 	}
 
 	err = ctx.GetStub().PutState(Hash, assetJSON)
 
 	if err != nil {
-		return nil, fmt.Errorf("Unable to update asset: %v", err)
+		return nil, fmt.Errorf("unable to update asset: %v", err)
 	}
 
 	return group.UUIDs, nil
