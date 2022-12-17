@@ -61,6 +61,16 @@ export WORKSHOP_STAGE_DOCKER_IMAGES="false"
 export WORKSHOP_STORAGE_CLASS="gp2"
 
 ```
+###Digital ocean / DOKS 
+```shell
+
+export WORKSHOP_NAMESPACE="test-network"
+export WORKSHOP_CLUSTER_RUNTIME="k3s"
+export WORKSHOP_COREDNS_DOMAIN_OVERRIDE="false"
+export WORKSHOP_STAGE_DOCKER_IMAGES="false"
+export WORKSHOP_STORAGE_CLASS="do-block-storage"
+
+```
 
 ## Install Nginx Ingress 
 
@@ -88,6 +98,13 @@ export WORKSHOP_INGRESS_DOMAIN=$(echo $INGRESS_IPADDR | tr -s '.' '-').nip.io
 export INGRESS_HOSTNAME=$(kubectl -n ingress-nginx get svc/ingress-nginx-controller -o json  | jq -r '.status.loadBalancer.ingress[0].hostname')
 export INGRESS_IPADDR=$(dig $INGRESS_HOSTNAME +short)
 export WORKSHOP_INGRESS_DOMAIN=$(echo $INGRESS_IPADDR | tr -s '.' '-').nip.io
+
+```
+### Digital ocean 
+```shell
+
+export INGRESS_HOSTNAME=$(kubectl -n ingress-nginx get svc/ingress-nginx-controller -o json  | jq -r '.status.loadBalancer.ingress[0].ip')
+export WORKSHOP_INGRESS_DOMAIN=$(echo $INGRESS_HOSTNAME | tr -s '.' '-').nip.io
 
 ```
 
