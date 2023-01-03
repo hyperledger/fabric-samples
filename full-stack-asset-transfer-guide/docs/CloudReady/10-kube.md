@@ -60,7 +60,7 @@ k9s -n test-network
 
 ## Take it Further: 
 
-- Run the workshop on an [IKS or EKS Cloud Kubernetes cluster](13-kube-public-cloud.md).
+- Run the workshop on an [IKS or EKS or DOKS Cloud Kubernetes cluster](13-kube-public-cloud.md).
 - Run the workshop on an AWS VM, using your AWS account and an EC2 [#cloud-config](../../infrastructure/ec2-cloud-config.yaml).
 
 ---
