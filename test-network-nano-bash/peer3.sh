@@ -38,7 +38,7 @@ export CORE_LEDGER_SNAPSHOTS_ROOTDIR="${PWD}"/data/peer0.org2.example.com/snapsh
 # export CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=127.0.0.1:5986
 # export CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
 # export CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=password
-# docker run --publish 5986:5984 --detach -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password --name couchdb3 couchdb:3.1.1
+# docker run --publish 5986:5984 --detach -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password --name couchdb3 couchdb:latest
 
 # start peer
 peer node start
