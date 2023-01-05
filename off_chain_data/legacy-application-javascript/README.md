@@ -56,7 +56,7 @@ If you set the "use_couchdb" option to true in `config.json`, you can run the
 following command start a local instance of CouchDB using docker:
 
 ```
-docker run -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password --publish 5990:5984 --detach --name offchaindb couchdb:3.1.1
+docker run -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password --publish 5990:5984 --detach --name offchaindb couchdb:latest
 docker start offchaindb
 ```
 

@@ -11,5 +11,5 @@ for image in baseos peer orderer ca tools orderer ccenv javaenv nodeenv tools; d
 	docker rmi -f "hyperledger-fabric.jfrog.io/fabric-${image}:${STABLE_TAG}"
 done
 
-docker pull -q couchdb:3.1.1
+docker pull -q couchdb:latest
 docker images | grep hyperledger

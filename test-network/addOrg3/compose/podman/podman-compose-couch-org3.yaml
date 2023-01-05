@@ -12,7 +12,7 @@ networks:
 services:
   couchdb4:
     container_name: couchdb4
-    image: couchdb:3.1.1
+    image: couchdb:latest
     labels:
       service: hyperledger-fabric
     # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
