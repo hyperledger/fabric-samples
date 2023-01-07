@@ -64,7 +64,7 @@ func (c *TokenERC721Contract) BalanceOf(ctx contractapi.TransactionContextInterf
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		panic("failed to check if contract ia already initialized:" + err.Error())
+		panic("failed to check if contract is already initialized:" + err.Error())
 	}
 	if !initialized {
 		panic("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -99,7 +99,7 @@ func (c *TokenERC721Contract) OwnerOf(ctx contractapi.TransactionContextInterfac
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -122,7 +122,7 @@ func (c *TokenERC721Contract) Approve(ctx contractapi.TransactionContextInterfac
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return false, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -185,7 +185,7 @@ func (c *TokenERC721Contract) SetApprovalForAll(ctx contractapi.TransactionConte
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return false, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -240,7 +240,7 @@ func (c *TokenERC721Contract) IsApprovedForAll(ctx contractapi.TransactionContex
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return false, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -277,7 +277,7 @@ func (c *TokenERC721Contract) GetApproved(ctx contractapi.TransactionContextInte
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "false", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "false", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "false", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -302,7 +302,7 @@ func (c *TokenERC721Contract) TransferFrom(ctx contractapi.TransactionContextInt
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return false, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -409,7 +409,7 @@ func (c *TokenERC721Contract) Name(ctx contractapi.TransactionContextInterface) 
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -431,7 +431,7 @@ func (c *TokenERC721Contract) Symbol(ctx contractapi.TransactionContextInterface
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -454,7 +454,7 @@ func (c *TokenERC721Contract) TokenURI(ctx contractapi.TransactionContextInterfa
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -479,7 +479,7 @@ func (c *TokenERC721Contract) TotalSupply(ctx contractapi.TransactionContextInte
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		panic("failed to check if contract ia already initialized:" + err.Error())
+		panic("failed to check if contract is already initialized:" + err.Error())
 	}
 	if !initialized {
 		panic("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -553,7 +553,7 @@ func (c *TokenERC721Contract) MintWithTokenURI(ctx contractapi.TransactionContex
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return nil, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return nil, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -649,7 +649,7 @@ func (c *TokenERC721Contract) Burn(ctx contractapi.TransactionContextInterface, 
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return false, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return false, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return false, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -723,7 +723,7 @@ func (c *TokenERC721Contract) ClientAccountBalance(ctx contractapi.TransactionCo
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return 0, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -754,7 +754,7 @@ func (c *TokenERC721Contract) ClientAccountID(ctx contractapi.TransactionContext
 	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
