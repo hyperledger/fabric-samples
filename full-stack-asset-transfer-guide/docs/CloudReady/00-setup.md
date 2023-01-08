@@ -4,7 +4,7 @@
 
 ---
 
-Cloud Native Fabric provides a neutral, tiered perspective of a Hyperledger Fabric Network as an integration of
+Cloud Native Hyperledger Fabric provides a neutral, tiered perspective of a Hyperledger Fabric Network as an integration of
 containers, service endpoints, and API abstractions.  In this module of the workshop, you will assemble a complete
 application, building up from a local development running in isolation to a complete blockchain application running
 natively on a public cloud.

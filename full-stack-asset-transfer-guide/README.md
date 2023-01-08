@@ -96,11 +96,11 @@ We'll create a digital representation of these cards on the blockchain ledger. T
 
 ## Cloud Native Fabric
 
-- [Cloud Ready!](docs/CloudReady/00-setup.md)
-- **Exercise:** [Deploy a Kubernetes Cluster](docs/CloudReady/10-kube.md)
-- **Exercise:** [Deploy a Fabric Network](docs/CloudReady/20-fabric.md)
-- **Exercise:** [Deploy a Smart Contract](docs/CloudReady/30-chaincode.md)
-- **Exercise:** [Deploy a Client Application](docs/CloudReady/40-bananas.md)
+- [Cloud Ready!](docs/CloudReady/00-setup.md) [中文](docs/CloudReady/00-setup-zh.md)
+- **Exercise:** [Deploy a Kubernetes Cluster](docs/CloudReady/10-kube.md) [中文](docs/CloudReady/10-kube-zh.md)
+- **Exercise:** [Deploy a Fabric Network](docs/CloudReady/20-fabric.md) [中文](docs/CloudReady/20-fabric-zh.md) 
+- **Exercise:** [Deploy a Smart Contract](docs/CloudReady/30-chaincode.md)[中文](docs/CloudReady/30-chaincode-zh.md) 
+- **Exercise:** [Deploy a Client Application](docs/CloudReady/40-bananas.md)[中文](docs/CloudReady/40-bananas-zh.md) 
 
 ## Epilogue
 
