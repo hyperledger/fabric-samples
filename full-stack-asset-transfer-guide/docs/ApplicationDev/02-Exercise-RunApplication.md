@@ -15,7 +15,7 @@ In a terminal window, navigate to the [applications/trader-typescript](../../app
     ```bash
     export ENDPOINT=org1peer-api.127-0-0-1.nip.io:8080
     export MSP_ID=org1MSP
-    export CERTIFICATE=../../_cfg/uf/_msp/org1/org1admin/msp/signcerts/org1admin.pem
+    export CERTIFICATE=../../_cfg/uf/_msp/org1/org1admin/msp/signcerts/cert.pem
     export PRIVATE_KEY=../../_cfg/uf/_msp/org1/org1admin/msp/keystore/cert_sk
     ```
 
