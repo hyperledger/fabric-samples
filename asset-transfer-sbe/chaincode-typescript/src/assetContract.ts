@@ -5,7 +5,6 @@
 import { Context, Contract, Info, Transaction } from 'fabric-contract-api';
 import { Asset } from './asset';
 import { KeyEndorsementPolicy } from 'fabric-shim';
-import * as fabprotos from 'fabric-shim/bundle';
 
 @Info({title: 'AssetContract', description: 'Asset Transfer Smart Contract, using State Based Endorsement(SBE), implemented in TypeScript' })
 export class AssetContract extends Contract {
@@ -111,42 +110,14 @@ export class AssetContract extends Contract {
     // setStateBasedEndorsementNOutOf sets an endorsement policy to the assetId Key
     // setStateBasedEndorsementNOutOf enforces that a given number of Orgs (N) out of the specified Orgs must endorse future update transactions for the specified assetId Key.
     private static async setStateBasedEndorsementNOutOf(ctx: Context, assetId: string, nOrgs:number, ownerOrgs: string[]): Promise<void> {
-        await ctx.stub.setStateValidationParameter(assetId, AssetContract.policy(nOrgs, ownerOrgs));
+        const ROLE_TYPE_MEMBER = 'MEMBER';
+
+        // Use the KeyEndorsementPolicy helper form the chaincode libarries
+        // If you need more advanced policies, please use that helper as a reference point.
+        const keyEndorsementPolicy = new KeyEndorsementPolicy();
+        keyEndorsementPolicy.addOrgs(ROLE_TYPE_MEMBER,...ownerOrgs);
+
+        await ctx.stub.setStateValidationParameter(assetId, keyEndorsementPolicy.getPolicy());
     }
 
-    // Create a policy that requires a given number (N) of Org principals signatures out of the provided list of Orgs
-    private static policy(nOrgs: number, mspIds: string[]): Uint8Array {
-        const principals = [];
-        const sigsPolicies = [];
-        mspIds.forEach((mspId, i) => {
-            const mspRole = {
-                role: fabprotos.common.MSPRole.MSPRoleType.MEMBER,
-                mspIdentifier: mspId
-            };
-            const principal = {
-                principalClassification: fabprotos.common.MSPPrincipal.Classification.ROLE,
-                principal: fabprotos.common.MSPRole.encode(mspRole).finish()
-            };
-            principals.push(principal);
-            const signedBy = {
-                signedBy: i,
-            };
-            sigsPolicies.push(signedBy);
-        });
-
-        // Create the policy such that it requires any N signature's from all of the principals provided
-        const allOf = {
-            n: nOrgs,
-            rules: sigsPolicies
-        };
-        const noutof = {
-            nOutOf: allOf
-        };
-        const spe = {
-            version: 0,
-            rule: noutof,
-            identities: principals
-        };
-        return fabprotos.common.SignaturePolicyEnvelope.encode(spe).finish();
-    }
 }
