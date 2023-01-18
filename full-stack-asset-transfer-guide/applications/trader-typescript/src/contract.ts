@@ -76,8 +76,10 @@ export class AssetTransfer {
     }
 
     async transferAsset(id: string, newOwner: string, newOwnerOrg: string): Promise<void> {
-        // TODO: Implement me!
-        // Submit a 'TransferAsset' transaction, which requires [id, newOwner, newOwnerOrg] arguments.
+        console.log(`transferring asset '${id}' to ${newOwner}, ${newOwnerOrg}`);
+        // TODO: implement the transferAsset() function.
+        // TODO: submit a 'TransferAsset' transaction, requiring [id, newOwner, newOwnerOrg] arguments.
+        return Promise.reject(new Error('TODO: implement the contract.ts transferAsset() function.'));
     }
 }
 
