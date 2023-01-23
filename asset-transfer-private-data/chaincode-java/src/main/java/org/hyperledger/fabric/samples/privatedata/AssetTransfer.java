@@ -488,6 +488,9 @@ public final class AssetTransfer implements ContractInterface {
      * Deletes a asset & related details from the ledger.
      * Input in transient map: asset_delete
      *
+     * This deletes the private data, but does not trigger an immediate cleanup
+     * of the history. To specifically force removal right now use purge
+     * 
      * @param ctx the transaction context
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
@@ -538,6 +541,53 @@ public final class AssetTransfer implements ContractInterface {
         // Finally, delete private details of asset
         stub.delPrivateData(ownersCollectionName, assetID);
     }
+
+    /**
+     * Purges the history of the asset from Private Data
+     * (delete does not need to be called as well)
+     * Input in transient map: asset_delete
+     *
+     * @param ctx the transaction context
+     */
+    @Transaction(intent = Transaction.TYPE.SUBMIT)
+    public void PurgeAsset(final Context ctx) {
+        ChaincodeStub stub = ctx.getStub();
+        Map<String, byte[]> transientMap = ctx.getStub().getTransient();
+        if (!transientMap.containsKey("asset_purge")) {
+            String errorMessage = String.format("PurgeAsset call must specify 'asset_purge' in Transient map input");
+            System.err.println(errorMessage);
+            throw new ChaincodeException(errorMessage, AssetTransferErrors.INCOMPLETE_INPUT.toString());
+        }
+
+        byte[] transientAssetJSON = transientMap.get("asset_purge");
+        final String assetID;
+
+        try {
+            JSONObject json = new JSONObject(new String(transientAssetJSON, UTF_8));
+            assetID = json.getString("assetID");
+
+        } catch (Exception err) {
+            String errorMessage = String.format("TransientMap deserialized error: %s ", err);
+            System.err.println(errorMessage);
+            throw new ChaincodeException(errorMessage, AssetTransferErrors.INCOMPLETE_INPUT.toString());
+        }
+
+        // Note that there is no check here to see if the id exist; it might have been 'deleted' already
+        // so a check here is pointless. We would need to call purge irrespective of the result
+        // A delete can be called before purge, but is not essential
+
+        String ownersCollectionName = getCollectionName(ctx);
+        verifyClientOrgMatchesPeerOrg(ctx);
+
+        // delete the key from asset collection
+        System.out.printf("PurgeAsset: collection %s, ID %s\n", ASSET_COLLECTION_NAME, assetID);
+        stub.purgePrivateData(ASSET_COLLECTION_NAME, assetID);
+
+        // Finally, delete private details of asset
+        System.out.printf("PurgeAsset: collection %s, ID %s\n", ownersCollectionName, assetID);
+        stub.purgePrivateData(ownersCollectionName, assetID);
+    }
+
 
     // Used by TransferAsset to verify that the transfer is being initiated by the owner and that
     // the buyer has agreed to the same appraisal value as the owner

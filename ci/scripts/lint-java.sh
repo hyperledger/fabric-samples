@@ -8,7 +8,8 @@ function print() {
 	echo -e "${GREEN}${1}${NC}"
 }
 
-dirs=("$(find . -name "*-java" -type d -not -path '*/.*')")
+# remove the java asset-private-data until the publishing issues have been resolved
+dirs=("$(find . -name "*-java" -type d -not -path '*/.*'  -not -path '*/asset-transfer-private-data/*')")
 for dir in $dirs; do
   print "Linting $dir"
   pushd $dir
