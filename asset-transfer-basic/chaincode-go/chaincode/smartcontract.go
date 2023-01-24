@@ -1,10 +1,11 @@
-package main
+package chaincode
 
 import (
 	"encoding/json"
 	"fmt"
 
-	//"github.com/gofiber/fiber/v2/internal/uuid"
+	//"github.com/gofiber/fiber/v2/uuid"
+	"github.com/google/uuid"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/xeipuuv/gojsonschema"
@@ -531,20 +532,25 @@ func (s *SmartContract) UserExists(ctx contractapi.TransactionContextInterface, 
 	return s.contains(ctx, APIUserIds, APIUserId)
 }
 
+func (s *SmartContract) CreateUserIDTest(ctx contractapi.TransactionContextInterface, APIId string, Org string) (string, error) {
+	UUID, err := uuid.NewRandom()
+	return UUID.String(), err
+}
 func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface, APIId string, Org string) error {
 	userExists := s.UserExists(ctx, APIId) //Add a function to check whether a user already exists or not.
 	if userExists {
 		return fmt.Errorf("the user with APIId %s already exists", APIId)
 	} else {
-		//UUID, err := uuid.NewRandom()
-		UUID, err := "Random String", "Even a more random string"
-		if err == "Random" {
-			//if err != nil {
+		UUID, err := uuid.NewRandom()
+		fmt.Printf(UUID.String())
+		//UUID, err := "Random String", "Even a more random string"
+		//if err == "Random" {
+		if err != nil {
 			return fmt.Errorf("unable to calculate a new UUID: %v", err)
 		}
 		user := User{
-			//UUID: UUID.String(),
-			UUID:      UUID,
+			UUID: UUID.String(),
+			//UUID:      UUID,
 			APIUserId: []string{APIId},
 			Org:       Org,
 		}
