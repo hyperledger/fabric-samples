@@ -490,7 +490,7 @@ public final class AssetTransfer implements ContractInterface {
      *
      * This deletes the private data, but does not trigger an immediate cleanup
      * of the history. To specifically force removal right now use purge
-     * 
+     *
      * @param ctx the transaction context
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
