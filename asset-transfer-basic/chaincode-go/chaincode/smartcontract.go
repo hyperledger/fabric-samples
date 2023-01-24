@@ -1,4 +1,4 @@
-package chaincode
+package main
 
 import (
 	"encoding/json"
@@ -55,6 +55,18 @@ type Group struct {
 	Project   string   `json:"Project"`
 	Org       string   `json:"Org"`
 	GroupId   string   `json:"GroupId"`
+}
+
+// Main function
+func main() {
+	aChaincode, err := contractapi.NewChaincode(&SmartContract{})
+	if err != nil {
+		log.Panicf("Error creating artifact chaincode: %v", err)
+	}
+
+	if err := aChaincode.Start(); err != nil {
+		log.Panicf("Error starting artifact chaincode: %v", err)
+	}
 }
 
 // InitLedger adds a base set of Data entries to the ledger
@@ -402,9 +414,7 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 	if !exists {
 		return fmt.Errorf("the asset %s does not exist", Id)
 	}
-
 	// overwriting original asset with new asset
-
 	data := Data{
 		Contributor:   Contributor,
 		ContributorId: ContributorId,
@@ -412,12 +422,10 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 		Id:            Id,
 		Owner:         Owner,
 	}
-
 	assetJSON, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
-
 	return ctx.GetStub().PutState(Id, assetJSON)
 }
 */
@@ -788,41 +796,31 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, i
 	if assetJSON == nil {
 		return nil, fmt.Errorf("the asset %s does not exist", id)
 	}
-
 	var asset Asset
 	err = json.Unmarshal(assetJSON, &asset)
 	if err != nil {
 		return nil, err
 	}
-
 	return &asset, nil
 }
-
-
-
 // TransferAsset updates the owner field of asset with given id in world state, and returns the old owner.
 func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, id string, newOwner string) (string, error) {
 	asset, err := s.ReadAsset(ctx, id)
 	if err != nil {
 		return "", err
 	}
-
 	oldOwner := asset.Owner
 	asset.Owner = newOwner
-
 	assetJSON, err := json.Marshal(asset)
 	if err != nil {
 		return "", err
 	}
-
 	err = ctx.GetStub().PutState(id, assetJSON)
 	if err != nil {
 		return "", err
 	}
-
 	return oldOwner, nil
 }
-
 // GetAllAssets returns all assets found in world state
 func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface) ([]*Asset, error) {
 	// range query with empty string for startKey and endKey does an
@@ -832,14 +830,12 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 		return nil, err
 	}
 	defer resultsIterator.Close()
-
 	var assets []*Asset
 	for resultsIterator.HasNext() {
 		queryResponse, err := resultsIterator.Next()
 		if err != nil {
 			return nil, err
 		}
-
 		var asset Asset
 		err = json.Unmarshal(queryResponse.Value, &asset)
 		if err != nil {
@@ -847,7 +843,6 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 		}
 		assets = append(assets, &asset)
 	}
-
 	return assets, nil
 }
 */
