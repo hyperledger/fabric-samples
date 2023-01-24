@@ -38,6 +38,12 @@ type Data struct {
 	JsonFileContent map[string]interface{}
 }
 
+type PrivateDataContent struc {
+	Id              string `json:"Id"`
+	AnonymousFunder string `json:"AnonymousFunder"`
+	AssetValue      string `json:"AssetValue"`
+}
+
 type Schema struct {
 	Version           int    `json:"Version"`
 	Hash              string `json:"Hash"`
@@ -363,7 +369,7 @@ func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, J
 
 // CreateDataSample issues a new Data Sample to the world state with given details.
 func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInterface,
-	Contributor string, ContributorId string, Id string, Owner string, JsonFileContent string) error {
+	Contributor string, ContributorId string, Id string, Owner string, JsonFileContent string, AnonymousFunder string, AssetValue string) error {
 
 	ContentHash, _ := s.Hash(ctx, JsonFileContent)
 	exists, err := s.AssetExists(ctx, ContentHash)
