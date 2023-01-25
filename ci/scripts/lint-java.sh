@@ -9,7 +9,7 @@ function print() {
 }
 
 # remove the java asset-private-data until the publishing issues have been resolved
-dirs=("$(find . -name "*-java" -type d -not -path '*/.*'  -not -path '*/asset-transfer-private-data/*')")
+dirs=("$(find . -name "*-java" -type d -not -path '*/.*')")
 for dir in $dirs; do
   print "Linting $dir"
   pushd $dir
