@@ -107,7 +107,7 @@ public class CommercialPaperContract implements ContractInterface {
             String newOwner, int price, String purchaseDateTime) {
 
         // Retrieve the current paper using key fields provided
-        String paperKey = State.makeKey(new String[] { paperNumber });
+        String paperKey = State.makeKey(new String[] { issuer, paperNumber });
         CommercialPaper paper = ctx.paperList.getPaper(paperKey);
 
         // Validate current owner
@@ -146,7 +146,7 @@ public class CommercialPaperContract implements ContractInterface {
     public CommercialPaper redeem(CommercialPaperContext ctx, String issuer, String paperNumber, String redeemingOwner,
             String redeemDateTime) {
 
-        String paperKey = CommercialPaper.makeKey(new String[] { paperNumber });
+        String paperKey = CommercialPaper.makeKey(new String[] {issuer, paperNumber });
 
         CommercialPaper paper = ctx.paperList.getPaper(paperKey);
 
