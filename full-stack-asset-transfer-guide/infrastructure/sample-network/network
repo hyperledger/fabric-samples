@@ -78,13 +78,13 @@ context CA_IMAGE_LABEL            ${FABRIC_CA_VERSION}
 #context PEER_IMAGE                ${FABRIC_CONTAINER_REGISTRY}/fabric-peer
 #context PEER_IMAGE_LABEL          ${FABRIC_VERSION}
 context PEER_IMAGE                ghcr.io/hyperledger-labs/k8s-fabric-peer
-context PEER_IMAGE_LABEL          v0.7.2    # FROM fabric-peer 2.4
+context PEER_IMAGE_LABEL          v0.8.0
 context ORDERER_IMAGE             ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer
 context ORDERER_IMAGE_LABEL       ${FABRIC_VERSION}
 context TOOLS_IMAGE               ${FABRIC_CONTAINER_REGISTRY}/fabric-tools
 context TOOLS_IMAGE_LABEL         ${FABRIC_VERSION}
 context OPERATOR_IMAGE            ghcr.io/hyperledger-labs/fabric-operator
-context OPERATOR_IMAGE_LABEL      latest-amd64
+context OPERATOR_IMAGE_LABEL      1.0.4
 context INIT_IMAGE                registry.access.redhat.com/ubi8/ubi-minimal
 context INIT_IMAGE_LABEL          latest
 context GRPCWEB_IMAGE             ghcr.io/hyperledger-labs/grpc-web

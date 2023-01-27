@@ -10,6 +10,12 @@ inputs:
   k9s-version:
     description: k9s Version
     default: v0.25.3
+  fabric-version:
+    description: Version of Hyperledger Fabric
+    default: 2.5.0-alpha3
+  ca-version:
+    description: Version of Hyperledger Fabric CA
+    default: 1.5.6-beta3
 
 runs:
   using: "composite"
@@ -42,5 +48,6 @@ runs:
       shell: bash
       working-directory: full-stack-asset-transfer-guide
       run: |
-        curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh | bash -s -- binary
+        curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh \
+          | bash -s -- binary --fabric-version ${{ inputs.fabric-version }} --ca-version ${{ inputs.ca-version }}
         echo ${PWD}/bin >> $GITHUB_PATH
