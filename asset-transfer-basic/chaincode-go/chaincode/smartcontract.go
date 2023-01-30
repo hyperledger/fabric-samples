@@ -1,12 +1,14 @@
 package chaincode
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
 	//"github.com/gofiber/fiber/v2/uuid"
 	"github.com/google/uuid"
 
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 	"github.com/xeipuuv/gojsonschema"
 
@@ -29,6 +31,9 @@ type SmartContract struct {
 var lastSchemaHash string
 var APIUserIds []string
 
+const PDC1 = "PDC1"
+const PDC2 = "PDC2"
+
 type Data struct {
 	Contributor     string `json:"Contributor"`
 	ContributorId   string `json:"ContributorId"`
@@ -38,7 +43,7 @@ type Data struct {
 	JsonFileContent map[string]interface{}
 }
 
-type PrivateDataContent struc {
+type PrivateDataContent struct {
 	Id              string `json:"Id"`
 	AnonymousFunder string `json:"AnonymousFunder"`
 	AssetValue      string `json:"AssetValue"`
@@ -409,6 +414,107 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 		}
 	}
 
+}
+
+func (s *SmartContract) WriteToPDC(ctx contractapi.TransactionContextInterface) error {
+	// Get new asset from transient map
+	transientMap, err := ctx.GetStub().GetTransient()
+	if err != nil {
+		return fmt.Errorf("error getting transient: %v", err)
+	}
+
+	// Asset properties are private, therefore they get passed in transient field, instead of func args
+	transientAssetJSON, ok := transientMap["asset_properties"]
+	if !ok {
+		//log error to stdout
+		return fmt.Errorf("asset not found in the transient map input")
+	}
+	type assetTransientInput struct {
+		Contributor     string `json:"Contributor"`
+		ContributorId   string `json:"ContributorId"`
+		ContentHash     string `json:"ContentHash"`
+		Id              string `json:"Id"`
+		Owner           string `json:"Owners"`
+		JsonFileContent map[string]interface{}
+	}
+
+	var assetInput assetTransientInput
+	err = json.Unmarshal(transientAssetJSON, &assetInput)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %v", err)
+	}
+
+	// Check if asset already exists
+	assetAsBytes, err := ctx.GetStub().GetPrivateData(PDC1, assetInput.Id)
+	if err != nil {
+		return fmt.Errorf("failed to get asset: %v", err)
+	} else if assetAsBytes != nil {
+		fmt.Println("Asset already exists: " + assetInput.Id)
+		return fmt.Errorf("this asset already exists: " + assetInput.Id)
+	}
+
+	// Get ID of submitting client identity
+	clientID, err := submittingClientIdentity(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Verify that the client is submitting request to peer in their organization
+	// This is to ensure that a client from another org doesn't attempt to read or
+	// write private data from this peer.
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("CreateAsset cannot be performed: Error %v", err)
+	}
+
+	// Make submitting client the owner
+	asset := Data{
+		Contributor:     assetInput.Contributor,
+		ContributorId:   assetInput.ContributorId,
+		ContentHash:     assetInput.ContentHash,
+		Id:              assetInput.Id,
+		Owner:           clientID,
+		JsonFileContent: assetInput.JsonFileContent,
+	}
+	assetJSONasBytes, err := json.Marshal(asset)
+	if err != nil {
+		return fmt.Errorf("failed to marshal asset into JSON: %v", err)
+	}
+
+	// Save asset to private data collection
+	// Typical logger, logs to stdout/file in the fabric managed docker container, running this chaincode
+	// Look for container name like dev-peer0.org1.example.com-{chaincodename_version}-xyz
+	log.Printf("CreateAsset Put: collection %v, ID %v, owner %v", assetCollection, assetInput.ID, clientID)
+
+	err = ctx.GetStub().PutPrivateData(assetCollection, assetInput.ID, assetJSONasBytes)
+	if err != nil {
+		return fmt.Errorf("failed to put asset into private data collection: %v", err)
+	}
+
+	// Save asset details to collection visible to owning organization
+	assetPrivateDetails := AssetPrivateDetails{
+		ID:             assetInput.ID,
+		AppraisedValue: assetInput.AppraisedValue,
+	}
+
+	assetPrivateDetailsAsBytes, err := json.Marshal(assetPrivateDetails) // marshal asset details to JSON
+	if err != nil {
+		return fmt.Errorf("failed to marshal into JSON: %v", err)
+	}
+
+	// Get collection name for this organization.
+	orgCollection, err := getCollectionName(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+	}
+
+	// Put asset appraised value into owners org specific private data collection
+	log.Printf("Put: collection %v, ID %v", orgCollection, assetInput.ID)
+	err = ctx.GetStub().PutPrivateData(orgCollection, assetInput.ID, assetPrivateDetailsAsBytes)
+	if err != nil {
+		return fmt.Errorf("failed to put asset private details: %v", err)
+	}
+	return nil
 }
 
 // UpdateAsset updates an existing asset in the world state with provided parameters.
@@ -796,6 +902,35 @@ func (s *SmartContract) GetAPIUserByUUID(ctx contractapi.TransactionContextInter
 	}
 	return user.APIUserId, nil
 
+}
+
+func submittingClientIdentity(ctx contractapi.TransactionContextInterface) (string, error) {
+	b64ID, err := ctx.GetClientIdentity().GetID()
+	if err != nil {
+		return "", fmt.Errorf("Failed to read clientID: %v", err)
+	}
+	decodeID, err := base64.StdEncoding.DecodeString(b64ID)
+	if err != nil {
+		return "", fmt.Errorf("failed to base64 decode clientID: %v", err)
+	}
+	return string(decodeID), nil
+}
+
+func verifyClientOrgMatchesPeerOrg(ctx contractapi.TransactionContextInterface) error {
+	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
+	if err != nil {
+		return fmt.Errorf("failed getting the client's MSPID: %v", err)
+	}
+	peerMSPID, err := shim.GetMSPID()
+	if err != nil {
+		return fmt.Errorf("failed getting the peer's MSPID: %v", err)
+	}
+
+	if clientMSPID != peerMSPID {
+		return fmt.Errorf("client from org %v is not authorized to read or write private data from an org %v peer", clientMSPID, peerMSPID)
+	}
+
+	return nil
 }
 
 /*
