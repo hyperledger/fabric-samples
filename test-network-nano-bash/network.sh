@@ -65,12 +65,24 @@ networkStart() {
   mkdir -p "${PWD}"/logs
 
   echo "Starting orderers..."
-  ./orderer1.sh > ./logs/orderer1.log 2>&1 &
-  ./orderer2.sh > ./logs/orderer2.log 2>&1 &
-  ./orderer3.sh > ./logs/orderer3.log 2>&1 &
+  ./orderer1.sh ${ORDERER_TYPE} > ./logs/orderer1.log 2>&1 &
+  ./orderer2.sh ${ORDERER_TYPE} > ./logs/orderer2.log 2>&1 &
+  ./orderer3.sh ${ORDERER_TYPE} > ./logs/orderer3.log 2>&1 &
+if [ "$ORDERER_TYPE" = "smartbft" ]; then
+  ./orderer4.sh ${ORDERER_TYPE} > ./logs/orderer4.log 2>&1 &
+fi
 
   echo "Waiting ${CLI_DELAY}s..."
   sleep ${CLI_DELAY}
+
+  if [ "$ORDERER_TYPE" = "smartbft" ]; then
+    ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9443
+    ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9444
+    ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9445
+    ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9446
+    echo "smartbft orderers cluster should be up now..."
+    wait
+  fi
 
   echo "Starting peers..."
   ./peer1.sh > ./logs/peer1.log 2>&1 &
@@ -119,12 +131,18 @@ else
   shift
 fi
 
+ORDERER_TYPE="etcdraft"
+
 # parse flags
 while [ $# -ge 1 ] ; do
   key="$1"
   case $key in
   -d )
     CLI_DELAY="$2"
+    shift
+    ;;
+  -c )
+    ORDERER_TYPE="$2"
     shift
     ;;
   -h )

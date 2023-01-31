@@ -29,3 +29,6 @@ configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate channel-artifacts/O
 
 echo "Generating anchor peer update transaction for Org2"
 configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate channel-artifacts/Org2MSPanchors.tx -channelID mychannel -asOrg Org2MSP
+
+echo "Generating application channel genesis block with BFT consensus"
+configtxgen -profile BFTTwoOrgsApplicationGenesis -outputBlock ./channel-artifacts/mychannel.block -channelID mychannel
