@@ -1,0 +1,61 @@
+#cloud-config
+users:
+  - name: ubuntu
+    groups:
+      - sudo
+      - docker
+
+write_files:
+  - path: /config/provision-root.sh
+    permissions: '0744'
+    content: |
+      #!/usr/bin/env bash
+      set -ex
+      # set -o errexit
+      # set -o pipefail
+      
+      # Install kind
+      KIND_VERSION=0.17.0
+      if [ ! -x "/usr/local/bin/kind" ]; then
+        KIND_ARCH=$(dpkg --print-architecture)
+        curl --fail --silent --show-error -L "https://kind.sigs.k8s.io/dl/v${KIND_VERSION}/kind-linux-${KIND_ARCH}" -o /usr/local/bin/kind
+        chmod 755 /usr/local/bin/kind
+      fi
+
+      # Install just 
+      JUST_VERSION=1.5.0
+      if [ ! -x "/usr/local/bin/just" ]; then
+        curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --tag ${JUST_VERSION} --to /usr/local/bin
+        chown root:root /usr/local/bin/just
+        chmod 755 /usr/local/bin/just
+      fi      
+
+      snap install kubectl --classic 
+      snap install k9s --classic
+      snap install yq --classic 
+      snap install jq --classic 
+      snap install docker       
+
+  - path: /config/provision-user.sh
+    permissions: '0777'
+    owner: ubuntu:ubuntu
+    content: |
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] || curl --fail --silent --show-error -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.3/install.sh | bash
+      . "$NVM_DIR/nvm.sh"
+      
+      # Install latest node v16.x, latest typescript, weft
+      nvm install 16
+      npm install -g typescript
+      npm install -g @hyperledger-labs/weft
+
+# Use Google DNS as the mac resolvers are not 100% reliable for the npm dependency builds in Docker
+bootcmd:
+  - printf "[Resolve]\nDNS=8.8.8.8" > /etc/systemd/resolved.conf
+  - [systemctl, restart, systemd-resolved]
+
+runcmd:
+  - /config/provision-root.sh
+  - su -c /config/provision-user.sh ubuntu
+
+final_message: "The system is finally up, after $UPTIME seconds"

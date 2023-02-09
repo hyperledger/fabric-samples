@@ -1,0 +1,11 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - root-tls-issuer.yaml
+  - ca-issuer.yaml
+
+  # The CA issuer secret / cert is created by the KIND setup script, rather than
+  # in the kustomization.  This allows for a certificate created by a previously
+  # configured KIND cluster to be re-used as the root CA.
+  # - ca-issuer-secret.yaml

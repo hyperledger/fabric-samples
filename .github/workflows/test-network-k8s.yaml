@@ -64,3 +64,14 @@ jobs:
           CHAINCODE_NAME: basic
           CHAINCODE_LANGUAGE: java
           CHAINCODE_BUILDER: k8s
+
+  fabric-operator:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Full Stack Runtime
+        uses: ./.github/actions/fsat-setup
+      - name: Test the network
+        working-directory: test-network-k8s-operator
+        run: ../ci/scripts/run-k8s-test-network-operator.sh

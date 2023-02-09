@@ -1,0 +1,103 @@
+#
+# Copyright contributors to the Hyperledger Fabric Operator project
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+# 	  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+apiVersion: ibp.com/v1beta1
+kind: IBPPeer
+metadata:
+  name: peer1
+spec:
+  version: "${FABRIC_VERSION}"
+  domain: "org2.localho.st"
+  peerExternalEndpoint: "org2-peer1-peer.org2.localho.st:443"
+  license:
+    accept: true
+  action:
+    enroll: {}
+    reenroll: {}
+  configoverride:
+    peer:
+      keepalive:
+        minInterval: 61s
+  customNames:
+    pvc: {}
+  images:
+    peerInitImage: registry.access.redhat.com/ubi8/ubi-minimal
+    peerInitTag: latest
+    peerImage: ${PEER_IMAGE}
+    peerTag: ${PEER_IMAGE_TAG}
+    grpcwebImage: ghcr.io/hyperledger-labs/grpc-web
+    grpcwebTag: latest
+  mspID: Org2MSP
+  mspSecret: org2-peer1-secret
+  secret:
+    enrollment:
+      component:
+        caname: ca
+        cahost: "org2-ca-ca.org2.localho.st"
+        caport: "443"
+        catls:
+          cacert: "${CA_CERT}"
+        enrollid: "peer1"
+        enrollsecret: "peer1pw"
+      tls:
+        caname: tlsca
+        cahost: "org2-ca-ca.org2.localho.st"
+        caport: "443"
+        catls:
+          cacert: "${CA_CERT}"
+        enrollid: "peer1"
+        enrollsecret: "peer1pw"
+        csr:
+          hosts:
+            - "peer1"
+            - "peer1.org2.svc.cluster.local"
+            - "org2-peer-gateway.org2.localho.st"
+  chaincodeBuilderConfig:
+    peername: org2-peer1
+  service:
+    type: ClusterIP
+  stateDb: leveldb
+  storage:
+    peer:
+      class: "standard"
+      size: 5G
+    statedb:
+      class: "standard"
+      size: 10Gi
+  resources:
+    init:
+      limits:
+        cpu: 100m
+        memory: 200M
+      requests:
+        cpu: 10m
+        memory: 10M
+    peer:
+      limits:
+        cpu: 500m
+        memory: 1G
+      requests:
+        cpu: 10m
+        memory: 10M
+    proxy:
+      limits:
+        cpu: 100m
+        memory: 200M
+      requests:
+        cpu: 10m
+        memory: 10M
