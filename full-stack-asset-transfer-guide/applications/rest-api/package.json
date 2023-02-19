@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": ">=14"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "ts-node ./src/server.ts",
@@ -14,9 +17,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@grpc/grpc-js": "~1.6.7",
     "@hyperledger/fabric-gateway": "^1.1.0",
-    "@hyperledger/fabric-protos": "^0.1.0-dev.2300102001.1",
     "@tsconfig/node14": "^1.0.3",
     "@types/body-parser": "^1.17.0",
     "@types/express": "^4.16.0",
