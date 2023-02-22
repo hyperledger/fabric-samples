@@ -1,6 +1,6 @@
 [
  {
-   "name": "assetCollection",
+   "name": "PDC1",
    "policy": "OR('Org1MSP.member', 'Org2MSP.member')",
    "requiredPeerCount": 1,
    "maxPeerCount": 1,

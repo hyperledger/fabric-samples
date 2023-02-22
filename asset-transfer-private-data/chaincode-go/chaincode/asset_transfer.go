@@ -1,565 +1,821 @@
-/*
-Copyright IBM Corp. All Rights Reserved.
-
-SPDX-License-Identifier: Apache-2.0
-*/
-
 package chaincode
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
+
+	//"github.com/gofiber/fiber/v2/uuid"
+	"github.com/google/uuid"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/xeipuuv/gojsonschema"
+
+	"crypto/sha256"
+	"encoding/hex"
+	"log"
 )
 
-const assetCollection = "assetCollection"
-const transferAgreementObjectType = "transferAgreement"
-
-// SmartContract of this fabric sample
+// SmartContract provides functions for managing an Asset
 type SmartContract struct {
 	contractapi.Contract
 }
 
-// Asset describes main asset details that are visible to all organizations
-type Asset struct {
-	Type  string `json:"objectType"` //Type is used to distinguish the various types of objects in state database
-	ID    string `json:"assetID"`
-	Color string `json:"color"`
-	Size  int    `json:"size"`
-	Owner string `json:"owner"`
+// Asset describes basic details of what makes up a simple asset
+
+// Asset describes basic details of what makes up a simple asset
+// Insert struct field in alphabetic order => to achieve determinism across languages
+// golang keeps the order when marshal to json but doesn't order automatically
+
+var lastSchemaHash string
+var APIUserIds []string
+
+const PDC1 = "PDC1"
+const PDC2 = "PDC2"
+
+type Data struct {
+	Contributor     string `json:"Contributor"`
+	ContributorId   string `json:"ContributorId"`
+	ContentHash     string `json:"ContentHash"`
+	Id              string `json:"Id"`
+	Owner           string `json:"Owners"`
+	JsonFileContent map[string]interface{}
 }
 
-// AssetPrivateDetails describes details that are private to owners
-type AssetPrivateDetails struct {
-	ID             string `json:"assetID"`
-	AppraisedValue int    `json:"appraisedValue"`
+type PrivateSchemaContent struct {
+	JsonSchemaContent map[string]interface{} `json:"JsonSchemaContent"`
+	SchemaId          string                 `json:"SchemaId"`
+	Project           string                 `json:"Project`
 }
 
-// TransferAgreement describes the buyer agreement returned by ReadTransferAgreement
-type TransferAgreement struct {
-	ID      string `json:"assetID"`
-	BuyerID string `json:"buyerID"`
+type Schema struct {
+	Version           int    `json:"Version"`
+	Hash              string `json:"Hash"`
+	JsonSchemaContent map[string]interface{}
 }
 
-// CreateAsset creates a new asset by placing the main asset details in the assetCollection
-// that can be read by both organizations. The appraisal value is stored in the owners org specific collection.
-func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface) error {
+type User struct {
+	UUID      string   `json:"UUID"`
+	APIUserId []string `json:"APIUserId"`
+	Org       string   `json:"Org"`
+}
 
-	// Get new asset from transient map
-	transientMap, err := ctx.GetStub().GetTransient()
+type Group struct {
+	GroupName string   `json:"GroupName"`
+	UUIDs     []string `json:"UUIDs"`
+	Project   string   `json:"Project"`
+	Org       string   `json:"Org"`
+	GroupId   string   `json:"GroupId"`
+}
+
+// Main function
+func main() {
+	aChaincode, err := contractapi.NewChaincode(&SmartContract{})
 	if err != nil {
-		return fmt.Errorf("error getting transient: %v", err)
+		log.Panicf("Error creating artifact chaincode: %v", err)
 	}
 
-	// Asset properties are private, therefore they get passed in transient field, instead of func args
-	transientAssetJSON, ok := transientMap["asset_properties"]
-	if !ok {
-		//log error to stdout
-		return fmt.Errorf("asset not found in the transient map input")
+	if err := aChaincode.Start(); err != nil {
+		log.Panicf("Error starting artifact chaincode: %v", err)
 	}
+}
 
-	type assetTransientInput struct {
-		Type           string `json:"objectType"` //Type is used to distinguish the various types of objects in state database
-		ID             string `json:"assetID"`
-		Color          string `json:"color"`
-		Size           int    `json:"size"`
-		AppraisedValue int    `json:"appraisedValue"`
-	}
+// InitLedger adds a base set of Data entries to the ledger
+func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, InitSchema string, InitData string) error {
 
-	var assetInput assetTransientInput
-	err = json.Unmarshal(transientAssetJSON, &assetInput)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal JSON: %v", err)
-	}
+	// We use the function jsonReader in order to read the content of the shcema Json File. The schema Json file is composed by us and inserted as a parameter in the invokation of the initialization function.
+	schemaJsonFileContent, error_schema := s.JsonReader(ctx, InitSchema)
+	firstJsonFileContent, error_file := s.JsonReader(ctx, InitData)
 
-	if len(assetInput.Type) == 0 {
-		return fmt.Errorf("objectType field must be a non-empty string")
-	}
-	if len(assetInput.ID) == 0 {
-		return fmt.Errorf("assetID field must be a non-empty string")
-	}
-	if len(assetInput.Color) == 0 {
-		return fmt.Errorf("color field must be a non-empty string")
-	}
-	if assetInput.Size <= 0 {
-		return fmt.Errorf("size field must be a positive integer")
-	}
-	if assetInput.AppraisedValue <= 0 {
-		return fmt.Errorf("appraisedValue field must be a positive integer")
-	}
+	if error_schema != nil {
+		return fmt.Errorf("failed to read shcema.json file: %v", error_schema)
+	} else if error_file != nil {
+		return fmt.Errorf("failed to read 1st json files: %v", error_file)
+	} else {
 
-	// Check if asset already exists
-	assetAsBytes, err := ctx.GetStub().GetPrivateData(assetCollection, assetInput.ID)
-	if err != nil {
-		return fmt.Errorf("failed to get asset: %v", err)
-	} else if assetAsBytes != nil {
-		fmt.Println("Asset already exists: " + assetInput.ID)
-		return fmt.Errorf("this asset already exists: " + assetInput.ID)
-	}
+		firstJsonFileHash, initDataHashError := s.Hash(ctx, InitData)
+		schemaJsonFileHash, schemaHashError := s.Hash(ctx, InitSchema)
+		lastSchemaHash = schemaJsonFileHash
+		if initDataHashError != nil {
+			return fmt.Errorf("failed to calculate 1st json file hash: %v", initDataHashError)
+		} else if schemaHashError != nil {
+			return fmt.Errorf("failed to calculate schema hash: %v", schemaHashError)
+		} else {
+			data := Data{
+				Contributor:     "pepitoperes@email.com",
+				ContributorId:   "ABC123",
+				ContentHash:     firstJsonFileHash,
+				Id:              "00000",
+				Owner:           "CIA",
+				JsonFileContent: firstJsonFileContent,
+			}
 
-	// Get ID of submitting client identity
-	clientID, err := submittingClientIdentity(ctx)
-	if err != nil {
-		return err
-	}
+			assetJSON, err := json.Marshal(data)
+			if err != nil {
+				return err
+			}
 
-	// Verify that the client is submitting request to peer in their organization
-	// This is to ensure that a client from another org doesn't attempt to read or
-	// write private data from this peer.
-	err = verifyClientOrgMatchesPeerOrg(ctx)
-	if err != nil {
-		return fmt.Errorf("CreateAsset cannot be performed: Error %v", err)
-	}
+			err = ctx.GetStub().PutState(data.ContentHash, assetJSON)
+			if err != nil {
+				return fmt.Errorf("failed to put to world state. %v", err)
+			} else {
+				fmt.Print("A new Data Struct has been created with the hash %v", firstJsonFileHash)
+			}
 
-	// Make submitting client the owner
-	asset := Asset{
-		Type:  assetInput.Type,
-		ID:    assetInput.ID,
-		Color: assetInput.Color,
-		Size:  assetInput.Size,
-		Owner: clientID,
-	}
-	assetJSONasBytes, err := json.Marshal(asset)
-	if err != nil {
-		return fmt.Errorf("failed to marshal asset into JSON: %v", err)
-	}
+			//This is the definition of the Schema that we should use for validate all the JSON files from now on.
 
-	// Save asset to private data collection
-	// Typical logger, logs to stdout/file in the fabric managed docker container, running this chaincode
-	// Look for container name like dev-peer0.org1.example.com-{chaincodename_version}-xyz
-	log.Printf("CreateAsset Put: collection %v, ID %v, owner %v", assetCollection, assetInput.ID, clientID)
+			initSchema := Schema{
+				Version:           1,
+				Hash:              schemaJsonFileHash,
+				JsonSchemaContent: schemaJsonFileContent,
+			}
 
-	err = ctx.GetStub().PutPrivateData(assetCollection, assetInput.ID, assetJSONasBytes)
-	if err != nil {
-		return fmt.Errorf("failed to put asset into private data collecton: %v", err)
-	}
+			assetJSON, err = json.Marshal(initSchema)
+			if err != nil {
+				return err
+			}
 
-	// Save asset details to collection visible to owning organization
-	assetPrivateDetails := AssetPrivateDetails{
-		ID:             assetInput.ID,
-		AppraisedValue: assetInput.AppraisedValue,
-	}
-
-	assetPrivateDetailsAsBytes, err := json.Marshal(assetPrivateDetails) // marshal asset details to JSON
-	if err != nil {
-		return fmt.Errorf("failed to marshal into JSON: %v", err)
-	}
-
-	// Get collection name for this organization.
-	orgCollection, err := getCollectionName(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
-	}
-
-	// Put asset appraised value into owners org specific private data collection
-	log.Printf("Put: collection %v, ID %v", orgCollection, assetInput.ID)
-	err = ctx.GetStub().PutPrivateData(orgCollection, assetInput.ID, assetPrivateDetailsAsBytes)
-	if err != nil {
-		return fmt.Errorf("failed to put asset private details: %v", err)
+			err = ctx.GetStub().PutState(initSchema.Hash, assetJSON)
+			if err != nil {
+				return fmt.Errorf("failed to put to world state. %v", err)
+			} else {
+				fmt.Print("A new Schema has been created with the hash %v", schemaJsonFileHash)
+			}
+		}
 	}
 	return nil
 }
 
-// AgreeToTransfer is used by the potential buyer of the asset to agree to the
-// asset value. The agreed to appraisal value is stored in the buying orgs
-// org specifc collection, while the the buyer client ID is stored in the asset collection
-// using a composite key
-func (s *SmartContract) AgreeToTransfer(ctx contractapi.TransactionContextInterface) error {
+func (s *SmartContract) LastSchemaHash(ctx contractapi.TransactionContextInterface) string {
+	return lastSchemaHash
+}
 
-	// Get ID of submitting client identity
-	clientID, err := submittingClientIdentity(ctx)
+func (s *SmartContract) Hash(ctx contractapi.TransactionContextInterface, doc string) (string, error) {
+
+	var v interface{}
+	err := json.Unmarshal([]byte(doc), &v)
+	if err != nil {
+		return "HASH CRASH", fmt.Errorf("Unable to unmarshal Json String passed as parameter. No hash calculation can be completed: %v", err)
+	} else {
+		cdoc, err := json.Marshal(v)
+		if err != nil {
+			return "HASH CRASH", fmt.Errorf("Unable to re-marshal interface into json format. No hash calculation can be completed: %v", err)
+		} else {
+			sum := sha256.Sum256(cdoc)
+			return hex.EncodeToString(sum[0:]), nil
+		}
+	}
+}
+
+func (s *SmartContract) JsonReader(ctx contractapi.TransactionContextInterface, content string) (map[string]interface{}, error) {
+
+	var payload map[string]interface{}
+	// Now let's unmarshall the data into `payload`
+	err := json.Unmarshal([]byte(content), &payload)
+	if err != nil {
+		log.Fatal("Error during Unmarshal() of string into type Interface: ", err)
+	}
+	return payload, nil
+
+}
+
+// GetAllAssets returns all assets found in world state
+
+func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface) ([]*Data, error) {
+	// range query with empty string for startKey and endKey does an
+	// open-ended query of all assets in the chaincode namespace.
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var dataSamples []*Data
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var data map[string]interface{}
+		err = json.Unmarshal(queryResponse.Value, &data)
+		if err != nil {
+			return nil, err
+		} else if _, ok := data["Id"]; ok {
+			var dataSruct Data
+			err = json.Unmarshal(queryResponse.Value, &dataSruct)
+			if err != nil {
+				return nil, err
+			} else {
+				dataSamples = append(dataSamples, &dataSruct)
+			}
+		}
+	}
+
+	return dataSamples, nil
+}
+
+func (s *SmartContract) SchemaExists(ctx contractapi.TransactionContextInterface, Hash string) (bool, error) {
+	assetJSON, err := ctx.GetStub().GetState(Hash)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state. Schema doesn't exist: %v", err)
+	} else {
+		var schema map[string]interface{}
+		err2 := json.Unmarshal(assetJSON, &schema)
+		if err2 != nil {
+			return false, fmt.Errorf("failed to read from world state: %v", err2)
+		} else if err3, ok := schema["Hash"]; ok {
+			return assetJSON != nil, nil
+		} else {
+			return false, fmt.Errorf("failed to read from world state. Hash passed as parameter may correspond to a Data struct rather than to a Schema: %v", err3)
+		}
+	}
+}
+
+func (s *SmartContract) CreateNewSchema(ctx contractapi.TransactionContextInterface, newSchemaContent string) error {
+
+	jsonFileContent, err := s.JsonReader(ctx, newSchemaContent)
+	if err != nil {
+		return err
+	} else {
+		// Verify that an schema with exact same structure doesn't exist yet.
+		hashContent, _ := s.Hash(ctx, newSchemaContent)
+		exists, err := s.SchemaExists(ctx, hashContent)
+		if exists {
+			return fmt.Errorf("Schema already exists: %v", err)
+		} else {
+			//get previous schema's id
+			assetJSON, err := ctx.GetStub().GetState(lastSchemaHash)
+			if err != nil {
+				return fmt.Errorf("failed to calculate new schema's version: %v", err)
+			} else {
+				var schema Schema
+				err2 := json.Unmarshal(assetJSON, &schema)
+				if err2 != nil {
+					return fmt.Errorf("failed to read from world state. LastSchemaHash var may be corrupted: %v", err2)
+				} else {
+					version := schema.Version + 1
+					lastSchemaHash = hashContent
+					newSchema := Schema{
+						Version:           version,
+						Hash:              hashContent,
+						JsonSchemaContent: jsonFileContent,
+					}
+					assetJSON, err := json.Marshal(newSchema)
+					if err != nil {
+						return err
+					}
+
+					err = ctx.GetStub().PutState(newSchema.Hash, assetJSON)
+					if err != nil {
+						return fmt.Errorf("failed to put to world state. %v", err)
+					}
+				}
+			}
+
+		}
+
+		return nil
+	}
+}
+
+// GetAllSchemas returns all schemas found in world state
+
+func (s *SmartContract) GetAllSchemas(ctx contractapi.TransactionContextInterface) ([]*Schema, error) {
+	// range query with empty string for startKey and endKey does an
+	// open-ended query of all schemas in the chaincode namespace.
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var schemaSamples []*Schema
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var schema map[string]interface{}
+		err = json.Unmarshal(queryResponse.Value, &schema)
+		if err != nil {
+			return nil, err
+		} else if _, ok := schema["Hash"]; ok {
+			var schemaStruct Schema
+			err = json.Unmarshal(queryResponse.Value, &schemaStruct)
+			if err != nil {
+				return nil, err
+			} else {
+				schemaSamples = append(schemaSamples, &schemaStruct)
+			}
+		}
+	}
+
+	return schemaSamples, nil
+}
+
+// AssetExists returns true when asset with given ID exists in world state
+func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface, Hash string) (bool, error) {
+	assetJSON, err := ctx.GetStub().GetState(Hash)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state. Asset dosen't exist: %v", err)
+	} else if assetJSON != nil {
+		var data map[string]interface{}
+		err2 := json.Unmarshal(assetJSON, &data)
+		if err2 != nil {
+			return false, fmt.Errorf("failed to read from world state: %v", err2)
+		} else if err3, ok := data["Id"]; ok {
+			return assetJSON != nil, nil
+		} else {
+			return false, fmt.Errorf("failed to read from world state. Hash passed as parameter may correspond to a Schema struct rather than to a Data Struct: %v", err3)
+		}
+	} else {
+		return assetJSON != nil, nil
+	}
+}
+
+// JSON Validation
+
+func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, JsonContent string) (bool, error) {
+
+	//schemaLoader := gojsonschema.NewReferenceLoader("file:///Users/fernando/Projects/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/Schema.json")
+	//documentLoader := gojsonschema.NewReferenceLoader("file:////Users/fernando/Projects/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/testFile.json")
+
+	//schemaLoader := gojsonschema.NewReferenceLoader("file:///home/chaincode/Schema.json")
+	//documentLoader := gojsonschema.NewReferenceLoader("file:////home/chaincode/testFile.json")
+
+	// PATH Needs to be absolute path (From root '/'). Add something that takes care of that.
+
+	//m := schemas[len(schemas) - 1].JsonFileContent
+
+	CurrentSchemaHash := s.LastSchemaHash(ctx)
+	schema, _ := s.ReadSchema(ctx, CurrentSchemaHash)
+
+	schemaLoader := gojsonschema.NewGoLoader(schema.JsonSchemaContent)
+	documentLoader := gojsonschema.NewStringLoader(JsonContent)
+
+	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	if result.Valid() {
+		fmt.Printf("The document is valid\n")
+	} else {
+		fmt.Printf("The document is not valid. see errors :\n")
+		for _, desc := range result.Errors() {
+			fmt.Printf("- %s\n", desc)
+		}
+	}
+	return result.Valid(), nil
+}
+
+// CreateDataSample issues a new Data Sample to the world state with given details.
+func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInterface,
+	Contributor string, ContributorId string, Id string, Owner string, JsonFileContent string, AnonymousFunder string, AssetValue string) error {
+
+	ContentHash, _ := s.Hash(ctx, JsonFileContent)
+	exists, err := s.AssetExists(ctx, ContentHash)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return fmt.Errorf("the asset %s already exists", ContentHash)
+	}
+
+	valid, err := s.ValidJson(ctx, JsonFileContent)
+	if err != nil {
+		return err
+	}
+	if !valid {
+		return fmt.Errorf("the json file provided is not valid")
+	} else {
+		jsonFileContent, err := s.JsonReader(ctx, JsonFileContent)
+		if err != nil {
+			return err
+		} else {
+			data := Data{
+				Contributor:     Contributor,
+				ContributorId:   ContributorId,
+				ContentHash:     ContentHash,
+				Id:              Id,
+				Owner:           Owner,
+				JsonFileContent: jsonFileContent,
+			}
+
+			assetJSON, err := json.Marshal(data)
+			if err != nil {
+				return err
+
+			}
+			return ctx.GetStub().PutState(ContentHash, assetJSON)
+		}
+	}
+
+}
+
+// UpdateAsset updates an existing asset in the world state with provided parameters.
+/*func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
+	Contributor string, ContributorId string, Id string, Owner string) error {
+	exists, err := s.AssetExists(ctx, Id)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the asset %s does not exist", Id)
+	}
+	// overwriting original asset with new asset
+	data := Data{
+		Contributor:   Contributor,
+		ContributorId: ContributorId,
+		ContentHash:   ContentHash,
+		Id:            Id,
+		Owner:         Owner,
+	}
+	assetJSON, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return ctx.GetStub().PutState(Id, assetJSON)
+}
+*/
+
+func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface, Id string) error {
+	exists, err := s.AssetExists(ctx, Id)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the asset %s does not exist", Id)
+	}
+
+	return ctx.GetStub().DelState(Id)
+}
+
+func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, Id string) (*Data, error) {
+	assetJSON, err := ctx.GetStub().GetState(Id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if assetJSON == nil {
+		return nil, fmt.Errorf("the asset %s does not exist", Id)
+	}
+
+	var data Data
+	err = json.Unmarshal(assetJSON, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data, nil
+}
+
+func (s *SmartContract) ReadUser(ctx contractapi.TransactionContextInterface, UUID string) (*User, error) {
+	assetJSON, err := ctx.GetStub().GetState(UUID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if assetJSON == nil {
+		return nil, fmt.Errorf("the User %s does not exist", UUID)
+	}
+
+	var user User
+	err = json.Unmarshal(assetJSON, &user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (s *SmartContract) ReadSchema(ctx contractapi.TransactionContextInterface, hash string) (*Schema, error) {
+	assetJSON, err := ctx.GetStub().GetState(hash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if assetJSON == nil {
+		return nil, fmt.Errorf("the schema with hash %s does not exist", hash)
+	}
+
+	var schema Schema
+	err = json.Unmarshal(assetJSON, &schema)
+	if err != nil {
+		return nil, err
+	}
+
+	return &schema, nil
+}
+
+// TransferAsset updates the owner field of asset with given id in world state, and returns the old owner.
+func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, Id string, newOwner string) (string, error) {
+	data, err := s.ReadAsset(ctx, Id)
+	if err != nil {
+		return "Read Asset function failed excecution", err
+	}
+
+	data.Owner = newOwner
+
+	assetJSON, err := json.Marshal(data)
+	if err != nil {
+		return "Marshal of Data not one", err
+	}
+
+	err = ctx.GetStub().PutState(Id, assetJSON)
+	if err != nil {
+		return "Unable to update asset", err
+	}
+
+	return data.Owner, nil
+}
+
+func (s *SmartContract) contains(ctx contractapi.TransactionContextInterface, st []string, str string) bool {
+	for _, v := range st {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *SmartContract) UserExists(ctx contractapi.TransactionContextInterface, APIUserId string) bool {
+	return s.contains(ctx, APIUserIds, APIUserId)
+}
+
+func (s *SmartContract) CreateUserIDTest(ctx contractapi.TransactionContextInterface, APIId string, Org string) (string, error) {
+	UUID, err := uuid.NewRandom()
+	return UUID.String(), err
+}
+func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface, APIId string, Org string) error {
+	userExists := s.UserExists(ctx, APIId) //Add a function to check whether a user already exists or not.
+	if userExists {
+		return fmt.Errorf("the user with APIId %s already exists", APIId)
+	} else {
+		UUID, err := uuid.NewRandom()
+		fmt.Printf(UUID.String())
+		//UUID, err := "Random String", "Even a more random string"
+		//if err == "Random" {
+		if err != nil {
+			return fmt.Errorf("unable to calculate a new UUID: %v", err)
+		}
+		user := User{
+			UUID: UUID.String(),
+			//UUID:      UUID,
+			APIUserId: []string{APIId},
+			Org:       Org,
+		}
+
+		assetJSON, err2 := json.Marshal(user)
+		if err2 != nil {
+			return err2
+		}
+
+		err3 := ctx.GetStub().PutState(user.UUID, assetJSON)
+		if err3 != nil {
+			return fmt.Errorf("failed to create new user. %v", err3)
+		} else {
+			fmt.Print("A new User has been created with the UUID %v", UUID)
+			return nil
+		}
+
+	}
+
+}
+
+func (s *SmartContract) AssociateUserWithUUID(ctx contractapi.TransactionContextInterface, UUID string, APIId string) (string, error) {
+	user, err := s.ReadUser(ctx, UUID)
+	if err != nil {
+		return "Error", fmt.Errorf("read User function failed excecution: %v", err)
+	}
+	if s.contains(ctx, user.APIUserId, APIId) {
+		return "APIId provided is already associated with user " + UUID, nil
+	}
+	user.APIUserId = append(user.APIUserId, APIId)
+
+	assetJSON, err := json.Marshal(user)
+	if err != nil {
+		return "Marshal of Data not done", err
+	}
+
+	err = ctx.GetStub().PutState(UUID, assetJSON)
+	if err != nil {
+		return "Unable to update asset", err
+	}
+
+	return "APIId added to map for user " + UUID, nil
+}
+
+func (s *SmartContract) GetAllUsers(ctx contractapi.TransactionContextInterface) ([]*User, error) {
+	// range query with empty string for startKey and endKey does an
+	// open-ended query of all schemas in the chaincode namespace.
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var UserSamples []*User
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var user map[string]interface{}
+		err = json.Unmarshal(queryResponse.Value, &user)
+		if err != nil {
+			return nil, err
+		} else if _, ok := user["UUID"]; ok {
+			var userStruct User
+			err = json.Unmarshal(queryResponse.Value, &userStruct)
+			if err != nil {
+				return nil, err
+			} else {
+				UserSamples = append(UserSamples, &userStruct)
+			}
+		}
+	}
+
+	return UserSamples, nil
+}
+
+func (s *SmartContract) GroupExists(ctx contractapi.TransactionContextInterface, GroupId string) (bool, error) {
+	assetJSON, err := ctx.GetStub().GetState(GroupId)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state: %v", err)
+	}
+
+	if assetJSON != nil {
+		var data map[string]interface{}
+		err2 := json.Unmarshal(assetJSON, &data)
+		if err2 != nil {
+			return false, fmt.Errorf("failed to read from world state: %v", err2)
+		}
+		if err3, ok := data["GroupName"]; ok {
+			return assetJSON != nil, nil
+		} else {
+			return false, fmt.Errorf("failed to read from world state. Hash passed as parameter may correspond to a Schema struct or Data Struc rather than to a Group Struct: %v", err3)
+		}
+	} else {
+		return assetJSON != nil, nil
+	}
+}
+
+func (s *SmartContract) CreateGroup(ctx contractapi.TransactionContextInterface, GroupName string, Project string, Org string) error {
+	//Create a function that checks that a group already exists. Maybe combining GroupName, Group Name and project, and turn that into a Hash? Use the Hash to determine if the group exists.
+	GroupId := GroupName + "." + Project + "." + Org
+
+	groupExists, err := s.GroupExists(ctx, GroupId)
+	if err != nil {
+		return fmt.Errorf("unable to check whether Group exists or not: %v", err)
+	}
+
+	if groupExists {
+		return fmt.Errorf("the group with name %s already exists", GroupName)
+	}
+
+	group := Group{
+		GroupName: GroupName,
+		UUIDs:     []string{},
+		Project:   Project,
+		Org:       Org,
+		GroupId:   GroupId,
+	}
+
+	assetJSON, err := json.Marshal(group)
 	if err != nil {
 		return err
 	}
 
-	// Value is private, therefore it gets passed in transient field
-	transientMap, err := ctx.GetStub().GetTransient()
+	err = ctx.GetStub().PutState(group.GroupId, assetJSON)
 	if err != nil {
-		return fmt.Errorf("error getting transient: %v", err)
+		return fmt.Errorf("failed to create new Group. %v", err)
 	}
 
-	// Persist the JSON bytes as-is so that there is no risk of nondeterministic marshaling.
-	valueJSONasBytes, ok := transientMap["asset_value"]
-	if !ok {
-		return fmt.Errorf("asset_value key not found in the transient map")
-	}
-
-	// Unmarshal the tranisent map to get the asset ID.
-	var valueJSON AssetPrivateDetails
-	err = json.Unmarshal(valueJSONasBytes, &valueJSON)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal JSON: %v", err)
-	}
-
-	// Do some error checking since we get the chance
-	if len(valueJSON.ID) == 0 {
-		return fmt.Errorf("assetID field must be a non-empty string")
-	}
-	if valueJSON.AppraisedValue <= 0 {
-		return fmt.Errorf("appraisedValue field must be a positive integer")
-	}
-
-	// Read asset from the private data collection
-	asset, err := s.ReadAsset(ctx, valueJSON.ID)
-	if err != nil {
-		return fmt.Errorf("error reading asset: %v", err)
-	}
-	if asset == nil {
-		return fmt.Errorf("%v does not exist", valueJSON.ID)
-	}
-	// Verify that the client is submitting request to peer in their organization
-	err = verifyClientOrgMatchesPeerOrg(ctx)
-	if err != nil {
-		return fmt.Errorf("AgreeToTransfer cannot be performed: Error %v", err)
-	}
-
-	// Get collection name for this organization. Needs to be read by a member of the organization.
-	orgCollection, err := getCollectionName(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
-	}
-
-	log.Printf("AgreeToTransfer Put: collection %v, ID %v", orgCollection, valueJSON.ID)
-	// Put agreed value in the org specifc private data collection
-	err = ctx.GetStub().PutPrivateData(orgCollection, valueJSON.ID, valueJSONasBytes)
-	if err != nil {
-		return fmt.Errorf("failed to put asset bid: %v", err)
-	}
-
-	// Create agreeement that indicates which identity has agreed to purchase
-	// In a more realistic transfer scenario, a transfer agreement would be secured to ensure that it cannot
-	// be overwritten by another channel member
-	transferAgreeKey, err := ctx.GetStub().CreateCompositeKey(transferAgreementObjectType, []string{valueJSON.ID})
-	if err != nil {
-		return fmt.Errorf("failed to create composite key: %v", err)
-	}
-
-	log.Printf("AgreeToTransfer Put: collection %v, ID %v, Key %v", assetCollection, valueJSON.ID, transferAgreeKey)
-	err = ctx.GetStub().PutPrivateData(assetCollection, transferAgreeKey, []byte(clientID))
-	if err != nil {
-		return fmt.Errorf("failed to put asset bid: %v", err)
-	}
+	fmt.Print("The Group %v has been created ", group.GroupName)
 
 	return nil
 }
 
-// TransferAsset transfers the asset to the new owner by setting a new owner ID
-func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface) error {
-
-	transientMap, err := ctx.GetStub().GetTransient()
+func (s *SmartContract) ReadGroup(ctx contractapi.TransactionContextInterface, GroupId string) (*Group, error) {
+	exists, err := s.GroupExists(ctx, GroupId)
+	if (err != nil) || (!exists) {
+		return nil, fmt.Errorf("failed to read Group: % v", err)
+	}
+	assetJSON, err := ctx.GetStub().GetState(GroupId)
 	if err != nil {
-		return fmt.Errorf("error getting transient %v", err)
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if assetJSON == nil {
+		return nil, fmt.Errorf("the Group with Hash %s does not exist", GroupId)
 	}
 
-	// Asset properties are private, therefore they get passed in transient field
-	transientTransferJSON, ok := transientMap["asset_owner"]
-	if !ok {
-		return fmt.Errorf("asset owner not found in the transient map")
-	}
-
-	type assetTransferTransientInput struct {
-		ID       string `json:"assetID"`
-		BuyerMSP string `json:"buyerMSP"`
-	}
-
-	var assetTransferInput assetTransferTransientInput
-	err = json.Unmarshal(transientTransferJSON, &assetTransferInput)
+	var group Group
+	err = json.Unmarshal(assetJSON, &group)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal JSON: %v", err)
+		return nil, err
 	}
 
-	if len(assetTransferInput.ID) == 0 {
-		return fmt.Errorf("assetID field must be a non-empty string")
-	}
-	if len(assetTransferInput.BuyerMSP) == 0 {
-		return fmt.Errorf("buyerMSP field must be a non-empty string")
-	}
-	log.Printf("TransferAsset: verify asset exists ID %v", assetTransferInput.ID)
-	// Read asset from the private data collection
-	asset, err := s.ReadAsset(ctx, assetTransferInput.ID)
+	return &group, nil
+}
+
+func (s *SmartContract) AddUserIDToGroup(ctx contractapi.TransactionContextInterface, UUID string, GroupId string) ([]string, error) {
+	group, err := s.ReadGroup(ctx, GroupId)
 	if err != nil {
-		return fmt.Errorf("error reading asset: %v", err)
+		return nil, fmt.Errorf("read Group function failed excecution: %v", err)
 	}
-	if asset == nil {
-		return fmt.Errorf("%v does not exist", assetTransferInput.ID)
+
+	contained := s.contains(ctx, group.UUIDs, UUID)
+	if contained {
+		return nil, fmt.Errorf("user %v already contained in Group %v", UUID, GroupId)
 	}
-	// Verify that the client is submitting request to peer in their organization
-	err = verifyClientOrgMatchesPeerOrg(ctx)
+
+	group.UUIDs = append(group.UUIDs, UUID)
+
+	assetJSON, err := json.Marshal(group)
 	if err != nil {
-		return fmt.Errorf("TransferAsset cannot be performed: Error %v", err)
+		return nil, fmt.Errorf("marshal of Group Struct not done: %v", err)
 	}
 
-	// Verify transfer details and transfer owner
-	err = s.verifyAgreement(ctx, assetTransferInput.ID, asset.Owner, assetTransferInput.BuyerMSP)
+	err = ctx.GetStub().PutState(GroupId, assetJSON)
+
 	if err != nil {
-		return fmt.Errorf("failed transfer verification: %v", err)
+		return nil, fmt.Errorf("unable to update asset: %v", err)
 	}
 
-	transferAgreement, err := s.ReadTransferAgreement(ctx, assetTransferInput.ID)
+	return group.UUIDs, nil
+}
+
+func (s *SmartContract) LinearSearch(ctx contractapi.TransactionContextInterface, list []string, element string) int {
+	for i, n := range list {
+		if n == element {
+			return i
+		}
+	}
+	return -1
+}
+
+func (s *SmartContract) RemoveElement(ctx contractapi.TransactionContextInterface, list []string, element string) []string {
+	index := s.LinearSearch(ctx, list, element)
+	if index != -1 {
+		return append(list[:index])
+	} else {
+		return list
+	}
+}
+
+func (s *SmartContract) DelUserIDFromGroup(ctx contractapi.TransactionContextInterface, UUID string, Hash string) ([]string, error) {
+	group, err := s.ReadGroup(ctx, Hash)
 	if err != nil {
-		return fmt.Errorf("failed ReadTransferAgreement to find buyerID: %v", err)
-	}
-	if transferAgreement.BuyerID == "" {
-		return fmt.Errorf("BuyerID not found in TransferAgreement for %v", assetTransferInput.ID)
+		return nil, fmt.Errorf("read Group function failed excecution: %v", err)
 	}
 
-	// Transfer asset in private data collection to new owner
-	asset.Owner = transferAgreement.BuyerID
+	contained := s.contains(ctx, group.UUIDs, UUID)
+	if !contained {
+		return nil, fmt.Errorf("User %v already removed from Group or unexisting", UUID)
+	}
 
-	assetJSONasBytes, err := json.Marshal(asset)
+	uuids := group.UUIDs
+	uuids = s.RemoveElement(ctx, uuids, UUID)
+	group.UUIDs = uuids
+
+	assetJSON, err := json.Marshal(group)
 	if err != nil {
-		return fmt.Errorf("failed marshalling asset %v: %v", assetTransferInput.ID, err)
+		return nil, fmt.Errorf("marshal of Group Struct not done: %v", err)
 	}
 
-	log.Printf("TransferAsset Put: collection %v, ID %v", assetCollection, assetTransferInput.ID)
-	err = ctx.GetStub().PutPrivateData(assetCollection, assetTransferInput.ID, assetJSONasBytes) //rewrite the asset
+	err = ctx.GetStub().PutState(Hash, assetJSON)
+
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("unable to update asset: %v", err)
 	}
 
-	// Get collection name for this organization
-	ownersCollection, err := getCollectionName(ctx)
+	return group.UUIDs, nil
+}
+
+func (s *SmartContract) GetAPIUserByUUID(ctx contractapi.TransactionContextInterface, UUID string) ([]string, error) {
+	user, err := s.ReadUser(ctx, UUID)
 	if err != nil {
-		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+		return nil, fmt.Errorf("failed to read User %v from Wrold State", UUID)
 	}
-
-	// Delete the asset appraised value from this organization's private data collection
-	err = ctx.GetStub().DelPrivateData(ownersCollection, assetTransferInput.ID)
-	if err != nil {
-		return err
-	}
-
-	// Delete the transfer agreement from the asset collection
-	transferAgreeKey, err := ctx.GetStub().CreateCompositeKey(transferAgreementObjectType, []string{assetTransferInput.ID})
-	if err != nil {
-		return fmt.Errorf("failed to create composite key: %v", err)
-	}
-
-	err = ctx.GetStub().DelPrivateData(assetCollection, transferAgreeKey)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return user.APIUserId, nil
 
 }
 
-// verifyAgreement is an internal helper function used by TransferAsset to verify
-// that the transfer is being initiated by the owner and that the buyer has agreed
-// to the same appraisal value as the owner
-func (s *SmartContract) verifyAgreement(ctx contractapi.TransactionContextInterface, assetID string, owner string, buyerMSP string) error {
-
-	// Check 1: verify that the transfer is being initiatied by the owner
-
-	// Get ID of submitting client identity
-	clientID, err := submittingClientIdentity(ctx)
+func submittingClientIdentity(ctx contractapi.TransactionContextInterface) (string, error) {
+	b64ID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		return err
+		return "", fmt.Errorf("Failed to read clientID: %v", err)
 	}
-
-	if clientID != owner {
-		return fmt.Errorf("error: submitting client identity does not own asset")
-	}
-
-	// Check 2: verify that the buyer has agreed to the appraised value
-
-	// Get collection names
-	collectionOwner, err := getCollectionName(ctx) // get owner collection from caller identity
+	decodeID, err := base64.StdEncoding.DecodeString(b64ID)
 	if err != nil {
-		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+		return "", fmt.Errorf("failed to base64 decode clientID: %v", err)
 	}
-
-	collectionBuyer := buyerMSP + "PrivateCollection" // get buyers collection
-
-	// Get hash of owners agreed to value
-	ownerAppraisedValueHash, err := ctx.GetStub().GetPrivateDataHash(collectionOwner, assetID)
-	if err != nil {
-		return fmt.Errorf("failed to get hash of appraised value from owners collection %v: %v", collectionOwner, err)
-	}
-	if ownerAppraisedValueHash == nil {
-		return fmt.Errorf("hash of appraised value for %v does not exist in collection %v", assetID, collectionOwner)
-	}
-
-	// Get hash of buyers agreed to value
-	buyerAppraisedValueHash, err := ctx.GetStub().GetPrivateDataHash(collectionBuyer, assetID)
-	if err != nil {
-		return fmt.Errorf("failed to get hash of appraised value from buyer collection %v: %v", collectionBuyer, err)
-	}
-	if buyerAppraisedValueHash == nil {
-		return fmt.Errorf("hash of appraised value for %v does not exist in collection %v. AgreeToTransfer must be called by the buyer first", assetID, collectionBuyer)
-	}
-
-	// Verify that the two hashes match
-	if !bytes.Equal(ownerAppraisedValueHash, buyerAppraisedValueHash) {
-		return fmt.Errorf("hash for appraised value for owner %x does not value for seller %x", ownerAppraisedValueHash, buyerAppraisedValueHash)
-	}
-
-	return nil
+	return string(decodeID), nil
 }
 
-// DeleteAsset can be used by the owner of the asset to delete the asset
-func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface) error {
-
-	transientMap, err := ctx.GetStub().GetTransient()
-	if err != nil {
-		return fmt.Errorf("Error getting transient: %v", err)
-	}
-
-	// Asset properties are private, therefore they get passed in transient field
-	transientDeleteJSON, ok := transientMap["asset_delete"]
-	if !ok {
-		return fmt.Errorf("asset to delete not found in the transient map")
-	}
-
-	type assetDelete struct {
-		ID string `json:"assetID"`
-	}
-
-	var assetDeleteInput assetDelete
-	err = json.Unmarshal(transientDeleteJSON, &assetDeleteInput)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal JSON: %v", err)
-	}
-
-	if len(assetDeleteInput.ID) == 0 {
-		return fmt.Errorf("assetID field must be a non-empty string")
-	}
-
-	// Verify that the client is submitting request to peer in their organization
-	err = verifyClientOrgMatchesPeerOrg(ctx)
-	if err != nil {
-		return fmt.Errorf("DeleteAsset cannot be performed: Error %v", err)
-	}
-
-	log.Printf("Deleting Asset: %v", assetDeleteInput.ID)
-	valAsbytes, err := ctx.GetStub().GetPrivateData(assetCollection, assetDeleteInput.ID) //get the asset from chaincode state
-	if err != nil {
-		return fmt.Errorf("failed to read asset: %v", err)
-	}
-	if valAsbytes == nil {
-		return fmt.Errorf("asset not found: %v", assetDeleteInput.ID)
-	}
-
-	ownerCollection, err := getCollectionName(ctx) // Get owners collection
-	if err != nil {
-		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
-	}
-
-	//check the asset is in the caller org's private collection
-	valAsbytes, err = ctx.GetStub().GetPrivateData(ownerCollection, assetDeleteInput.ID)
-	if err != nil {
-		return fmt.Errorf("failed to read asset from owner's Collection: %v", err)
-	}
-	if valAsbytes == nil {
-		return fmt.Errorf("asset not found in owner's private Collection %v: %v", ownerCollection, assetDeleteInput.ID)
-	}
-
-	// delete the asset from state
-	err = ctx.GetStub().DelPrivateData(assetCollection, assetDeleteInput.ID)
-	if err != nil {
-		return fmt.Errorf("failed to delete state: %v", err)
-	}
-
-	// Finally, delete private details of asset
-	err = ctx.GetStub().DelPrivateData(ownerCollection, assetDeleteInput.ID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-
-}
-
-// DeleteTranferAgreement can be used by the buyer to withdraw a proposal from
-// the asset collection and from his own collection.
-func (s *SmartContract) DeleteTranferAgreement(ctx contractapi.TransactionContextInterface) error {
-
-	transientMap, err := ctx.GetStub().GetTransient()
-	if err != nil {
-		return fmt.Errorf("error getting transient: %v", err)
-	}
-
-	// Asset properties are private, therefore they get passed in transient field
-	transientDeleteJSON, ok := transientMap["agreement_delete"]
-	if !ok {
-		return fmt.Errorf("asset to delete not found in the transient map")
-	}
-
-	type assetDelete struct {
-		ID string `json:"assetID"`
-	}
-
-	var assetDeleteInput assetDelete
-	err = json.Unmarshal(transientDeleteJSON, &assetDeleteInput)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal JSON: %v", err)
-	}
-
-	if len(assetDeleteInput.ID) == 0 {
-		return fmt.Errorf("transient input ID field must be a non-empty string")
-	}
-
-	// Verify that the client is submitting request to peer in their organization
-	err = verifyClientOrgMatchesPeerOrg(ctx)
-	if err != nil {
-		return fmt.Errorf("DeleteTranferAgreement cannot be performed: Error %v", err)
-	}
-	// Delete private details of agreement
-	orgCollection, err := getCollectionName(ctx) // Get proposers collection.
-	if err != nil {
-		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
-	}
-	tranferAgreeKey, err := ctx.GetStub().CreateCompositeKey(transferAgreementObjectType, []string{assetDeleteInput.
-		ID}) // Create composite key
-	if err != nil {
-		return fmt.Errorf("failed to create composite key: %v", err)
-	}
-
-	valAsbytes, err := ctx.GetStub().GetPrivateData(assetCollection, tranferAgreeKey) //get the transfer_agreement
-	if err != nil {
-		return fmt.Errorf("failed to read transfer_agreement: %v", err)
-	}
-	if valAsbytes == nil {
-		return fmt.Errorf("asset's transfer_agreement does not exist: %v", assetDeleteInput.ID)
-	}
-
-	log.Printf("Deleting TranferAgreement: %v", assetDeleteInput.ID)
-	err = ctx.GetStub().DelPrivateData(orgCollection, assetDeleteInput.ID) // Delete the asset
-	if err != nil {
-		return err
-	}
-
-	// Delete transfer agreement record
-	err = ctx.GetStub().DelPrivateData(assetCollection, tranferAgreeKey) // remove agreement from state
-	if err != nil {
-		return err
-	}
-
-	return nil
-
-}
-
-// getCollectionName is an internal helper function to get collection of submitting client identity.
-func getCollectionName(ctx contractapi.TransactionContextInterface) (string, error) {
-
-	// Get the MSP ID of submitting client identity
-	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
-	if err != nil {
-		return "", fmt.Errorf("failed to get verified MSPID: %v", err)
-	}
-
-	// Create the collection name
-	orgCollection := clientMSPID + "PrivateCollection"
-
-	return orgCollection, nil
-}
-
-// verifyClientOrgMatchesPeerOrg is an internal function used verify client org id and matches peer org id.
 func verifyClientOrgMatchesPeerOrg(ctx contractapi.TransactionContextInterface) error {
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
@@ -577,14 +833,78 @@ func verifyClientOrgMatchesPeerOrg(ctx contractapi.TransactionContextInterface) 
 	return nil
 }
 
-func submittingClientIdentity(ctx contractapi.TransactionContextInterface) (string, error) {
-	b64ID, err := ctx.GetClientIdentity().GetID()
+// WriteSchemaToPDC submits a schema to an Org's priva data collection so validations of incoming data can be done.
+
+func (s *SmartContract) WriteSchemaToPDC(ctx contractapi.TransactionContextInterface) error {
+	// Get new asset from transient map
+	transientMap, err := ctx.GetStub().GetTransient()
 	if err != nil {
-		return "", fmt.Errorf("Failed to read clientID: %v", err)
+		return fmt.Errorf("error getting transient: %v", err)
 	}
-	decodeID, err := base64.StdEncoding.DecodeString(b64ID)
+
+	// Asset properties are private, therefore they get passed in transient field, instead of func args
+	transientAssetJSON, ok := transientMap["asset_properties"]
+	if !ok {
+		//log error to stdout
+		return fmt.Errorf("asset not found in the transient map input")
+	}
+
+	type transientInput struct {
+		JsonSchemaContent map[string]interface{} `json:"JsonSchemaContent"`
+		SchemaId          string                 `json:"SchemaId"`
+		Project           string                 `json:"Project`
+	}
+
+	// So far, we've taken what's on the transient dictionary and unmarshal it into the transientInput Struct
+	var assetInput transientInput
+	err = json.Unmarshal(transientAssetJSON, &assetInput)
 	if err != nil {
-		return "", fmt.Errorf("failed to base64 decode clientID: %v", err)
+		return fmt.Errorf("failed to unmarshal JSON: %v", err)
 	}
-	return string(decodeID), nil
+
+	// Check if Schema already exists
+	assetAsBytes, err := ctx.GetStub().GetPrivateData(PDC1, assetInput.SchemaId)
+	if err != nil {
+		return fmt.Errorf("failed to get Schema: %v", err)
+	} else if assetAsBytes != nil {
+		fmt.Println("Schema already exists: " + assetInput.SchemaId)
+		return fmt.Errorf("this Schema already exists: " + assetInput.SchemaId)
+	}
+
+	// Get ID of submitting client identity
+	clientID, err := submittingClientIdentity(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Verify that the client is submitting request to peer in their organization
+	// This is to ensure that a client from another org doesn't attempt to read or
+	// write private data from this peer.
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("CreateSchema cannot be performed: Error %v", err)
+	}
+
+	// Make submitting client the owner
+	Schema := PrivateSchemaContent{
+		JsonSchemaContent: assetInput.JsonSchemaContent,
+		SchemaId:          assetInput.SchemaId,
+		Project:           assetInput.Project,
+	}
+	assetJSONasBytes, err := json.Marshal(Schema)
+	if err != nil {
+		return fmt.Errorf("failed to marshal Schema into JSON: %v", err)
+	}
+
+	// Save asset to private data collection
+	// Typical logger, logs to stdout/file in the fabric managed docker container, running this chaincode
+	// Look for container name like dev-peer0.org1.example.com-{chaincodename_version}-xyz
+	log.Printf("WriteSchemaToPDC Put: collection %v, ID %v, owner %v", PDC1, assetInput.SchemaId, clientID)
+
+	err = ctx.GetStub().PutPrivateData(PDC1, assetInput.SchemaId, assetJSONasBytes)
+	if err != nil {
+		return fmt.Errorf("failed to put asset into private data collection: %v", err)
+	}
+
+	return nil
 }

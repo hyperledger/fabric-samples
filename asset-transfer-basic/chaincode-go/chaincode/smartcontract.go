@@ -43,10 +43,10 @@ type Data struct {
 	JsonFileContent map[string]interface{}
 }
 
-type PrivateDataContent struct {
-	Id              string `json:"Id"`
-	AnonymousFunder string `json:"AnonymousFunder"`
-	AssetValue      string `json:"AssetValue"`
+type PrivateSchemaContent struct {
+	JsonSchemaContent map[string]interface{} `json:"JsonSchemaContent"`
+	SchemaId          string                 `json:"SchemaId"`
+	Project           string                 `json:"Project`
 }
 
 type Schema struct {
@@ -232,6 +232,7 @@ func (s *SmartContract) SchemaExists(ctx contractapi.TransactionContextInterface
 		}
 	}
 }
+
 func (s *SmartContract) CreateNewSchema(ctx contractapi.TransactionContextInterface, newSchemaContent string) error {
 
 	jsonFileContent, err := s.JsonReader(ctx, newSchemaContent)
@@ -414,107 +415,6 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 		}
 	}
 
-}
-
-func (s *SmartContract) WriteToPDC(ctx contractapi.TransactionContextInterface) error {
-	// Get new asset from transient map
-	transientMap, err := ctx.GetStub().GetTransient()
-	if err != nil {
-		return fmt.Errorf("error getting transient: %v", err)
-	}
-
-	// Asset properties are private, therefore they get passed in transient field, instead of func args
-	transientAssetJSON, ok := transientMap["asset_properties"]
-	if !ok {
-		//log error to stdout
-		return fmt.Errorf("asset not found in the transient map input")
-	}
-	type assetTransientInput struct {
-		Contributor     string `json:"Contributor"`
-		ContributorId   string `json:"ContributorId"`
-		ContentHash     string `json:"ContentHash"`
-		Id              string `json:"Id"`
-		Owner           string `json:"Owners"`
-		JsonFileContent map[string]interface{}
-	}
-
-	var assetInput assetTransientInput
-	err = json.Unmarshal(transientAssetJSON, &assetInput)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal JSON: %v", err)
-	}
-
-	// Check if asset already exists
-	assetAsBytes, err := ctx.GetStub().GetPrivateData(PDC1, assetInput.Id)
-	if err != nil {
-		return fmt.Errorf("failed to get asset: %v", err)
-	} else if assetAsBytes != nil {
-		fmt.Println("Asset already exists: " + assetInput.Id)
-		return fmt.Errorf("this asset already exists: " + assetInput.Id)
-	}
-
-	// Get ID of submitting client identity
-	clientID, err := submittingClientIdentity(ctx)
-	if err != nil {
-		return err
-	}
-
-	// Verify that the client is submitting request to peer in their organization
-	// This is to ensure that a client from another org doesn't attempt to read or
-	// write private data from this peer.
-	err = verifyClientOrgMatchesPeerOrg(ctx)
-	if err != nil {
-		return fmt.Errorf("CreateAsset cannot be performed: Error %v", err)
-	}
-
-	// Make submitting client the owner
-	asset := Data{
-		Contributor:     assetInput.Contributor,
-		ContributorId:   assetInput.ContributorId,
-		ContentHash:     assetInput.ContentHash,
-		Id:              assetInput.Id,
-		Owner:           clientID,
-		JsonFileContent: assetInput.JsonFileContent,
-	}
-	assetJSONasBytes, err := json.Marshal(asset)
-	if err != nil {
-		return fmt.Errorf("failed to marshal asset into JSON: %v", err)
-	}
-
-	// Save asset to private data collection
-	// Typical logger, logs to stdout/file in the fabric managed docker container, running this chaincode
-	// Look for container name like dev-peer0.org1.example.com-{chaincodename_version}-xyz
-	log.Printf("CreateAsset Put: collection %v, ID %v, owner %v", assetCollection, assetInput.ID, clientID)
-
-	err = ctx.GetStub().PutPrivateData(assetCollection, assetInput.ID, assetJSONasBytes)
-	if err != nil {
-		return fmt.Errorf("failed to put asset into private data collection: %v", err)
-	}
-
-	// Save asset details to collection visible to owning organization
-	assetPrivateDetails := AssetPrivateDetails{
-		ID:             assetInput.ID,
-		AppraisedValue: assetInput.AppraisedValue,
-	}
-
-	assetPrivateDetailsAsBytes, err := json.Marshal(assetPrivateDetails) // marshal asset details to JSON
-	if err != nil {
-		return fmt.Errorf("failed to marshal into JSON: %v", err)
-	}
-
-	// Get collection name for this organization.
-	orgCollection, err := getCollectionName(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
-	}
-
-	// Put asset appraised value into owners org specific private data collection
-	log.Printf("Put: collection %v, ID %v", orgCollection, assetInput.ID)
-	err = ctx.GetStub().PutPrivateData(orgCollection, assetInput.ID, assetPrivateDetailsAsBytes)
-	if err != nil {
-		return fmt.Errorf("failed to put asset private details: %v", err)
-	}
-	return nil
 }
 
 // UpdateAsset updates an existing asset in the world state with provided parameters.
@@ -933,63 +833,78 @@ func verifyClientOrgMatchesPeerOrg(ctx contractapi.TransactionContextInterface) 
 	return nil
 }
 
-/*
-// ReadAsset returns the asset stored in the world state with given id.
-func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, id string) (*Asset, error) {
-	assetJSON, err := ctx.GetStub().GetState(id)
+// WriteSchemaToPDC submits a schema to an Org's priva data collection so validations of incoming data can be done.
+
+func (s *SmartContract) WriteSchemaToPDC(ctx contractapi.TransactionContextInterface) error {
+	// Get new asset from transient map
+	transientMap, err := ctx.GetStub().GetTransient()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read from world state: %v", err)
+		return fmt.Errorf("error getting transient: %v", err)
 	}
-	if assetJSON == nil {
-		return nil, fmt.Errorf("the asset %s does not exist", id)
+
+	// Asset properties are private, therefore they get passed in transient field, instead of func args
+	transientAssetJSON, ok := transientMap["asset_properties"]
+	if !ok {
+		//log error to stdout
+		return fmt.Errorf("asset not found in the transient map input")
 	}
-	var asset Asset
-	err = json.Unmarshal(assetJSON, &asset)
+
+	type transientInput struct {
+		JsonSchemaContent map[string]interface{} `json:"JsonSchemaContent"`
+		SchemaId          string                 `json:"SchemaId"`
+		Project           string                 `json:"Project`
+	}
+
+	// So far, we've taken what's on the transient dictionary and unmarshal it into the transientInput Struct
+	var assetInput transientInput
+	err = json.Unmarshal(transientAssetJSON, &assetInput)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to unmarshal JSON: %v", err)
 	}
-	return &asset, nil
+
+	// Check if Schema already exists
+	assetAsBytes, err := ctx.GetStub().GetPrivateData(PDC1, assetInput.SchemaId)
+	if err != nil {
+		return fmt.Errorf("failed to get Schema: %v", err)
+	} else if assetAsBytes != nil {
+		fmt.Println("Schema already exists: " + assetInput.SchemaId)
+		return fmt.Errorf("this Schema already exists: " + assetInput.SchemaId)
+	}
+
+	// Get ID of submitting client identity
+	clientID, err := submittingClientIdentity(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Verify that the client is submitting request to peer in their organization
+	// This is to ensure that a client from another org doesn't attempt to read or
+	// write private data from this peer.
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("CreateSchema cannot be performed: Error %v", err)
+	}
+
+	// Make submitting client the owner
+	Schema := PrivateSchemaContent{
+		JsonSchemaContent: assetInput.JsonSchemaContent,
+		SchemaId:          assetInput.SchemaId,
+		Project:           assetInput.Project,
+	}
+	assetJSONasBytes, err := json.Marshal(Schema)
+	if err != nil {
+		return fmt.Errorf("failed to marshal Schema into JSON: %v", err)
+	}
+
+	// Save asset to private data collection
+	// Typical logger, logs to stdout/file in the fabric managed docker container, running this chaincode
+	// Look for container name like dev-peer0.org1.example.com-{chaincodename_version}-xyz
+	log.Printf("WriteSchemaToPDC Put: collection %v, ID %v, owner %v", PDC1, assetInput.SchemaId, clientID)
+
+	err = ctx.GetStub().PutPrivateData(PDC1, assetInput.SchemaId, assetJSONasBytes)
+	if err != nil {
+		return fmt.Errorf("failed to put asset into private data collection: %v", err)
+	}
+
+	return nil
 }
-// TransferAsset updates the owner field of asset with given id in world state, and returns the old owner.
-func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, id string, newOwner string) (string, error) {
-	asset, err := s.ReadAsset(ctx, id)
-	if err != nil {
-		return "", err
-	}
-	oldOwner := asset.Owner
-	asset.Owner = newOwner
-	assetJSON, err := json.Marshal(asset)
-	if err != nil {
-		return "", err
-	}
-	err = ctx.GetStub().PutState(id, assetJSON)
-	if err != nil {
-		return "", err
-	}
-	return oldOwner, nil
-}
-// GetAllAssets returns all assets found in world state
-func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface) ([]*Asset, error) {
-	// range query with empty string for startKey and endKey does an
-	// open-ended query of all assets in the chaincode namespace.
-	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
-	if err != nil {
-		return nil, err
-	}
-	defer resultsIterator.Close()
-	var assets []*Asset
-	for resultsIterator.HasNext() {
-		queryResponse, err := resultsIterator.Next()
-		if err != nil {
-			return nil, err
-		}
-		var asset Asset
-		err = json.Unmarshal(queryResponse.Value, &asset)
-		if err != nil {
-			return nil, err
-		}
-		assets = append(assets, &asset)
-	}
-	return assets, nil
-}
-*/
