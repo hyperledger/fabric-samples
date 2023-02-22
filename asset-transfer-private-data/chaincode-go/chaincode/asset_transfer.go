@@ -850,9 +850,10 @@ func (s *SmartContract) WriteSchemaToPDC(ctx contractapi.TransactionContextInter
 	}
 
 	type transientInput struct {
-		JsonSchemaContent map[string]interface{} `json:"JsonSchemaContent"`
-		SchemaId          string                 `json:"SchemaId"`
-		Project           string                 `json:"Project`
+		//JsonSchemaContent map[string]interface{} `json:"JsonSchemaContent"`
+		JsonSchemaContent string `json:"JsonSchemaContent"`
+		SchemaId          string `json:"SchemaId"`
+		Project           string `json:"Project`
 	}
 
 	// So far, we've taken what's on the transient dictionary and unmarshal it into the transientInput Struct
@@ -861,7 +862,10 @@ func (s *SmartContract) WriteSchemaToPDC(ctx contractapi.TransactionContextInter
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal JSON: %v", err)
 	}
-
+	jsonFileContent, err := s.JsonReader(ctx, assetInput.JsonSchemaContent)
+	if err != nil {
+		return err
+	}
 	// Check if Schema already exists
 	assetAsBytes, err := ctx.GetStub().GetPrivateData(PDC1, assetInput.SchemaId)
 	if err != nil {
@@ -887,7 +891,7 @@ func (s *SmartContract) WriteSchemaToPDC(ctx contractapi.TransactionContextInter
 
 	// Make submitting client the owner
 	Schema := PrivateSchemaContent{
-		JsonSchemaContent: assetInput.JsonSchemaContent,
+		JsonSchemaContent: jsonFileContent,
 		SchemaId:          assetInput.SchemaId,
 		Project:           assetInput.Project,
 	}
