@@ -35,12 +35,13 @@ const PDC1 = "PDC1"
 const PDC2 = "PDC2"
 
 type Data struct {
-	Contributor     string `json:"Contributor"`
-	ContributorId   string `json:"ContributorId"`
-	ContentHash     string `json:"ContentHash"`
-	Id              string `json:"Id"`
-	Owner           string `json:"Owners"`
-	JsonFileContent map[string]interface{}
+	OrgName     string `json:"OrgName"`
+	ProjectName string `json:"ProjectName"`
+	ContentHash string `json:"ContentHash"`
+	Comment     string `json:"Comment"`
+	Date        string `json:"Date"`
+	Submitter   string `json:Submitter`
+	JsonContent map[string]interface{}
 }
 
 type PrivateSchemaContent struct {
@@ -148,9 +149,9 @@ func main() {
 }
 */
 
-func (s *SmartContract) LastSchemaHash(ctx contractapi.TransactionContextInterface) string {
-	return lastSchemaHash
-}
+/*func (s *SmartContract) LastSchemaHash(ctx contractapi.TransactionContextInterface) string {
+return lastSchemaHash
+*/
 
 func (s *SmartContract) Hash(ctx contractapi.TransactionContextInterface, doc string) (string, error) {
 
@@ -217,20 +218,16 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 	return dataSamples, nil
 }
 
-func (s *SmartContract) SchemaExists(ctx contractapi.TransactionContextInterface, Hash string) (bool, error) {
-	assetJSON, err := ctx.GetStub().GetState(Hash)
-	if err != nil {
+func (s *SmartContract) SchemaExists(ctx contractapi.TransactionContextInterface, SchemaID string) (bool, error) {
+
+	assetJSON, err := s.ReadSchemaFromPDC(ctx, SchemaID)
+
+	if assetJSON == nil {
+		return false, fmt.Errorf("failed to read from world state. Schema doesn't exist: %v", err)
+	} else if err != nil {
 		return false, fmt.Errorf("failed to read from world state. Schema doesn't exist: %v", err)
 	} else {
-		var schema map[string]interface{}
-		err2 := json.Unmarshal(assetJSON, &schema)
-		if err2 != nil {
-			return false, fmt.Errorf("failed to read from world state: %v", err2)
-		} else if err3, ok := schema["Hash"]; ok {
-			return assetJSON != nil, nil
-		} else {
-			return false, fmt.Errorf("failed to read from world state. Hash passed as parameter may correspond to a Data struct rather than to a Schema: %v", err3)
-		}
+		return true, nil
 	}
 }
 
@@ -285,7 +282,7 @@ func (s *SmartContract) CreateNewSchema(ctx contractapi.TransactionContextInterf
 
 // GetAllSchemas returns all schemas found in world state
 
-func (s *SmartContract) GetAllSchemas(ctx contractapi.TransactionContextInterface) ([]*Schema, error) {
+/*func (s *SmartContract) GetAllSchemas(ctx contractapi.TransactionContextInterface) ([]*Schema, error) {
 	// range query with empty string for startKey and endKey does an
 	// open-ended query of all schemas in the chaincode namespace.
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
@@ -318,6 +315,7 @@ func (s *SmartContract) GetAllSchemas(ctx contractapi.TransactionContextInterfac
 
 	return schemaSamples, nil
 }
+*/
 
 // AssetExists returns true when asset with given ID exists in world state
 func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface, Hash string) (bool, error) {
@@ -329,7 +327,7 @@ func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface,
 		err2 := json.Unmarshal(assetJSON, &data)
 		if err2 != nil {
 			return false, fmt.Errorf("failed to read from world state: %v", err2)
-		} else if err3, ok := data["Id"]; ok {
+		} else if err3, ok := data["ContentHash"]; ok {
 			return assetJSON != nil, nil
 		} else {
 			return false, fmt.Errorf("failed to read from world state. Hash passed as parameter may correspond to a Schema struct rather than to a Data Struct: %v", err3)
@@ -341,20 +339,9 @@ func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface,
 
 // JSON Validation
 
-func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, JsonContent string) (bool, error) {
+func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, JsonContent string, SchemaID string) (bool, error) {
 
-	//schemaLoader := gojsonschema.NewReferenceLoader("file:///Users/fernando/Projects/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/Schema.json")
-	//documentLoader := gojsonschema.NewReferenceLoader("file:////Users/fernando/Projects/OSC-IS/fabric-samples/test-network/JsonSchemaValidationTests/testFile.json")
-
-	//schemaLoader := gojsonschema.NewReferenceLoader("file:///home/chaincode/Schema.json")
-	//documentLoader := gojsonschema.NewReferenceLoader("file:////home/chaincode/testFile.json")
-
-	// PATH Needs to be absolute path (From root '/'). Add something that takes care of that.
-
-	//m := schemas[len(schemas) - 1].JsonFileContent
-
-	CurrentSchemaHash := s.LastSchemaHash(ctx)
-	schema, _ := s.ReadSchema(ctx, CurrentSchemaHash)
+	schema, err := s.ReadSchemaFromPDC(ctx, SchemaID)
 
 	schemaLoader := gojsonschema.NewGoLoader(schema.JsonSchemaContent)
 	documentLoader := gojsonschema.NewStringLoader(JsonContent)
@@ -378,9 +365,20 @@ func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, J
 
 // CreateDataSample issues a new Data Sample to the world state with given details.
 func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInterface,
-	Contributor string, ContributorId string, Id string, Owner string, JsonFileContent string, AnonymousFunder string, AssetValue string) error {
+	OrgName string, ProjectName string, Comment string, Date string, Submitter string, JsonFileContent string, SchemaID string) error {
 
-	ContentHash, _ := s.Hash(ctx, JsonFileContent)
+	SchemaExists, err := s.SchemaExists(ctx, SchemaID)
+
+	if err != nil {
+		return err
+	}
+	if !SchemaExists {
+		return fmt.Errorf("the Schema with Id %s doesn't exists", SchemaID)
+	}
+	ContentHash, err := s.Hash(ctx, JsonFileContent)
+	if err != nil {
+		return err
+	}
 	exists, err := s.AssetExists(ctx, ContentHash)
 	if err != nil {
 		return err
@@ -389,7 +387,7 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 		return fmt.Errorf("the asset %s already exists", ContentHash)
 	}
 
-	valid, err := s.ValidJson(ctx, JsonFileContent)
+	valid, err := s.ValidJson(ctx, JsonFileContent, SchemaID)
 	if err != nil {
 		return err
 	}
@@ -401,12 +399,13 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 			return err
 		} else {
 			data := Data{
-				Contributor:     Contributor,
-				ContributorId:   ContributorId,
-				ContentHash:     ContentHash,
-				Id:              Id,
-				Owner:           Owner,
-				JsonFileContent: jsonFileContent,
+				OrgName:     OrgName,
+				ProjectName: ProjectName,
+				ContentHash: ContentHash,
+				Comment:     Comment,
+				Date:        Date,
+				Submitter:   Submitter,
+				JsonContent: jsonFileContent,
 			}
 
 			assetJSON, err := json.Marshal(data)
@@ -494,7 +493,7 @@ func (s *SmartContract) ReadUser(ctx contractapi.TransactionContextInterface, UU
 	return &user, nil
 }
 
-func (s *SmartContract) ReadSchema(ctx contractapi.TransactionContextInterface, hash string) (*Schema, error) {
+/*func (s *SmartContract) ReadSchema(ctx contractapi.TransactionContextInterface, hash string) (*Schema, error) {
 	assetJSON, err := ctx.GetStub().GetState(hash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read from world state: %v", err)
@@ -511,28 +510,9 @@ func (s *SmartContract) ReadSchema(ctx contractapi.TransactionContextInterface, 
 
 	return &schema, nil
 }
+*/
 
 // TransferAsset updates the owner field of asset with given id in world state, and returns the old owner.
-func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, Id string, newOwner string) (string, error) {
-	data, err := s.ReadAsset(ctx, Id)
-	if err != nil {
-		return "Read Asset function failed excecution", err
-	}
-
-	data.Owner = newOwner
-
-	assetJSON, err := json.Marshal(data)
-	if err != nil {
-		return "Marshal of Data not one", err
-	}
-
-	err = ctx.GetStub().PutState(Id, assetJSON)
-	if err != nil {
-		return "Unable to update asset", err
-	}
-
-	return data.Owner, nil
-}
 
 func (s *SmartContract) contains(ctx contractapi.TransactionContextInterface, st []string, str string) bool {
 	for _, v := range st {
@@ -923,13 +903,13 @@ func (s *SmartContract) ReadSchemaFromPDC(ctx contractapi.TransactionContextInte
 	log.Printf("ReadSchemaFromPDC: collection %v, ID %v", PDC1, SchemaID)
 	assetJSON, err := ctx.GetStub().GetPrivateData(PDC1, SchemaID) //get the asset from chaincode state
 	if err != nil {
-		return nil, fmt.Errorf("failed to read asset: %v", err)
+		return nil, fmt.Errorf("failed to read Schema: %v", err)
 	}
 
 	//No Asset found, return empty response
 	if assetJSON == nil {
 		log.Printf("%v does not exist in collection %v", SchemaID, PDC1)
-		return nil, nil
+		return nil, fmt.Errorf("%v does not exist in collection %v", SchemaID, PDC1)
 	}
 
 	var schema *Schema
@@ -942,7 +922,7 @@ func (s *SmartContract) ReadSchemaFromPDC(ctx contractapi.TransactionContextInte
 
 }
 
-func (s *SmartContract) GetAllPDCSchemas(ctx contractapi.TransactionContextInterface, SchemaID string) ([]*Schema, error) {
+func (s *SmartContract) GetAllPDCSchemas(ctx contractapi.TransactionContextInterface) ([]*Schema, error) {
 	log.Printf("GetAllPDCSchemas: collection %v ", PDC1)
 
 	resultsIterator, err := ctx.GetStub().GetPrivateDataByRange(PDC1, "", "")

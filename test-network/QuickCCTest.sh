@@ -212,6 +212,13 @@ echo "========= CC Query: Get all DataSamples ==========="
 
 peer chaincode query -C mychannel -n basic -c '{"Args":["GetAllAssets"]}'
 
+
+
+
+
+
+
+
 echo "========= Setting Up Network with PDC and SmartContract ==========="
 
 ./monitordocker.sh fabric_test
@@ -245,11 +252,28 @@ export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.e
 export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/owner@org1.example.com/msp
 export CORE_PEER_ADDRESS=localhost:7051
 
-export ASSET_PROPERTIES=$(echo -n "{\"SchemaId\":\"Project1.Schema1\",\"Project\":\"Project1\",\"JsonSchemaContent\":{\"type\": \"object\", \"properties\": { \"number\": { \"type\": \"number\" }, \"street_name\": { \"type\": \"string\" }, \"street_type\": { \"enum\": [\"Street\", \"Avenue\",\"Boulevard\"] }}, \"additionalProperties\": false, \"required\": [ \"number\", \"street_name\"]}}" | base64 | tr -d \\n)
+export ASSET_PROPERTIES=$(echo -n "{\"SchemaId\":\"Project1.Schema1\",\"Project\":\"Project1\",\"JsonSchemaContent\":{\"type\": \"object\", \"properties\": { \"number\": { \"type\": \"number\" }, \"street_name\": { \"type\": \"string\" }, \"street_type\": { \"enum\": [\"Street\", \"Avenue\",\"Boulevard\"] }}, \"additionalProperties\": true, \"required\": [ \"number\", \"street_name\"]}}" | base64 | tr -d \\n)
 
 
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n private -c '{"function":"WriteSchemaToPDC","Args":[]}' --transient "{\"asset_properties\":\"$ASSET_PROPERTIES\"}"
 
+export ASSET_PROPERTIES=$(echo -n "{\"SchemaId\":\"Project1.Schema2\",\"Project\":\"Project1\",\"JsonSchemaContent\":{\"type\": \"object\", \"properties\": { \"number\": { \"type\": \"number\" }, \"street_name\": { \"type\": \"string\" }, \"street_type\": { \"enum\": [\"Street\", \"Avenue\",\"Boulevard\"] }}, \"additionalProperties\": true, \"required\": [ \"number\", \"street_name\"]}}" | base64 | tr -d \\n)
+
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n private -c '{"function":"WriteSchemaToPDC","Args":[]}' --transient "{\"asset_properties\":\"$ASSET_PROPERTIES\"}"
+
+
 echo "========= CC Invoke: Reading of Schema in PDC ==========="
 
-peer chaincode query -C mychannel -n private -c '{"function":"ReadAsset","Args":["Project1.Schema1"]}'
+peer chaincode query -C mychannel -n private -c '{"function":"ReadSchemaFromPDC","Args":["Project2.Schema1"]}'
+
+peer chaincode query -C mychannel -n private -c '{"function":"ReadSchemaFromPDC","Args":["Project1.Schema2"]}'
+
+
+echo "========= CC Invoke: Reading all Schemas in PDC ==========="
+
+peer chaincode query -C mychannel -n private -c '{"function":"GetAllPDCSchemas","Args":["1"]}'
+
+echo "========= CC Invoke: Creation of DataSample ==========="
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"CreateDataSample","Args":["CIA Org", "Project 1", "Comment: Proof of live in  Mars", "13/13/13", "Project1.Schema1", "{ \"number\": 1603, \"street_name\": \"Pennsylvania\", \"street_type\": \"Avenue\"}"]}'
