@@ -68,21 +68,14 @@ networkStart() {
   ./orderer1.sh ${ORDERER_TYPE} > ./logs/orderer1.log 2>&1 &
   ./orderer2.sh ${ORDERER_TYPE} > ./logs/orderer2.log 2>&1 &
   ./orderer3.sh ${ORDERER_TYPE} > ./logs/orderer3.log 2>&1 &
-if [ "$ORDERER_TYPE" = "smartbft" ]; then
-  ./orderer4.sh ${ORDERER_TYPE} > ./logs/orderer4.log 2>&1 &
-fi
+
+  # start one additional orderer for smartbft consensus
+  if [ "$ORDERER_TYPE" = "smartbft" ]; then
+    ./orderer4.sh ${ORDERER_TYPE} > ./logs/orderer4.log 2>&1 &
+  fi
 
   echo "Waiting ${CLI_DELAY}s..."
   sleep ${CLI_DELAY}
-
-  if [ "$ORDERER_TYPE" = "smartbft" ]; then
-    ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9443
-    ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9444
-    ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9445
-    ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9446
-    echo "smartbft orderers cluster should be up now..."
-    wait
-  fi
 
   echo "Starting peers..."
   ./peer1.sh > ./logs/peer1.log 2>&1 &
@@ -94,19 +87,26 @@ fi
   sleep ${CLI_DELAY}
 
   if [ "${CREATE_CHANNEL}" = "true" ]; then
-    echo "Creating channel (peer1)..."
-    . ./peer1admin.sh && ./create_channel.sh
+    if [ "$ORDERER_TYPE" = "smartbft" ]; then
+      echo "Joining orderers to channel..."
+      ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9443
+      ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9444
+      ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9445
+      ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9446
+    else
+      echo "Creating channel (peer1)..."
+      . ./peer1admin.sh && ./create_channel.sh
 
-    echo "Joining channel (peer2)..."
-    . ./peer2admin.sh && ./join_channel.sh
+      echo "Joining channel (peer2)..."
+      . ./peer2admin.sh && ./join_channel.sh
 
-    echo "Joining channel (peer3)..."
-    . ./peer3admin.sh && ./join_channel.sh
+      echo "Joining channel (peer3)..."
+      . ./peer3admin.sh && ./join_channel.sh
 
-    echo "Joining channel (peer4)..."
-    . ./peer4admin.sh && ./join_channel.sh
+      echo "Joining channel (peer4)..."
+      . ./peer4admin.sh && ./join_channel.sh
+    fi
   fi
-
   echo "Fabric network running. Use Ctrl-C to stop."
 
   wait
@@ -141,7 +141,7 @@ while [ $# -ge 1 ] ; do
     CLI_DELAY="$2"
     shift
     ;;
-  -c )
+  -o )
     ORDERER_TYPE="$2"
     shift
     ;;
