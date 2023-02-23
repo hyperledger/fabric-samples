@@ -18,17 +18,16 @@ cryptogen generate --config="${PWD}"/crypto-config.yaml
 # set FABRIC_CFG_PATH to configtx.yaml directory that contains the profiles
 export FABRIC_CFG_PATH="${PWD}"
 
-echo "Generating orderer genesis block"
-configtxgen -profile TwoOrgsOrdererGenesis -channelID test-system-channel-name -outputBlock channel-artifacts/genesis.block
+ordererType="etcdraft"
+if [ $# -gt 0 ] && [ "$1" = "BFT" ]
+then
+    profile="BFTTwoOrgsApplicationGenesis"
+    ordererType="BFT"
+else
+    profile="TwoOrgsChannel"
+fi
 
-echo "Generating channel create config transaction"
-configtxgen -channelID mychannel -outputCreateChannelTx channel-artifacts/mychannel.tx -profile TwoOrgsChannel
+echo "Generating application channel genesis block with ${ordererType} consensus"
+configtxgen -profile ${profile} -outputBlock ./channel-artifacts/mychannel.block -channelID mychannel
 
-echo "Generating anchor peer update transaction for Org1"
-configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate channel-artifacts/Org1MSPanchors.tx -channelID mychannel -asOrg Org1MSP
 
-echo "Generating anchor peer update transaction for Org2"
-configtxgen -profile TwoOrgsChannel -outputAnchorPeersUpdate channel-artifacts/Org2MSPanchors.tx -channelID mychannel -asOrg Org2MSP
-
-echo "Generating application channel genesis block with BFT consensus"
-configtxgen -profile BFTTwoOrgsApplicationGenesis -outputBlock ./channel-artifacts/mychannel.block -channelID mychannel

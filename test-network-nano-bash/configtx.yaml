@@ -297,8 +297,7 @@ Channel: &ChannelDefaults
 #
 ################################################################################
 Profiles:
-
-    TwoOrgsOrdererGenesis:
+    TwoOrgsChannel:
         <<: *ChannelDefaults
         Orderer:
             <<: *OrdererDefaults
@@ -327,36 +326,10 @@ Profiles:
                     HeartbeatTick: 1
                     MaxInflightBlocks: 5
                     SnapshotIntervalSize: 16 MB
-        Consortiums:
-            SampleConsortium:
-                Organizations:
-                    - *Org1
-                    - *Org2
-    TwoOrgsChannel:
-        Consortium: SampleConsortium
-        <<: *ChannelDefaults
         Application:
             <<: *ApplicationDefaults
             Organizations:
                 - *Org1
-                - *Org2
-            Capabilities:
-                <<: *ApplicationCapabilities
-    Org1Channel:
-        Consortium: SampleConsortium
-        <<: *ChannelDefaults
-        Application:
-            <<: *ApplicationDefaults
-            Organizations:
-                - *Org1
-            Capabilities:
-                <<: *ApplicationCapabilities
-    Org2Channel:
-        Consortium: SampleConsortium
-        <<: *ChannelDefaults
-        Application:
-            <<: *ApplicationDefaults
-            Organizations:
                 - *Org2
             Capabilities:
                 <<: *ApplicationCapabilities
@@ -385,7 +358,7 @@ Profiles:
                 CollectTimeout: 1s
                 RequestBatchMaxBytes: 10485760
                 IncomingMessageBufferSize: 200
-                RequestPoolSize: 400
+                RequestPoolSize: 100000
                 LeaderHeartbeatCount: 10
             ConsenterMapping:
             - ID: 1

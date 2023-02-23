@@ -57,7 +57,7 @@ networkStart() {
     CREATE_CHANNEL=false
   else
     echo "Generating artifacts..."
-    ./generate_artifacts.sh
+    ./generate_artifacts.sh "${ORDERER_TYPE}"
     CREATE_CHANNEL=true
   fi
 
@@ -65,13 +65,13 @@ networkStart() {
   mkdir -p "${PWD}"/logs
 
   echo "Starting orderers..."
-  ./orderer1.sh ${ORDERER_TYPE} > ./logs/orderer1.log 2>&1 &
-  ./orderer2.sh ${ORDERER_TYPE} > ./logs/orderer2.log 2>&1 &
-  ./orderer3.sh ${ORDERER_TYPE} > ./logs/orderer3.log 2>&1 &
+  ./orderer1.sh "${ORDERER_TYPE}" > ./logs/orderer1.log 2>&1 &
+  ./orderer2.sh "${ORDERER_TYPE}" > ./logs/orderer2.log 2>&1 &
+  ./orderer3.sh "${ORDERER_TYPE}" > ./logs/orderer3.log 2>&1 &
 
-  # start one additional orderer for smartbft consensus
-  if [ "$ORDERER_TYPE" = "smartbft" ]; then
-    ./orderer4.sh ${ORDERER_TYPE} > ./logs/orderer4.log 2>&1 &
+  # start one additional orderer for BFT consensus
+  if [ "$ORDERER_TYPE" = "BFT" ]; then
+    ./orderer4.sh "${ORDERER_TYPE}" > ./logs/orderer4.log 2>&1 &
   fi
 
   echo "Waiting ${CLI_DELAY}s..."
@@ -87,25 +87,25 @@ networkStart() {
   sleep ${CLI_DELAY}
 
   if [ "${CREATE_CHANNEL}" = "true" ]; then
-    if [ "$ORDERER_TYPE" = "smartbft" ]; then
-      echo "Joining orderers to channel..."
-      ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9443
-      ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9444
-      ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9445
+    echo "Joining orderers to channel..."
+    ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9443
+    ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9444
+    ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9445
+    if [ "$ORDERER_TYPE" = "BFT" ]; then
       ../bin/osnadmin channel join --channelID mychannel --config-block ./channel-artifacts/mychannel.block -o localhost:9446
-    else
-      echo "Creating channel (peer1)..."
-      . ./peer1admin.sh && ./create_channel.sh
-
-      echo "Joining channel (peer2)..."
-      . ./peer2admin.sh && ./join_channel.sh
-
-      echo "Joining channel (peer3)..."
-      . ./peer3admin.sh && ./join_channel.sh
-
-      echo "Joining channel (peer4)..."
-      . ./peer4admin.sh && ./join_channel.sh
     fi
+
+    echo "Creating channel (peer1)..."
+    . ./peer1admin.sh && ./join_channel.sh
+
+    echo "Joining channel (peer2)..."
+    . ./peer2admin.sh && ./join_channel.sh
+
+    echo "Joining channel (peer3)..."
+    . ./peer3admin.sh && ./join_channel.sh
+
+    echo "Joining channel (peer4)..."
+    . ./peer4admin.sh && ./join_channel.sh
   fi
   echo "Fabric network running. Use Ctrl-C to stop."
 
