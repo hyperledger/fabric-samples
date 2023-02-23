@@ -1,5 +1,5 @@
 # the first stage 
-FROM gradle:jdk11-alpine AS GRADLE_BUILD
+FROM gradle:7-jdk11-alpine AS GRADLE_BUILD
 
 # copy the build.gradle and src code to the container
 COPY src/ src/
