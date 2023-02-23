@@ -5,6 +5,7 @@ echo "========= Killing Previous network and Setting up New One ==========="
 #docker rm -f $(docker ps -q)
 ./network.sh down
 ./network.sh up createChannel
+./monitordocker.sh fabric_test
 echo "========= Channel created and successfully joined ==========="
 
 cd $HOME/Projects/OSC-IS/fabric-samples/asset-transfer-basic/chaincode-go
@@ -211,11 +212,44 @@ echo "========= CC Query: Get all DataSamples ==========="
 
 peer chaincode query -C mychannel -n basic -c '{"Args":["GetAllAssets"]}'
 
+echo "========= Setting Up Network with PDC and SmartContract ==========="
 
+./monitordocker.sh fabric_test
+
+
+cd /Users/fernando/Projects/OSC-IS/fabric-samples/test-network
+./network.sh down
+./network.sh up createChannel -ca -s couchdb
+./network.sh deployCC -ccn private -ccp ../asset-transfer-private-data/chaincode-go/ -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cccg ../asset-transfer-private-data/chaincode-go/collections_config.json
+
+echo "========= Creating Identities ==========="
+
+export PATH=${PWD}/../bin:${PWD}:$PATH
+export FABRIC_CFG_PATH=$PWD/../config/
+export FABRIC_CA_CLIENT_HOME=${PWD}/organizations/peerOrganizations/org1.example.com/
+fabric-ca-client register --caname ca-org1 --id.name owner --id.secret ownerpw --id.type client --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
+fabric-ca-client enroll -u https://owner:ownerpw@localhost:7054 --caname ca-org1 -M "${PWD}/organizations/peerOrganizations/org1.example.com/users/owner@org1.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
+cp "${PWD}/organizations/peerOrganizations/org1.example.com/msp/config.yaml" "${PWD}/organizations/peerOrganizations/org1.example.com/users/owner@org1.example.com/msp/config.yaml"
+export FABRIC_CA_CLIENT_HOME=${PWD}/organizations/peerOrganizations/org2.example.com/
+fabric-ca-client register --caname ca-org2 --id.name buyer --id.secret buyerpw --id.type client --tls.certfiles "${PWD}/organizations/fabric-ca/org2/tls-cert.pem"
+fabric-ca-client enroll -u https://buyer:buyerpw@localhost:8054 --caname ca-org2 -M "${PWD}/organizations/peerOrganizations/org2.example.com/users/buyer@org2.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org2/tls-cert.pem"
+cp "${PWD}/organizations/peerOrganizations/org2.example.com/msp/config.yaml" "${PWD}/organizations/peerOrganizations/org2.example.com/users/buyer@org2.example.com/msp/config.yaml"
 
 echo "========= CC Invoke: Creation of Schema in PDC ==========="
 
-export ASSET_PROPERTIES=$(echo -n "{\"SchemaId\":\"Project1.Schema1\",\"Project\":\"Project1\",\"JsonSchemaContent\":"{\"type\": \"object\", \"properties\": { \"number\": { \"type\": \"number\" }, \"street_name\": { \"type\": \"string\" }, \"street_type\": { \"enum\": [\"Street\", \"Avenue\",\"Boulevard\"] }}, \"additionalProperties\": false, \"required\": [ \"number\", \"street_name\"]}", "{ \"number\": 1600, \"street_name\": \"Pennsylvania\", \"street_type\": \"Avenue\" }"]}"}" | base64 | tr -d \\n)
+export PATH=${PWD}/../bin:$PATH
+export FABRIC_CFG_PATH=$PWD/../config/
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/owner@org1.example.com/msp
+export CORE_PEER_ADDRESS=localhost:7051
+
+export ASSET_PROPERTIES=$(echo -n "{\"SchemaId\":\"Project1.Schema1\",\"Project\":\"Project1\",\"JsonSchemaContent\":{\"type\": \"object\", \"properties\": { \"number\": { \"type\": \"number\" }, \"street_name\": { \"type\": \"string\" }, \"street_type\": { \"enum\": [\"Street\", \"Avenue\",\"Boulevard\"] }}, \"additionalProperties\": false, \"required\": [ \"number\", \"street_name\"]}}" | base64 | tr -d \\n)
+
+
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n private -c '{"function":"WriteSchemaToPDC","Args":[]}' --transient "{\"asset_properties\":\"$ASSET_PROPERTIES\"}"
 
-'{\"type\": \"object\", \"properties\": { \"number\": { \"type\": \"number\" }, \"street_name\": { \"type\": \"string\" }, \"street_type\": { \"enum\": [\"Street\", \"Avenue\",\"Boulevard\"] }}, \"additionalProperties\": false, \"required\": [ \"number\", \"street_name\"]}", "{ \"number\": 1600, \"street_name\": \"Pennsylvania\", \"street_type\": \"Avenue\" }"]}'
+echo "========= CC Invoke: Reading of Schema in PDC ==========="
+
+peer chaincode query -C mychannel -n private -c '{"function":"ReadAsset","Args":["Project1.Schema1"]}'

@@ -50,9 +50,9 @@ type PrivateSchemaContent struct {
 }
 
 type Schema struct {
-	Version           int    `json:"Version"`
-	Hash              string `json:"Hash"`
-	JsonSchemaContent map[string]interface{}
+	JsonSchemaContent map[string]interface{} `json:"JsonSchemaContent"`
+	SchemaId          string                 `json:"SchemaId"`
+	Project           string                 `json:"Project`
 }
 
 type User struct {
@@ -82,7 +82,7 @@ func main() {
 }
 
 // InitLedger adds a base set of Data entries to the ledger
-func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, InitSchema string, InitData string) error {
+/*func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, InitSchema string, InitData string) error {
 
 	// We use the function jsonReader in order to read the content of the shcema Json File. The schema Json file is composed by us and inserted as a parameter in the invokation of the initialization function.
 	schemaJsonFileContent, error_schema := s.JsonReader(ctx, InitSchema)
@@ -146,6 +146,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface, 
 	}
 	return nil
 }
+*/
 
 func (s *SmartContract) LastSchemaHash(ctx contractapi.TransactionContextInterface) string {
 	return lastSchemaHash
@@ -233,6 +234,7 @@ func (s *SmartContract) SchemaExists(ctx contractapi.TransactionContextInterface
 	}
 }
 
+/*
 func (s *SmartContract) CreateNewSchema(ctx contractapi.TransactionContextInterface, newSchemaContent string) error {
 
 	jsonFileContent, err := s.JsonReader(ctx, newSchemaContent)
@@ -279,6 +281,7 @@ func (s *SmartContract) CreateNewSchema(ctx contractapi.TransactionContextInterf
 		return nil
 	}
 }
+*/
 
 // GetAllSchemas returns all schemas found in world state
 
@@ -912,4 +915,67 @@ func (s *SmartContract) WriteSchemaToPDC(ctx contractapi.TransactionContextInter
 	}
 
 	return nil
+}
+
+// ReadAsset reads the information from collection
+func (s *SmartContract) ReadSchemaFromPDC(ctx contractapi.TransactionContextInterface, SchemaID string) (*Schema, error) {
+
+	log.Printf("ReadSchemaFromPDC: collection %v, ID %v", PDC1, SchemaID)
+	assetJSON, err := ctx.GetStub().GetPrivateData(PDC1, SchemaID) //get the asset from chaincode state
+	if err != nil {
+		return nil, fmt.Errorf("failed to read asset: %v", err)
+	}
+
+	//No Asset found, return empty response
+	if assetJSON == nil {
+		log.Printf("%v does not exist in collection %v", SchemaID, PDC1)
+		return nil, nil
+	}
+
+	var schema *Schema
+	err = json.Unmarshal(assetJSON, &schema)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal JSON: %v", err)
+	}
+
+	return schema, nil
+
+}
+
+func (s *SmartContract) GetAllPDCSchemas(ctx contractapi.TransactionContextInterface, SchemaID string) ([]*Schema, error) {
+	log.Printf("GetAllPDCSchemas: collection %v ", PDC1)
+
+	resultsIterator, err := ctx.GetStub().GetPrivateDataByRange(PDC1, "", "")
+
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to read Schemas: %v", err)
+	}
+
+	var schemas []*Schema
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var schema map[string]interface{}
+		err = json.Unmarshal(queryResponse.Value, &schema)
+		if err != nil {
+			return nil, err
+		}
+		var schemaStruct Schema
+		err = json.Unmarshal(queryResponse.Value, &schemaStruct)
+		if err != nil {
+			return nil, err
+		} else {
+			schemas = append(schemas, &schemaStruct)
+		}
+	}
+
+	return schemas, nil
 }
