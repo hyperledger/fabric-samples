@@ -883,7 +883,6 @@ func (s *SmartContract) WriteSchemaToPDC(ctx contractapi.TransactionContextInter
 		return fmt.Errorf("CreateSchema cannot be performed: Error %v", err)
 	}
 
-	// Make submitting client the owner
 	Schema := PrivateSchemaContent{
 		JsonSchemaContent: jsonFileContent,
 		SchemaId:          assetInput.SchemaId,
@@ -1003,10 +1002,43 @@ func (s *SmartContract) writeProjectToPDC(ctx contractapi.TransactionContextInte
 	if err != nil {
 		return fmt.Errorf("failed to get Project: %v", err)
 	} else if assetAsBytes != nil {
-		fmt.Println("Project already exists: " + assetInput.SchemaId)
-		return fmt.Errorf("this Project already exists: " + assetInput.SchemaId)
+		fmt.Println("Project already exists: " + assetInput.ProjectID)
+		return fmt.Errorf("this Project already exists: " + assetInput.ProjectID)
 	}
 
+	// Get ID of submitting client identity
+	clientID, err := submittingClientIdentity(ctx)
+	if err != nil {
+		return err
+	}
 
+	// Verify that the client is submitting request to peer in their organization
+	// This is to ensure that a client from another org doesn't attempt to read or
+	// write private data from this peer.
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("CreateSchema cannot be performed: Error %v", err)
+	}
 
+	Project := PrivateProjectsContent{
+		OrgName: assetInput.OrgName,
+		ProjectName: assetInput.ProjectName,
+		//AdminGroup: ,
+		//UsersGroup: ,
+		ProjectID: assetInput.ProjectID,
+	}
+
+	assetJSONasBytes, err := json.Marshal(Project)
+	if err != nil {
+		return fmt.Errorf("failed to marshal Schema into JSON: %v", err)
+	}
+
+	log.Printf("WriteProjectToPDC Put: collection %v, ID %v, owner %v", PDC2, assetInput.ProjectID, clientID)
+
+	err = ctx.GetStub().PutPrivateData(PDC2, assetInput.ProjectID, assetJSONasBytes)
+	if err != nil {
+		return fmt.Errorf("failed to put asset into private data collection: %v", err)
+	}
+
+	return nil
 }
