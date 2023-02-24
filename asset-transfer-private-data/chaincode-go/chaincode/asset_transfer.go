@@ -50,6 +50,17 @@ type PrivateSchemaContent struct {
 	Project           string                 `json:"Project`
 }
 
+type PrivateProjectsContent struct {
+	OrgName     string `json:OrgName`
+	ProjectName string `json:ProjectName`
+	AdmninGroup []User `json:AdminGroup`
+	UsersGroup  []User `json:UsersGroup`
+	ProjectID	string `json:ProjectID`
+}
+
+
+
+// Not being persisted
 type Schema struct {
 	JsonSchemaContent map[string]interface{} `json:"JsonSchemaContent"`
 	SchemaId          string                 `json:"SchemaId"`
@@ -834,7 +845,6 @@ func (s *SmartContract) WriteSchemaToPDC(ctx contractapi.TransactionContextInter
 
 	type transientInput struct {
 		JsonSchemaContent map[string]interface{} `json:"JsonSchemaContent"`
-		//JsonSchemaContent string `json:"JsonSchemaContent"`
 		SchemaId string `json:"SchemaId"`
 		Project  string `json:"Project`
 	}
@@ -958,4 +968,45 @@ func (s *SmartContract) GetAllPDCSchemas(ctx contractapi.TransactionContextInter
 	}
 
 	return schemas, nil
+}
+
+// Could also be called "Create Project"
+func (s *SmartContract) writeProjectToPDC(ctx contractapi.TransactionContextInterface) error{
+	// Get new asset from transient map
+	transientMap, err := ctx.GetStub().GetTransient()
+	if err != nil {
+		return fmt.Errorf("error getting transient: %v", err)
+	}
+
+	// Project properties are private, therefore they get passed in transient field, instead of func args
+	transientAssetJSON, ok := transientMap["asset_properties"]
+	if !ok {
+		//log error to stdout
+		return fmt.Errorf("asset not found in the transient map input")
+	}
+
+	type transientInput struct {
+		OrgName     string `json:OrgName`
+		ProjectName string `json:ProjectName`
+		AdmninGroup []User `json:AdminGroup`
+		UsersGroup  []User `json:UsersGroup`
+		ProjectID	string `json:ProjectID`
+	}
+
+	var assetInput transientInput
+	err = json.Unmarshal(transientAssetJSON, &assetInput)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %v", err)
+	}
+
+	assetAsBytes, err := ctx.GetStub().GetPrivateData(PDC2, assetInput.ProjectID)
+	if err != nil {
+		return fmt.Errorf("failed to get Project: %v", err)
+	} else if assetAsBytes != nil {
+		fmt.Println("Project already exists: " + assetInput.SchemaId)
+		return fmt.Errorf("this Project already exists: " + assetInput.SchemaId)
+	}
+
+
+
 }

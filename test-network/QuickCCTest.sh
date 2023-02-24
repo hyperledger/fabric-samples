@@ -226,6 +226,7 @@ echo "========= Setting Up Network with PDC and SmartContract ==========="
 
 cd /Users/fernando/Projects/OSC-IS/fabric-samples/test-network
 ./network.sh down
+export PATH=$PATH:/usr/local/go/bin
 ./network.sh up createChannel -ca -s couchdb
 ./network.sh deployCC -ccn private -ccp ../asset-transfer-private-data/chaincode-go/ -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cccg ../asset-transfer-private-data/chaincode-go/collections_config.json
 
@@ -265,6 +266,8 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 
 echo "========= CC Invoke: Reading of Schema in PDC ==========="
 
+peer chaincode query -C mychannel -n private -c '{"function":"ReadSchemaFromPDC","Args":["Project1.Schema1"]}'
+
 peer chaincode query -C mychannel -n private -c '{"function":"ReadSchemaFromPDC","Args":["Project2.Schema1"]}'
 
 peer chaincode query -C mychannel -n private -c '{"function":"ReadSchemaFromPDC","Args":["Project1.Schema2"]}'
@@ -272,8 +275,8 @@ peer chaincode query -C mychannel -n private -c '{"function":"ReadSchemaFromPDC"
 
 echo "========= CC Invoke: Reading all Schemas in PDC ==========="
 
-peer chaincode query -C mychannel -n private -c '{"function":"GetAllPDCSchemas","Args":["1"]}'
+peer chaincode query -C mychannel -n private -c '{"function":"GetAllPDCSchemas","Args":[""]}'
 
 echo "========= CC Invoke: Creation of DataSample ==========="
 
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"CreateDataSample","Args":["CIA Org", "Project 1", "Comment: Proof of live in  Mars", "13/13/13", "Project1.Schema1", "{ \"number\": 1603, \"street_name\": \"Pennsylvania\", \"street_type\": \"Avenue\"}"]}'
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n private --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"CreateDataSample","Args":["CIA Org", "Project 1", "Comment: Proof of life presence in  Mars", "13/13/13", "jhon@email.com", "{ \"number\": 1603, \"street_name\": \"Pennsylvania\", \"street_type\": \"Avenue\"}", ,"Project1.Schema1"]}'
