@@ -55,10 +55,8 @@ type PrivateProjectsContent struct {
 	ProjectName string `json:ProjectName`
 	AdmninGroup []User `json:AdminGroup`
 	UsersGroup  []User `json:UsersGroup`
-	ProjectID	string `json:ProjectID`
+	ProjectID   string `json:ProjectID`
 }
-
-
 
 // Not being persisted
 type Schema struct {
@@ -353,6 +351,10 @@ func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface,
 func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, JsonContent string, SchemaID string) (bool, error) {
 
 	schema, err := s.ReadSchemaFromPDC(ctx, SchemaID)
+
+	if err != nil {
+		panic(err.Error())
+	}
 
 	schemaLoader := gojsonschema.NewGoLoader(schema.JsonSchemaContent)
 	documentLoader := gojsonschema.NewStringLoader(JsonContent)
@@ -845,8 +847,8 @@ func (s *SmartContract) WriteSchemaToPDC(ctx contractapi.TransactionContextInter
 
 	type transientInput struct {
 		JsonSchemaContent map[string]interface{} `json:"JsonSchemaContent"`
-		SchemaId string `json:"SchemaId"`
-		Project  string `json:"Project`
+		SchemaId          string                 `json:"SchemaId"`
+		Project           string                 `json:"Project`
 	}
 
 	// So far, we've taken what's on the transient dictionary and unmarshal it into the transientInput Struct
@@ -861,7 +863,13 @@ func (s *SmartContract) WriteSchemaToPDC(ctx contractapi.TransactionContextInter
 	//return err
 	//}
 	// Check if Schema already exists
-	assetAsBytes, err := ctx.GetStub().GetPrivateData(PDC1, assetInput.SchemaId)
+
+	MSP, err := shim.GetMSPID()
+	if err != nil {
+		return fmt.Errorf("failed to get MSPID: %v", err)
+	}
+	PDC := "_implicit_org_" + MSP
+	assetAsBytes, err := ctx.GetStub().GetPrivateData(PDC, assetInput.SchemaId)
 	if err != nil {
 		return fmt.Errorf("failed to get Schema: %v", err)
 	} else if assetAsBytes != nil {
@@ -896,9 +904,9 @@ func (s *SmartContract) WriteSchemaToPDC(ctx contractapi.TransactionContextInter
 	// Save asset to private data collection
 	// Typical logger, logs to stdout/file in the fabric managed docker container, running this chaincode
 	// Look for container name like dev-peer0.org1.example.com-{chaincodename_version}-xyz
-	log.Printf("WriteSchemaToPDC Put: collection %v, ID %v, owner %v", PDC1, assetInput.SchemaId, clientID)
+	log.Printf("WriteSchemaToPDC Put: collection %v, ID %v, owner %v", PDC, assetInput.SchemaId, clientID)
 
-	err = ctx.GetStub().PutPrivateData(PDC1, assetInput.SchemaId, assetJSONasBytes)
+	err = ctx.GetStub().PutPrivateData(PDC, assetInput.SchemaId, assetJSONasBytes)
 	if err != nil {
 		return fmt.Errorf("failed to put asset into private data collection: %v", err)
 	}
@@ -908,17 +916,21 @@ func (s *SmartContract) WriteSchemaToPDC(ctx contractapi.TransactionContextInter
 
 // ReadAsset reads the information from collection
 func (s *SmartContract) ReadSchemaFromPDC(ctx contractapi.TransactionContextInterface, SchemaID string) (*Schema, error) {
-
-	log.Printf("ReadSchemaFromPDC: collection %v, ID %v", PDC1, SchemaID)
-	assetJSON, err := ctx.GetStub().GetPrivateData(PDC1, SchemaID) //get the asset from chaincode state
+	MSP, err := shim.GetMSPID()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get MSPID: %v", err)
+	}
+	PDC := "_implicit_org_" + MSP
+	log.Printf("ReadSchemaFromPDC: collection %v, ID %v", PDC, SchemaID)
+	assetJSON, err := ctx.GetStub().GetPrivateData(PDC, SchemaID) //get the asset from chaincode state
 	if err != nil {
 		return nil, fmt.Errorf("failed to read Schema: %v", err)
 	}
 
 	//No Asset found, return empty response
 	if assetJSON == nil {
-		log.Printf("%v does not exist in collection %v", SchemaID, PDC1)
-		return nil, fmt.Errorf("%v does not exist in collection %v", SchemaID, PDC1)
+		log.Printf("%v does not exist in collection %v", SchemaID, PDC)
+		return nil, fmt.Errorf("%v does not exist in collection %v", SchemaID, PDC)
 	}
 
 	var schema *Schema
@@ -932,9 +944,15 @@ func (s *SmartContract) ReadSchemaFromPDC(ctx contractapi.TransactionContextInte
 }
 
 func (s *SmartContract) GetAllPDCSchemas(ctx contractapi.TransactionContextInterface) ([]*Schema, error) {
-	log.Printf("GetAllPDCSchemas: collection %v ", PDC1)
 
-	resultsIterator, err := ctx.GetStub().GetPrivateDataByRange(PDC1, "", "")
+	MSP, err := shim.GetMSPID()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get MSPID: %v", err)
+	}
+	PDC := "_implicit_org_" + MSP
+	log.Printf("GetAllPDCSchemas: collection %v ", PDC)
+
+	resultsIterator, err := ctx.GetStub().GetPrivateDataByRange(PDC, "", "")
 
 	if err != nil {
 		return nil, err
@@ -970,7 +988,7 @@ func (s *SmartContract) GetAllPDCSchemas(ctx contractapi.TransactionContextInter
 }
 
 // Could also be called "Create Project"
-func (s *SmartContract) writeProjectToPDC(ctx contractapi.TransactionContextInterface) error{
+func (s *SmartContract) writeProjectToPDC(ctx contractapi.TransactionContextInterface) error {
 	// Get new asset from transient map
 	transientMap, err := ctx.GetStub().GetTransient()
 	if err != nil {
@@ -989,7 +1007,7 @@ func (s *SmartContract) writeProjectToPDC(ctx contractapi.TransactionContextInte
 		ProjectName string `json:ProjectName`
 		AdmninGroup []User `json:AdminGroup`
 		UsersGroup  []User `json:UsersGroup`
-		ProjectID	string `json:ProjectID`
+		ProjectID   string `json:ProjectID`
 	}
 
 	var assetInput transientInput
@@ -1021,7 +1039,7 @@ func (s *SmartContract) writeProjectToPDC(ctx contractapi.TransactionContextInte
 	}
 
 	Project := PrivateProjectsContent{
-		OrgName: assetInput.OrgName,
+		OrgName:     assetInput.OrgName,
 		ProjectName: assetInput.ProjectName,
 		//AdminGroup: ,
 		//UsersGroup: ,
