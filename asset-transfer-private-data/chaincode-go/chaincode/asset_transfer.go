@@ -39,8 +39,8 @@ type Data struct {
 	ProjectName string `json:"ProjectName"`
 	ContentHash string `json:"ContentHash"`
 	Comment     string `json:"Comment"`
+	APIUserID   string `json:"APIUserID"`
 	Date        string `json:"Date"`
-	Submitter   string `json:Submitter`
 	JsonContent map[string]interface{}
 }
 
@@ -378,7 +378,7 @@ func (s *SmartContract) ValidJson(ctx contractapi.TransactionContextInterface, J
 
 // CreateDataSample issues a new Data Sample to the world state with given details.
 func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInterface,
-	OrgName string, ProjectName string, Comment string, Date string, Submitter string, JsonFileContent string, SchemaID string) error {
+	OrgName string, ProjectName string, Comment string, Date string, APIUserID string, JsonFileContent string, SchemaID string) error {
 
 	SchemaExists, err := s.SchemaExists(ctx, SchemaID)
 
@@ -417,14 +417,13 @@ func (s *SmartContract) CreateDataSample(ctx contractapi.TransactionContextInter
 				ContentHash: ContentHash,
 				Comment:     Comment,
 				Date:        Date,
-				Submitter:   Submitter,
+				APIUserID:   APIUserID,
 				JsonContent: jsonFileContent,
 			}
 
 			assetJSON, err := json.Marshal(data)
 			if err != nil {
 				return err
-
 			}
 			return ctx.GetStub().PutState(ContentHash, assetJSON)
 		}
@@ -920,6 +919,12 @@ func (s *SmartContract) ReadSchemaFromPDC(ctx contractapi.TransactionContextInte
 	if err != nil {
 		return nil, fmt.Errorf("failed to get MSPID: %v", err)
 	}
+
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("CreateSchema cannot be performed: Error %v", err)
+	}
+
 	PDC := "_implicit_org_" + MSP
 	log.Printf("ReadSchemaFromPDC: collection %v, ID %v", PDC, SchemaID)
 	assetJSON, err := ctx.GetStub().GetPrivateData(PDC, SchemaID) //get the asset from chaincode state
