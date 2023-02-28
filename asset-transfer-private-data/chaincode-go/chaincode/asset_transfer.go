@@ -213,7 +213,7 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 		err = json.Unmarshal(queryResponse.Value, &data)
 		if err != nil {
 			return nil, err
-		} else if _, ok := data["Id"]; ok {
+		} else {
 			var dataSruct Data
 			err = json.Unmarshal(queryResponse.Value, &dataSruct)
 			if err != nil {
