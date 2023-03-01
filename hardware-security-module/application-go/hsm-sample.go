@@ -77,19 +77,19 @@ func main() {
 
 func exampleTransaction(gateway *client.Gateway) {
 
-    // Override default values for chaincode and channel name as they may differ in testing contexts.
-    channelName := "mychannel"
-    if cname := os.Getenv("CHANNEL_NAME"); cname != "" {
-        channelName = cname
-    }
+	// Override default values for chaincode and channel name as they may differ in testing contexts.
+	channelName := "mychannel"
+	if cname := os.Getenv("CHANNEL_NAME"); cname != "" {
+		channelName = cname
+	}
 
-    chaincodeName := "basic"
-    if ccname := os.Getenv("CHAINCODE_NAME"); ccname != "" {
-        chaincodeName = ccname
-    }
+	chaincodeName := "basic"
+	if ccname := os.Getenv("CHAINCODE_NAME"); ccname != "" {
+		chaincodeName = ccname
+	}
 
-    network := gateway.GetNetwork(channelName)
-    contract := network.GetContract(chaincodeName)
+	network := gateway.GetNetwork(channelName)
+	contract := network.GetContract(chaincodeName)
 
 	fmt.Printf("Submit Transaction: CreateAsset, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments \n")
 
