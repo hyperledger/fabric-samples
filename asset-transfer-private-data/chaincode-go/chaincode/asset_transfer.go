@@ -549,7 +549,7 @@ func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface
 		return fmt.Errorf("the user with APIId %s already exists", APIId)
 	} else {
 		UUID, err := uuid.NewRandom()
-		fmt.Printf(UUID.String())
+		fmt.Print(UUID.String())
 		//UUID, err := "Random String", "Even a more random string"
 		//if err == "Random" {
 		if err != nil {
@@ -571,7 +571,7 @@ func (s *SmartContract) CreateUserID(ctx contractapi.TransactionContextInterface
 		if err3 != nil {
 			return fmt.Errorf("failed to create new user. %v", err3)
 		} else {
-			fmt.Print("A new User has been created with the UUID %v", UUID)
+			fmt.Printf("A new User has been created with the UUID %v", UUID)
 			return nil
 		}
 
@@ -689,7 +689,7 @@ func (s *SmartContract) CreateGroup(ctx contractapi.TransactionContextInterface,
 		return fmt.Errorf("failed to create new Group. %v", err)
 	}
 
-	fmt.Print("The Group %v has been created ", group.GroupName)
+	fmt.Printf("The Group %v has been created ", group.GroupName)
 
 	return nil
 }
