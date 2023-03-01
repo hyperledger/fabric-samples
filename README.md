@@ -23,7 +23,6 @@ Kubernetes guide, the Kube test network can be used as a platform to author and 
 applications on a development or CI workstation.
 
 
-
 ## Asset transfer samples and tutorials
 
 The asset transfer series provides a series of sample smart contracts and applications to demonstrate how to store and transfer assets using Hyperledger Fabric.
@@ -43,7 +42,6 @@ transfer an asset in a more realistic transfer scenario.
 | [Attribute-based access control](asset-transfer-abac) | Demonstrates the use of attribute and identity based access control using a simple asset transfer scenario | [README](asset-transfer-abac/README.md)  | Go | None |
 
 
-
 ## Additional samples
 
 Additional samples demonstrate various Fabric use cases and application patterns.
@@ -58,9 +56,7 @@ Additional samples demonstrate various Fabric use cases and application patterns
 | [High throughput](high-throughput) | Learn how you can design your smart contract to avoid transaction collisions in high volume environments. | [README](high-throughput/README.md) |
 | [Simple Auction](auction-simple) | Run an auction where bids are kept private until the auction is closed, after which users can reveal their bid. | [README](auction-simple/README.md) |
 | [Dutch Auction](auction-dutch) | Run an auction in which multiple items of the same type can be sold to more than one buyer. This example also includes the ability to add an auditor organization. | [README](auction-dutch/README.md) |
-| [Chaincode](chaincode) | A set of other sample smart contracts, many of which were used in tutorials prior to the asset transfer sample series. | |
-| [Interest rate swaps](interest_rate_swaps) | **Deprecated in favor of state based endorsement asset transfer sample** | |
-| [Fabcar](fabcar) | **Deprecated in favor of basic asset transfer sample** |  |
+
 
 ## License <a name="license"></a>
 
