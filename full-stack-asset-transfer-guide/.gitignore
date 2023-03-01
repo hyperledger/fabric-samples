@@ -1,0 +1,17 @@
+fabric
+_cfg
+node_modules
+*.bin
+.idea/
+_*
+*tgz
+*.tar.gz
+~*.pptx
+
+bin
+config/
+
+.DS_Store
+.idea/
+
+rook

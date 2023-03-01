@@ -1,0 +1,36 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+name: Test Network Private 🔒
+run-name: ${{ github.actor }} is running the Test Network Private tests 🔒
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main", "release-2.5" ]
+  pull_request:
+    branches: [ "main", "release-2.5" ]
+
+jobs:
+  private:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        chaincode-language:
+          - go
+        chaincode-name:
+          - private
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up the test network runtime
+        uses: ./.github/actions/test-network-setup
+
+      - name: Run Test
+        working-directory: test-network
+        run: ../ci/scripts/run-test-network-private.sh
+        env:
+          CHAINCODE_NAME: ${{ matrix.chaincode-name }}
+          CHAINCODE_LANGUAGE: ${{ matrix.chaincode-language }}
+

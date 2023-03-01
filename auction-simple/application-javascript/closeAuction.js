@@ -18,7 +18,7 @@ async function closeAuction(ccp,wallet,user,auctionID) {
 
 		const gateway = new Gateway();
 
-		//connect using Discovery enabled
+		// Connect using Discovery enabled
 		await gateway.connect(ccp,
 			{ wallet: wallet, identity: user, discovery: { enabled: true, asLocalhost: true } });
 

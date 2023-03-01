@@ -17,6 +17,8 @@ services:
     volumes:
       - ./docker/peercfg:/etc/hyperledger/peercfg
       - ${DOCKER_SOCK}:/host/var/run/docker.sock
+      - ../..:/opt/gopath/src/github.com/hyperledger/fabric-samples
+      #- ../../../config/core.yaml:/etc/hyperledger/fabric/core.yaml
 
   peer0.org2.example.com:
     container_name: peer0.org2.example.com
@@ -30,6 +32,8 @@ services:
     volumes:
       - ./docker/peercfg:/etc/hyperledger/peercfg
       - ${DOCKER_SOCK}:/host/var/run/docker.sock
+      - ../..:/opt/gopath/src/github.com/hyperledger/fabric-samples
+      #- ../../../config/core.yaml:/etc/hyperledger/fabric/core.yaml
   
   cli:
     container_name: cli

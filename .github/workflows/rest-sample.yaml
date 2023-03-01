@@ -1,0 +1,43 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+name: REST Sample 🐧
+run-name: ${{ github.actor }} is testing the REST Sample 🐧
+
+env:
+  NODE_VER: 16.x
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main", "release-2.5" ]
+    paths: [ "asset-transfer-basic/rest-api-typescript/**" ]
+  pull_request:
+    branches: [ "main", "release-2.5" ]
+    paths: [ "asset-transfer-basic/rest-api-typescript/**" ]
+
+jobs:
+  test-sample:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VER }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install REST Sample Dependencies
+        working-directory: asset-transfer-basic/rest-api-typescript
+        run: npm install
+
+      - name: Build REST Sample Application
+        run: npm run build
+        working-directory: asset-transfer-basic/rest-api-typescript
+
+      - name: Test REST Sample Application
+        run: npm test
+        working-directory: asset-transfer-basic/rest-api-typescript

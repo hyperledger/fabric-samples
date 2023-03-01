@@ -1,0 +1,66 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+name: Kubernetes Test Network 🍒
+run-name: ${{ github.actor }} is testing the Kubernetes Test Network 🍒
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main", "release-2.5" ]
+  pull_request:
+    branches: [ "main", "release-2.5" ]
+
+jobs:
+  ccaas-java:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Test the network
+        working-directory: test-network-k8s
+        run: ../ci/scripts/run-k8s-test-network-basic.sh
+        env:
+          CLIENT_LANGUAGE: typescript
+          CHAINCODE_LANGUAGE: java
+
+  ccaas-external:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Test the network
+        working-directory: test-network-k8s
+        run: ../ci/scripts/run-k8s-test-network-basic.sh
+        env:
+          CLIENT_LANGUAGE: typescript
+          CHAINCODE_LANGUAGE: external
+
+  k8s-builder:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Test the network
+        working-directory: test-network-k8s
+        run: ../ci/scripts/run-k8s-test-network-basic.sh
+        env:
+          CHAINCODE_NAME: basic
+          CHAINCODE_LANGUAGE: java
+          CHAINCODE_BUILDER: k8s
+
+  multi-namespace:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Test the network
+        working-directory: test-network-k8s
+        run: ../ci/scripts/run-k8s-test-network-basic.sh
+        env:
+          ORG0_NS: org0-namespace
+          ORG1_NS: org1-namespace
+          ORG2_NS: org2-namespace
+          CHAINCODE_NAME: basic
+          CHAINCODE_LANGUAGE: java
+          CHAINCODE_BUILDER: k8s

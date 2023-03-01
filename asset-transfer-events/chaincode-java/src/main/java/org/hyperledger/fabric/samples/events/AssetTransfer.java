@@ -79,7 +79,7 @@ public final class AssetTransfer implements ContractInterface {
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public Asset CreateAsset(final Context ctx, final String assetID, final String color, final int size, final String owner, final int appraisedValue) {
         ChaincodeStub stub = ctx.getStub();
-        //input validations
+        // input validations
         String errorMessage = null;
         if (assetID == null || assetID.equals("")) {
             errorMessage = String.format("Empty input: assetID");
@@ -167,7 +167,7 @@ public final class AssetTransfer implements ContractInterface {
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public Asset UpdateAsset(final Context ctx, final String assetID, final String color, final int size, final String owner, final int appraisedValue) {
         ChaincodeStub stub = ctx.getStub();
-        //input validations
+        // input validations
         String errorMessage = null;
         if (assetID == null || assetID.equals("")) {
             errorMessage = String.format("Empty input: assetID");
@@ -217,7 +217,7 @@ public final class AssetTransfer implements ContractInterface {
         // delete private details of asset
         removePrivateData(ctx, assetID);
         stub.delState(assetID);         // delete the key from Statedb
-        stub.setEvent("DeleteAsset", asset.serialize()); //publish Event
+        stub.setEvent("DeleteAsset", asset.serialize()); // publish Event
     }
 
     private Asset getState(final Context ctx, final String assetID) {
@@ -241,7 +241,7 @@ public final class AssetTransfer implements ContractInterface {
         String clientMSPID = ctx.getClientIdentity().getMSPID();
         String implicitCollectionName = getCollectionName(ctx);
         String privData = null;
-        //only if ClientOrgMatchesPeerOrg
+        // only if ClientOrgMatchesPeerOrg
         if (peerMSPID.equals(clientMSPID)) {
             System.out.printf(" ReadPrivateData from collection %s, ID %s\n", implicitCollectionName, assetKey);
             byte[] propJSON = ctx.getStub().getPrivateData(implicitCollectionName, assetKey);

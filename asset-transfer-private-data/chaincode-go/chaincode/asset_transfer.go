@@ -86,8 +86,16 @@ func main() {
 		log.Panicf("Error creating artifact chaincode: %v", err)
 	}
 
+
 	if err := aChaincode.Start(); err != nil {
 		log.Panicf("Error starting artifact chaincode: %v", err)
+
+	// Asset properties are private, therefore they get passed in transient field, instead of func args
+	transientAssetJSON, ok := transientMap["asset_properties"]
+	if !ok {
+		// log error to stdout
+		return fmt.Errorf("asset not found in the transient map input")
+
 	}
 }
 
@@ -810,6 +818,228 @@ func submittingClientIdentity(ctx contractapi.TransactionContextInterface) (stri
 	}
 	return string(decodeID), nil
 }
+
+
+// DeleteAsset can be used by the owner of the asset to delete the asset
+func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface) error {
+
+	transientMap, err := ctx.GetStub().GetTransient()
+	if err != nil {
+		return fmt.Errorf("Error getting transient: %v", err)
+	}
+
+	// Asset properties are private, therefore they get passed in transient field
+	transientDeleteJSON, ok := transientMap["asset_delete"]
+	if !ok {
+		return fmt.Errorf("asset to delete not found in the transient map")
+	}
+
+	type assetDelete struct {
+		ID string `json:"assetID"`
+	}
+
+	var assetDeleteInput assetDelete
+	err = json.Unmarshal(transientDeleteJSON, &assetDeleteInput)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %v", err)
+	}
+
+	if len(assetDeleteInput.ID) == 0 {
+		return fmt.Errorf("assetID field must be a non-empty string")
+	}
+
+	// Verify that the client is submitting request to peer in their organization
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("DeleteAsset cannot be performed: Error %v", err)
+	}
+
+	log.Printf("Deleting Asset: %v", assetDeleteInput.ID)
+	valAsbytes, err := ctx.GetStub().GetPrivateData(assetCollection, assetDeleteInput.ID) //get the asset from chaincode state
+	if err != nil {
+		return fmt.Errorf("failed to read asset: %v", err)
+	}
+	if valAsbytes == nil {
+		return fmt.Errorf("asset not found: %v", assetDeleteInput.ID)
+	}
+
+	ownerCollection, err := getCollectionName(ctx) // Get owners collection
+	if err != nil {
+		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+	}
+
+	// Check the asset is in the caller org's private collection
+	valAsbytes, err = ctx.GetStub().GetPrivateData(ownerCollection, assetDeleteInput.ID)
+	if err != nil {
+		return fmt.Errorf("failed to read asset from owner's Collection: %v", err)
+	}
+	if valAsbytes == nil {
+		return fmt.Errorf("asset not found in owner's private Collection %v: %v", ownerCollection, assetDeleteInput.ID)
+	}
+
+	// delete the asset from state
+	err = ctx.GetStub().DelPrivateData(assetCollection, assetDeleteInput.ID)
+	if err != nil {
+		return fmt.Errorf("failed to delete state: %v", err)
+	}
+
+	// Finally, delete private details of asset
+	err = ctx.GetStub().DelPrivateData(ownerCollection, assetDeleteInput.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+// PurgeAsset can be used by the owner of the asset to delete the asset
+// Trigger removal of the asset
+func (s *SmartContract) PurgeAsset(ctx contractapi.TransactionContextInterface) error {
+
+	transientMap, err := ctx.GetStub().GetTransient()
+	if err != nil {
+		return fmt.Errorf("Error getting transient: %v", err)
+	}
+
+	// Asset properties are private, therefore they get passed in transient field
+	transientDeleteJSON, ok := transientMap["asset_purge"]
+	if !ok {
+		return fmt.Errorf("asset to purge not found in the transient map")
+	}
+
+	type assetPurge struct {
+		ID string `json:"assetID"`
+	}
+
+	var assetPurgeInput assetPurge
+	err = json.Unmarshal(transientDeleteJSON, &assetPurgeInput)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %v", err)
+	}
+
+	if len(assetPurgeInput.ID) == 0 {
+		return fmt.Errorf("assetID field must be a non-empty string")
+	}
+
+	// Verify that the client is submitting request to peer in their organization
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("PurgeAsset cannot be performed: Error %v", err)
+	}
+
+	log.Printf("Purging Asset: %v", assetPurgeInput.ID)
+
+	// Note that there is no check here to see if the id exist; it might have been 'deleted' already
+	// so a check here is pointless. We would need to call purge irrespective of the result
+	// A delete can be called before purge, but is not essential
+
+	ownerCollection, err := getCollectionName(ctx) // Get owners collection
+	if err != nil {
+		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+	}
+
+	// delete the asset from state
+	err = ctx.GetStub().PurgePrivateData(assetCollection, assetPurgeInput.ID)
+	if err != nil {
+		return fmt.Errorf("failed to purge state from asset collection: %v", err)
+	}
+
+	// Finally, delete private details of asset
+	err = ctx.GetStub().PurgePrivateData(ownerCollection, assetPurgeInput.ID)
+	if err != nil {
+		return fmt.Errorf("failed to purge state from owner collection: %v", err)
+	}
+
+	return nil
+
+}
+
+// DeleteTranferAgreement can be used by the buyer to withdraw a proposal from
+// the asset collection and from his own collection.
+func (s *SmartContract) DeleteTranferAgreement(ctx contractapi.TransactionContextInterface) error {
+
+	transientMap, err := ctx.GetStub().GetTransient()
+	if err != nil {
+		return fmt.Errorf("error getting transient: %v", err)
+	}
+
+	// Asset properties are private, therefore they get passed in transient field
+	transientDeleteJSON, ok := transientMap["agreement_delete"]
+	if !ok {
+		return fmt.Errorf("asset to delete not found in the transient map")
+	}
+
+	type assetDelete struct {
+		ID string `json:"assetID"`
+	}
+
+	var assetDeleteInput assetDelete
+	err = json.Unmarshal(transientDeleteJSON, &assetDeleteInput)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %v", err)
+	}
+
+	if len(assetDeleteInput.ID) == 0 {
+		return fmt.Errorf("transient input ID field must be a non-empty string")
+	}
+
+	// Verify that the client is submitting request to peer in their organization
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("DeleteTranferAgreement cannot be performed: Error %v", err)
+	}
+	// Delete private details of agreement
+	orgCollection, err := getCollectionName(ctx) // Get proposers collection.
+	if err != nil {
+		return fmt.Errorf("failed to infer private collection name for the org: %v", err)
+	}
+	tranferAgreeKey, err := ctx.GetStub().CreateCompositeKey(transferAgreementObjectType, []string{assetDeleteInput.
+		ID}) // Create composite key
+	if err != nil {
+		return fmt.Errorf("failed to create composite key: %v", err)
+	}
+
+	valAsbytes, err := ctx.GetStub().GetPrivateData(assetCollection, tranferAgreeKey) //get the transfer_agreement
+	if err != nil {
+		return fmt.Errorf("failed to read transfer_agreement: %v", err)
+	}
+	if valAsbytes == nil {
+		return fmt.Errorf("asset's transfer_agreement does not exist: %v", assetDeleteInput.ID)
+	}
+
+	log.Printf("Deleting TranferAgreement: %v", assetDeleteInput.ID)
+	err = ctx.GetStub().DelPrivateData(orgCollection, assetDeleteInput.ID) // Delete the asset
+	if err != nil {
+		return err
+	}
+
+	// Delete transfer agreement record
+	err = ctx.GetStub().DelPrivateData(assetCollection, tranferAgreeKey) // remove agreement from state
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+// getCollectionName is an internal helper function to get collection of submitting client identity.
+func getCollectionName(ctx contractapi.TransactionContextInterface) (string, error) {
+
+	// Get the MSP ID of submitting client identity
+	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
+	if err != nil {
+		return "", fmt.Errorf("failed to get verified MSPID: %v", err)
+	}
+
+	// Create the collection name
+	orgCollection := clientMSPID + "PrivateCollection"
+
+	return orgCollection, nil
+}
+
+// verifyClientOrgMatchesPeerOrg is an internal function used verify client org id and matches peer org id.
 
 func verifyClientOrgMatchesPeerOrg(ctx contractapi.TransactionContextInterface) error {
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()

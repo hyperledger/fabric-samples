@@ -87,7 +87,7 @@ public final class AssetTransfer implements ContractInterface {
         }
 
         Asset asset = new Asset(assetID, color, size, owner, appraisedValue);
-        //Use Genson to convert the Asset into string, sort it alphabetically and serialize it into a json string
+        // Use Genson to convert the Asset into string, sort it alphabetically and serialize it into a json string
         String sortedJson = genson.serialize(asset);
         stub.putStringState(assetID, sortedJson);
 
@@ -139,7 +139,7 @@ public final class AssetTransfer implements ContractInterface {
         }
 
         Asset newAsset = new Asset(assetID, color, size, owner, appraisedValue);
-        //Use Genson to convert the Asset into string, sort it alphabetically and serialize it into a json string
+        // Use Genson to convert the Asset into string, sort it alphabetically and serialize it into a json string
         String sortedJson = genson.serialize(newAsset);
         stub.putStringState(assetID, sortedJson);
         return newAsset;
@@ -201,7 +201,7 @@ public final class AssetTransfer implements ContractInterface {
         Asset asset = genson.deserialize(assetJSON, Asset.class);
 
         Asset newAsset = new Asset(asset.getAssetID(), asset.getColor(), asset.getSize(), newOwner, asset.getAppraisedValue());
-        //Use a Genson to conver the Asset into string, sort it alphabetically and serialize it into a json string
+        // Use a Genson to conver the Asset into string, sort it alphabetically and serialize it into a json string
         String sortedJson = genson.serialize(newAsset);
         stub.putStringState(assetID, sortedJson);
 

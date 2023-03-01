@@ -1,0 +1,39 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+# The type of K8S cluster this is using
+target: ${cluster_type}
+
+# If the target cluster is OpenShift use this value for target
+# target: openshift
+
+# If the target cluster is any other k8s use this value for target
+# target: k8s
+
+
+
+arch: amd64
+
+# k8s namespace for the operator and console
+namespace: ${namespace}
+
+# used if this is openshift
+project: ${namespace}
+
+# Console name/domain
+console_name: hlf-console
+console: hlf-console
+console_domain: ${ingress_domain}
+
+#  default configuration for the console
+# password reset will be required on first login
+console_email: admin
+console_default_password: password
+
+# different k8s clusters will be shipped with differently named default storage providers
+# or none at all.  KIND for example has one called 'standard'
+console_storage_class: ${storage_class}
+
+
+container_cli: podman

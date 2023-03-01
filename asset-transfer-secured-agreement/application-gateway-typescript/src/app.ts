@@ -13,7 +13,7 @@ import { RED, RESET } from './utils';
 const channelName = 'mychannel';
 const chaincodeName = 'secured';
 
-//Use a random key so that we can run multiple times
+// Use a random key so that we can run multiple times
 const now = Date.now().toString();
 let assetKey: string;
 

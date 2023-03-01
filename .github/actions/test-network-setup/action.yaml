@@ -1,0 +1,57 @@
+name: Set up Test Network Runner
+description: Set up the Test Network Runtime
+inputs:
+  go-version:
+    description: Version of go
+    default: 1.18.3
+  node-version:
+    description: Version of node
+    default: 16.x
+  java-version:
+    description: Version of JDK
+    default: 11.x
+  fabric-version:
+    description: Version of Hyperledger Fabric
+    default: 2.5.0-alpha3
+  ca-version:
+    description: Version of Hyperledger Fabric CA
+    default: 1.5.6-beta3
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-go@v3
+      with:
+        go-version: ${{ inputs.go-version }}
+        cache: true
+        cache-dependency-path: '**/go.sum'
+
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
+
+    - uses: actions/setup-java@v3
+      with:
+        distribution: temurin
+        java-version: ${{ inputs.java-version }}
+        cache: gradle
+
+    - name: Install fabric CLI
+      shell: bash
+      run: |
+        curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh \
+          | bash -s -- binary --fabric-version ${{ inputs.fabric-version }} --ca-version ${{ inputs.ca-version }}
+        echo ${PWD}/bin >> $GITHUB_PATH
+
+    - name: Pull Fabric Docker Images
+      shell: bash
+      run: |
+        curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh \
+          | bash -s -- docker --fabric-version ${{ inputs.fabric-version }} --ca-version ${{ inputs.ca-version }}
+
+    - name: Install retry CLI
+      shell: bash
+      run: curl -sSL https://raw.githubusercontent.com/kadwanev/retry/master/retry -o ./bin/retry && chmod +x ./bin/retry
+

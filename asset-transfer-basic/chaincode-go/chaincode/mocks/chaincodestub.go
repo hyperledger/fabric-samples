@@ -4,9 +4,9 @@ package mocks
 import (
 	"sync"
 
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type ChaincodeStub struct {
@@ -388,16 +388,16 @@ type ChaincodeStub struct {
 	getTxIDReturnsOnCall map[int]struct {
 		result1 string
 	}
-	GetTxTimestampStub        func() (*timestamp.Timestamp, error)
+	GetTxTimestampStub        func() (*timestamppb.Timestamp, error)
 	getTxTimestampMutex       sync.RWMutex
 	getTxTimestampArgsForCall []struct {
 	}
 	getTxTimestampReturns struct {
-		result1 *timestamp.Timestamp
+		result1 *timestamppb.Timestamp
 		result2 error
 	}
 	getTxTimestampReturnsOnCall map[int]struct {
-		result1 *timestamp.Timestamp
+		result1 *timestamppb.Timestamp
 		result2 error
 	}
 	InvokeChaincodeStub        func(string, [][]byte, string) peer.Response
@@ -412,6 +412,18 @@ type ChaincodeStub struct {
 	}
 	invokeChaincodeReturnsOnCall map[int]struct {
 		result1 peer.Response
+	}
+	PurgePrivateDataStub        func(string, string) error
+	purgePrivateDataMutex       sync.RWMutex
+	purgePrivateDataArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	purgePrivateDataReturns struct {
+		result1 error
+	}
+	purgePrivateDataReturnsOnCall map[int]struct {
+		result1 error
 	}
 	PutPrivateDataStub        func(string, string, []byte) error
 	putPrivateDataMutex       sync.RWMutex
@@ -2261,7 +2273,7 @@ func (fake *ChaincodeStub) GetTxIDReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *ChaincodeStub) GetTxTimestamp() (*timestamp.Timestamp, error) {
+func (fake *ChaincodeStub) GetTxTimestamp() (*timestamppb.Timestamp, error) {
 	fake.getTxTimestampMutex.Lock()
 	ret, specificReturn := fake.getTxTimestampReturnsOnCall[len(fake.getTxTimestampArgsForCall)]
 	fake.getTxTimestampArgsForCall = append(fake.getTxTimestampArgsForCall, struct {
@@ -2284,34 +2296,34 @@ func (fake *ChaincodeStub) GetTxTimestampCallCount() int {
 	return len(fake.getTxTimestampArgsForCall)
 }
 
-func (fake *ChaincodeStub) GetTxTimestampCalls(stub func() (*timestamp.Timestamp, error)) {
+func (fake *ChaincodeStub) GetTxTimestampCalls(stub func() (*timestamppb.Timestamp, error)) {
 	fake.getTxTimestampMutex.Lock()
 	defer fake.getTxTimestampMutex.Unlock()
 	fake.GetTxTimestampStub = stub
 }
 
-func (fake *ChaincodeStub) GetTxTimestampReturns(result1 *timestamp.Timestamp, result2 error) {
+func (fake *ChaincodeStub) GetTxTimestampReturns(result1 *timestamppb.Timestamp, result2 error) {
 	fake.getTxTimestampMutex.Lock()
 	defer fake.getTxTimestampMutex.Unlock()
 	fake.GetTxTimestampStub = nil
 	fake.getTxTimestampReturns = struct {
-		result1 *timestamp.Timestamp
+		result1 *timestamppb.Timestamp
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *ChaincodeStub) GetTxTimestampReturnsOnCall(i int, result1 *timestamp.Timestamp, result2 error) {
+func (fake *ChaincodeStub) GetTxTimestampReturnsOnCall(i int, result1 *timestamppb.Timestamp, result2 error) {
 	fake.getTxTimestampMutex.Lock()
 	defer fake.getTxTimestampMutex.Unlock()
 	fake.GetTxTimestampStub = nil
 	if fake.getTxTimestampReturnsOnCall == nil {
 		fake.getTxTimestampReturnsOnCall = make(map[int]struct {
-			result1 *timestamp.Timestamp
+			result1 *timestamppb.Timestamp
 			result2 error
 		})
 	}
 	fake.getTxTimestampReturnsOnCall[i] = struct {
-		result1 *timestamp.Timestamp
+		result1 *timestamppb.Timestamp
 		result2 error
 	}{result1, result2}
 }
@@ -2380,6 +2392,67 @@ func (fake *ChaincodeStub) InvokeChaincodeReturnsOnCall(i int, result1 peer.Resp
 	}
 	fake.invokeChaincodeReturnsOnCall[i] = struct {
 		result1 peer.Response
+	}{result1}
+}
+
+func (fake *ChaincodeStub) PurgePrivateData(arg1 string, arg2 string) error {
+	fake.purgePrivateDataMutex.Lock()
+	ret, specificReturn := fake.purgePrivateDataReturnsOnCall[len(fake.purgePrivateDataArgsForCall)]
+	fake.purgePrivateDataArgsForCall = append(fake.purgePrivateDataArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("PurgePrivateData", []interface{}{arg1, arg2})
+	fake.purgePrivateDataMutex.Unlock()
+	if fake.PurgePrivateDataStub != nil {
+		return fake.PurgePrivateDataStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.purgePrivateDataReturns
+	return fakeReturns.result1
+}
+
+func (fake *ChaincodeStub) PurgePrivateDataCallCount() int {
+	fake.purgePrivateDataMutex.RLock()
+	defer fake.purgePrivateDataMutex.RUnlock()
+	return len(fake.purgePrivateDataArgsForCall)
+}
+
+func (fake *ChaincodeStub) PurgePrivateDataCalls(stub func(string, string) error) {
+	fake.purgePrivateDataMutex.Lock()
+	defer fake.purgePrivateDataMutex.Unlock()
+	fake.PurgePrivateDataStub = stub
+}
+
+func (fake *ChaincodeStub) PurgePrivateDataArgsForCall(i int) (string, string) {
+	fake.purgePrivateDataMutex.RLock()
+	defer fake.purgePrivateDataMutex.RUnlock()
+	argsForCall := fake.purgePrivateDataArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *ChaincodeStub) PurgePrivateDataReturns(result1 error) {
+	fake.purgePrivateDataMutex.Lock()
+	defer fake.purgePrivateDataMutex.Unlock()
+	fake.PurgePrivateDataStub = nil
+	fake.purgePrivateDataReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *ChaincodeStub) PurgePrivateDataReturnsOnCall(i int, result1 error) {
+	fake.purgePrivateDataMutex.Lock()
+	defer fake.purgePrivateDataMutex.Unlock()
+	fake.PurgePrivateDataStub = nil
+	if fake.purgePrivateDataReturnsOnCall == nil {
+		fake.purgePrivateDataReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.purgePrivateDataReturnsOnCall[i] = struct {
+		result1 error
 	}{result1}
 }
 
@@ -2846,6 +2919,8 @@ func (fake *ChaincodeStub) Invocations() map[string][][]interface{} {
 	defer fake.getTxTimestampMutex.RUnlock()
 	fake.invokeChaincodeMutex.RLock()
 	defer fake.invokeChaincodeMutex.RUnlock()
+	fake.purgePrivateDataMutex.RLock()
+	defer fake.purgePrivateDataMutex.RUnlock()
 	fake.putPrivateDataMutex.RLock()
 	defer fake.putPrivateDataMutex.RUnlock()
 	fake.putStateMutex.RLock()
