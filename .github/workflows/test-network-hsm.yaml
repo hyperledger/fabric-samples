@@ -1,0 +1,44 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+name: Test Network HSM 🍏
+run-name: ${{ github.actor }} is running the Test Network HSM tests 🍏
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main", "release-2.5" ]
+  pull_request:
+    branches: [ "main", "release-2.5" ]
+
+jobs:
+  hsm:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        chaincode-language:
+          - go
+          - javascript
+          - typescript
+          - java
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up the test network runtime
+        uses: ./.github/actions/test-network-setup
+
+      - name: Install SoftHSM
+        run: sudo apt install -y softhsm2
+
+      - name: Set up SoftHSM
+        run: |
+          echo directories.tokendir = /tmp > $HOME/softhsm2.conf
+          export SOFTHSM2_CONF=$HOME/softhsm2.conf
+          softhsm2-util --init-token --slot 0 --label "ForFabric" --pin 98765432 --so-pin 1234
+
+      - name: Run Test Network HSM
+        working-directory: test-network
+        env:
+          CHAINCODE_LANGUAGE: ${{ matrix.chaincode-language }}
+        run: ../ci/scripts/run-test-network-hsm.sh

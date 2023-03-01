@@ -7,8 +7,10 @@
 package parser;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import org.hyperledger.fabric.client.identity.Identity;
 import org.hyperledger.fabric.protos.common.ChannelHeader;
 import org.hyperledger.fabric.protos.common.Payload;
+import org.hyperledger.fabric.protos.msp.SerializedIdentity;
 import org.hyperledger.fabric.protos.peer.TxValidationCode;
 
 import java.util.ArrayList;
@@ -30,8 +32,20 @@ final class ParsedTransaction implements Transaction {
     }
 
     @Override
-    public byte[] getCreator() throws InvalidProtocolBufferException {
-        return payload.getSignatureHeader().getCreator().toByteArray();
+    public Identity getCreator() throws InvalidProtocolBufferException {
+        var creator = SerializedIdentity.parseFrom(payload.getSignatureHeader().getCreator());
+
+        return new Identity() {
+            @Override
+            public String getMspId() {
+                return creator.getMspid();
+            }
+
+            @Override
+            public byte[] getCredentials() {
+                return creator.getIdBytes().toByteArray();
+            }
+        };
     }
 
     @Override

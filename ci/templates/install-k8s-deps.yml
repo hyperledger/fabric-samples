@@ -1,9 +1,0 @@
-#
-# SPDX-License-Identifier: Apache-2.0
-#
-
-steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: $(NODE_VER)
-    displayName: Install Node.js

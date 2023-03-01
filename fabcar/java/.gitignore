@@ -1,7 +1,0 @@
-/bin/
-/target/
-.settings/
-.classpath
-.project
-wallet
-!wallet/.gitkeep

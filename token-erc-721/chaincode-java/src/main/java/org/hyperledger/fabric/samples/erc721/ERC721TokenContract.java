@@ -54,7 +54,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public long BalanceOf(final Context ctx, final String owner) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     final ChaincodeStub stub = ctx.getStub();
     final CompositeKey balanceKey =
@@ -78,7 +78,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String OwnerOf(final Context ctx, final String tokenId) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     final NFT nft = this._readNft(ctx, tokenId);
     if (stringIsNullOrEmpty(nft.getOwner())) {
@@ -98,7 +98,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public boolean IsApprovedForAll(final Context ctx, final String owner, final String operator) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     final ChaincodeStub stub = ctx.getStub();
     final CompositeKey approvalKey =
@@ -122,7 +122,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void Approve(final Context ctx, final String operator, final String tokenId) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     final ChaincodeStub stub = ctx.getStub();
     final String sender = ctx.getClientIdentity().getId();
@@ -152,7 +152,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void SetApprovalForAll(final Context ctx, final String operator, final boolean approved) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     final String sender = ctx.getClientIdentity().getId();
     final ChaincodeStub stub = ctx.getStub();
@@ -173,7 +173,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String GetApproved(final Context ctx, final String tokenId) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     final NFT nft = this._readNft(ctx, tokenId);
     return nft.getApproved();
@@ -190,7 +190,7 @@ public class ERC721TokenContract implements ContractInterface {
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void TransferFrom(
       final Context ctx, final String from, final String to, final String tokenId) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     final String sender = ctx.getClientIdentity().getId();
     final ChaincodeStub stub = ctx.getStub();
@@ -249,7 +249,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String Name(final Context ctx) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     return ctx.getStub().getStringState(ContractConstants.NAMEKEY.getValue());
   }
@@ -262,7 +262,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String Symbol(final Context ctx) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     return ctx.getStub().getStringState(ContractConstants.SYMBOLKEY.getValue());
   }
@@ -276,7 +276,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String TokenURI(final Context ctx, final String tokenId) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     final NFT nft = this._readNft(ctx, tokenId);
     return nft.getTokenURI();
@@ -295,7 +295,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public long TotalSupply(final Context ctx) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     final ChaincodeStub stub = ctx.getStub();
     final CompositeKey nftKey = stub.createCompositeKey(ContractConstants.NFT.getValue());
@@ -331,7 +331,7 @@ public class ERC721TokenContract implements ContractInterface {
           "Client is not authorized to initialize the contract (set the name and symbol of the token)");
     }
 
-    //check contract options are not already set, client is not authorized to change them once intitialized
+    // Check contract options are not already set, client is not authorized to change them once intitialized
     String tokenName = stub.getStringState(ContractConstants.NAMEKEY.getValue());
     if (!stringIsNullOrEmpty(tokenName)) {
       throw new ChaincodeException("contract options are already set, client is not authorized to change them");
@@ -351,7 +351,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public NFT MintWithTokenURI(final Context ctx, final String tokenId, final String tokenURI) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     final String clientMSPID = ctx.getClientIdentity().getMSPID();
     final ChaincodeStub stub = ctx.getStub();
@@ -392,7 +392,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.SUBMIT)
   public void Burn(final Context ctx, final String tokenId) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     final ChaincodeStub stub = ctx.getStub();
     final String owner = ctx.getClientIdentity().getId();
@@ -424,7 +424,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public long ClientAccountBalance(final Context ctx) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     return this.BalanceOf(ctx, ctx.getClientIdentity().getId());
   }
@@ -439,7 +439,7 @@ public class ERC721TokenContract implements ContractInterface {
    */
   @Transaction(intent = Transaction.TYPE.EVALUATE)
   public String ClientAccountID(final Context ctx) {
-    //check contract options are already set first to execute the function
+    // Check contract options are already set first to execute the function
     this.checkInitialized(ctx);
     return ctx.getClientIdentity().getId();
   }

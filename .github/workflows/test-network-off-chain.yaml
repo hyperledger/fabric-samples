@@ -1,0 +1,35 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+name: Test Network Off Chain 🍔
+run-name: ${{ github.actor }} is running the Test Network Off Chain tests 🍔
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main", "release-2.5" ]
+  pull_request:
+    branches: [ "main", "release-2.5" ]
+
+jobs:
+  off-chain:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        chaincode-language:
+          - go
+          - javascript
+          - typescript
+          - java
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up the test network runtime
+        uses: ./.github/actions/test-network-setup
+
+      - name: Run Test Network Off Chain
+        working-directory: test-network
+        env:
+          CHAINCODE_LANGUAGE: ${{ matrix.chaincode-language }}
+        run: ../ci/scripts/run-test-network-off-chain.sh

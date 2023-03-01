@@ -1,0 +1,79 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+- name: Create the channel
+  hosts: localhost
+  vars:
+    wallet: "/_cfg"  
+  vars_files:
+    - /_cfg/fabric-common-vars.yml
+    - /_cfg/fabric-org1-vars.yml
+  tasks:
+    - name: Check to see if the channel already exists
+      ibm.blockchain_platform.channel_block:
+        api_endpoint: "{{ api_endpoint }}"
+        api_authtype: "{{ api_authtype }}"
+        api_key: "{{ api_key }}"
+        api_secret: "{{ api_secret | default(omit) }}"
+        api_token_endpoint: "{{ api_token_endpoint | default(omit) }}"
+        operation: fetch
+        ordering_service: "{{ ordering_service_name }}"
+        identity: "{{ wallet }}/{{ org1_name }} Admin.json"
+        msp_id: "{{ org1_msp_id }}"
+        name: "{{ channel_name }}"
+        target: "0"
+        path: channel_genesis_block.bin
+      failed_when: False
+      register: result
+
+    - name: Fail on any error other than the channel not existing
+      fail:
+        msg: "{{ result.msg }}"
+      when: result.msg is defined and 'NOT_FOUND' not in result.msg
+
+    - name: Create the configuration update for the new channel
+      ibm.blockchain_platform.channel_config:
+        api_endpoint: "{{ api_endpoint }}"
+        api_authtype: "{{ api_authtype }}"
+        api_key: "{{ api_key }}"
+        api_secret: "{{ api_secret | default(omit) }}"
+        api_token_endpoint: "{{ api_token_endpoint | default(omit) }}"
+        operation: create
+        name: "{{ channel_name }}"
+        path: config_update.bin
+        organizations:
+          - "{{ org1_name }}"
+        policies:
+          Admins: "{{ lookup('template', '09-admins-policy.json.j2') }}"
+          Readers: "{{ lookup('template', '09-readers-policy.json.j2') }}"
+          Writers: "{{ lookup('template', '09-writers-policy.json.j2') }}"
+          Endorsement: "{{ lookup('template', '09-endorsement-policy.json.j2') }}"
+          LifecycleEndorsement: "{{ lookup('template', '09-lifecycle-endorsement-policy.json.j2') }}"
+        capabilities:
+          application: V2_0
+      when: result.msg is defined and 'NOT_FOUND' in result.msg
+
+    - name: Sign the channel configuration update for the new channel
+      ibm.blockchain_platform.channel_config:
+        operation: sign_update
+        identity: "{{ wallet }}/{{ org1_name }} Admin.json"
+        msp_id: "{{ org1_msp_id }}"
+        name: "{{ channel_name }}"
+        path: config_update.bin
+      when: result.msg is defined and 'NOT_FOUND' in result.msg
+
+    - name: Apply the channel configuration update for the new channel
+      ibm.blockchain_platform.channel_config:
+        api_endpoint: "{{ api_endpoint }}"
+        api_authtype: "{{ api_authtype }}"
+        api_key: "{{ api_key }}"
+        api_secret: "{{ api_secret | default(omit) }}"
+        api_token_endpoint: "{{ api_token_endpoint | default(omit) }}"
+        operation: apply_update
+        ordering_service: "{{ ordering_service_name }}"
+        identity: "{{ wallet }}/{{ org1_name }} Admin.json"
+        msp_id: "{{ org1_msp_id }}"
+        name: "{{ channel_name }}"
+        path: config_update.bin
+      when: result.msg is defined and 'NOT_FOUND' in result.msg

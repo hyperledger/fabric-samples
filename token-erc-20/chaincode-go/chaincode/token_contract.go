@@ -37,10 +37,10 @@ type event struct {
 // This function triggers a Transfer event
 func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount int) error {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -135,10 +135,10 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 // This function triggers a Transfer event
 func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount int) error {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -231,10 +231,10 @@ func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount
 // This function triggers a Transfer event
 func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, recipient string, amount int) error {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -268,10 +268,10 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, re
 // BalanceOf returns the balance of the given account
 func (s *SmartContract) BalanceOf(ctx contractapi.TransactionContextInterface, account string) (int, error) {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return 0, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -293,10 +293,10 @@ func (s *SmartContract) BalanceOf(ctx contractapi.TransactionContextInterface, a
 // ClientAccountBalance returns the balance of the requesting client's account
 func (s *SmartContract) ClientAccountBalance(ctx contractapi.TransactionContextInterface) (int, error) {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return 0, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -326,10 +326,10 @@ func (s *SmartContract) ClientAccountBalance(ctx contractapi.TransactionContextI
 // Users can use this function to get their own account id, which they can then give to others as the payment address
 func (s *SmartContract) ClientAccountID(ctx contractapi.TransactionContextInterface) (string, error) {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -347,10 +347,10 @@ func (s *SmartContract) ClientAccountID(ctx contractapi.TransactionContextInterf
 // TotalSupply returns the total token supply
 func (s *SmartContract) TotalSupply(ctx contractapi.TransactionContextInterface) (int, error) {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return 0, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -381,10 +381,10 @@ func (s *SmartContract) TotalSupply(ctx contractapi.TransactionContextInterface)
 // This function triggers an Approval event
 func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, spender string, value int) error {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -427,10 +427,10 @@ func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, spe
 // Allowance returns the amount still available for the spender to withdraw from the owner
 func (s *SmartContract) Allowance(ctx contractapi.TransactionContextInterface, owner string, spender string) (int, error) {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return 0, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -466,10 +466,10 @@ func (s *SmartContract) Allowance(ctx contractapi.TransactionContextInterface, o
 // This function triggers a Transfer event
 func (s *SmartContract) TransferFrom(ctx contractapi.TransactionContextInterface, from string, to string, value int) error {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -539,10 +539,10 @@ func (s *SmartContract) TransferFrom(ctx contractapi.TransactionContextInterface
 
 func (s *SmartContract) Name(ctx contractapi.TransactionContextInterface) (string, error) {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -561,10 +561,10 @@ func (s *SmartContract) Name(ctx contractapi.TransactionContextInterface) (strin
 
 func (s *SmartContract) Symbol(ctx contractapi.TransactionContextInterface) (string, error) {
 
-	//check if contract has been intilized first
+	// Check if contract has been intilized first
 	initialized, err := checkInitialized(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if contract ia already initialized: %v", err)
+		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
 		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
@@ -593,7 +593,7 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 		return false, fmt.Errorf("client is not authorized to initialize contract")
 	}
 
-	//check contract options are not already set, client is not authorized to change them once intitialized
+	// Check contract options are not already set, client is not authorized to change them once intitialized
 	bytes, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {
 		return false, fmt.Errorf("failed to get Name: %v", err)
@@ -702,7 +702,7 @@ func add(b int, q int) (int, error) {
 	return sum, nil
 }
 
-//Checks that contract options have been already initialized
+// Checks that contract options have been already initialized
 func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error) {
 	tokenName, err := ctx.GetStub().GetState(nameKey)
 	if err != nil {

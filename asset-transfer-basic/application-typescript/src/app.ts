@@ -47,11 +47,10 @@ const org1UserId = 'appUser';
 */
 // Delete the /fabric-samples/asset-transfer-basic/application-typescript/wallet directory
 // and retry this application.
-//
+
 // The certificate authority must have been restarted and the saved certificates for the
 // admin and application user are not valid. Deleting the wallet store will force these to be reset
 // with the new certificate authority.
-//
 
 /**
  *  A test application to show basic queries operations with any of the asset-transfer-basic chaincodes

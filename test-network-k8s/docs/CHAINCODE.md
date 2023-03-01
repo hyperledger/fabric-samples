@@ -148,7 +148,7 @@ $ ./network chaincode query asset-transfer-basic '{"Args":["ReadAsset","1"]}' | 
 
 ### Describe 
 ```shell
-$ ./network chaincode metadata asset-transfer-basic | jq | head 
+$ ./network chaincode metadata asset-transfer-basic | awk "NR==3,NR==3 {print}" | jq | head
 {
   "info": {
     "title": "undefined",

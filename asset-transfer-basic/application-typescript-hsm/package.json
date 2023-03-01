@@ -24,6 +24,7 @@
         "fabric-network": "^2.2.8"
     },
     "devDependencies": {
+        "@types/node": "^12.20.55",
         "tslint": "^5.11.0",
         "typescript": "^3.1.6"
     },

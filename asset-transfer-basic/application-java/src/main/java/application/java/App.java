@@ -64,7 +64,7 @@ public class App {
 
 			System.out.println("\n");
 			System.out.println("Submit Transaction: CreateAsset asset13");
-			//CreateAsset creates an asset with ID asset13, color yellow, owner Tom, size 5 and appraisedValue of 1300
+			// CreateAsset creates an asset with ID asset13, color yellow, owner Tom, size 5 and appraisedValue of 1300
 			contract.submitTransaction("CreateAsset", "asset13", "yellow", "5", "Tom", "1300");
 
 			System.out.println("\n");
@@ -92,7 +92,7 @@ public class App {
 			try {
 				System.out.println("\n");
 				System.out.println("Submit Transaction: UpdateAsset asset70");
-				//Non existing asset asset70 should throw Error
+				// Non existing asset asset70 should throw Error
 				contract.submitTransaction("UpdateAsset", "asset70", "blue", "5", "Tomoko", "300");
 			} catch (Exception e) {
 				System.err.println("Expected an error on UpdateAsset of non-existing Asset: " + e);

@@ -171,7 +171,7 @@ spec:
         paths:
           - backend:
               service:
-                name: org2-peer1
+                name: org2-peer-gateway-svc
                 port:
                   name: grpc
             path: /

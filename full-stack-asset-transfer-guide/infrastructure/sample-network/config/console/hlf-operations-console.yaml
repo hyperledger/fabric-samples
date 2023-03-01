@@ -1,0 +1,80 @@
+---
+apiVersion: ibp.com/v1beta1
+kind: IBPConsole
+metadata:
+  name: hlf-console
+spec:
+  arch:
+    - amd64
+  license:
+    accept: true
+  serviceAccountName: default
+  email: "${CONSOLE_USERNAME}"
+  password: "${CONSOLE_PASSWORD}"
+  allowDefaultPassword: true
+  # registryURL: ghcr.io/ibm-blockchain
+  imagePullSecrets:
+    - ghcr-pull-secret
+  images:
+    consoleInitImage: ${INIT_IMAGE}
+    consoleInitTag: ${INIT_IMAGE_LABEL}
+    consoleImage: ${CONSOLE_IMAGE}
+    consoleTag: ${CONSOLE_IMAGE_LABEL}
+    deployerImage: ${DEPLOYER_IMAGE}
+    deployerTag: ${DEPLOYER_IMAGE_LABEL}
+    configtxlatorImage: ${TOOLS_IMAGE}
+    configtxlatorTag: ${TOOLS_IMAGE_LABEL}
+    couchdbImage: ${COUCHDB_IMAGE}
+    couchdbTag: ${COUCHDB_IMAGE_LABEL}
+  networkinfo:
+    domain: "${CONSOLE_DOMAIN}"
+  storage:
+    console:
+      class: "${STORAGE_CLASS}"
+      size: 5Gi
+  usetags: true
+  version: 1.0.0
+  resources:
+    init:
+      limits:
+        cpu: 100m
+        memory: 200M
+      requests:
+        cpu: 10m
+        memory: 20M
+    configtxlator:
+      limits:
+        cpu: 25m
+        ephemeral-storage: 1G
+        memory: 50Mi
+      requests:
+        cpu: 25m
+        ephemeral-storage: 100M
+        memory: 50Mi
+    couchdb:
+      limits:
+        cpu: 500m
+        ephemeral-storage: 1Gi
+        memory: 1000Mi
+      requests:
+        cpu: 50m
+        ephemeral-storage: 100Mi
+        memory: 128Mi
+    deployer:
+      limits:
+        cpu: 100m
+        ephemeral-storage: 1G
+        memory: 200Mi
+      requests:
+        cpu: 100m
+        ephemeral-storage: 100M
+        memory: 128Mi
+    console:
+      limits:
+        cpu: 500m
+        ephemeral-storage: 1G
+        memory: 1000Mi
+      requests:
+        cpu: 50m
+        ephemeral-storage: 100M
+        memory: 128Mi

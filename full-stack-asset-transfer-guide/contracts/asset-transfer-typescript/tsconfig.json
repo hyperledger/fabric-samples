@@ -1,0 +1,19 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "@tsconfig/node16/tsconfig.json",
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "outDir": "dist",
+        "declaration": true,
+        "sourceMap": true,
+        "noUnusedLocals": true,
+        "noImplicitReturns": true
+    },
+    "include": [
+        "./src/**/*"
+    ],
+    "exclude": [
+        "./src/**/*.spec.ts"
+    ]
+}

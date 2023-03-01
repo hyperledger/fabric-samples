@@ -64,9 +64,7 @@ function cluster_init() {
   
   if [ "${STAGE_DOCKER_IMAGES}" == true ]; then
     pull_docker_images
-    load_docker_images
-    pull_docker_images_for_rest_sample
-    load_docker_images_for_rest_sample
+    kind_load_docker_images
   fi
 }
 

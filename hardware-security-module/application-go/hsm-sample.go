@@ -21,7 +21,6 @@ import (
 
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"time"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
@@ -53,7 +52,7 @@ func main() {
 	}
 	defer hsmSignerFactory.Dispose()
 
-	certificatePEM, err := ioutil.ReadFile(certPath)
+	certificatePEM, err := os.ReadFile(certPath)
 	if err != nil {
 		panic(err)
 	}
@@ -77,8 +76,20 @@ func main() {
 }
 
 func exampleTransaction(gateway *client.Gateway) {
-	network := gateway.GetNetwork("mychannel")
-	contract := network.GetContract("basic")
+
+    // Override default values for chaincode and channel name as they may differ in testing contexts.
+    channelName := "mychannel"
+    if cname := os.Getenv("CHANNEL_NAME"); cname != "" {
+        channelName = cname
+    }
+
+    chaincodeName := "basic"
+    if ccname := os.Getenv("CHAINCODE_NAME"); ccname != "" {
+        chaincodeName = ccname
+    }
+
+    network := gateway.GetNetwork(channelName)
+    contract := network.GetContract(chaincodeName)
 
 	fmt.Printf("Submit Transaction: CreateAsset, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments \n")
 
@@ -150,7 +161,7 @@ func newHSMSign(h *identity.HSMSignerFactory, certPEM []byte) (identity.Sign, id
 }
 
 func loadCertificate(filename string) (*x509.Certificate, error) {
-	certificatePEM, err := ioutil.ReadFile(filename) //#nosec G304
+	certificatePEM, err := os.ReadFile(filename) //#nosec G304
 	if err != nil {
 		return nil, err
 	}
