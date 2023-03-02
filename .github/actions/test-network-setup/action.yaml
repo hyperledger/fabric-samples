@@ -3,7 +3,7 @@ description: Set up the Test Network Runtime
 inputs:
   go-version:
     description: Version of go
-    default: 1.18.3
+    default: 1.19.6
   node-version:
     description: Version of node
     default: 16.x
@@ -54,4 +54,3 @@ runs:
     - name: Install retry CLI
       shell: bash
       run: curl -sSL https://raw.githubusercontent.com/kadwanev/retry/master/retry -o ./bin/retry && chmod +x ./bin/retry
-
