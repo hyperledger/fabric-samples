@@ -76,7 +76,7 @@ nginx:
     #!/bin/bash
     kubectl apply -k https://github.com/hyperledger-labs/fabric-operator.git/config/ingress/{{ cluster_runtime }}
 
-    sleep 10
+    sleep 20
 
     kubectl wait --namespace ingress-nginx \
       --for=condition=ready pod \
@@ -333,7 +333,7 @@ ansible-ingress:
     set -ex -o pipefail
 
     export EXTRAS=""
-    if [ -f "/_cfg/k8s_context.yaml" ]; then    
+    if [ -f "/_cfg/k8s_context.yaml" ]; then
         export EXTRAS=" -e KUBECONFIG=/_cfg/k8s_context.yaml"
     fi
 
@@ -355,7 +355,7 @@ ansible-operator:
     set -ex -o pipefail
 
     export EXTRAS=""
-    if [ -f "/_cfg/k8s_context.yaml" ]; then    
+    if [ -f "/_cfg/k8s_context.yaml" ]; then
         export EXTRAS=" -e KUBECONFIG=/_cfg/k8s_context.yaml"
     fi
 
@@ -374,7 +374,7 @@ ansible-console:
     set -ex -o pipefail
 
     export EXTRAS=""
-    if [ -f "/_cfg/k8s_context.yaml" ]; then    
+    if [ -f "/_cfg/k8s_context.yaml" ]; then
         export EXTRAS=" -e KUBECONFIG=/_cfg/k8s_context.yaml"
     fi
 
@@ -411,7 +411,7 @@ ansible-network: ansible-auth
     set -ex -o pipefail
 
     export EXTRAS=""
-    if [ -f "/_cfg/k8s_context.yaml" ]; then    
+    if [ -f "/_cfg/k8s_context.yaml" ]; then
         export EXTRAS=" -e KUBECONFIG=/_cfg/k8s_context.yaml"
     fi
 
@@ -450,7 +450,7 @@ ansible-build-chaincode:
 
     # note the double { } for escaping
     export IMG_SHA=$(docker inspect --format='{{{{index .RepoDigests 0}}' {{external_repo_endpoint}}/${IMAGE_NAME} | cut -d'@' -f2)
-    weft chaincode package k8s --name {{internal_repo_endpoint}}/${IMAGE_NAME} --digest ${IMG_SHA} --label {{chaincode_name}} 
+    weft chaincode package k8s --name {{internal_repo_endpoint}}/${IMAGE_NAME} --digest ${IMG_SHA} --label {{chaincode_name}}
     mv {{chaincode_name}}.tgz ${CWDIR}/_cfg
     popd
 
@@ -461,7 +461,7 @@ ansible-deploy-chaincode:
     set -ex -o pipefail
 
     export EXTRAS=""
-    if [ -f "/_cfg/k8s_context.yaml" ]; then    
+    if [ -f "/_cfg/k8s_context.yaml" ]; then
         export EXTRAS=" -e KUBECONFIG=/_cfg/k8s_context.yaml"
     fi
 
@@ -502,7 +502,7 @@ ansible-ready-application:
     set -ex -o pipefail
 
     export EXTRAS=""
-    if [ -f "/_cfg/k8s_context.yaml" ]; then    
+    if [ -f "/_cfg/k8s_context.yaml" ]; then
         export EXTRAS=" -e KUBECONFIG=/_cfg/k8s_context.yaml"
     fi
 

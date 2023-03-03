@@ -37,7 +37,7 @@ createNetwork
 
 # Run Go application
 print "Initializing Go application"
-export CHAINCODE_NAME=basic_go
+export CHAINCODE_NAME=basic_${CHAINCODE_LANGUAGE}_for_go_app
 deployChaincode
 pushd ../asset-transfer-basic/application-go
 print "Executing AssetTransfer.go"
@@ -46,7 +46,7 @@ popd
 
 # Run Java application
 print "Initializing Java application"
-export CHAINCODE_NAME=basic_java
+export CHAINCODE_NAME=basic_${CHAINCODE_LANGUAGE}_for_java_app
 deployChaincode
 pushd ../asset-transfer-basic/application-java
 print "Executing Gradle Run"
@@ -55,7 +55,7 @@ popd
 
 # Run Javascript application
 print "Initializing Javascript application"
-export CHAINCODE_NAME=basic_javascript
+export CHAINCODE_NAME=basic_${CHAINCODE_LANGUAGE}_for_javascript_app
 deployChaincode
 pushd ../asset-transfer-basic/application-javascript
 npm install
@@ -65,7 +65,7 @@ popd
 
 # Run typescript application
 print "Initializing Typescript application"
-export CHAINCODE_NAME=basic_typescript
+export CHAINCODE_NAME=basic_${CHAINCODE_LANGUAGE}_for_typescript_app
 deployChaincode
 pushd ../asset-transfer-basic/application-typescript
 npm install
