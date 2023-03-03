@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// Running TestApp: 
-// gradle runApp 
+// Running TestApp:
+// gradle runApp
 
 package application.java;
 
@@ -110,6 +110,7 @@ public class App {
 		}
 		catch(Exception e){
 			System.err.println(e);
+			System.exit(1);
 		}
 
 	}
