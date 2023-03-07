@@ -12,7 +12,7 @@ on:
     branches: [ "main", "release-2.5" ]
 
 env:
-  GO_VER: 1.18.3
+  GO_VER: 1.19.6
   NODE_VER: 16.x
   JAVA_VER: 11.x
 
