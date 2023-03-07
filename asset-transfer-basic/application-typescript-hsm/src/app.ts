@@ -53,13 +53,13 @@ const transactionsToSend: TransactionToSendFormat[] = [
     {
         request: 'submit',
         txName: 'CreateAsset',
-        txArgs: ['asset13', 'yellow', '5', 'Tom', '1300'],
+        txArgs: ['asset513', 'yellow', '5', 'Tom', '1300'],
         description: '\n--> Submit Transaction: CreateAsset, creates new asset with ID, color, owner, size, and appraisedValue arguments',
     },
     {
         request: 'evaluate',
         txName: 'ReadAsset',
-        txArgs: ['asset13'],
+        txArgs: ['asset513'],
         description: '\n--> Evaluate Transaction: ReadAsset, function returns an asset with a given assetID',
     },
     {

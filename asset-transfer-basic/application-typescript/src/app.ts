@@ -8,11 +8,12 @@ import * as path from 'path';
 import { buildCCPOrg1, buildWallet, prettyJSONString } from './utils//AppUtil';
 import { buildCAClient, enrollAdmin, registerAndEnrollUser } from './utils/CAUtil';
 
-const channelName = 'mychannel';
-const chaincodeName = 'basic';
+const channelName = process.env.CHANNEL_NAME || 'mychannel';
+const chaincodeName = process.env.CHAINCODE_NAME || 'basic';
+
 const mspOrg1 = 'Org1MSP';
 const walletPath = path.join(__dirname, 'wallet');
-const org1UserId = 'appUser';
+const org1UserId = 'typescriptAppUser';
 
 // pre-requisites:
 // - fabric-sample two organization test-network setup with two peers, ordering service,
@@ -121,11 +122,11 @@ async function main() {
             // This will be sent to both peers and if both peers endorse the transaction, the endorsed proposal will be sent
             // to the orderer to be committed by each of the peer's to the channel ledger.
             console.log('\n--> Submit Transaction: CreateAsset, creates new asset with ID, color, owner, size, and appraisedValue arguments');
-            await contract.submitTransaction('CreateAsset', 'asset13', 'yellow', '5', 'Tom', '1300');
+            await contract.submitTransaction('CreateAsset', 'asset413', 'yellow', '5', 'Tom', '1300');
             console.log('*** Result: committed');
 
             console.log('\n--> Evaluate Transaction: ReadAsset, function returns an asset with a given assetID');
-            result = await contract.evaluateTransaction('ReadAsset', 'asset13');
+            result = await contract.evaluateTransaction('ReadAsset', 'asset413');
             console.log(`*** Result: ${prettyJSONString(result.toString())}`);
 
             console.log('\n--> Evaluate Transaction: AssetExists, function returns "true" if an asset with given assetID exist');
@@ -164,6 +165,7 @@ async function main() {
         }
     } catch (error) {
         console.error(`******** FAILED to run the application: ${error}`);
+        process.exit(1);
     }
 }
 
