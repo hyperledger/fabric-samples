@@ -90,6 +90,19 @@ function checkPrereqs() {
     fi
   done
 
+  ## check for cfssl binaries
+  if [ "$CRYPTO" == "cfssl" ]; then
+  
+    cfssl version > /dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+      errorln "cfssl binary not found.."
+      errorln
+      errorln "Follow the instructions to install the cfssl and cfssljson binaries:"
+      errorln "https://github.com/cloudflare/cfssl#installation"
+      exit 1
+    fi
+  fi
+
   ## Check for fabric-ca
   if [ "$CRYPTO" == "Certificate Authorities" ]; then
 
@@ -181,6 +194,26 @@ function createOrgs() {
     fi
 
   fi
+
+  # Create crypto material using cfssl
+  if [ "$CRYPTO" == "cfssl" ]; then
+
+    . organizations/cfssl/registerEnroll.sh
+    #function_name cert-type   CN   org
+    peer_cert peer peer0.org1.example.com org1
+    peer_cert admin Admin@org1.example.com org1
+
+    infoln "Creating Org2 Identities"
+    #function_name cert-type   CN   org
+    peer_cert peer peer0.org2.example.com org2
+    peer_cert admin Admin@org2.example.com org2
+
+    infoln "Creating Orderer Org Identities"
+    #function_name cert-type   CN   
+    orderer_cert orderer orderer.example.com
+    orderer_cert admin Admin@example.com
+
+  fi 
 
   # Create crypto material using Fabric CA
   if [ "$CRYPTO" == "Certificate Authorities" ]; then
@@ -451,6 +484,9 @@ while [[ $# -ge 1 ]] ; do
     ;;
   -ca )
     CRYPTO="Certificate Authorities"
+    ;;
+  -cfssl )
+    CRYPTO="cfssl"
     ;;
   -r )
     MAX_RETRY="$2"
