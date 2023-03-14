@@ -22,7 +22,7 @@ const utf8Decoder = new TextDecoder();
 
 const certPath = path.resolve(__dirname, '..', '..', 'crypto-material', 'hsm', user, 'signcerts', 'cert.pem');
 
-const tlsCertPath = path.resolve('..', '..', 'test-network','organizations','peerOrganizations', 'org1.example.com', 'peers', 'peer0.org1.example.com', 'tls', 'ca.crt');
+const tlsCertPath = path.resolve(__dirname, '..', '..', '..', 'test-network','organizations','peerOrganizations', 'org1.example.com', 'peers', 'peer0.org1.example.com', 'tls', 'ca.crt');
 const peerEndpoint = 'localhost:7051';
 
 async function main() {
@@ -55,16 +55,15 @@ async function main() {
     } finally {
         gateway?.close();
         client?.close();
-        hsmSignerFactory?.dispose();
-        // close the HSM Signer
         hsmSigner?.close();
+        hsmSignerFactory?.dispose();
     }
 }
 
 async function exampleTransaction(gateway: Gateway):Promise<void> {
 
     const channelName = envOrDefault('CHANNEL_NAME', 'mychannel');
-    const chaincodeName = envOrDefault('CHAINCODE_NAME', 'default-basic');
+    const chaincodeName = envOrDefault('CHAINCODE_NAME', 'basic');
 
     const network = gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
@@ -122,6 +121,7 @@ function findSoftHSMPKCS11Lib(): string {
         '/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so',
         '/usr/local/lib/softhsm/libsofthsm2.so',
         '/usr/lib/libacsp-pkcs11.so',
+        '/opt/homebrew/lib/softhsm/libsofthsm2.so'
     ];
     const pkcs11lib = process.env['PKCS11_LIB'];
     if (pkcs11lib) {
