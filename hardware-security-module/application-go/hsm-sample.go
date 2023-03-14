@@ -190,6 +190,7 @@ func findSoftHSMLibrary() string {
 		"/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so",
 		"/usr/local/lib/softhsm/libsofthsm2.so",
 		"/usr/lib/libacsp-pkcs11.so",
+		"/opt/homebrew/lib/softhsm/libsofthsm2.so",
 	}
 	pkcs11lib := os.Getenv("PKCS11_LIB")
 	if pkcs11lib != "" {
