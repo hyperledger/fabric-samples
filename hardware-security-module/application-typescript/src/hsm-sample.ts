@@ -165,4 +165,7 @@ function envOrDefault(key: string, defaultValue: string): string {
     return process.env[key] || defaultValue;
 }
 
-main().catch(console.error);
+main().catch(error => {
+    console.error('******** FAILED to run the application:', error);
+    process.exitCode = 1;
+});
