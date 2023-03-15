@@ -58,6 +58,6 @@ CAADMIN="admin"
 CAADMIN_PW="adminpw"
 HSMUSER=$1
 
-SOFTHSM2_CONF=$HSM2_CONF fabric-ca-client enroll -c $CLIENT_CONFIG -u https://$CAADMIN:$CAADMIN_PW@$CA_URL --mspdir "$CRYPTO_PATH"/$CAADMIN --csr.hosts example.com --tls.certfiles "${TLS_CERT}"
+SOFTHSM2_CONF=$HSM2_CONF fabric-ca-client enroll -c $CLIENT_CONFIG -u https://$CAADMIN:$CAADMIN_PW@$CA_URL --mspdir "$CRYPTO_PATH"/$CAADMIN --tls.certfiles "${TLS_CERT}"
 ! SOFTHSM2_CONF=$HSM2_CONF fabric-ca-client register -c $CLIENT_CONFIG --mspdir "$CRYPTO_PATH"/$CAADMIN --id.name "$HSMUSER" --id.secret "$HSMUSER" --id.type client --caname ca-org1 --id.maxenrollments 0 -m example.com -u https://$CA_URL --tls.certfiles "${TLS_CERT}" && echo user probably already registered, continuing
-SOFTHSM2_CONF=$HSM2_CONF  fabric-ca-client enroll -c $CLIENT_CONFIG -u https://"$HSMUSER":"$HSMUSER"@$CA_URL --mspdir "$CRYPTO_PATH"/"$HSMUSER" --csr.hosts example.com --tls.certfiles "${TLS_CERT}"
+SOFTHSM2_CONF=$HSM2_CONF  fabric-ca-client enroll -c $CLIENT_CONFIG -u https://"$HSMUSER":"$HSMUSER"@$CA_URL --mspdir "$CRYPTO_PATH"/"$HSMUSER" --tls.certfiles "${TLS_CERT}"
