@@ -28,7 +28,7 @@ jobs:
       - name: Set up the test network runtime
         uses: ./.github/actions/test-network-setup
 
-      - name: Run Test Network Off Chain
+      - name: Run Test
         working-directory: test-network
         env:
           CHAINCODE_LANGUAGE: ${{ matrix.chaincode-language }}
