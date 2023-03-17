@@ -30,6 +30,9 @@ function stopNetwork() {
   ./network.sh down
 }
 
+# print all executed commands to assist with debug in CI environment
+set -x
+
 # Set up one test network to run each test scenario.
 # Each test will create an independent scope by installing a new chaincode contract to the channel.
 createNetwork
@@ -77,3 +80,5 @@ popd
 
 
 stopNetwork
+
+{ set +x; } 2>/dev/null
