@@ -5,7 +5,7 @@
  */
 
 import * as grpc from '@grpc/grpc-js';
-import { connect, Contract, Identity, Signer, signers } from '@hyperledger/fabric-gateway';
+import { connect, Contract, GrpcClient, Identity, Signer, signers } from '@hyperledger/fabric-gateway';
 import * as crypto from 'crypto';
 import { promises as fs } from 'fs';
 import * as path from 'path';
@@ -41,7 +41,7 @@ async function main(): Promise<void> {
     await displayInputParameters();
 
     // The gRPC client connection should be shared by all Gateway connections to this endpoint.
-    const client = await newGrpcConnection();
+    const client = await <GrpcClient> <unknown>newGrpcConnection();
 
     const gateway = connect({
         client,
