@@ -11,6 +11,10 @@ on:
   pull_request:
     branches: [ "main", "release-2.5" ]
 
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 env:
   GO_VER: 1.19.6
   NODE_VER: 16.x
