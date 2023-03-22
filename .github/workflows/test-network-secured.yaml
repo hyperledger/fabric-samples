@@ -11,6 +11,10 @@ on:
   pull_request:
     branches: [ "main", "release-2.5" ]
 
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   secured:
     runs-on: ubuntu-20.04
@@ -33,4 +37,3 @@ jobs:
         env:
           CHAINCODE_NAME: ${{ matrix.chaincode-name }}
           CHAINCODE_LANGUAGE: ${{ matrix.chaincode-language }}
-

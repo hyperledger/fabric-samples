@@ -11,6 +11,10 @@ on:
   pull_request:
     branches: [ "main", "release-2.5" ]
 
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   ccaas-java:
     runs-on: ubuntu-20.04

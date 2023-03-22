@@ -8,6 +8,10 @@ on:
       - "main"
       - "release-2.5"
 
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   ansible:
     runs-on: ubuntu-20.04
@@ -53,5 +57,3 @@ jobs:
         uses: ./.github/actions/fsat-setup
       - run: just test-console
         working-directory: full-stack-asset-transfer-guide
-
-
