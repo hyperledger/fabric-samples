@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   test-sample:
-    runs-on: ubuntu-20.04
+    runs-on: fabric-ubuntu-20.04
 
     steps:
       - name: Checkout
