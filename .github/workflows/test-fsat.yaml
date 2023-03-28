@@ -8,9 +8,13 @@ on:
       - "main"
       - "release-2.5"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ansible:
-    runs-on: ubuntu-20.04
+    runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v3
       - name: Set up Full Stack Runtime
@@ -19,7 +23,7 @@ jobs:
         working-directory: full-stack-asset-transfer-guide
 
   appdev:
-    runs-on: ubuntu-20.04
+    runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v3
       - name: Set up Full Stack Runtime
@@ -28,7 +32,7 @@ jobs:
         working-directory: full-stack-asset-transfer-guide
 
   chaincode:
-    runs-on: ubuntu-20.04
+    runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v3
       - name: Set up Full Stack Runtime
@@ -37,7 +41,7 @@ jobs:
         working-directory: full-stack-asset-transfer-guide
 
   cloud:
-    runs-on: ubuntu-20.04
+    runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v3
       - name: Set up Full Stack Runtime
@@ -46,7 +50,7 @@ jobs:
         working-directory: full-stack-asset-transfer-guide
 
   console:
-    runs-on: ubuntu-20.04
+    runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v3
       - name: Set up Full Stack Runtime
