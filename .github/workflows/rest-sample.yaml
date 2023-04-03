@@ -17,7 +17,7 @@ on:
     paths: [ "asset-transfer-basic/rest-api-typescript/**" ]
 
 concurrency:
-  group: ${{ github.head_ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
