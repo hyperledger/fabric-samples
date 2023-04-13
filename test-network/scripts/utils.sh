@@ -15,6 +15,7 @@ function printHelp() {
     println
     println "    Flags:"
     println "    -ca - Use Certificate Authorities to generate network crypto material"
+    println "    -cfssl <use CFSSL> -  Use CFSSL CA to generate network crypto material"
     println "    -bft - Use Orderers with consensus type BFT (Not available in Fabric v2.x)"
     println "    -c <channel name> - Name of channel to create (defaults to \"mychannel\")"
     println "    -s <dbtype> - Peer state database to deploy: goleveldb (default) or couchdb"
@@ -111,6 +112,7 @@ function printHelp() {
     println "    Flags:"
     println "    Used with \033[0;32mnetwork.sh up\033[0m, \033[0;32mnetwork.sh createChannel\033[0m:"
     println "    -ca - Use Certificate Authorities to generate network crypto material"
+    println "    -cfssl <use CFSSL> -  Use CFSSL CA to generate network crypto material"
     println "    -bft - Use Orderers with consensus type BFT (Not available in Fabric v2.x)"
     println "    -c <channel name> - Name of channel to create (defaults to \"mychannel\")"
     println "    -s <dbtype> - Peer state database to deploy: goleveldb (default) or couchdb"

@@ -72,7 +72,7 @@ function orderer_cert() {
         cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/tlsca/tlsca.example.com-cert.pem"
 
         cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/msp/cacerts/"
-        cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/msp/tlscacerts/"
+        cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/msp/tlscacerts/tlsca.example.com-cert.pem"
 
         echo 'NodeOUs:
     Enable: true
@@ -176,7 +176,7 @@ function generate_peer_certs() {
     cfssl gencert \
         -ca="$CERT_DIR/ca/ca.pem" \
         -ca-key="$CERT_DIR/ca/ca-key.pem" \
-        -config="$PWD/organizations/cfssl/cert-signing-config.jso"n \
+        -config="$PWD/organizations/cfssl/cert-signing-config.json" \
         -cn="$USER" \
         -hostname="$USER,localhost,127.0.0.1" \
         -profile="sign" \
@@ -243,7 +243,7 @@ function generate_orderer_certs() {
     mv "$CERT_DIR/orderers/$USER/msp/signcerts/cert-key.pem" "$CERT_DIR/orderers/$USER/msp/keystore"
 
     cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/orderers/$USER/msp/cacerts"
-    cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/orderers/$USER/msp/tlscacerts"
+    cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/orderers/$USER/msp/tlscacerts/tlsca.example.com-cert.pem"
 
     echo 'NodeOUs:
     Enable: true
