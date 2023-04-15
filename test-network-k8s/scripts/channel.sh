@@ -58,7 +58,7 @@ function register_org_admin() {
     --id.name       ${id_name} \
     --id.secret     ${id_secret} \
     --id.type       ${type} \
-    --url           https://${ca_name}.${DOMAIN} \
+    --url           https://${ca_name}.${DOMAIN}:${NGINX_HTTPS_PORT} \
     --tls.certfiles $TEMP_DIR/cas/${ca_name}/tlsca-cert.pem \
     --mspdir        $TEMP_DIR/enrollments/${org}/users/${RCAADMIN_USER}/msp \
     --id.attrs      "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
