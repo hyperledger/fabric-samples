@@ -52,7 +52,7 @@ function create_node_local_MSP() {
     --id.name       ${id_name} \
     --id.secret     ${id_secret} \
     --id.type       ${node_type} \
-    --url           https://${ca_name}.${DOMAIN} \
+    --url           https://${ca_name}.${DOMAIN}:${NGINX_HTTPS_PORT} \
     --tls.certfiles $TEMP_DIR/cas/${ca_name}/tlsca-cert.pem \
     --mspdir        $TEMP_DIR/enrollments/${org}/users/${RCAADMIN_USER}/msp \
     || rc=$?        # trap error code from registration without exiting the network driver script"
