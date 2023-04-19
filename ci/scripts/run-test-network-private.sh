@@ -15,7 +15,7 @@ function createNetwork() {
   print "Creating network"
   ./network.sh up createChannel -ca -s couchdb
   print "Deploying ${CHAINCODE_NAME} chaincode"
-  ./network.sh deployCC -ccn "${CHAINCODE_NAME}" -ccp "${CHAINCODE_PATH}/chaincode-${CHAINCODE_LANGUAGE}" -ccv 1 -ccs 1 -ccl "${CHAINCODE_LANGUAGE}" -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cccg ../asset-transfer-private-data/chaincode-go/collections_config.json
+  ./network.sh deployCC -ccn "${CHAINCODE_NAME}" -ccp "${CHAINCODE_PATH}/chaincode-${CHAINCODE_LANGUAGE}" -ccv 1 -ccs 1 -ccl "${CHAINCODE_LANGUAGE}" -cccg ../asset-transfer-private-data/chaincode-go/collections_config.json
 }
 
 function stopNetwork() {

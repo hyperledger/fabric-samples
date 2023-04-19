@@ -70,31 +70,31 @@ or:
 $ kind delete cluster
 ```
 
-## Rancher Desktop and k3s 
+## Rancher Desktop and k3s
 
-In addition to KIND, the Kube Test Network runs on the k3s Kubernetes provided by [Rancher Desktop](https://rancherdesktop.io). 
+In addition to KIND, the Kube Test Network runs on the k3s Kubernetes provided by [Rancher Desktop](https://rancherdesktop.io).
 
 To run natively on k3s, skip the creation of a KIND cluster and:
 
 1. In Rancher's Kubernetes Settings:
    1. Disable Traefik
-   2. Select the dockerd (moby) container runtime 
-   3. Increase Memory allocation to 8 GRAM 
-   4. Increase CPU allocation to 8 CPU 
+   2. Select the dockerd (moby) container runtime
+   3. Increase Memory allocation to 8 GRAM
+   4. Increase CPU allocation to 8 CPU
 
-2. Reset Kubernetes 
+2. Reset Kubernetes
 
-3. Initialize the Nginx ingress and cert-manager: 
+3. Initialize the Nginx ingress and cert-manager:
 
 ```shell
 export TEST_NETWORK_CLUSTER_RUNTIME="k3s"
 
 ./network cluster init
 ```
-- containerd is also a viable runtime.  When building images for chaincode-as-a-service, the `--namespace k8s.io` 
+- containerd is also a viable runtime.  When building images for chaincode-as-a-service, the `--namespace k8s.io`
   argument must be applied to the `nerdctl` CLI.  
 
-- For use with containerd: 
+- For use with containerd:
 ```shell
 export TEST_NETWORK_CLUSTER_RUNTIME="k3s"
 export TEST_NETWORK_CONTAINER_NAMESPACE="--namespace k8s.io"
@@ -107,7 +107,7 @@ export CONTAINER_CLI="nerdctl"
 ## Test Network Structure
 
 To emulate a more realistic example of multi-party collaboration, the test network
-forms a blockchain consensus group spanning three virtual organizations.  Network I/O between the 
+forms a blockchain consensus group spanning three virtual organizations.  Network I/O between the
 blockchain nodes is entirely constrained to Kubernetes private networks, and consuming applications
 make use of a Kubernetes / Nginx ingress controller for external visibility.
 
@@ -204,39 +204,39 @@ export TEST_NETWORK_FABRIC_VERSION=2.4.0
 ./network up
 ```
 
-## Nginx Ingress Controller 
+## Nginx Ingress Controller
 
-When Fabric nodes communicate within the k8s cluster, TCP sockets are established via Kube DNS service 
+When Fabric nodes communicate within the k8s cluster, TCP sockets are established via Kube DNS service
 aliases (e.g. grpcs://org1-peer1.test-network.svc.cluster.local:443) and traverse private K8s network routes.
 
-For access from _external clients_, all traffic into the network nodes are routed into the correct pod by 
-virtue of an Nginx ingress controller bound to the host OS ports :80 and :443.  To differentiate between 
-services, the Nginx provides a "layer 6" traffic router based on the http(s) host alias.  In addition to 
-constructing Deployments, Pods, and Services, each Fabric node exposes a set of `Ingress` routes binding 
+For access from _external clients_, all traffic into the network nodes are routed into the correct pod by
+virtue of an Nginx ingress controller bound to the host OS ports :80 and :443.  To differentiate between
+services, the Nginx provides a "layer 6" traffic router based on the http(s) host alias.  In addition to
+constructing Deployments, Pods, and Services, each Fabric node exposes a set of `Ingress` routes binding
 the virtual host name to the corresponding endpoint.
 
-TLS traffic tunneled through the ingress controller has been configured in "ssl-passthrough" mode.  For 
-secure access to services, client applications must present the TLS root certificate of the appropriate 
+TLS traffic tunneled through the ingress controller has been configured in "ssl-passthrough" mode.  For
+secure access to services, client applications must present the TLS root certificate of the appropriate
 organization when connecting to peers, orderers, and CAs.
 
 
-## What is `*.localho.st` ? 
+## What is `*.localho.st` ?
 
-In order to expose a dynamic set of DNS host aliases matching the Nginx ingress controller, the test network 
-employs the public DNS wildcard domain `*.localho.st` to resolve host and subdomains to the local loopback 
+In order to expose a dynamic set of DNS host aliases matching the Nginx ingress controller, the test network
+employs the public DNS wildcard domain `*.localho.st` to resolve host and subdomains to the local loopback
 address 127.0.0.1.  
 
-Using this DNS wildcard alias means that all ingress points bound to the *.localho.st domain will resolve to your 
-local host, conveniently routing traffic into the KIND cluster on ports :80 and :443. 
+Using this DNS wildcard alias means that all ingress points bound to the *.localho.st domain will resolve to your
+local host, conveniently routing traffic into the KIND cluster on ports :80 and :443.
 
-To override the *.localho.st network ingress domain (for example in cloud-based environments supporting a DNS 
-wildcard resolver) set the `TEST_NETWORK_DOMAIN` environment variable before invoking `./network` 
-targets.   E.g.: 
+To override the *.localho.st network ingress domain (for example in cloud-based environments supporting a DNS
+wildcard resolver) set the `TEST_NETWORK_DOMAIN` environment variable before invoking `./network`
+targets.   E.g.:
 
 ```shell
 export TEST_NETWORK_DOMAIN=lvh.me
 
-./network up 
+./network up
 
 curl -s --insecure https://org0-ca.lvh.me/cainfo | jq  
 ```

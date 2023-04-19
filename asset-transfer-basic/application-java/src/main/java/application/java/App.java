@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// Running TestApp: 
-// gradle runApp 
+// Running TestApp:
+// gradle runApp
 
 package application.java;
 
@@ -20,6 +20,9 @@ import org.hyperledger.fabric.gateway.Wallets;
 
 public class App {
 
+	private static final String CHANNEL_NAME = System.getenv().getOrDefault("CHANNEL_NAME", "mychannel");
+	private static final String CHAINCODE_NAME = System.getenv().getOrDefault("CHAINCODE_NAME", "basic");
+
 	static {
 		System.setProperty("org.hyperledger.fabric.sdk.service_discovery.as_localhost", "true");
 	}
@@ -33,7 +36,7 @@ public class App {
 		Path networkConfigPath = Paths.get("..", "..", "test-network", "organizations", "peerOrganizations", "org1.example.com", "connection-org1.yaml");
 
 		Gateway.Builder builder = Gateway.createBuilder();
-		builder.identity(wallet, "appUser").networkConfig(networkConfigPath).discovery(true);
+		builder.identity(wallet, "javaAppUser").networkConfig(networkConfigPath).discovery(true);
 		return builder.connect();
 	}
 
@@ -50,8 +53,8 @@ public class App {
 		try (Gateway gateway = connect()) {
 
 			// get the network and contract
-			Network network = gateway.getNetwork("mychannel");
-			Contract contract = network.getContract("basic");
+			Network network = gateway.getNetwork(CHANNEL_NAME);
+			Contract contract = network.getContract(CHAINCODE_NAME);
 
 			byte[] result;
 
@@ -63,14 +66,14 @@ public class App {
 			System.out.println("Evaluate Transaction: GetAllAssets, result: " + new String(result));
 
 			System.out.println("\n");
-			System.out.println("Submit Transaction: CreateAsset asset13");
-			// CreateAsset creates an asset with ID asset13, color yellow, owner Tom, size 5 and appraisedValue of 1300
-			contract.submitTransaction("CreateAsset", "asset13", "yellow", "5", "Tom", "1300");
+			System.out.println("Submit Transaction: CreateAsset asset213");
+			// CreateAsset creates an asset with ID asset213, color yellow, owner Tom, size 5 and appraisedValue of 1300
+			contract.submitTransaction("CreateAsset", "asset213", "yellow", "5", "Tom", "1300");
 
 			System.out.println("\n");
-			System.out.println("Evaluate Transaction: ReadAsset asset13");
+			System.out.println("Evaluate Transaction: ReadAsset asset213");
 			// ReadAsset returns an asset with given assetID
-			result = contract.evaluateTransaction("ReadAsset", "asset13");
+			result = contract.evaluateTransaction("ReadAsset", "asset213");
 			System.out.println("result: " + new String(result));
 
 			System.out.println("\n");
@@ -110,6 +113,7 @@ public class App {
 		}
 		catch(Exception e){
 			System.err.println(e);
+			System.exit(1);
 		}
 
 	}

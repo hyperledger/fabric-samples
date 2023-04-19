@@ -4,7 +4,7 @@
     "description": "",
     "main": "dist/hsm-sample.js",
     "engines": {
-        "node": "^14.15.0 || ^16.13.0"
+        "node": ">=14"
     },
     "scripts": {
         "build": "tsc",
@@ -17,7 +17,6 @@
     "author": "",
     "license": "Apache-2.0",
     "dependencies": {
-        "@grpc/grpc-js": "~1.7.2",
         "@hyperledger/fabric-gateway": "^1.1.1",
         "jsrsasign": "^10.3.0"
     },

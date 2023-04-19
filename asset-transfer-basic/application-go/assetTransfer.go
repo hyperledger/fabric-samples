@@ -24,7 +24,10 @@ func main() {
 		log.Fatalf("Error setting DISCOVERY_AS_LOCALHOST environment variable: %v", err)
 	}
 
-	wallet, err := gateway.NewFileSystemWallet("wallet")
+	walletPath := "wallet"
+	// remove any existing wallet from prior runs
+	os.RemoveAll(walletPath)
+	wallet, err := gateway.NewFileSystemWallet(walletPath)
 	if err != nil {
 		log.Fatalf("Failed to create wallet: %v", err)
 	}
@@ -55,23 +58,23 @@ func main() {
 	}
 	defer gw.Close()
 
-    channelName := "mychannel"
-    if cname := os.Getenv("CHANNEL_NAME"); cname != "" {
-        channelName = cname
-    }
+	channelName := "mychannel"
+	if cname := os.Getenv("CHANNEL_NAME"); cname != "" {
+		channelName = cname
+	}
 
-    log.Println("--> Connecting to channel", channelName)
+	log.Println("--> Connecting to channel", channelName)
 	network, err := gw.GetNetwork(channelName)
 	if err != nil {
 		log.Fatalf("Failed to get network: %v", err)
 	}
 
-    chaincodeName := "basic"
-    if ccname := os.Getenv("CHAINCODE_NAME"); ccname != "" {
-        chaincodeName = ccname
-    }
+	chaincodeName := "basic"
+	if ccname := os.Getenv("CHAINCODE_NAME"); ccname != "" {
+		chaincodeName = ccname
+	}
 
-    log.Println("--> Using chaincode", chaincodeName)
+	log.Println("--> Using chaincode", chaincodeName)
 	contract := network.GetContract(chaincodeName)
 
 	log.Println("--> Submit Transaction: InitLedger, function creates the initial set of assets on the ledger")
@@ -89,14 +92,14 @@ func main() {
 	log.Println(string(result))
 
 	log.Println("--> Submit Transaction: CreateAsset, creates new asset with ID, color, owner, size, and appraisedValue arguments")
-	result, err = contract.SubmitTransaction("CreateAsset", "asset13", "yellow", "5", "Tom", "1300")
+	result, err = contract.SubmitTransaction("CreateAsset", "asset113", "yellow", "5", "Tom", "1300")
 	if err != nil {
 		log.Fatalf("Failed to Submit transaction: %v", err)
 	}
 	log.Println(string(result))
 
 	log.Println("--> Evaluate Transaction: ReadAsset, function returns an asset with a given assetID")
-	result, err = contract.EvaluateTransaction("ReadAsset", "asset13")
+	result, err = contract.EvaluateTransaction("ReadAsset", "asset113")
 	if err != nil {
 		log.Fatalf("Failed to evaluate transaction: %v\n", err)
 	}
