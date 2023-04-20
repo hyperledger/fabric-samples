@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
+	"encoding/base64"
 
 	"github.com/hyperledger/fabric-chaincode-go/pkg/cid"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
@@ -368,7 +369,7 @@ func prepMocks(orgMSP, clientId string) (*mocks.TransactionContext, *mocks.Chain
 
 	clientIdentity := &mocks.ClientIdentity{}
 	clientIdentity.GetMSPIDReturns(orgMSP, nil)
-	clientIdentity.GetIDReturns(clientId, nil)
+	clientIdentity.GetIDReturns(base64.StdEncoding.EncodeToString([]byte(clientId)), nil)
 	// set matching msp ID using peer shim env variable
 	os.Setenv("CORE_PEER_LOCALMSPID", orgMSP)
 	transactionContext.GetClientIdentityReturns(clientIdentity)

@@ -33,7 +33,7 @@ function context() {
   export ${name}="${!override_name:-${default_value}}"
 }
 
-context FABRIC_VERSION            2.4.4
+context FABRIC_VERSION            2.5.0-beta2
 context FABRIC_CA_VERSION         1.5.5
 
 context CLUSTER_RUNTIME           kind                  # or k3s for Rancher

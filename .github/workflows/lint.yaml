@@ -11,8 +11,12 @@ on:
   pull_request:
     branches: [ "main", "release-2.5" ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
-  GO_VER: 1.18.3
+  GO_VER: 1.19.6
   NODE_VER: 16.x
   JAVA_VER: 11.x
 

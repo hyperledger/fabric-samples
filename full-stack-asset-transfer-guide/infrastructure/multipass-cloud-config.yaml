@@ -33,8 +33,8 @@ write_files:
       HLF_VERSION=$1
     fi
 
-    if [ ${HLF_VERSION:0:4} = '2.4.' ]; then
-      export GO_VERSION=1.17.10
+    if [ ${HLF_VERSION:0:4} = '2.5.'  -o ${HLF_VERSION:0:4} = '2.4.']; then
+      export GO_VERSION=1.18.10
     elif [ ${HLF_VERSION:0:4} = '2.2.' -o ${HLF_VERSION:0:4} = '2.3.' ]; then
       export GO_VERSION=1.14.11
     elif [ ${HLF_VERSION:0:4} = '2.0.' -o ${HLF_VERSION:0:4} = '2.1.' ]; then
@@ -45,7 +45,7 @@ write_files:
       export GO_VERSION=1.9.7
     else
       >&2 echo "Unexpected HLF_VERSION ${HLF_VERSION}"
-      >&2 echo "HLF_VERSION must be a 1.1.x, 1.2.x, 1.3.x, 1.4.x, 2.0.x, 2.1.x, 2.2.x, 2.3.x, or 2.4.x version"
+      >&2 echo "HLF_VERSION must be a 1.1.x, 1.2.x, 1.3.x, 1.4.x, 2.0.x, 2.1.x, 2.2.x, 2.3.x, 2.4.x, or 2.5.x version"
       exit 1
     fi
 

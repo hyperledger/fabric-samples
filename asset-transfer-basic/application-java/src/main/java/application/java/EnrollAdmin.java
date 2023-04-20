@@ -9,6 +9,9 @@ package application.java;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+import java.io.File;
+import org.apache.commons.io.FileUtils;
+
 import org.hyperledger.fabric.gateway.Wallet;
 import org.hyperledger.fabric.gateway.Wallets;
 import org.hyperledger.fabric.gateway.Identities;
@@ -32,7 +35,10 @@ public class EnrollAdmin {
 		CryptoSuite cryptoSuite = CryptoSuiteFactory.getDefault().getCryptoSuite();
 		caClient.setCryptoSuite(cryptoSuite);
 
-		// Create a wallet for managing identities
+		// Delete wallet if it exists from prior runs
+		FileUtils.deleteDirectory(new File("wallet"));
+
+		// Create a wallet for managing identities	
 		Wallet wallet = Wallets.newFileSystemWallet(Paths.get("wallet"));
 
 		// Check to see if we've already enrolled the admin user.

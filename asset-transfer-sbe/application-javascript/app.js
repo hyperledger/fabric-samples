@@ -192,6 +192,7 @@ async function main() {
 				console.log('*** Result: committed, now asset will only require Org1 to endorse');
 			} catch (createError) {
 				console.log(`*** Failed: create - ${createError}`);
+				process.exit(1);
 			}
 
 			await readAssetByBothOrgs(assetKey, 100, org1, contractOrg1, contractOrg2);
@@ -207,6 +208,7 @@ async function main() {
 				console.log('*** Result: committed');
 			} catch (updateError) {
 				console.log(`*** Failed: update - ${updateError}`);
+				process.exit(1);
 			}
 
 			await readAssetByBothOrgs(assetKey, 200, org1, contractOrg1, contractOrg2);
@@ -223,6 +225,7 @@ async function main() {
 				console.log('*** Result: committed - because Org1 and Org2 both endorsed, while only the Org1 endorsement was required and checked');
 			} catch (updateError) {
 				console.log(`*** Failed: update - ${updateError}`);
+				process.exit(1);
 			}
 
 			await readAssetByBothOrgs(assetKey, 300, org1, contractOrg1, contractOrg2);
@@ -236,6 +239,7 @@ async function main() {
 				console.log('*** Result: committed - because Org1 was on the discovery list, Org2 did not endorse');
 			} catch (updateError) {
 				console.log(`*** Failed: update - ${updateError}`);
+				process.exit(1);
 			}
 
 			await readAssetByBothOrgs(assetKey, 400, org1, contractOrg1, contractOrg2);
@@ -263,6 +267,7 @@ async function main() {
 				console.log('*** Result: committed');
 			} catch (transferError) {
 				console.log(`*** Failed: transfer - ${transferError}`);
+				process.exit(1);
 			}
 
 			await readAssetByBothOrgs(assetKey, 400, org2, contractOrg1, contractOrg2);
@@ -277,6 +282,7 @@ async function main() {
 				console.log('*** Result: committed');
 			} catch (updateError) {
 				console.log(`*** Failed: update - ${updateError}`);
+				process.exit(1);
 			}
 
 			await readAssetByBothOrgs(assetKey, 600, org2, contractOrg1, contractOrg2);
@@ -317,6 +323,7 @@ async function main() {
 				console.log('*** Result: committed');
 			} catch (deleteError) {
 				console.log(`*** Failed: delete - ${deleteError}`);
+				process.exit(1);
 			}
 
 			// The asset should now be deleted, both orgs should not be able to read it

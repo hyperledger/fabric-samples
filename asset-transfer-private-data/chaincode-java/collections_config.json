@@ -6,7 +6,10 @@
    "maxPeerCount": 1,
    "blockToLive":1000000,
    "memberOnlyRead": true,
-   "memberOnlyWrite": true
+   "memberOnlyWrite": true,
+   "endorsementPolicy": {
+   	"signaturePolicy":"OR('Org1MSP.member','Org2MSP.member')"
+   }
 },
  {
    "name": "Org1MSPPrivateCollection",

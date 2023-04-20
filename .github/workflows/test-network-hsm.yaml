@@ -11,6 +11,10 @@ on:
   pull_request:
     branches: [ "main", "release-2.5" ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   hsm:
     runs-on: ubuntu-20.04
