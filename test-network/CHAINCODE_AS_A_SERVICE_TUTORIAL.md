@@ -31,13 +31,13 @@ In the 'Fabric Network' window, start the test network
 
 ```bash
 cd test-network
-./network.sh up createChannel
+./network.sh up createChannel -ca
 ```
 
 You can run other variants of this command, eg to use CouchDB or CAs, without affecting the '-as-a-service' feature. The three keys steps are:
 
 - Build a docker image of the contract. Both `/asset-transfer-basic/chaincode-typescript` and `/asset-transfer-basic/chaincode-java` have been updated with Dockerfiles
-- Install, Approve and Commit a chaincode definition. This is unchanged, but the chaincode package contains connection information (hostname,port,tls certificates etc.), not code
+- Install, Approve, and Commit a chaincode definition. This is unchanged, but the chaincode package contains connection information (hostname,port,tls certificates etc.), not code
 - Start the docker container(s) containing the contract
 
 Note that the order listed isn't mandatory. The key thing is that the containers are running before the first transaction is set by the peer. Remember that this could be on the `commit` if the `initRequired` flag is set.
@@ -48,7 +48,7 @@ This sequence can be run as follows
 ./network.sh deployCCAAS  -ccn basicts -ccp ../asset-transfer-basic/chaincode-typescript
 ```
 
-This is very similar to the `deployCC` command, it needs the name, and path. But also needs to have the port the chaincode container is going use. As each container is on the `fabric-test` network, you might wish to alter this so there are no collisions with other chaincode containers.
+This is very similar to the `deployCC` command, it needs the name, and path. But also needs to have the port the chaincode container is going to use. As each container is on the `fabric-test` network, you might wish to alter this so there are no collisions with other chaincode containers.
 
 You should be able to see the contract starting in the monitoring window. There will be two containers running, one for org1 and one for org2. The container names contain the organization/peer and the name of the chaincode.
 
@@ -71,11 +71,13 @@ peer chaincode query -C mychannel -n basicts -c '{"Args":["org.hyperledger.fabri
 
 If you don't have `jq` installed omit `| jq`.  The metadata shows the details of the deployed contract and is JSON, so jq makes it easier to read.  You can repeat the above commands for org2 to confirm that is working.
 
-To run the Java example, change the `deployCCAAS` command as follows, This will create two new containers.
+To run the Java example, change the `deployCCAAS` command as follows. This will create two new containers.
 
 ```bash
 ./network.sh deployCCAAS  -ccn basicj -ccp ../asset-transfer-basic/chaincode-java
 ```
+
+Note that all the asset-transfer-basic application samples use 'basic' as the chaincode name and need to be adjusted to use the name 'basicts' or 'basicj' accordingly, or you need to use the name 'basic' in the commands above.
 
 ### Troubleshooting
 

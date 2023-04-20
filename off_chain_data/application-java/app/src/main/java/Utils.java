@@ -17,7 +17,7 @@ public final class Utils {
     }
 
     public static <T> T getEnvOrDefault(final String name, final Function<String, T> map, final T defaultValue) {
-        String result = System.getenv(name);
+        var result = System.getenv(name);
         return result != null ? map.apply(result) : defaultValue;
     }
 
@@ -48,7 +48,7 @@ public final class Utils {
      * @param <T> Element type.
      */
     public static <T> T differentElement(final List<? extends T> values, final T currentValue) {
-        List<T> candidateValues = values.stream()
+        var candidateValues = values.stream()
                 .filter(value -> !currentValue.equals(value))
                 .collect(Collectors.toList());
         return randomElement(candidateValues);

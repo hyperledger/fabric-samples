@@ -6,12 +6,12 @@
 
 package parser;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-
-import com.google.protobuf.InvalidProtocolBufferException;
 
 final class Utils {
     public interface ProtoCall<T> extends Callable<T> {
@@ -23,7 +23,7 @@ final class Utils {
         try {
             return cache.updateAndGet(current -> current != null ? current : asSupplier(call).get());
         } catch (CompletionException e) {
-            Throwable cause = e.getCause();
+            var cause = e.getCause();
             if (cause instanceof InvalidProtocolBufferException) {
                 throw (InvalidProtocolBufferException) cause;
             }

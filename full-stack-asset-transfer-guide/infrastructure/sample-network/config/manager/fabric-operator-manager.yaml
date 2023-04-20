@@ -1,0 +1,123 @@
+#
+# Copyright contributors to the Hyperledger Fabric Operator project
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+# 	  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fabric-operator
+  labels:
+    release: "operator"
+    helm.sh/chart: "hlf"
+    app.kubernetes.io/name: "hlf"
+    app.kubernetes.io/instance: "hlf"
+    app.kubernetes.io/managed-by: "fabric-operator"
+spec:
+  replicas: 1
+  strategy:
+    type: "Recreate"
+  selector:
+    matchLabels:
+      name: fabric-operator
+  template:
+    metadata:
+      labels:
+        name: fabric-operator
+        release: "operator"
+        helm.sh/chart: "hlf"
+        app.kubernetes.io/name: "hlf"
+        app.kubernetes.io/instance: "hlf"
+        app.kubernetes.io/managed-by: "fabric-operator"
+      annotations:
+        productName: "Hyperledger Fabric Operator"
+        productID: ""
+        productVersion: "1.0.0"
+        productChargedContainers: ""
+        productMetric: "VIRTUAL_PROCESSOR_CORE"
+    spec:
+      serviceAccountName: fabric-operator
+      # hostIPC: false
+      # hostNetwork: false
+      # hostPID: false
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #         - matchExpressions:
+      #             - key: kubernetes.io/arch
+      #               operator: In
+      #               values:
+      #                 - amd64
+      # securityContext:
+      #   runAsNonRoot: true
+      #   runAsUser: 1001
+      #   fsGroup: 2000
+
+      imagePullSecrets:
+        - name: image-pull-secret
+
+      containers:
+        - name: fabric-operator
+          image: ${FABRIC_OPERATOR_IMAGE}
+          imagePullPolicy: ${IMAGE_PULL_POLICY}
+
+          command:
+            - ibp-operator
+          # securityContext:
+          #   privileged: false
+          #   allowPrivilegeEscalation: false
+          #   readOnlyRootFilesystem: false
+          #   runAsNonRoot: false
+          #   runAsUser: 1001
+          #   capabilities:
+          #     drop:
+          #       - ALL
+          #     add:
+          #       - CHOWN
+          #       - FOWNER
+          livenessProbe:
+            tcpSocket:
+              port: 8383
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 8383
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            periodSeconds: 5
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "fabric-operator"
+            - name: CLUSTERTYPE
+              value: K8S
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10Mi
+            limits:
+              cpu: 100m
+              memory: 200Mi

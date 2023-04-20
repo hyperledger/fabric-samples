@@ -54,20 +54,14 @@ function register_org_admin() {
 
   echo "Registering org admin $username"
 
-  cat <<EOF | kubectl -n $NS exec deploy/${ca_name} -i -- /bin/sh
-
-  set -x
-  export FABRIC_CA_CLIENT_HOME=/var/hyperledger/fabric-ca-client
-  export FABRIC_CA_CLIENT_TLS_CERTFILES=/var/hyperledger/fabric/config/tls/ca.crt
-
-  fabric-ca-client register \
-    --id.name   ${id_name} \
-    --id.secret ${id_secret} \
-    --id.type   ${type} \
-    --url       https://${ca_name} \
-    --mspdir    /var/hyperledger/fabric-ca-client/${ca_name}/rcaadmin/msp \
-    --id.attrs  "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
-EOF
+  fabric-ca-client  register \
+    --id.name       ${id_name} \
+    --id.secret     ${id_secret} \
+    --id.type       ${type} \
+    --url           https://${ca_name}.${DOMAIN} \
+    --tls.certfiles $TEMP_DIR/cas/${ca_name}/tlsca-cert.pem \
+    --mspdir        $TEMP_DIR/enrollments/${org}/users/${RCAADMIN_USER}/msp \
+    --id.attrs      "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
 }
 
 function enroll_org_admins() {
@@ -101,19 +95,11 @@ function enroll_org_admin() {
   # Determine the CA information and TLS certificate
   CA_NAME=${org}-ca
   CA_DIR=${TEMP_DIR}/cas/${CA_NAME}
-  mkdir -p ${CA_DIR}
 
   CA_AUTH=${username}:${password}
   CA_HOST=${CA_NAME}.${DOMAIN}
   CA_PORT=${NGINX_HTTPS_PORT}
   CA_URL=https://${CA_AUTH}@${CA_HOST}:${CA_PORT}
-
-  # Read the CA's TLS certificate from the cert-manager CA secret
-  echo "retrieving ${org}-ca TLS root cert"
-  kubectl -n $NS get secret ${org}-ca-tls-cert -o json \
-    | jq -r .data.\"ca.crt\" \
-    | base64 -d \
-    > ${CA_DIR}/tlsca-cert.pem
 
   # enroll the org admin
   FABRIC_CA_CLIENT_HOME=${ORG_ADMIN_DIR} fabric-ca-client enroll \
@@ -160,9 +146,9 @@ EOF
 function create_channel_MSP() {
   push_fn "Creating channel MSP"
 
-  create_channel_org_MSP org0 orderer
-  create_channel_org_MSP org1 peer
-  create_channel_org_MSP org2 peer
+  create_channel_org_MSP org0 orderer $ORG0_NS
+  create_channel_org_MSP org1 peer $ORG1_NS
+  create_channel_org_MSP org2 peer $ORG2_NS
 
   extract_orderer_tls_cert org0 orderer1
   extract_orderer_tls_cert org0 orderer2
@@ -174,6 +160,7 @@ function create_channel_MSP() {
 function create_channel_org_MSP() {
   local org=$1
   local type=$2
+  local ns=$3
   local ca_name=${org}-ca
 
   ORG_MSP_DIR=${TEMP_DIR}/channel-msp/${type}Organizations/${org}/msp
@@ -189,7 +176,7 @@ function create_channel_org_MSP() {
     > ${ORG_MSP_DIR}/cacerts/ca-signcert.pem
 
   # extract the CA's TLS CA certificate from the cert-manager secret
-  kubectl -n $NS get secret ${ca_name}-tls-cert -o json \
+  kubectl -n $ns get secret ${ca_name}-tls-cert -o json \
     | jq -r .data.\"ca.crt\" \
     | base64 -d \
     > ${ORG_MSP_DIR}/tlscacerts/tlsca-signcert.pem
@@ -202,13 +189,14 @@ function create_channel_org_MSP() {
 function extract_orderer_tls_cert() {
   local org=$1
   local orderer=$2
+  local ns=$ORG0_NS
 
   echo "Extracting TLS cert for $org $orderer"
 
   ORDERER_TLS_DIR=${TEMP_DIR}/channel-msp/ordererOrganizations/${org}/orderers/${org}-${orderer}/tls
   mkdir -p $ORDERER_TLS_DIR/signcerts
 
-  kubectl -n $NS get secret ${org}-${orderer}-tls-cert -o json \
+  kubectl -n $ns get secret ${org}-${orderer}-tls-cert -o json \
     | jq -r .data.\"tls.crt\" \
     | base64 -d \
     > ${ORDERER_TLS_DIR}/signcerts/tls-cert.pem
@@ -216,8 +204,8 @@ function extract_orderer_tls_cert() {
 
 function create_genesis_block() {
   push_fn "Creating channel genesis block"
-
-  FABRIC_CFG_PATH=${PWD}/config/org0 \
+  cat ${PWD}/config/org0/configtx-template.yaml | envsubst > ${TEMP_DIR}/configtx.yaml
+  FABRIC_CFG_PATH=${TEMP_DIR} \
     configtxgen \
       -profile      TwoOrgsApplicationGenesis \
       -channelID    $CHANNEL_NAME \

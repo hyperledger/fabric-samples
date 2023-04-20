@@ -8,7 +8,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -25,7 +24,10 @@ func main() {
 		log.Fatalf("Error setting DISCOVERY_AS_LOCALHOST environment variable: %v", err)
 	}
 
-	wallet, err := gateway.NewFileSystemWallet("wallet")
+	walletPath := "wallet"
+	// remove any existing wallet from prior runs
+	os.RemoveAll(walletPath)
+	wallet, err := gateway.NewFileSystemWallet(walletPath)
 	if err != nil {
 		log.Fatalf("Failed to create wallet: %v", err)
 	}
@@ -56,12 +58,24 @@ func main() {
 	}
 	defer gw.Close()
 
-	network, err := gw.GetNetwork("mychannel")
+	channelName := "mychannel"
+	if cname := os.Getenv("CHANNEL_NAME"); cname != "" {
+		channelName = cname
+	}
+
+	log.Println("--> Connecting to channel", channelName)
+	network, err := gw.GetNetwork(channelName)
 	if err != nil {
 		log.Fatalf("Failed to get network: %v", err)
 	}
 
-	contract := network.GetContract("basic")
+	chaincodeName := "basic"
+	if ccname := os.Getenv("CHAINCODE_NAME"); ccname != "" {
+		chaincodeName = ccname
+	}
+
+	log.Println("--> Using chaincode", chaincodeName)
+	contract := network.GetContract(chaincodeName)
 
 	log.Println("--> Submit Transaction: InitLedger, function creates the initial set of assets on the ledger")
 	result, err := contract.SubmitTransaction("InitLedger")
@@ -78,14 +92,14 @@ func main() {
 	log.Println(string(result))
 
 	log.Println("--> Submit Transaction: CreateAsset, creates new asset with ID, color, owner, size, and appraisedValue arguments")
-	result, err = contract.SubmitTransaction("CreateAsset", "asset13", "yellow", "5", "Tom", "1300")
+	result, err = contract.SubmitTransaction("CreateAsset", "asset113", "yellow", "5", "Tom", "1300")
 	if err != nil {
 		log.Fatalf("Failed to Submit transaction: %v", err)
 	}
 	log.Println(string(result))
 
 	log.Println("--> Evaluate Transaction: ReadAsset, function returns an asset with a given assetID")
-	result, err = contract.EvaluateTransaction("ReadAsset", "asset13")
+	result, err = contract.EvaluateTransaction("ReadAsset", "asset113")
 	if err != nil {
 		log.Fatalf("Failed to evaluate transaction: %v\n", err)
 	}
@@ -129,14 +143,14 @@ func populateWallet(wallet *gateway.Wallet) error {
 
 	certPath := filepath.Join(credPath, "signcerts", "cert.pem")
 	// read the certificate pem
-	cert, err := ioutil.ReadFile(filepath.Clean(certPath))
+	cert, err := os.ReadFile(filepath.Clean(certPath))
 	if err != nil {
 		return err
 	}
 
 	keyDir := filepath.Join(credPath, "keystore")
 	// there's a single file in this dir containing the private key
-	files, err := ioutil.ReadDir(keyDir)
+	files, err := os.ReadDir(keyDir)
 	if err != nil {
 		return err
 	}
@@ -144,7 +158,7 @@ func populateWallet(wallet *gateway.Wallet) error {
 		return fmt.Errorf("keystore folder should have contain one file")
 	}
 	keyPath := filepath.Join(keyDir, files[0].Name())
-	key, err := ioutil.ReadFile(filepath.Clean(keyPath))
+	key, err := os.ReadFile(filepath.Clean(keyPath))
 	if err != nil {
 		return err
 	}

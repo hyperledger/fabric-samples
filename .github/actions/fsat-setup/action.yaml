@@ -1,0 +1,53 @@
+name: Set up the Full Stack Asset Transfer Guide Dependencies
+description: Set up the Full Stack Asset Transfer Guide Dependencies
+inputs:
+  node-version:
+    description: Version of node
+    default: 16.x
+  just-version:
+    description: Just Version
+    default: 1.2.0
+  k9s-version:
+    description: k9s Version
+    default: v0.25.3
+  fabric-version:
+    description: Version of Hyperledger Fabric
+    default: 2.5.0-alpha3
+  ca-version:
+    description: Version of Hyperledger Fabric CA
+    default: 1.5.6-beta3
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
+
+    - name: Install k9s
+      shell: bash
+      run: |
+        curl --fail --silent --show-error -L https://github.com/derailed/k9s/releases/download/${{ inputs.k9s-version }}/k9s_Linux_x86_64.tar.gz -o /tmp/k9s_Linux_x86_64.tar.gz
+        tar -zxf /tmp/k9s_Linux_x86_64.tar.gz -C /usr/local/bin k9s
+        sudo chown root /usr/local/bin/k9s
+        sudo chmod 755 /usr/local/bin/k9s
+
+    - name: Install just
+      shell: bash
+      run: |
+        curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --tag ${{ inputs.just-version }} --to /usr/local/bin
+
+    - name: Install weft
+      shell: bash
+      run: |
+        npm install -g @hyperledger-labs/weft
+
+    - name: Install fabric CLI
+      shell: bash
+      working-directory: full-stack-asset-transfer-guide
+      run: |
+        curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh \
+          | bash -s -- binary --fabric-version ${{ inputs.fabric-version }} --ca-version ${{ inputs.ca-version }}
+        echo ${PWD}/bin >> $GITHUB_PATH

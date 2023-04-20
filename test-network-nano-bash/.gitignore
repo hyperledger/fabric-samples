@@ -1,4 +1,5 @@
 channel-artifacts/
 crypto-config/
 data/
+logs/
 *.gz

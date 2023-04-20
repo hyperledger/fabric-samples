@@ -25,7 +25,7 @@ class TokenERC721Contract extends Contract {
      * @returns {Number} The number of non-fungible tokens owned by the owner, possibly zero
      */
     async BalanceOf(ctx, owner) {
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         // There is a key record for every non-fungible token in the format of balancePrefix.owner.tokenId.
@@ -50,7 +50,7 @@ class TokenERC721Contract extends Contract {
      * @returns {String} Return the owner of the non-fungible token
      */
     async OwnerOf(ctx, tokenId) {
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const nft = await this._readNFT(ctx, tokenId);
@@ -73,7 +73,7 @@ class TokenERC721Contract extends Contract {
      * @returns {Boolean} Return whether the transfer was successful or not
      */
     async TransferFrom(ctx, from, to, tokenId) {
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const sender = ctx.clientIdentity.getID();
@@ -127,7 +127,7 @@ class TokenERC721Contract extends Contract {
      * @returns {Boolean} Return whether the approval was successful or not
      */
     async Approve(ctx, approved, tokenId) {
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const sender = ctx.clientIdentity.getID();
@@ -165,7 +165,7 @@ class TokenERC721Contract extends Contract {
      * @returns {Boolean} Return whether the approval was successful or not
      */
     async SetApprovalForAll(ctx, operator, approved) {
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const sender = ctx.clientIdentity.getID();
@@ -189,7 +189,7 @@ class TokenERC721Contract extends Contract {
      * @returns {Object} Return the approved client for this non-fungible token, or null if there is none
      */
     async GetApproved(ctx, tokenId) {
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const nft = await this._readNFT(ctx, tokenId);
@@ -205,7 +205,7 @@ class TokenERC721Contract extends Contract {
      * @returns {Boolean} Return true if the operator is an approved operator for the owner, false otherwise
      */
     async IsApprovedForAll(ctx, owner, operator) {
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const approvalKey = ctx.stub.createCompositeKey(approvalPrefix, [owner, operator]);
@@ -230,7 +230,7 @@ class TokenERC721Contract extends Contract {
      * @returns {String} Returns the name of the token
      */
     async Name(ctx) {
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const nameAsBytes = await ctx.stub.getState(nameKey);
@@ -244,7 +244,7 @@ class TokenERC721Contract extends Contract {
      * @returns {String} Returns the symbol of the token
     */
     async Symbol(ctx) {
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const symbolAsBytes = await ctx.stub.getState(symbolKey);
@@ -259,7 +259,7 @@ class TokenERC721Contract extends Contract {
      * @returns {String} Returns the URI of the token
     */
     async TokenURI(ctx, tokenId) {
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const nft = await this._readNFT(ctx, tokenId);
@@ -276,7 +276,7 @@ class TokenERC721Contract extends Contract {
      * where each one of them has an assigned and queryable owner.
      */
     async TotalSupply(ctx) {
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         // There is a key record for every non-fungible token in the format of nftPrefix.tokenId.
@@ -310,7 +310,7 @@ class TokenERC721Contract extends Contract {
             throw new Error('client is not authorized to set the name and symbol of the token');
         }
 
-        //check contract options are not already set, client is not authorized to change them once intitialized
+        // Check contract options are not already set, client is not authorized to change them once intitialized
         const nameBytes = await ctx.stub.getState(nameKey);
         if (nameBytes && nameBytes.length > 0) {
             throw new Error('contract options are already set, client is not authorized to change them');
@@ -330,7 +330,7 @@ class TokenERC721Contract extends Contract {
      * @returns {Object} Return the non-fungible token object
     */
     async MintWithTokenURI(ctx, tokenId, tokenURI) {
-        //check contract options are already set first to execute the function
+        // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         // Check minter authorization - this sample assumes Org1 is the issuer with privilege to mint a new token
@@ -382,7 +382,7 @@ class TokenERC721Contract extends Contract {
      * @returns {Boolean} Return whether the burn was successful or not
      */
     async Burn(ctx, tokenId) {
-        //check contract options are already set first to execute the function
+        // check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         const owner = ctx.clientIdentity.getID();
@@ -432,7 +432,7 @@ class TokenERC721Contract extends Contract {
      * @returns {Number} Returns the account balance
      */
     async ClientAccountBalance(ctx) {
-        //check contract options are already set first to execute the function
+        // check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         // Get ID of submitting client identity
@@ -444,7 +444,7 @@ class TokenERC721Contract extends Contract {
     // In this implementation, the client account ID is the clientId itself.
     // Users can use this function to get their own account id, which they can then give to others as the payment address
     async ClientAccountID(ctx) {
-        //check contract options are already set first to execute the function
+        // check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
         // Get ID of submitting client identity
@@ -452,7 +452,7 @@ class TokenERC721Contract extends Contract {
         return clientAccountID;
     }
 
-    //Checks that contract options have been already initialized
+    // Checks that contract options have been already initialized
     async CheckInitialized(ctx){
         const nameBytes = await ctx.stub.getState(nameKey);
         if (!nameBytes || nameBytes.length === 0) {

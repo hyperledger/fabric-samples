@@ -9,7 +9,7 @@ package main
 import (
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/hyperledger/fabric-gateway/pkg/identity"
@@ -62,7 +62,7 @@ func newIdentity() *identity.X509Identity {
 }
 
 func loadCertificate(filename string) (*x509.Certificate, error) {
-	certificatePEM, err := ioutil.ReadFile(filename)
+	certificatePEM, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read certificate file: %w", err)
 	}
@@ -71,11 +71,11 @@ func loadCertificate(filename string) (*x509.Certificate, error) {
 
 // newSign creates a function that generates a digital signature from a message digest using a private key.
 func newSign() identity.Sign {
-	files, err := ioutil.ReadDir(keyPath)
+	files, err := os.ReadDir(keyPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to read private key directory: %w", err))
 	}
-	privateKeyPEM, err := ioutil.ReadFile(path.Join(keyPath, files[0].Name()))
+	privateKeyPEM, err := os.ReadFile(path.Join(keyPath, files[0].Name()))
 
 	if err != nil {
 		panic(fmt.Errorf("failed to read private key file: %w", err))

@@ -4,19 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import io.grpc.ManagedChannel;
-import org.hyperledger.fabric.client.CallOption;
 import org.hyperledger.fabric.client.ChaincodeEvent;
-import org.hyperledger.fabric.client.ChaincodeEventsRequest;
 import org.hyperledger.fabric.client.CloseableIterator;
 import org.hyperledger.fabric.client.CommitException;
 import org.hyperledger.fabric.client.CommitStatusException;
@@ -24,9 +15,12 @@ import org.hyperledger.fabric.client.Contract;
 import org.hyperledger.fabric.client.EndorseException;
 import org.hyperledger.fabric.client.Gateway;
 import org.hyperledger.fabric.client.Network;
-import org.hyperledger.fabric.client.Status;
 import org.hyperledger.fabric.client.SubmitException;
-import org.hyperledger.fabric.client.SubmittedTransaction;
+
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public final class App {
 	private static final String channelName = "mychannel";
@@ -38,17 +32,17 @@ public final class App {
 	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 	public static void main(final String[] args) throws Exception {
-		ManagedChannel grpcChannel = Connections.newGrpcConnection();
-		Gateway.Builder builder = Gateway.newInstance()
+		var grpcChannel = Connections.newGrpcConnection();
+		var builder = Gateway.newInstance()
 				.identity(Connections.newIdentity())
 				.signer(Connections.newSigner())
 				.connection(grpcChannel)
-				.evaluateOptions(CallOption.deadlineAfter(5, TimeUnit.SECONDS))
-				.endorseOptions(CallOption.deadlineAfter(15, TimeUnit.SECONDS))
-				.submitOptions(CallOption.deadlineAfter(5, TimeUnit.SECONDS))
-				.commitStatusOptions(CallOption.deadlineAfter(1, TimeUnit.MINUTES));
+				.evaluateOptions(options -> options.withDeadlineAfter(5, TimeUnit.SECONDS))
+				.endorseOptions(options -> options.withDeadlineAfter(15, TimeUnit.SECONDS))
+				.submitOptions(options -> options.withDeadlineAfter(5, TimeUnit.SECONDS))
+				.commitStatusOptions(options -> options.withDeadlineAfter(1, TimeUnit.MINUTES));
 
-		try (Gateway gateway = builder.connect()) {
+		try (var gateway = builder.connect()) {
 			new App(gateway).run();
 		} finally {
 			grpcChannel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
@@ -62,8 +56,8 @@ public final class App {
 
 	public void run() throws EndorseException, SubmitException, CommitStatusException, CommitException {
 		// Listen for events emitted by subsequent transactions, stopping when the try-with-resources block exits
-		try (CloseableIterator<ChaincodeEvent> eventSession = startChaincodeEventListening()) {
-			long firstBlockNumber = createAsset();
+		try (var eventSession = startChaincodeEventListening()) {
+			var firstBlockNumber = createAsset();
 			updateAsset();
 			transferAsset();
 			deleteAsset();
@@ -76,11 +70,11 @@ public final class App {
 	private CloseableIterator<ChaincodeEvent> startChaincodeEventListening() {
 		System.out.println("\n*** Start chaincode event listening");
 
-		CloseableIterator<ChaincodeEvent> eventIter = network.getChaincodeEvents(chaincodeName);
+		var eventIter = network.getChaincodeEvents(chaincodeName);
 
 		CompletableFuture.runAsync(() -> {
 			eventIter.forEachRemaining(event -> {
-				String payload = prettyJson(event.getPayload());
+				var payload = prettyJson(event.getPayload());
 				System.out.println("\n<-- Chaincode event received: " + event.getEventName() + " - " + payload);
 			});
 		});
@@ -93,20 +87,20 @@ public final class App {
 	}
 
 	private String prettyJson(final String json) {
-		JsonElement parsedJson = JsonParser.parseString(json);
+		var parsedJson = JsonParser.parseString(json);
 		return gson.toJson(parsedJson);
 	}
 
 	private long createAsset() throws EndorseException, SubmitException, CommitStatusException {
 		System.out.println("\n--> Submit transaction: CreateAsset, " + assetId + " owned by Sam with appraised value 100");
 
-		SubmittedTransaction commit = contract.newProposal("CreateAsset")
+		var commit = contract.newProposal("CreateAsset")
 				.addArguments(assetId, "blue", "10", "Sam", "100")
 				.build()
 				.endorse()
 				.submitAsync();
 
-		Status status = commit.getStatus();
+		var status = commit.getStatus();
 		if (!status.isSuccessful()) {
 			throw new RuntimeException("failed to commit transaction with status code " + status.getCode());
 		}
@@ -143,14 +137,14 @@ public final class App {
 	private void replayChaincodeEvents(final long startBlock) {
 		System.out.println("\n*** Start chaincode event replay");
 
-		ChaincodeEventsRequest request = network.newChaincodeEventsRequest(chaincodeName)
+		var request = network.newChaincodeEventsRequest(chaincodeName)
 				.startBlock(startBlock)
 				.build();
 
-		try (CloseableIterator<ChaincodeEvent> eventIter = request.getEvents()) {
+		try (var eventIter = request.getEvents()) {
 			while (eventIter.hasNext()) {
-				ChaincodeEvent event = eventIter.next();
-				String payload = prettyJson(event.getPayload());
+				var event = eventIter.next();
+				var payload = prettyJson(event.getPayload());
 				System.out.println("\n<-- Chaincode event replayed: " + event.getEventName() + " - " + payload);
 
 				if (event.getEventName().equals("DeleteAsset")) {

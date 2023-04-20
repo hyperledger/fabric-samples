@@ -8,13 +8,13 @@
 function launch_orderers() {
   push_fn "Launching orderers"
 
-  apply_template kube/org0/org0-orderer1.yaml
-  apply_template kube/org0/org0-orderer2.yaml
-  apply_template kube/org0/org0-orderer3.yaml
+  apply_template kube/org0/org0-orderer1.yaml $ORG0_NS
+  apply_template kube/org0/org0-orderer2.yaml $ORG0_NS
+  apply_template kube/org0/org0-orderer3.yaml $ORG0_NS
 
-  kubectl -n $NS rollout status deploy/org0-orderer1
-  kubectl -n $NS rollout status deploy/org0-orderer2
-  kubectl -n $NS rollout status deploy/org0-orderer3
+  kubectl -n $ORG0_NS rollout status deploy/org0-orderer1
+  kubectl -n $ORG0_NS rollout status deploy/org0-orderer2
+  kubectl -n $ORG0_NS rollout status deploy/org0-orderer3
 
   pop_fn
 }
@@ -22,35 +22,18 @@ function launch_orderers() {
 function launch_peers() {
   push_fn "Launching peers"
 
-  apply_template kube/org1/org1-peer1.yaml
-  apply_template kube/org1/org1-peer2.yaml
-  apply_template kube/org2/org2-peer1.yaml
-  apply_template kube/org2/org2-peer2.yaml
+  apply_template kube/org1/org1-peer1.yaml $ORG1_NS
+  apply_template kube/org1/org1-peer2.yaml $ORG1_NS
+  apply_template kube/org2/org2-peer1.yaml $ORG2_NS
+  apply_template kube/org2/org2-peer2.yaml $ORG2_NS
 
-  kubectl -n $NS rollout status deploy/org1-peer1
-  kubectl -n $NS rollout status deploy/org1-peer2
-  kubectl -n $NS rollout status deploy/org2-peer1
-  kubectl -n $NS rollout status deploy/org2-peer2
+  kubectl -n $ORG1_NS rollout status deploy/org1-peer1
+  kubectl -n $ORG1_NS rollout status deploy/org1-peer2
+  kubectl -n $ORG2_NS rollout status deploy/org2-peer1
+  kubectl -n $ORG2_NS rollout status deploy/org2-peer2
 
   pop_fn
 }
-
-# todo: enroll org admin LOCALLY from the host OS
-#  fabric-ca-client register --id.name org1-admin --id.secret org1adminpw  --id.type admin   --url https://org1-ca --mspdir $FABRIC_CA_CLIENT_HOME/org1-ca/rcaadmin/msp --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
-#  fabric-ca-client enroll --url https://org1-admin:org1adminpw@org1-ca  --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
-#  cp /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/*_sk /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/server.key
-#  cp /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/msp/config.yaml /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/config.yaml
-
-#  fabric-ca-client register --id.name org1-admin --id.secret org1adminpw  --id.type admin   --url https://org1-ca --mspdir $FABRIC_CA_CLIENT_HOME/org1-ca/rcaadmin/msp --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
-#  fabric-ca-client enroll --url https://org1-admin:org1adminpw@org1-ca  --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
-#  cp /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/*_sk /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/server.key
-#  cp /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/peers/org1-peer1.org1.example.com/msp/config.yaml /var/hyperledger/fabric/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/config.yaml
-
-#  fabric-ca-client register --id.name org2-admin --id.secret org2adminpw  --id.type admin   --url https://org2-ca --mspdir $FABRIC_CA_CLIENT_HOME/org2-ca/rcaadmin/msp --id.attrs "hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
-#  fabric-ca-client enroll --url https://org2-admin:org2adminpw@org2-ca  --mspdir /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
-#  cp /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/keystore/*_sk /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/keystore/server.key
-#  cp /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/peers/org2-peer1.org2.example.com/msp/config.yaml /var/hyperledger/fabric/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/config.yaml
-
 
 # Each network node needs a registration, enrollment, and MSP config.yaml
 function create_node_local_MSP() {
@@ -58,23 +41,33 @@ function create_node_local_MSP() {
   local org=$2
   local node=$3
   local csr_hosts=$4
+  local ns=$5
   local id_name=${org}-${node}
   local id_secret=${node_type}pw
   local ca_name=${org}-ca
 
-  cat <<EOF | kubectl -n $NS exec deploy/${ca_name} -i -- /bin/sh
+  # Register the node admin
+  rc=0
+  fabric-ca-client  register \
+    --id.name       ${id_name} \
+    --id.secret     ${id_secret} \
+    --id.type       ${node_type} \
+    --url           https://${ca_name}.${DOMAIN} \
+    --tls.certfiles $TEMP_DIR/cas/${ca_name}/tlsca-cert.pem \
+    --mspdir        $TEMP_DIR/enrollments/${org}/users/${RCAADMIN_USER}/msp \
+    || rc=$?        # trap error code from registration without exiting the network driver script"
+
+  if [ $rc -eq 1 ]; then
+    echo "CA admin was (probably) previously registered - continuing"
+  fi
+
+  # Enroll the node admin user from within k8s.  This will leave the certificates available on a volume share in the
+  # cluster for access by the nodes when launching in a container.
+  cat <<EOF | kubectl -n ${ns} exec deploy/${ca_name} -i -- /bin/sh
 
   set -x
   export FABRIC_CA_CLIENT_HOME=/var/hyperledger/fabric-ca-client
   export FABRIC_CA_CLIENT_TLS_CERTFILES=/var/hyperledger/fabric/config/tls/ca.crt
-
-  # Each identity in the network needs a registration and enrollment.
-  fabric-ca-client register \
-    --id.name ${id_name} \
-    --id.secret ${id_secret} \
-    --id.type ${node_type} \
-    --url https://${ca_name} \
-    --mspdir /var/hyperledger/fabric-ca-client/${ca_name}/rcaadmin/msp
 
   fabric-ca-client enroll \
     --url https://${id_name}:${id_secret}@${ca_name} \
@@ -104,15 +97,16 @@ function create_orderer_local_MSP() {
   local orderer=$2
   local csr_hosts=${org}-${orderer}
 
-  create_node_local_MSP orderer $org $orderer $csr_hosts
+  create_node_local_MSP orderer $org $orderer $csr_hosts $ORG0_NS
 }
 
 function create_peer_local_MSP() {
   local org=$1
   local peer=$2
+  local ns=$3
   local csr_hosts=localhost,${org}-${peer},${org}-peer-gateway-svc
 
-  create_node_local_MSP peer $org $peer $csr_hosts
+  create_node_local_MSP peer $org $peer $csr_hosts ${ns}
 }
 
 function create_local_MSP() {
@@ -122,40 +116,14 @@ function create_local_MSP() {
   create_orderer_local_MSP org0 orderer2
   create_orderer_local_MSP org0 orderer3
 
-  create_peer_local_MSP org1 peer1
-  create_peer_local_MSP org1 peer2
+  create_peer_local_MSP org1 peer1 $ORG1_NS
+  create_peer_local_MSP org1 peer2 $ORG1_NS
 
-  create_peer_local_MSP org2 peer1
-  create_peer_local_MSP org2 peer2
+  create_peer_local_MSP org2 peer1 $ORG2_NS
+  create_peer_local_MSP org2 peer2 $ORG2_NS
 
   pop_fn
 }
-#
-## TLS certificates are isused by the CA's Issuer, stored in a Kube secret, and mounted into the pod at /var/hyperledger/fabric/config/tls.
-## For consistency with the Fabric-CA guide, his function copies the orderer's TLS certs into the traditional Fabric MSP / folder structure.
-#function extract_orderer_tls_cert() {
-#  local orderer=$1
-#
-#  echo 'set -x
-#
-#  mkdir -p /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/'${orderer}'.org0.example.com/tls/signcerts/
-#
-#  cp \
-#    var/hyperledger/fabric/config/tls/tls.crt \
-#    /var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/orderers/'${orderer}'.org0.example.com/tls/signcerts/cert.pem
-#
-#  ' | exec kubectl -n $NS exec deploy/${orderer} -i -c main -- /bin/sh
-#}
-#
-#function extract_orderer_tls_certs() {
-#  push_fn "Extracting orderer TLS certs to local MSP folder"
-#
-#  extract_orderer_tls_cert org0-orderer1
-#  extract_orderer_tls_cert org0-orderer2
-#  extract_orderer_tls_cert org0-orderer3
-#
-#  pop_fn
-#}
 
 function network_up() {
 
@@ -182,49 +150,49 @@ function network_up() {
 
   launch_orderers
   launch_peers
-
-#  extract_orderer_tls_certs
 }
 
 function stop_services() {
   push_fn "Stopping Fabric services"
-
-  kubectl -n $NS delete ingress --all
-  kubectl -n $NS delete deployment --all
-  kubectl -n $NS delete pod --all
-  kubectl -n $NS delete service --all
-  kubectl -n $NS delete configmap --all
-  kubectl -n $NS delete cert --all
-  kubectl -n $NS delete issuer --all
-  kubectl -n $NS delete secret --all
+  for ns in $ORG0_NS $ORG1_NS $ORG2_NS; do
+    kubectl -n $ns delete ingress --all
+    kubectl -n $ns delete deployment --all
+    kubectl -n $ns delete pod --all
+    kubectl -n $ns delete service --all
+    kubectl -n $ns delete configmap --all
+    kubectl -n $ns delete cert --all
+    kubectl -n $ns delete issuer --all
+    kubectl -n $ns delete secret --all
+  done
 
   pop_fn
 }
 
 function scrub_org_volumes() {
   push_fn "Scrubbing Fabric volumes"
-  
-  # clean job to make this function can be rerun
-  kubectl -n $NS delete jobs --all
+  for org in org0 org1 org2; do
+    # clean job to make this function can be rerun
+    local namespace_variable=${org^^}_NS
+    kubectl -n ${!namespace_variable} delete jobs --all
 
-  # scrub all pv contents
-  kubectl -n $NS create -f kube/job-scrub-fabric-volumes.yaml
-  kubectl -n $NS wait --for=condition=complete --timeout=60s job/job-scrub-fabric-volumes
-  kubectl -n $NS delete jobs --all
-
+    # scrub all pv contents
+    kubectl -n ${!namespace_variable} create -f kube/${org}/${org}-job-scrub-fabric-volumes.yaml
+    kubectl -n ${!namespace_variable} wait --for=condition=complete --timeout=60s job/job-scrub-fabric-volumes
+    kubectl -n ${!namespace_variable} delete jobs --all
+  done
   pop_fn
 }
 
 function network_down() {
 
   set +e
-
-  kubectl get namespace $NS > /dev/null
-  if [[ $? -ne 0 ]]; then
-    echo "No namespace $NS found - nothing to do."
-    return
-  fi
-
+  for ns in $ORG0_NS $ORG1_NS $ORG2_NS; do
+    kubectl get namespace $ns > /dev/null
+    if [[ $? -ne 0 ]]; then
+      echo "No namespace $ns found - nothing to do."
+      return
+    fi
+  done
   set -e
 
   stop_services

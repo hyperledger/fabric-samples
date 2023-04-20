@@ -12,9 +12,10 @@ import { enrollUserToWallet, registerUser, UserToEnroll, UserToRegister } from '
 
 const walletPath = path.join(__dirname, 'wallet');
 
-// define information about the channel and chaincode id that will be driven by this application
-const channelName = 'mychannel';
-const chaincodeId = 'basic';
+// define information about the channel and chaincode that will be driven by this application
+const channelName = envOrDefault('CHANNEL_NAME', 'mychannel');
+const chaincodeName = envOrDefault('CHAINCODE_NAME', 'default-basic');
+
 
 // define the CA Registrar
 const mspOrg1 = 'Org1MSP';
@@ -52,13 +53,13 @@ const transactionsToSend: TransactionToSendFormat[] = [
     {
         request: 'submit',
         txName: 'CreateAsset',
-        txArgs: ['asset13', 'yellow', '5', 'Tom', '1300'],
+        txArgs: ['asset513', 'yellow', '5', 'Tom', '1300'],
         description: '\n--> Submit Transaction: CreateAsset, creates new asset with ID, color, owner, size, and appraisedValue arguments',
     },
     {
         request: 'evaluate',
         txName: 'ReadAsset',
-        txArgs: ['asset13'],
+        txArgs: ['asset513'],
         description: '\n--> Evaluate Transaction: ReadAsset, function returns an asset with a given assetID',
     },
     {
@@ -192,7 +193,7 @@ async function main() {
             const network = await gateway.getNetwork(channelName);
 
             // Get the contract from the network.
-            const contract = network.getContract(chaincodeId);
+            const contract = network.getContract(chaincodeName);
 
             // loop around all transactions to send, each one will be sent sequentially
             // through the same gateway/network/contract as subsequent transations expect the
@@ -231,9 +232,9 @@ async function findSoftHSMPKCS11Lib() {
     if (typeof process.env.PKCS11_LIB === 'string' && process.env.PKCS11_LIB !== '') {
         pkcsLibPath = process.env.PKCS11_LIB;
     } else {
-        //
+
         // Check common locations for PKCS library
-        //
+
         for (const pathnameToTry of commonSoftHSMPathNames) {
             if (fs.existsSync(pathnameToTry)) {
                 pkcsLibPath = pathnameToTry;
@@ -272,6 +273,13 @@ async function interactWithFabric(contract: Contract, transactionToPerform: Tran
         // never committed (for example due to networking issues the transaction never gets included in a block), or whether it should
         // be reported back, for example they tried to perform an invalid application action.
     }
+}
+
+/**
+ * envOrDefault() will return the value of an environment variable, or a default value if the variable is undefined.
+ */
+function envOrDefault(key: string, defaultValue: string): string {
+    return process.env[key] || defaultValue;
 }
 
 // execute the main function

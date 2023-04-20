@@ -7,7 +7,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -121,7 +120,7 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 		return fmt.Errorf("the asset %s does not exist", id)
 	}
 
-	// overwritting original asset with new asset
+	// overwriting original asset with new asset
 	asset := Asset{
 		ID:             id,
 		Color:          color,
@@ -138,7 +137,7 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 	return ctx.GetStub().PutState(id, assetJSON)
 }
 
-// DeleteAsset deletes an given asset from the world state.
+// DeleteAsset deletes a given asset from the world state.
 func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface, id string) error {
 	exists, err := s.AssetExists(ctx, id)
 	if err != nil {
@@ -254,18 +253,18 @@ func getTLSProperties() shim.TLSProperties {
 	var err error
 
 	if !tlsDisabled {
-		keyBytes, err = ioutil.ReadFile(key)
+		keyBytes, err = os.ReadFile(key)
 		if err != nil {
 			log.Panicf("error while reading the crypto file: %s", err)
 		}
-		certBytes, err = ioutil.ReadFile(cert)
+		certBytes, err = os.ReadFile(cert)
 		if err != nil {
 			log.Panicf("error while reading the crypto file: %s", err)
 		}
 	}
 	// Did not request for the peer cert verification
 	if clientCACert != "" {
-		clientCACertBytes, err = ioutil.ReadFile(clientCACert)
+		clientCACertBytes, err = os.ReadFile(clientCACert)
 		if err != nil {
 			log.Panicf("error while reading the crypto file: %s", err)
 		}

@@ -73,7 +73,7 @@ export const peerEndpointOrg2 = 'localhost:9051';
 export const peerNameOrg1 = 'peer0.org1.example.com';
 export const peerNameOrg2 = 'peer0.org2.example.com';
 
-//Collection Names
+// Collection Names
 export const org1PrivateCollectionName = 'Org1MSPPrivateCollection';
 export const org2PrivateCollectionName = 'Org2MSPPrivateCollection';
 

@@ -8,16 +8,8 @@ trigger:
   - release-2.2
 
 variables:
-  - name: FABRIC_VERSION
-    value: 2.4
-  - name: GO_BIN
-    value: $(Build.Repository.LocalPath)/bin
-  - name: GO_VER
-    value: 1.16.7
   - name: NODE_VER
     value: 16.x
-  - name: PATH
-    value: $(Build.Repository.LocalPath)/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
   - group: credentials
 
 jobs:
@@ -26,210 +18,29 @@ jobs:
     pool:
       vmImage: ubuntu-20.04
     steps:
-      - template: templates/asset-transfer-basic/azure-pipelines-rest.yml
-
-  - job: CommercialPaper_Go
-    displayName: Commercial Paper (Go)
-    pool:
-      vmImage: ubuntu-20.04
-    steps:
-      - template: templates/install-deps.yml
-      - template: templates/commercial-paper/azure-pipelines-go.yml
-
-  - job: CommercialPaper_Java
-    displayName: Commercial Paper (Java)
-    pool:
-      vmImage: ubuntu-20.04
-    steps:
-      - template: templates/install-deps.yml
-      - template: templates/commercial-paper/azure-pipelines-java.yml
-
-  - job: CommercialPaper_JavaScript
-    displayName: Commercial Paper (JavaScript)
-    pool:
-      vmImage: ubuntu-20.04
-    steps:
-      - template: templates/install-deps.yml
-      - template: templates/commercial-paper/azure-pipelines-javascript.yml
-
-  - job: FabCar_Go
-    displayName: FabCar (Go)
-    pool:
-      vmImage: ubuntu-20.04
-    steps:
-      - template: templates/install-deps.yml
-      - template: templates/fabcar/azure-pipelines-go.yml
-
-  - job: FabCar_Java
-    displayName: FabCar (Java)
-    pool:
-      vmImage: ubuntu-20.04
-    steps:
-      - template: templates/install-deps.yml
-      - template: templates/fabcar/azure-pipelines-java.yml
-
-  - job: FabCar_JavaScript
-    displayName: FabCar (JavaScript)
-    pool:
-      vmImage: ubuntu-20.04
-    steps:
-      - template: templates/install-deps.yml
-      - template: templates/fabcar/azure-pipelines-javascript.yml
-
-  - job: Fabcar_TypeScript
-    displayName: FabCar (TypeScript)
-    pool:
-      vmImage: ubuntu-20.04
-    steps:
-      - template: templates/install-deps.yml
-      - template: templates/fabcar/azure-pipelines-typescript.yml
-
-  - job: Lint
-    displayName: Lint
-    pool:
-      vmImage: ubuntu-20.04
-    steps:
-      - task: GoTool@0
-        inputs:
-          goBin: $(GO_BIN)
-          version: $(GO_VER)
-        displayName: Install GoLang
       - task: NodeTool@0
         inputs:
           versionSpec: $(NODE_VER)
         displayName: Install Node.js
-      - script: ./ci/scripts/shellcheck.sh
-        displayName: Lint Shell Scripts
-      - script: ./ci/scripts/lint.sh
-        displayName: Lint Code
-
-  - job: TestNetworkBasic
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        Basic-Go:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: go
-        Basic-Java:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: java
-        Basic-Javascript:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: javascript
-        Basic-Typescript:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: typescript
-
-    steps:
-      - template: templates/install-deps.yml
-      - script: sudo apt-get install softhsm2
-        displayName: Install SoftHSM
-      - script: ../ci/scripts/run-test-network-basic.sh
-        workingDirectory: test-network
-        displayName: Run Test Network Basic Chaincode
-
-  - job: KubeTestNetworkBasic
-    displayName: Kube Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        CCaaS-Java:
-          CLIENT_LANGUAGE: typescript
-          CHAINCODE_LANGUAGE: java
-        CCaaS-Golang:
-          CLIENT_LANGUAGE: typescript
-          CHAINCODE_LANGUAGE: external
-        K8s-Builder-Java:
-          CHAINCODE_NAME: basic
-          CHAINCODE_LANGUAGE: java
-          CHAINCODE_BUILDER: k8s
-
-    steps:
-      - template: templates/install-k8s-deps.yml
-      - script: ../ci/scripts/run-k8s-test-network-basic.sh
-        workingDirectory: test-network-k8s
-        displayName: Run Kubernetes Test Network Basic Asset Transfer
-
-  - job: TestNetworkLedger
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        Ledger-Go:
-          CHAINCODE_NAME: ledger
-          CHAINCODE_LANGUAGE: go
-        Ledger-Javascript:
-          CHAINCODE_NAME: ledger
-          CHAINCODE_LANGUAGE: javascript
-    steps:
-      - template: templates/install-deps.yml
-      - script: ../ci/scripts/run-test-network-ledger.sh
-        workingDirectory: test-network
-        displayName: Run Test Network Ledger Chaincode
-
-  - job: TestNetworkPrivate
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        Private-Go:
-          CHAINCODE_NAME: private
-          CHAINCODE_LANGUAGE: go
-    steps:
-      - template: templates/install-deps.yml
-      - script: ../ci/scripts/run-test-network-private.sh
-        workingDirectory: test-network
-        displayName: Run Test Network Private Chaincode
-
-  - job: TestNetworkSBE
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        SBE-Typescript:
-          CHAINCODE_NAME: sbe
-          CHAINCODE_LANGUAGE: typescript
-        SBE-Java:
-          CHAINCODE_NAME: sbe
-          CHAINCODE_LANGUAGE: java
-    steps:
-      - template: templates/install-deps.yml
-      - script: ../ci/scripts/run-test-network-sbe.sh
-        workingDirectory: test-network
-        displayName: Run Test Network SBE Chaincode
-
-  - job: TestNetworkSecured
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        Secured-Go:
-          CHAINCODE_NAME: secured
-          CHAINCODE_LANGUAGE: go
-    steps:
-      - template: templates/install-deps.yml
-      - script: ../ci/scripts/run-test-network-secured.sh
-        workingDirectory: test-network
-        displayName: Run Test Network Secured Chaincode
-
-  - job: TestNetworkEvents
-    displayName: Test Network
-    pool:
-      vmImage: ubuntu-20.04
-    strategy:
-      matrix:
-        Events-Javascript:
-          CHAINCODE_NAME: events
-          CHAINCODE_LANGUAGE: javascript
-    steps:
-      - template: templates/install-deps.yml
-      - script: ../ci/scripts/run-test-network-events.sh
-        workingDirectory: test-network
-        displayName: Run Test Network Events Chaincode
+      - script: npm install
+        workingDirectory: asset-transfer-basic/rest-api-typescript
+        displayName: Install REST Sample Dependencies
+      - script: npm run build
+        workingDirectory: asset-transfer-basic/rest-api-typescript
+        displayName: Build REST Sample Application
+      - script: npm test
+        workingDirectory: asset-transfer-basic/rest-api-typescript
+        displayName: Test REST Sample Application
+      - script: |
+          docker build -t ghcr.io/hyperledger/fabric-rest-sample .
+        workingDirectory: asset-transfer-basic/rest-api-typescript
+        displayName: Build REST Sample Docker Image
+      - script: |
+          echo ${GITHUB_PAT} | docker login ghcr.io -u ${GITHUB_USER} --password-stdin
+          docker push ghcr.io/hyperledger/fabric-rest-sample:latest
+        condition: and(succeeded(),eq(variables['Build.Reason'], 'IndividualCI'))
+        workingDirectory: asset-transfer-basic/rest-api-typescript
+        displayName: Publish REST Sample Docker Image
+        env:
+          GITHUB_USER: $(GITHUB_USER)
+          GITHUB_PAT: $(GITHUB_PAT)

@@ -53,7 +53,7 @@ func TestReadAssetPrivateDetails(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, assetBytes)
 
-	//read from the collection with no access
+	// read from the collection with no access
 	chaincodeStub.GetPrivateDataReturns(nil, fmt.Errorf("collection not found"))
 	assetBytes, err = assetTransferCC.ReadAssetPrivateDetails(transactionContext, myOrg2PrivCollection, "id1")
 	require.EqualError(t, err, "failed to read asset details: collection not found")
@@ -72,7 +72,7 @@ func TestReadTransferAgreement(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
 	assetTransferCC := chaincode.SmartContract{}
 
-	//TransferAgreement does not exist
+	// TransferAgreement does not exist
 	assetBytes, err := assetTransferCC.ReadTransferAgreement(transactionContext, "id1")
 	require.NoError(t, err)
 	require.Nil(t, assetBytes)
@@ -115,7 +115,7 @@ func TestQueryAssetByOwner(t *testing.T) {
 
 func TestQueryAssets(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
-	//Iterator with no records
+	// Iterator with no records
 	iterator := &mocks.StateQueryIterator{}
 	iterator.HasNextReturns(false)
 	chaincodeStub.GetPrivateDataQueryResultReturns(iterator, nil)
@@ -150,7 +150,7 @@ func TestQueryAssets(t *testing.T) {
 
 func TestGetAssetByRange(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
-	//Iterator with no records
+	// Iterator with no records
 	iterator := &mocks.StateQueryIterator{}
 	iterator.HasNextReturns(false)
 	chaincodeStub.GetPrivateDataByRangeReturns(iterator, nil)

@@ -6,18 +6,19 @@
 
 package parser;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.hyperledger.fabric.protos.ledger.rwset.TxReadWriteSet;
+import org.hyperledger.fabric.protos.peer.ChaincodeAction;
+import org.hyperledger.fabric.protos.peer.ChaincodeActionPayload;
+import org.hyperledger.fabric.protos.peer.ProposalResponsePayload;
+import org.hyperledger.fabric.protos.peer.TransactionAction;
+
 import java.util.List;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.hyperledger.fabric.protos.ledger.rwset.Rwset;
-import org.hyperledger.fabric.protos.peer.ProposalPackage;
-import org.hyperledger.fabric.protos.peer.ProposalResponsePackage;
-import org.hyperledger.fabric.protos.peer.TransactionPackage;
-
 final class ParsedTransactionAction {
-    private final TransactionPackage.TransactionAction transactionAction;
+    private final TransactionAction transactionAction;
 
-    ParsedTransactionAction(final TransactionPackage.TransactionAction transactionAction) {
+    ParsedTransactionAction(final TransactionAction transactionAction) {
         this.transactionAction = transactionAction;
     }
 
@@ -25,23 +26,23 @@ final class ParsedTransactionAction {
         return ParsedReadWriteSet.fromTxReadWriteSet(getTxReadWriteSet());
     }
 
-    private Rwset.TxReadWriteSet getTxReadWriteSet() throws InvalidProtocolBufferException {
-        return Rwset.TxReadWriteSet.parseFrom(getChaincodeAction().getResults());
+    private TxReadWriteSet getTxReadWriteSet() throws InvalidProtocolBufferException {
+        return TxReadWriteSet.parseFrom(getChaincodeAction().getResults());
     }
 
-    private ProposalPackage.ChaincodeAction getChaincodeAction() throws InvalidProtocolBufferException {
-        return ProposalPackage.ChaincodeAction.parseFrom(getProposalResponsePayload().getExtension());
+    private ChaincodeAction getChaincodeAction() throws InvalidProtocolBufferException {
+        return ChaincodeAction.parseFrom(getProposalResponsePayload().getExtension());
     }
 
-    private ProposalResponsePackage.ProposalResponsePayload getProposalResponsePayload() throws InvalidProtocolBufferException {
-        return ProposalResponsePackage.ProposalResponsePayload.parseFrom(getChaincodeActionPayload().getAction().getProposalResponsePayload());
+    private ProposalResponsePayload getProposalResponsePayload() throws InvalidProtocolBufferException {
+        return ProposalResponsePayload.parseFrom(getChaincodeActionPayload().getAction().getProposalResponsePayload());
     }
 
-    private TransactionPackage.ChaincodeActionPayload getChaincodeActionPayload() throws InvalidProtocolBufferException {
-        return TransactionPackage.ChaincodeActionPayload.parseFrom(transactionAction.getPayload());
+    private ChaincodeActionPayload getChaincodeActionPayload() throws InvalidProtocolBufferException {
+        return ChaincodeActionPayload.parseFrom(transactionAction.getPayload());
     }
 
-    public TransactionPackage.TransactionAction toProto() {
+    public TransactionAction toProto() {
         return transactionAction;
     }
 }

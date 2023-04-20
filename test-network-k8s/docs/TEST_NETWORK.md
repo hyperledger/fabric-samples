@@ -139,11 +139,11 @@ node local MSP folders, certificates, and TLS signing keys that we generated abo
 
 Note that the deployment yaml files include some basic template substitution and parameters.  For simplicity and
 clarity, we elected to use basic string substitution with `envsubst`, rather than introduce a Kube template
-binding system (e.g. Helm, Kustomize, Kapitan, Ansible, etc.) for manipulating yaml templates.  Any environment 
-variables declared in the `./network` script will be applied to these k8s templates.  E.g.: 
+binding system (e.g. Helm, Kustomize, Kapitan, Ansible, etc.) for manipulating yaml templates.  Any environment
+variables declared in the `./network` script will be applied to these k8s templates.  E.g.:
 
 ```shell
-export FABRIC_VERSION=2.4.2 
+export FABRIC_VERSION=2.4.2
 ...
 
 cat kube/org0/org0-orderer1.yaml | envsubst | kubectl -n $NS -f -

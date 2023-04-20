@@ -1,0 +1,34 @@
+{
+    "type": 1,
+    "value": {
+        "rule": {
+            "n_out_of": {
+                "n": 2,
+                "rules": [
+                    {
+                        "signed_by": 0
+                    },
+                    {
+                        "signed_by": 1
+                    }
+                ]
+            }
+        },
+        "identities": [
+            {
+                "principal_classification": "ROLE",
+                "principal": {
+                    "msp_identifier": "{{ org1_msp_id }}",
+                    "role": "MEMBER"
+                }
+            },
+            {
+                "principal_classification": "ROLE",
+                "principal": {
+                    "msp_identifier": "{{ org2_msp_id }}",
+                    "role": "MEMBER"
+                }
+            }
+        ]
+    }
+}

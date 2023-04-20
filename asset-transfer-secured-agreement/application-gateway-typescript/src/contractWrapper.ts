@@ -136,7 +136,7 @@ export class ContractWrapper {
         console.log(`*** Result: committed, Desc: ${asset.publicDescription}`);
     }
 
-    public async agreeToSell(assetPrice: AssetPrice, buyerOrgID: string): Promise<void> {
+    public async agreeToSell(assetPrice: AssetPrice): Promise<void> {
 
         console.log(`${GREEN}--> Submit Transaction: AgreeToSell, ${assetPrice.assetId} as ${this.#org} - endorsed by ${this.#org}.${RESET}`);
         const assetPriceJSON: AssetPriceJSON = {
@@ -146,15 +146,10 @@ export class ContractWrapper {
         };
 
         await this.#contract.submit('AgreeToSell', {
-            arguments:[assetPrice.assetId, buyerOrgID],
+            arguments:[assetPrice.assetId],
             transientData: {asset_price: JSON.stringify(assetPriceJSON)},
             endorsingOrganizations: this.#endorsingOrgs[assetPrice.assetId]
         });
-
-        //update local record of sbe to inlcude buyer org if not already
-        if (this.#endorsingOrgs[assetPrice.assetId].indexOf('buyerOrgID') == -1){
-            this.#endorsingOrgs[assetPrice.assetId].push(buyerOrgID);
-        }
 
         console.log(`*** Result: committed, ${this.#org} has agreed to sell asset ${assetPrice.assetId} for ${assetPrice.price}`);
     }
@@ -258,7 +253,7 @@ export class ContractWrapper {
         console.log('*** Result: GetAssetBidPrice', result);
     }
 
-    public async transferAsset(assetPrice: AssetPrice, ownerOrgID: string, buyerOrgID: string): Promise<void> {
+    public async transferAsset(assetPrice: AssetPrice, endorsingOrganizations: string[], ownerOrgID: string, buyerOrgID: string): Promise<void> {
 
         console.log(`${GREEN}--> Submit Transaction: TransferAsset, ${assetPrice.assetId} as ${this.#org } - endorsed by ${this.#org} and ${buyerOrgID}.${RESET}`);
 
@@ -273,7 +268,7 @@ export class ContractWrapper {
         await this.#contract.submit('TransferAsset', {
             arguments:[assetPrice.assetId, buyerOrgID],
             transientData: { asset_price: JSON.stringify(assetPriceJSON) },
-            endorsingOrganizations: this.#endorsingOrgs[assetPrice.assetId]
+            endorsingOrganizations: endorsingOrganizations
         });
 
         console.log(`${GREEN}*** Result: committed, ${this.#org} has transfered the asset ${assetPrice.assetId} to ${buyerOrgID}.${RESET}`);

@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rest-api
+  labels:
+    app: rest-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rest-api
+  template:
+    metadata:
+      labels:
+        app: rest-api
+    spec:
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: client-secret
+      containers:
+        - name: rest-api
+          image: localhost:5000/rest-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: rest-certs
+              valueFrom:
+                secretKeyRef:
+                  name: rest-certs
+                  key: key.pem
+          volumeMounts:
+            - name: secret-volume
+              readOnly: true
+              mountPath: "/etc/secret-volume"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: rest-api
+spec:
+  selector:
+    app: rest-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+
+
+  # kubectl create secret generic client-secret --from-file=keyPath=/home/ramdisk/my-full-stack/infrastructure/sample-network/temp/enrollments/org1/users/org1user/msp/keystore/key.pem --from-file=certPath=/home/ramdisk/my-full-stack/infrastructure/sample-network/temp/enrollments/org1/users/org1user/msp/signcerts/cert.pem --from-file=tlsCertPath=/home/ramdisk/my-full-stack/infrastructure/sample-network/temp/channel-msp/peerOrganizations/org1/msp/tlscacerts/tlsca-signcert.pem -n test-network
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rest-api
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: 60s
+    # nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+  # labels:
+  #   app: rest-api
+  #   app.kubernetes.io/instance: fabricpeer
+  #   app.kubernetes.io/managed-by: fabric-operator
+  #   app.kubernetes.io/name: fabric
+  #   creator: fabric
+  #   orgname: Org1MSP
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: restapi.localho.st
+      http:
+        paths:
+          - backend:
+              service:
+                name: rest-api
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - restapi.localho.st
