@@ -5,7 +5,7 @@ name: REST Sample 🐧
 run-name: ${{ github.actor }} is testing the REST Sample 🐧
 
 env:
-  NODE_VER: 16.x
+  NODE_VER: 18.x
 
 on:
   workflow_dispatch:
