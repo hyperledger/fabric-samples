@@ -11,15 +11,12 @@ export FABRIC_CFG_PATH="${WORKSHOP_PATH}/config"
 
 "${WORKSHOP_PATH}/check.sh"
 
-CHAINDODE_PID=
+CHAINCODE_PID=
 
 function exitHook() {
 
   # shut down the npm run
   [ -n "${CHAINCODE_PID}" ] && kill "${CHAINCODE_PID}"
-
-  # and node children spawned by npm.  This could be improved by scraping out the pid for the target node command.
-  [ -n "${CHAINCODE_PID}" ] && killall node
 
   # Shut down microfab
   docker kill microfab &> /dev/null
