@@ -13,9 +13,9 @@ group 'org.hyperledger.fabric.samples'
 version '1.0-SNAPSHOT'
 
 dependencies {
-    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.+'
+    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.5.+'
     implementation 'org.json:json:+'
-    testImplementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.+'
+    testImplementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.5.+'
 }
 
 repositories {
