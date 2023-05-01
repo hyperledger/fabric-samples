@@ -61,7 +61,7 @@ export WORKSHOP_STAGE_DOCKER_IMAGES="false"
 export WORKSHOP_STORAGE_CLASS="gp2"
 
 ```
-###Digital ocean / DOKS 
+### Digital ocean / DOKS 
 ```shell
 
 export WORKSHOP_NAMESPACE="test-network"
