@@ -12,6 +12,14 @@ There is already a **transfer** command implemented in [transfer.ts](../../appli
     ```
     > **Tip:** You can also leave `npm run build:watch` running in a terminal window to automatically rebuild your application on any code change.
 
+1. If you are using a new terminal window, set environment variables to point to resources required by the application.
+    ```bash
+    export ENDPOINT=org1peer-api.127-0-0-1.nip.io:8080
+    export MSP_ID=org1MSP
+    export CERTIFICATE=../../_cfg/uf/_msp/org1/org1admin/msp/signcerts/cert.pem
+    export PRIVATE_KEY=../../_cfg/uf/_msp/org1/org1admin/msp/keystore/cert_sk
+    ```
+
 1. Try it out! Use the **transfer** command to transfer assets to new owners with the same MSP ID.
 
 1. What happens if you try to manipulate (transfer, delete) an asset after transferring it to another MSP ID?
