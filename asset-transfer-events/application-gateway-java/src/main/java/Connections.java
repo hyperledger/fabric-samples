@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+import io.grpc.TlsChannelCredentials;
 import org.hyperledger.fabric.client.identity.Identities;
 import org.hyperledger.fabric.client.identity.Identity;
 import org.hyperledger.fabric.client.identity.Signer;
@@ -40,12 +40,12 @@ public final class Connections {
         // Private constructor to prevent instantiation
     }
 
-    public static ManagedChannel newGrpcConnection() throws IOException, CertificateException {
-        var tlsCertReader = Files.newBufferedReader(tlsCertPath);
-        var tlsCert = Identities.readX509Certificate(tlsCertReader);
-
-        return NettyChannelBuilder.forTarget(peerEndpoint)
-                .sslContext(GrpcSslContexts.forClient().trustManager(tlsCert).build()).overrideAuthority(overrideAuth)
+    public static ManagedChannel newGrpcConnection() throws IOException {
+        var credentials = TlsChannelCredentials.newBuilder()
+                .trustManager(tlsCertPath.toFile())
+                .build();
+        return Grpc.newChannelBuilder(peerEndpoint, credentials)
+                .overrideAuthority(overrideAuth)
                 .build();
     }
 

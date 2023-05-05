@@ -5,9 +5,9 @@
  */
 
 import io.grpc.Channel;
+import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+import io.grpc.TlsChannelCredentials;
 import org.hyperledger.fabric.client.Gateway;
 import org.hyperledger.fabric.client.identity.Identities;
 import org.hyperledger.fabric.client.identity.Identity;
@@ -73,12 +73,12 @@ public final class Connections {
         // Private constructor to prevent instantiation
     }
 
-    public static ManagedChannel newGrpcConnection() throws IOException, CertificateException {
-        var tlsCertReader = Files.newBufferedReader(TLS_CERT_PATH);
-        var tlsCert = Identities.readX509Certificate(tlsCertReader);
-
-        return NettyChannelBuilder.forTarget(PEER_ENDPOINT)
-                .sslContext(GrpcSslContexts.forClient().trustManager(tlsCert).build()).overrideAuthority(PEER_HOST_ALIAS)
+    public static ManagedChannel newGrpcConnection() throws IOException {
+        var credentials = TlsChannelCredentials.newBuilder()
+                .trustManager(TLS_CERT_PATH.toFile())
+                .build();
+        return Grpc.newChannelBuilder(PEER_ENDPOINT, credentials)
+                .overrideAuthority(PEER_HOST_ALIAS)
                 .build();
     }
 
