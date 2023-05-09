@@ -1,7 +1,7 @@
 {
     "name": "asset-transfer-private-data",
     "version": "1.0.0",
-    "description": "Asset Transfer contract implemented in TypeScript. (Private Data Tutorial)",
+    "description": "Asset Transfer(Private Data Tutorial) contract implemented in TypeScript.",
     "main": "dist/index.js",
     "typings": "dist/index.d.ts",
     "engines": {
