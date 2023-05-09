@@ -20,7 +20,7 @@ Organizations:
     # ID to load the MSP definition as
     ID: OrdererMSP
     # MSPDir is the filesystem path which contains the MSP configuration
-    MSPDir: crypto-config/ordererOrganizations/example.com/msp
+    MSPDir: ../crypto-config/ordererOrganizations/example.com/msp
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
     #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
@@ -43,7 +43,7 @@ Organizations:
     Name: Org1MSP
     # ID to load the MSP definition as
     ID: Org1MSP
-    MSPDir: crypto-config/peerOrganizations/org1.example.com/msp
+    MSPDir: ../crypto-config/peerOrganizations/org1.example.com/msp
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
     #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
@@ -71,7 +71,7 @@ Organizations:
     Name: Org2MSP
     # ID to load the MSP definition as
     ID: Org2MSP
-    MSPDir: crypto-config/peerOrganizations/org2.example.com/msp
+    MSPDir: ../crypto-config/peerOrganizations/org2.example.com/msp
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
     #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
@@ -124,7 +124,7 @@ Capabilities:
     # not able to participate in channels at v2.0 capability.
     # Prior to enabling V2.0 channel capabilities, ensure that all
     # orderers and peers on a channel are at v2.0.0 or later.
-    V2_0: true
+    V3_0: true
   # Orderer capabilities apply only to the orderers, and may be safely
   # used with prior release peers.
   # Set the value of the capability to true to require it.
@@ -260,35 +260,57 @@ Channel: &ChannelDefaults
 #
 ################################################################################
 Profiles:
-  ChannelUsingRaft:
+  ChannelUsingBFT:
     <<: *ChannelDefaults
     Orderer:
       <<: *OrdererDefaults
       Organizations:
         - *OrdererOrg
-      Capabilities:
-        <<: *OrdererCapabilities
-      OrdererType: etcdraft
-      EtcdRaft:
-        Consenters:
-          - Host: 127.0.0.1
-            Port: 6050
-            ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
-            ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
-          - Host: 127.0.0.1
-            Port: 6051
-            ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
-            ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
-          - Host: 127.0.0.1
-            Port: 6052
-            ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
-            ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
-        Options:
-          TickInterval: 2500ms
-          ElectionTick: 5
-          HeartbeatTick: 1
-          MaxInflightBlocks: 5
-          SnapshotIntervalSize: 16 MB
+      Capabilities: *OrdererCapabilities
+      OrdererType: BFT
+      SmartBFT:
+        RequestBatchMaxCount: 100
+        RequestBatchMaxInterval: 50ms
+        RequestForwardTimeout: 2s
+        RequestComplainTimeout: 20s
+        RequestAutoRemoveTimeout: 3m0s
+        ViewChangeResendInterval: 5s
+        ViewChangeTimeout: 20s
+        LeaderHeartbeatTimeout: 1m0s
+        CollectTimeout: 1s
+        RequestBatchMaxBytes: 10485760
+        IncomingMessageBufferSize: 200
+        RequestPoolSize: 100000
+        LeaderHeartbeatCount: 10
+      ConsenterMapping:
+        - ID: 1
+          Host: 127.0.0.1
+          Port: 6050
+          MSPID: OrdererMSP
+          Identity: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/signcerts/orderer.example.com-cert.pem
+          ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+          ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+        - ID: 2
+          Host: 127.0.0.1
+          Port: 6051
+          MSPID: OrdererMSP
+          Identity: ../crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/msp/signcerts/orderer2.example.com-cert.pem
+          ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+          ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+        - ID: 3
+          Host: 127.0.0.1
+          Port: 6052
+          MSPID: OrdererMSP
+          Identity: ../crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/msp/signcerts/orderer3.example.com-cert.pem
+          ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+          ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+        - ID: 4
+          Host: 127.0.0.1
+          Port: 6053
+          MSPID: OrdererMSP
+          Identity: ../crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/msp/signcerts/orderer4.example.com-cert.pem
+          ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
+          ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
     Application:
       <<: *ApplicationDefaults
       Organizations:
