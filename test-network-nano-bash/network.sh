@@ -57,7 +57,7 @@ networkStart() {
     CREATE_CHANNEL=false
   else
     echo "Generating artifacts..."
-    ./generate_artifacts.sh
+    ./generate_artifacts.sh "${ORDERER_TYPE}"
     CREATE_CHANNEL=true
   fi
 
@@ -65,9 +65,14 @@ networkStart() {
   mkdir -p "${PWD}"/logs
 
   echo "Starting orderers..."
-  ./orderer1.sh > ./logs/orderer1.log 2>&1 &
-  ./orderer2.sh > ./logs/orderer2.log 2>&1 &
-  ./orderer3.sh > ./logs/orderer3.log 2>&1 &
+  ./orderer1.sh "${ORDERER_TYPE}" > ./logs/orderer1.log 2>&1 &
+  ./orderer2.sh "${ORDERER_TYPE}" > ./logs/orderer2.log 2>&1 &
+  ./orderer3.sh "${ORDERER_TYPE}" > ./logs/orderer3.log 2>&1 &
+
+  #start one additional orderer for BFT consensus
+  if [ "$ORDERER_TYPE" = "BFT" ]; then
+    ./orderer4.sh "${ORDERER_TYPE}" > ./logs/orderer4.log 2>&1 &
+  fi
 
   echo "Waiting ${CLI_DELAY}s..."
   sleep ${CLI_DELAY}
@@ -82,19 +87,25 @@ networkStart() {
   sleep ${CLI_DELAY}
 
   if [ "${CREATE_CHANNEL}" = "true" ]; then
+    echo "Joining orderers to channel..."
+    if [ "$ORDERER_TYPE" = "BFT" ]; then
+      ./join_orderers.sh BFT
+    else
+      ./join_orderers.sh
+    fi
+
     echo "Creating channel (peer1)..."
-    . ./peer1admin.sh && ./create_channel.sh
+    . peer1admin.sh && ./join_channel.sh
 
     echo "Joining channel (peer2)..."
-    . ./peer2admin.sh && ./join_channel.sh
+    . peer2admin.sh && ./join_channel.sh
 
     echo "Joining channel (peer3)..."
-    . ./peer3admin.sh && ./join_channel.sh
-
+    . peer3admin.sh && ./join_channel.sh
+    
     echo "Joining channel (peer4)..."
-    . ./peer4admin.sh && ./join_channel.sh
+    . peer4admin.sh && ./join_channel.sh
   fi
-
   echo "Fabric network running. Use Ctrl-C to stop."
 
   wait
@@ -119,12 +130,18 @@ else
   shift
 fi
 
+ORDERER_TYPE="etcdraft"
+
 # parse flags
 while [ $# -ge 1 ] ; do
   key="$1"
   case $key in
   -d )
     CLI_DELAY="$2"
+    shift
+    ;;
+  -o )
+    ORDERER_TYPE="$2"
     shift
     ;;
   -h )
