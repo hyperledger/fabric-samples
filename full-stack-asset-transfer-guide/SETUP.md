@@ -3,8 +3,8 @@
 Remember to clone this repository!
 
 ```shell
-git clone https://github.com/hyperledgendary/full-stack-asset-transfer-guide.git workshop
-cd workshop
+git clone https://github.com/hyperledger/fabric-samples.git fabric-samples
+cd fabric-samples/full-stack-asset-transfer-guide
 export WORKSHOP_PATH=$(pwd)
 ```
 
