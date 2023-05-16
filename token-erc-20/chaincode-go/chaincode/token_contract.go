@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"encoding/base64"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -56,10 +57,16 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 	}
 
 	// Get ID of submitting client identity
-	minter, err := ctx.GetClientIdentity().GetID()
+	minter64, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
 		return fmt.Errorf("failed to get client id: %v", err)
 	}
+
+	minterBytes, err := base64.StdEncoding.DecodeString(minter64)
+    if err != nil {
+    	return fmt.Errorf("failed to DecodeString minter64: %v", err)
+    }
+    minter := string(minterBytes)
 
 	if amount <= 0 {
 		return fmt.Errorf("mint amount must be a positive integer")
@@ -153,10 +160,16 @@ func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount
 	}
 
 	// Get ID of submitting client identity
-	minter, err := ctx.GetClientIdentity().GetID()
-	if err != nil {
-		return fmt.Errorf("failed to get client id: %v", err)
-	}
+	minter64, err := ctx.GetClientIdentity().GetID()
+    if err != nil {
+   		return fmt.Errorf("failed to get minter id: %v", err)
+   	}
+
+   	minterBytes, err := base64.StdEncoding.DecodeString(minter64)
+   	if err != nil {
+    	return fmt.Errorf("failed to DecodeString minter64: %v", err)
+    }
+   	minter := string(minterBytes)
 
 	if amount <= 0 {
 		return errors.New("burn amount must be a positive integer")
@@ -241,10 +254,16 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, re
 	}
 
 	// Get ID of submitting client identity
-	clientID, err := ctx.GetClientIdentity().GetID()
+	sender64, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
 		return fmt.Errorf("failed to get client id: %v", err)
 	}
+
+	senderBytes, err := base64.StdEncoding.DecodeString(sender64)
+    if err != nil {
+   		return fmt.Errorf("failed to DecodeString sender: %v", err)
+   	}
+   	clientID := string(senderBytes)
 
 	err = transferHelper(ctx, clientID, recipient, amount)
 	if err != nil {
@@ -302,18 +321,24 @@ func (s *SmartContract) ClientAccountBalance(ctx contractapi.TransactionContextI
 		return 0, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
-	// Get ID of submitting client identity
-	clientID, err := ctx.GetClientIdentity().GetID()
-	if err != nil {
-		return 0, fmt.Errorf("failed to get client id: %v", err)
-	}
+	clientAccountID64, err := ctx.GetClientIdentity().GetID()
+    if err != nil {
+    	return 0, fmt.Errorf("failed to GetClientIdentity minter: %v", err)
+    }
 
-	balanceBytes, err := ctx.GetStub().GetState(clientID)
+    clientAccountIDBytes, err := base64.StdEncoding.DecodeString(clientAccountID64)
+    	if err != nil {
+    	return 0, fmt.Errorf("failed to DecodeString sender: %v", err)
+    }
+
+    clientAccountID := string(clientAccountIDBytes)
+
+	balanceBytes, err := ctx.GetStub().GetState(clientAccountID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to read from world state: %v", err)
 	}
 	if balanceBytes == nil {
-		return 0, fmt.Errorf("the account %s does not exist", clientID)
+		return 0, fmt.Errorf("the account %s does not exist", clientAccountID)
 	}
 
 	balance, _ := strconv.Atoi(string(balanceBytes)) // Error handling not needed since Itoa() was used when setting the account balance, guaranteeing it was an integer.
@@ -336,12 +361,18 @@ func (s *SmartContract) ClientAccountID(ctx contractapi.TransactionContextInterf
 	}
 
 	// Get ID of submitting client identity
-	clientAccountID, err := ctx.GetClientIdentity().GetID()
+	clientAccountID64, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
 		return "", fmt.Errorf("failed to get client id: %v", err)
 	}
 
-	return clientAccountID, nil
+	clientAccountBytes, err := base64.StdEncoding.DecodeString(clientAccountID64)
+    if err != nil {
+    	return "", fmt.Errorf("failed to DecodeString clientAccount64: %v", err)
+    }
+    clientAccount := string(clientAccountBytes)
+
+	return clientAccount, nil
 }
 
 // TotalSupply returns the total token supply
@@ -391,10 +422,16 @@ func (s *SmartContract) Approve(ctx contractapi.TransactionContextInterface, spe
 	}
 
 	// Get ID of submitting client identity
-	owner, err := ctx.GetClientIdentity().GetID()
+	owner64, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
 		return fmt.Errorf("failed to get client id: %v", err)
 	}
+
+	ownerBytes, err := base64.StdEncoding.DecodeString(owner64)
+    if err != nil {
+    	return fmt.Errorf("failed to DecodeString minter64: %v", err)
+    }
+    owner := string(ownerBytes)
 
 	// Create allowanceKey
 	allowanceKey, err := ctx.GetStub().CreateCompositeKey(allowancePrefix, []string{owner, spender})
@@ -476,10 +513,16 @@ func (s *SmartContract) TransferFrom(ctx contractapi.TransactionContextInterface
 	}
 
 	// Get ID of submitting client identity
-	spender, err := ctx.GetClientIdentity().GetID()
-	if err != nil {
-		return fmt.Errorf("failed to get client id: %v", err)
-	}
+	spender64, err := ctx.GetClientIdentity().GetID()
+    if err != nil {
+    	return fmt.Errorf("failed to get client id: %v", err)
+    }
+
+    spenderBytes, err := base64.StdEncoding.DecodeString(spender64)
+    if err != nil {
+       	return fmt.Errorf("failed to DecodeString minter64: %v", err)
+    }
+    spender := string(spenderBytes)
 
 	// Create allowanceKey
 	allowanceKey, err := ctx.GetStub().CreateCompositeKey(allowancePrefix, []string{from, spender})
