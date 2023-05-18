@@ -1,0 +1,363 @@
+{
+  "namespace": "default",
+  "name": "token_erc_20",
+  "description": "Spec interface for the TokenERC20 golang chaincode",
+  "version": "0.0.2",
+  "methods": [
+    {
+      "name": "BalanceOf",
+      "pathname": "",
+      "description": "returns the balance of the given account",
+      "params": [
+        {
+          "name": "account",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "balance",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approve",
+      "pathname": "",
+      "description": "allows the spender to withdraw from the calling client's token account",
+      "params": [
+        {
+          "name": "spender",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "value",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "success",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approve",
+      "pathname": "",
+      "description": "allows the spender to withdraw from the calling client's token account",
+      "params": [
+        {
+          "name": "spender",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "value",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "success",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ]
+    },
+    {
+      "name": "TransferFrom",
+      "pathname": "",
+      "description": "transfers the value amount from the \"from\" address to the \"to\" address",
+      "params": [
+        {
+          "name": "from",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "to",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "value",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "success",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Initialize",
+      "pathname": "",
+      "description": "Initialize the contract with the name and symbol of the token",
+      "params": [
+        {
+          "name": "name",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "symbol",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "decimals",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "success",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Name",
+      "pathname": "",
+      "description": "Returns the name of the token",
+      "params": [],
+      "returns": [
+        {
+          "name": "name",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Symbol",
+      "pathname": "",
+      "description": "Returns the symbol of the token",
+      "params": [],
+      "returns": [
+        {
+          "name": "symbol",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    {
+      "name": "TotalSupply",
+      "pathname": "",
+      "description": "Returns the total supply of tokens",
+      "params": [],
+      "returns": [
+        {
+          "name": "count",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Burn",
+      "pathname": "",
+      "description": "redeems tokens the minter's account balance",
+      "params": [
+        {
+          "name": "amount",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "success",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ClientAccountBalance",
+      "pathname": "",
+      "description": "Returns the balance of the requesting client's account",
+      "params": [],
+      "returns": [
+        {
+          "name": "balance",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ClientAccountID",
+      "pathname": "",
+      "description": "Returns the ID of the requesting client's account",
+      "params": [],
+      "returns": [
+        {
+          "name": "clientAccountID",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mint",
+      "pathname": "",
+      "description": "creates new tokens and adds them to minter's account balance",
+      "params": [
+        {
+          "name": "amount",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "success",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transfer",
+      "pathname": "",
+      "description": "transfers tokens from client account to recipient account",
+      "params": [
+        {
+          "name": "recipient",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "amount",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "success",
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Allowance",
+      "pathname": "",
+      "description": "returns the amount still available for the spender to withdraw from the owner",
+      "params": [
+        {
+          "name": "owner",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "spender",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "allowance",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "Transfer",
+      "params": [
+        {
+          "name": "from",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "to",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "value",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approval",
+      "params": [
+        {
+          "name": "from",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "to",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "value",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    }
+  ]
+}

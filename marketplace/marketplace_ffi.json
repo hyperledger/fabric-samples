@@ -1,0 +1,305 @@
+{
+  "namespace": "default",
+  "name": "marketplace",
+  "description": "Spec interface for the Marketplace golang chaincode",
+  "version": "0.0.1",
+  "methods": [
+    {
+      "name": "List",
+      "pathname": "",
+      "description": "Lists tokens",
+      "params": [
+        {
+          "name": "creator",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "listingId",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "currencyAddr",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "nfts",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "TokenAddr": {
+                  "type": "string"
+                },
+                "Id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "batches",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "TokenAddr": {
+                  "type": "string"
+                },
+                "Id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "collections",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "TokenAddr": {
+                  "type": "string"
+                },
+                "Id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "price",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "success",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "error",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CancelListing",
+      "pathname": "",
+      "description": "Cancel Listing",
+      "params": [
+        {
+          "name": "listingId",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "success",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "error",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Buy",
+      "pathname": "",
+      "description": "Buy tokens",
+      "params": [
+        {
+          "name": "buyer",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "listingId",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "tokenAddr",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "tokenId",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "success",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "error",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "ListingCreated",
+      "params": [
+        {
+          "name": "listingId",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "creator",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "price",
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "currencyAddr",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "nfts",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "TokenAddr": {
+                  "type": "string"
+                },
+                "Id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "batches",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "TokenAddr": {
+                  "type": "string"
+                },
+                "Id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "collections",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "TokenAddr": {
+                  "type": "string"
+                },
+                "Id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "ListingItemSold",
+      "params": [
+        {
+          "name": "listingId",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "creator",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "price",
+          "schema": {
+            "type": "integer"
+          }
+        },
+        {
+          "name": "tokenAddr",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "currencyAddr",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "tokenId",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "buyer",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    }
+  ]
+}

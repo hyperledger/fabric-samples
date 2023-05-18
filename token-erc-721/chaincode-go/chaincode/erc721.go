@@ -26,11 +26,17 @@ type Transfer struct {
 }
 
 type LockUnlock struct {
-    Owner   string `json:"owner"`
-    TokenId string `json:"tokenId"`
+	Owner   string `json:"owner"`
+	TokenId string `json:"tokenId"`
 }
 
 type Burn struct {
-   Owner   string `json:"owner"`
-   TokenId string `json:"tokenId"`
+	Owner   string `json:"owner"`
+	TokenId string `json:"tokenId"`
+}
+
+type TokenMinted struct {
+	To       string `json:"to"`
+	TokenId  string `json:"tokenId"`
+	TokenURI string `json:"tokenURI"`
 }

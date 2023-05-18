@@ -2,6 +2,17 @@
 
 # Hyperledger Fabric Samples
 
+## To build using docker image use the following command
+`docker run --platform linux/amd64 --rm -v $(pwd)/token-erc-20/chaincode-go:/source golang:1.20-alpine /bin/sh -c "cd /source; go mod tidy; go mod vendor"`
+`docker run --platform linux/amd64 --rm -v $(pwd)/token-erc-721/chaincode-go:/source golang:1.20-alpine /bin/sh -c "cd /source; go mod tidy; go mod vendor"`
+`docker run --platform linux/amd64 --rm -v $(pwd)/marketplace/chaincode-go:/source golang:1.20-alpine /bin/sh -c "cd /source; go mod tidy; go mod vendor"`
+
+`export PACKAGE_NAME=token-erc-20-v1; docker run --platform linux/amd64 --rm -v $(pwd)/token-erc-20/chaincode-go:/source -v $(pwd)/output:/output hyperledger/fabric-tools:2.5 peer lifecycle chaincode package -p /source --label $PACKAGE_NAME /output/$PACKAGE_NAME.zip`
+`export PACKAGE_NAME=token-erc-721-v4; docker run --platform linux/amd64 --rm -v $(pwd)/token-erc-721/chaincode-go:/source -v $(pwd)/output:/output hyperledger/fabric-tools:2.5 peer lifecycle chaincode package -p /source --label $PACKAGE_NAME /output/$PACKAGE_NAME.zip`
+`export PACKAGE_NAME=marketplace-v5; docker run --platform linux/amd64 --rm -v $(pwd)/marketplace/chaincode-go:/source -v $(pwd)/output:/output hyperledger/fabric-tools:2.5 peer lifecycle chaincode package -p /source --label $PACKAGE_NAME /output/$PACKAGE_NAME.zip`
+
+`export PACKAGE_NAME=marketplace-v5; ff deploy fabric firefly-dev ./output/$PACKAGE_NAME.zip firefly $PACKAGE_NAME 0.0.1`
+
 [![Build Status](https://dev.azure.com/Hyperledger/Fabric-Samples/_apis/build/status/Fabric-Samples?branchName=main)](https://dev.azure.com/Hyperledger/Fabric-Samples/_build/latest?definitionId=28&branchName=main)
 
 You can use Fabric samples to get started working with Hyperledger Fabric, explore important Fabric features, and learn how to build applications that can interact with blockchain networks using the Fabric SDKs. To learn more about Hyperledger Fabric, visit the [Fabric documentation](https://hyperledger-fabric.readthedocs.io/en/latest).

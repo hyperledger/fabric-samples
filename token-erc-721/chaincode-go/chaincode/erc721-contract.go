@@ -230,29 +230,28 @@ func (c *TokenERC721Contract) SetLock(ctx contractapi.TransactionContextInterfac
 	}
 
 	lockUnlockEvent := new(LockUnlock)
-    lockUnlockEvent.Owner = sender
-    lockUnlockEvent.TokenId = nft.TokenId
+	lockUnlockEvent.Owner = sender
+	lockUnlockEvent.TokenId = nft.TokenId
 
-    lockUnlockEventBytes, err := json.Marshal(lockUnlockEvent)
-    if err != nil {
-    	return false, fmt.Errorf("failed to marshal lockUnlockEventBytes: %v", err)
-    }
+	lockUnlockEventBytes, err := json.Marshal(lockUnlockEvent)
+	if err != nil {
+		return false, fmt.Errorf("failed to marshal lockUnlockEventBytes: %v", err)
+	}
 
-    if (nft.Locked) {
-        err = ctx.GetStub().SetEvent("Lock", lockUnlockEventBytes)
-        if err != nil {
-            return false, fmt.Errorf("failed to SetEvent Lock: %v", err)
-        }
-    } else {
-        err = ctx.GetStub().SetEvent("Unlock", lockUnlockEventBytes)
-        if err != nil {
-            return false, fmt.Errorf("failed to SetEvent Unlock: %v", err)
-        }
-    }
+	if nft.Locked {
+		err = ctx.GetStub().SetEvent("Lock", lockUnlockEventBytes)
+		if err != nil {
+			return false, fmt.Errorf("failed to SetEvent Lock: %v", err)
+		}
+	} else {
+		err = ctx.GetStub().SetEvent("Unlock", lockUnlockEventBytes)
+		if err != nil {
+			return false, fmt.Errorf("failed to SetEvent Unlock: %v", err)
+		}
+	}
 
 	return true, nil
 }
-
 
 // SetApprovalForAll enables or disables approval for a third party ("operator")
 // to manage all the message sender's assets
@@ -404,9 +403,9 @@ func (c *TokenERC721Contract) TransferFrom(ctx contractapi.TransactionContextInt
 		return false, fmt.Errorf("failed to _readNFT : %v", err)
 	}
 
-    if (nft.Locked) {
-        return false, fmt.Errorf("Token %s is locked", nft.TokenId)
-    }
+	if nft.Locked {
+		return false, fmt.Errorf("Token %s is locked", nft.TokenId)
+	}
 
 	owner := nft.Owner
 	operator := nft.Approved
@@ -707,19 +706,19 @@ func (c *TokenERC721Contract) MintWithTokenURI(ctx contractapi.TransactionContex
 	}
 
 	// Emit the Transfer event
-	transferEvent := new(Transfer)
-	transferEvent.From = "0x0"
-	transferEvent.To = minter
-	transferEvent.TokenId = tokenId
+	mintedEvent := new(TokenMinted)
+	mintedEvent.To = minter
+	mintedEvent.TokenId = tokenId
+	mintedEvent.TokenURI = tokenURI
 
-	transferEventBytes, err := json.Marshal(transferEvent)
+	mintedEventBytes, err := json.Marshal(mintedEvent)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal transferEventBytes: %v", err)
 	}
 
-	err = ctx.GetStub().SetEvent("Transfer", transferEventBytes)
+	err = ctx.GetStub().SetEvent("TokenMinted", mintedEventBytes)
 	if err != nil {
-		return nil, fmt.Errorf("failed to SetEvent transferEventBytes %s: %v", transferEventBytes, err)
+		return nil, fmt.Errorf("failed to SetEvent mintedEventBytes %s: %v", mintedEventBytes, err)
 	}
 
 	return nft, nil
@@ -759,9 +758,9 @@ func (c *TokenERC721Contract) Burn(ctx contractapi.TransactionContextInterface, 
 		return false, fmt.Errorf("non-fungible token %s is not owned by %s", tokenId, owner)
 	}
 
-	if (nft.Locked) {
-        return false, fmt.Errorf("Token %s is locked", nft.TokenId)
-    }
+	if nft.Locked {
+		return false, fmt.Errorf("Token %s is locked", nft.TokenId)
+	}
 
 	// Delete the token
 	nftKey, err := ctx.GetStub().CreateCompositeKey(nftPrefix, []string{tokenId})
