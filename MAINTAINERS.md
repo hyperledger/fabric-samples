@@ -3,13 +3,14 @@ Maintainers
 
 fabric-samples uses a non-author code review policy, requiring a single approval from a non-author maintainer.
 
-| Name                      | GitHub           | Chat           | email                               |
-|---------------------------|------------------|----------------|-------------------------------------|
-| Arnaud Le Hors            | lehors           | lehors         | lehors@us.ibm.com                   |
-| Dave Enyeart              | denyeart         | dave.enyeart   | enyeart@us.ibm.com                  |
-| Josh Kneubuhl             | jkneubuh         | jkneubuhl      | jkneubuh@us.ibm.com                 |
-| Matthew B White           | mbwhite          | mbwhite        | whitemat@uk.ibm.com                 |
-| Nikhil Gupta              | nikhil550        | negupta        | nikhilg550@gmail.com                |
+| Name                      | GitHub           | Discord ID       | email                               |
+|---------------------------|------------------|------------------|-------------------------------------|
+| Arnaud Le Hors            | lehors           | Arnaud J Le Hors | lehors@us.ibm.com                   |
+| Dave Enyeart              | denyeart         | Dave Enyeart     | enyeart@us.ibm.com                  |
+| Josh Kneubuhl             | jkneubuh         | jkneubuhl        | jkneubuh@us.ibm.com                 |
+| Matthew B White           | mbwhite          | mbwhite          | whitemat@uk.ibm.com                 |
+| Nikhil Gupta              | nikhil550        | negupta          | nikhilg550@gmail.com                |
+| Tatsuya Sato              | satota2          | satota2          | tatsuya.sato.so@hitachi.com         |
 
 Also: Please see the [Release Manager section](https://github.com/hyperledger/fabric/blob/main/MAINTAINERS.md)
 
