@@ -11,52 +11,61 @@ import org.hyperledger.fabric.contract.annotation.Property;
 
 import com.owlike.genson.annotation.JsonProperty;
 
+// license-key
+// email
+// mac-address
+// device-id
+// timestamp
+
 @DataType()
 public final class Asset {
 
     @Property()
-    private final String assetID;
+    private final String licenseKey;
 
     @Property()
-    private final String color;
+    private final String email;
 
     @Property()
-    private final int size;
+    private final String macAddress;
 
     @Property()
-    private final String owner;
+    private final String deviceID;
 
     @Property()
-    private final int appraisedValue;
+    private final String timestamp;
 
-    public String getAssetID() {
-        return assetID;
+    public String getLicenseKey() {
+        return licenseKey;
     }
 
-    public String getColor() {
-        return color;
+    public String getEmail() {
+        return email;
     }
 
-    public int getSize() {
-        return size;
+    public int getMacAddress() {
+        return macAddress;
     }
 
-    public String getOwner() {
-        return owner;
+    public String getDeviceID() {
+        return deviceID;
     }
 
-    public int getAppraisedValue() {
-        return appraisedValue;
+    public int getTimestamp() {
+        return timestamp;
     }
 
-    public Asset(@JsonProperty("assetID") final String assetID, @JsonProperty("color") final String color,
-            @JsonProperty("size") final int size, @JsonProperty("owner") final String owner,
-            @JsonProperty("appraisedValue") final int appraisedValue) {
-        this.assetID = assetID;
-        this.color = color;
-        this.size = size;
-        this.owner = owner;
-        this.appraisedValue = appraisedValue;
+    public Asset(@JsonProperty("licenseKey") final String licenseKey,
+            @JsonProperty("email") final String email,
+            @JsonProperty("macAddress") final String macAddress,
+            @JsonProperty("deviceID") final String deviceID,
+            @JsonProperty("timestamp") final String timestamp)
+    {
+        this.licenseKey = licenseKey;
+        this.email = email;
+        this.macAddress = macAddress;
+        this.deviceID = deviceID;
+        this.timestamp = timestamp;
     }
 
     @Override
@@ -72,22 +81,18 @@ public final class Asset {
         Asset other = (Asset) obj;
 
         return Objects.deepEquals(
-                new String[] {getAssetID(), getColor(), getOwner()},
-                new String[] {other.getAssetID(), other.getColor(), other.getOwner()})
-                &&
-                Objects.deepEquals(
-                new int[] {getSize(), getAppraisedValue()},
-                new int[] {other.getSize(), other.getAppraisedValue()});
+                new String[] {getLicenseKey(), getEmail(), getMacAddress(), getDeviceID(), getTimestamp()},
+                new String[] {other.getLicenseKey(), other.getEmail(), other.getMacAddress(), other.getDeviceID(), other.getTimestamp()});
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getAssetID(), getColor(), getSize(), getOwner(), getAppraisedValue());
+        return Objects.hash(getLicenseKey(), getEmail(), getMacAddress(), getDeviceID(), getTimestamp());
     }
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + " [assetID=" + assetID + ", color="
-                + color + ", size=" + size + ", owner=" + owner + ", appraisedValue=" + appraisedValue + "]";
+        return this.getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + " [licenseKey=" + licenseKey + ", email="
+                + email + ", macAddress=" + macAddress + ", deviceID=" + deviceID + ", timestamp=" + timestamp + "]";
     }
 }
