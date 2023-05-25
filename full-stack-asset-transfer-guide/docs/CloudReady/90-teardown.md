@@ -20,8 +20,8 @@
 
 ## Thank You!
 
-- Discord: [#dublin-workshop](https://discord.gg/PbjpetNqyR)
-- Discord: [#fabric-kubernetes](https://discord.gg/DPKagScrN7)
+- Discord: [#dublin-workshop](https://discord.gg/hyperledger)
+- Discord: [#fabric-kubernetes](https://discord.gg/hyperledger)
 - Thank you for attending the workshop!
 - Safe travels home, and happy coding.
 
