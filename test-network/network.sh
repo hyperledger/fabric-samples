@@ -243,6 +243,7 @@ function createOrgs() {
 
 # Bring up the peer and orderer nodes using docker compose.
 function networkUp() {
+
   checkPrereqs
 
   # generate artifacts if they don't exist
@@ -270,6 +271,8 @@ function createChannel() {
   # Bring up the network if it is not already up.
   bringUpNetwork="false"
 
+  local bft_true=$1
+
   if ! $CONTAINER_CLI info > /dev/null 2>&1 ; then
     fatalln "$CONTAINER_CLI network is required to be running to create a channel"
   fi
@@ -292,7 +295,7 @@ function createChannel() {
 
   # now run the script that creates a channel. This script uses configtxgen once
   # to create the channel creation transaction and the anchor peer updates.
-  scripts/createChannel.sh $CHANNEL_NAME $CLI_DELAY $MAX_RETRY $VERBOSE
+  scripts/createChannel.sh $CHANNEL_NAME $CLI_DELAY $MAX_RETRY $VERBOSE $bft_true
 }
 
 
@@ -316,7 +319,8 @@ function deployCCAAS() {
 
 # Tear down running network
 function networkDown() {
-
+  local temp_compose=$COMPOSE_FILE_BASE
+  COMPOSE_FILE_BASE=compose-bft-test-net.yaml
   COMPOSE_BASE_FILES="-f compose/${COMPOSE_FILE_BASE} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_BASE}"
   COMPOSE_COUCH_FILES="-f compose/${COMPOSE_FILE_COUCH} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_COUCH}"
   COMPOSE_CA_FILES="-f compose/${COMPOSE_FILE_CA} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_CA}"
@@ -336,6 +340,7 @@ function networkDown() {
     fatalln "Container CLI  ${CONTAINER_CLI} not supported"
   fi
 
+  COMPOSE_FILE_BASE=$temp_compose
 
   # Don't remove the generated artifacts -- note, the ledgers are always removed
   if [ "$MODE" != "restart" ]; then
@@ -406,6 +411,9 @@ DATABASE="leveldb"
 SOCK="${DOCKER_HOST:-/var/run/docker.sock}"
 DOCKER_SOCK="${SOCK##unix://}"
 
+# BFT activated flag
+BFT=0
+
 # Parse commandline args
 
 ## Parse mode
@@ -437,6 +445,10 @@ while [[ $# -ge 1 ]] ; do
     ;;
   -c )
     CHANNEL_NAME="$2"
+    shift
+    ;;
+  -bft )
+    BFT=1
     shift
     ;;
   -ca )
@@ -502,6 +514,11 @@ while [[ $# -ge 1 ]] ; do
   shift
 done
 
+if [ $BFT -eq 1 ]; then
+  export FABRIC_CFG_PATH=${PWD}/bft-config
+  COMPOSE_FILE_BASE=compose-bft-test-net.yaml
+fi
+
 # Are we generating crypto material with this command?
 if [ ! -d "organizations/peerOrganizations" ]; then
   CRYPTO_MODE="with crypto from '${CRYPTO}'"
@@ -516,7 +533,7 @@ if [ "$MODE" == "up" ]; then
 elif [ "$MODE" == "createChannel" ]; then
   infoln "Creating channel '${CHANNEL_NAME}'."
   infoln "If network is not up, starting nodes with CLI timeout of '${MAX_RETRY}' tries and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE} ${CRYPTO_MODE}"
-  createChannel
+  createChannel $BFT
 elif [ "$MODE" == "down" ]; then
   infoln "Stopping network"
   networkDown
