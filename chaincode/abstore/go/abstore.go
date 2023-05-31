@@ -50,7 +50,7 @@ func (t *ABstore) Init(ctx contractapi.TransactionContextInterface, A string, Av
 
 // Transaction makes payment of X units from A to B
 func (t *ABstore) Invoke(ctx contractapi.TransactionContextInterface, A, B string, X int) error {
-	if X < 0 {
+	if X <= 0 {
 		return fmt.Errorf("X input is wrong, it should be greater than 0")
 	}
 	var err error
