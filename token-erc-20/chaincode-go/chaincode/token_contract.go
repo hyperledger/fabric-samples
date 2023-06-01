@@ -695,7 +695,7 @@ func add(b int, q int) (int, error) {
 	var sum int
 	sum = q + b
 
-	if (sum < q) == (b >= 0 && q >= 0) {
+	if (sum < q || sum < b) == (b >= 0 && q >= 0) {
 		return 0, fmt.Errorf("Math: addition overflow occurred %d + %d", b, q)
 	}
 
