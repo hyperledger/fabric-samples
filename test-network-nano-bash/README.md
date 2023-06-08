@@ -39,11 +39,10 @@ yq -i 'del(.chaincode.externalBuilders) | .chaincode.externalBuilders[0].name = 
 ```
 
 # Instructions for starting network
-
 ## Running each component separately
 
-Open terminal windows for 3 ordering nodes, 4 peer nodes, and 4 peer admins as seen in the following terminal setup. The first two peers and peer admins belong to Org1, the latter two peer and peer admins belong to Org2.
-Note, you can start with two ordering nodes and a single Org1 peer node and single Org1 peer admin terminal if you would like to keep things even more minimal (two ordering nodes are required to achieve consensus (2 of 3), while a single peer from Org1 can be utilized since the endorsement policy is set as any single organization).
+Open terminal windows for 3 ordering nodes or 4 if running BFT Consensus, 4 peer nodes, and 4 peer admins as seen in the following terminal setup. The first two peers and peer admins belong to Org1, the latter two peer and peer admins belong to Org2.
+Note, you can start with two ordering nodes and a single Org1 peer node and single Org1 peer admin terminal if you would like to keep things even more minimal (two ordering nodes are required to achieve Raft consensus (2 of 3), while a single peer from Org1 can be utilized since the endorsement policy is set as any single organization).
 ![Terminal setup](terminal_setup.png)
 
 The following instructions will have you run simple bash scripts that set environment variable overrides for a component and then runs the component.
@@ -51,23 +50,27 @@ The scripts contain only simple single-line commands so that they are easy to re
 If you have trouble running bash scripts in your environment, you can just as easily copy and paste the individual commands from the script files instead of running the script files.
 
 - cd to the `test-network-nano-bash` directory in each terminal window
-- In the first orderer terminal, run `./generate_artifacts.sh` to generate crypto material (calls cryptogen) and system and application channel genesis block and configuration transactions (calls configtxgen). The artifacts will be created in the `crypto-config` and `channel-artifacts` directories.
-- In the three orderer terminals, run `./orderer1.sh`, `./orderer2.sh`, `./orderer3.sh` respectively
-- In the four peer terminals, run `./peer1.sh`, `./peer2.sh`, `./peer3.sh`, `./peer4.sh` respectively
+- In the first orderer terminal, run `./generate_artifacts.sh` to generate crypto material (calls cryptogen) and application channel genesis block and configuration transactions (calls configtxgen). The artifacts will be created in the `crypto-config` and `channel-artifacts` directories. If you are running BFT consensus then run `./generate_artifacts.sh BFT`.
+- In the three orderer terminals, run `./orderer1.sh`, `./orderer2.sh`, `./orderer3.sh` respectively. If you are running BFT consensus then run `./orderer4.sh` in the fourth orderer terminal also.
+- In the four peer terminals, run `./peer1.sh`, `./peer2.sh`, `./peer3.sh`, `./peer4.sh` respectively.
 - Note that each orderer and peer write their data (including their ledgers) to their own subdirectory under the `data` directory
-- In the four peer admin terminals, run `source peer1admin.sh && ./create_channel.sh`, `source peer2admin.sh && ./join_channel.sh`, `source peer3admin.sh && ./join_channel.sh`, `source peer4admin.sh && ./join_channel.sh` respectively
+- Open a different terminal and run `./join_orderers.sh`. If you are running BFT Consensus then run `./join_orderers.sh BFT` instead.
+- In the four peer admin terminals, run `source peer1admin.sh && ./join_channel.sh`, `source peer2admin.sh && ./join_channel.sh`, `source peer3admin.sh && ./join_channel.sh`, `source peer4admin.sh && ./join_channel.sh` respectively.
 
 Note the syntax of running the scripts. The peer admin scripts set the admin environment variables and must be run with the `source` command in order that the exported environment variables can be utilized by any subsequent user commands.
-
-The `create_channel.sh` script creates the application channel `mychannel`, updates the channel configuration for the gossip anchor peer, and joins the peer to `mychannel`.
-The `join_channel.sh` script joins a peer to `mychannel`.
 
 ## Starting the network with one command
 
 Using the individual scripts above gives you more control of the process of starting a Fabric network and demonstrates how all the required components fit together, however the same network can also be started using a single script for convenience.
 
+For Raft consensus type:
 ```shell
 ./network.sh start
+```
+
+For BFT consensus type:
+```shell
+./network.sh start -o BFT
 ```
 
 After the network has started, use seperate terminals to run peer commands.
@@ -84,6 +87,8 @@ To deploy and invoke the chaincode, utilize the peer1 admin terminal that you ha
 
 1. Using a chaincode container
 2. Running the chaincode as a service
+
+For your convenience you can run `install&approve&commit_chaincode_peer1.sh` from peer1admin terminal to run basic chaincode as a container and activate it. The output of the script is redirected to the logs folder.
 
 ## 1. Using a chaincode container
 
@@ -175,7 +180,7 @@ peer chaincode invoke -o 127.0.0.1:6050 -C mychannel -n basic -c '{"Args":["Upda
 
 peer chaincode query -C mychannel -n basic -c '{"Args":["ReadAsset","1"]}'
 ```
-
+For your convenience you can run `chaincode_interaction.sh` from peer1admin terminal to make this simple transaction. The ouput of the script is redirected to the logs folder.\
 Congratulations, you have deployed a minimal Fabric network! Inspect the scripts if you would like to see the minimal set of commands that were required to deploy the network.
 
 # Stopping the network
