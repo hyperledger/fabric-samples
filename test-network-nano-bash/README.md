@@ -100,10 +100,12 @@ peer lifecycle chaincode package basic.tar.gz --path ../asset-transfer-basic/cha
 peer lifecycle chaincode install basic.tar.gz
 ```
 
-The chaincode install may take a minute since the `fabric-ccenv` chaincode builder docker image will be downloaded if not already available on your machine. Copy the returned chaincode package ID into an environment variable for use in subsequent commands (your ID may be different):
+The chaincode install may take a minute since the `fabric-ccenv` chaincode builder docker image will be downloaded if not already available on your machine.
+
+Copy the returned chaincode package ID into a `CHAINCODE_ID` environment variable for use in subsequent commands, or better yet use the peer `calculatepackageid` command to set the environment variable:
 
 ```shell
-export CHAINCODE_ID=basic_1:faaa38f2fc913c8344986a7d1617d21f6c97bc8d85ee0a489c90020cd57af4a5
+export CHAINCODE_ID=$(peer lifecycle chaincode calculatepackageid basic.tar.gz) && echo $CHAINCODE_ID
 ```
 
 ## 2. Running the chaincode as a service
@@ -121,7 +123,7 @@ cd ..
 peer lifecycle chaincode install chaincode-external/external-chaincode.tgz
 ```
 
-Copy the returned chaincode package ID into an environment variable for use in subsequent commands (your ID may be different):
+Set the CHAINCODE_ID environment variable for use in subsequent commands:
 
 ```shell
 export CHAINCODE_ID=$(peer lifecycle chaincode calculatepackageid chaincode-external/external-chaincode.tgz) && echo $CHAINCODE_ID
@@ -172,11 +174,11 @@ Invoke the chaincode to create an asset (only a single endorser is required base
 Then query the asset, update it, and query again to see the resulting asset changes on the ledger. Note that you need to wait a bit for invoke transactions to complete.
 
 ```shell
-peer chaincode invoke -o 127.0.0.1:6050 -C mychannel -n basic -c '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' --tls --cafile "${PWD}"/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+peer chaincode invoke -o 127.0.0.1:6050 -C mychannel -n basic -c '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' --waitForEvent --tls --cafile "${PWD}"/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
 
 peer chaincode query -C mychannel -n basic -c '{"Args":["ReadAsset","1"]}'
 
-peer chaincode invoke -o 127.0.0.1:6050 -C mychannel -n basic -c '{"Args":["UpdateAsset","1","blue","35","jerry","1000"]}' --tls --cafile "${PWD}"/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+peer chaincode invoke -o 127.0.0.1:6050 -C mychannel -n basic -c '{"Args":["UpdateAsset","1","blue","35","jerry","1000"]}' --waitForEvent --tls --cafile "${PWD}"/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
 
 peer chaincode query -C mychannel -n basic -c '{"Args":["ReadAsset","1"]}'
 ```
