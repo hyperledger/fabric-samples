@@ -73,7 +73,7 @@ For BFT consensus type:
 ./network.sh start -o BFT
 ```
 
-After the network has started, use seperate terminals to run peer commands.
+After the network has started, use separate terminals to run peer commands.
 You will need to configure the peer environment for each new terminal.
 For example to run against peer1, use:
 
@@ -166,7 +166,7 @@ peer lifecycle chaincode commit -o 127.0.0.1:6050 --channelID mychannel --name b
 
 **Note:** after following the instructions above, the chaincode will only be installed on peer1 and will only be available in the peer1admin shell.
 Rerun the `peer lifecycle chaincode install` command in other peer admin shells to install it on the corresponding peer.
-You will also need to rerun the `peer lifecycle chaincode approveformyorg` command to use the chaincode on peers in another organisation, e.g. using the peer3admin shell.
+You will also need to rerun the `peer lifecycle chaincode approveformyorg` command to use the chaincode on peers in another organization, e.g. using the peer3admin shell.
 
 ## Interact with the chaincode
 
@@ -182,11 +182,11 @@ peer chaincode invoke -o 127.0.0.1:6050 -C mychannel -n basic -c '{"Args":["Upda
 
 peer chaincode query -C mychannel -n basic -c '{"Args":["ReadAsset","1"]}'
 ```
-For your convenience you can run `chaincode_interaction.sh` from peer1admin terminal to make this simple transaction. The ouput of the script is redirected to the logs folder.\
+For your convenience you can run `chaincode_interaction.sh` from peer1admin terminal to make this simple transaction. The output of the script is redirected to the logs folder.\
 Congratulations, you have deployed a minimal Fabric network! Inspect the scripts if you would like to see the minimal set of commands that were required to deploy the network.
 
 # Stopping the network
 
-If you started the Fabric componentes individually, utilize `Ctrl-C` in the orderer and peer terminal windows to kill the orderer and peer processes. You can run the scripts again to restart the components with their existing data, or run `./generate_artifacts` again to clean up the existing artifacts and data if you would like to restart with a clean environment.
+If you started the Fabric components individually, utilize `Ctrl-C` in the orderer and peer terminal windows to kill the orderer and peer processes. You can run the scripts again to restart the components with their existing data, or run `./generate_artifacts` again to clean up the existing artifacts and data if you would like to restart with a clean environment.
 
 If you used the `network.sh` script, utilize `Ctrl-C` to kill the orderer and peer processes. You can restart the network with the existing data, or run `./network.sh clean` to remove old data before restarting.

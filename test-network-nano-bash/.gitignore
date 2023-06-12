@@ -3,3 +3,4 @@ crypto-config/
 data/
 logs/
 *.gz
+chaincode-external/
