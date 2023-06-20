@@ -719,13 +719,15 @@ func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error)
 // sub two number checking for overflow
 func sub(b int, q int) (int, error) {
 
-	// Check overflow
+	// sub two number checking 
+	if q <= 0 {
+		return 0, fmt.Errorf("Error: the subtraction number is %d, it should be greater than 0", q)
+	}
+	if b < q {
+		return 0, fmt.Errorf("Error: the number %d is not enough to be subtracted by %d", b, q)
+	}
 	var diff int
 	diff = b - q
-
-	if (diff < b || diff < -q) == (b >= 0 && q <= 0) {
-		return 0, fmt.Errorf("Math: Subtraction overflow occurred  %d - %d", b, q)
-	}
 
 	return diff, nil
 }
