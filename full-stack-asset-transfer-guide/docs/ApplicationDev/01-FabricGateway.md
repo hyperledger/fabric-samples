@@ -62,7 +62,7 @@ Notice that the client only needs to interact directly with the Gateway peer. Th
 
 For security, client applications should connect only to Gateway peers within their own organization or, if the client's organization does not host their own peers, to Gateway peers of a trusted organization.
 
-The following diagram demonstrates recommended practice for enabling access to an organization cluster through a single endpoint address while maintaining high availability. This use of a load balancer or ingress controller as a proxy in front of a set of internal endpoints is commonly used when deploying Web or Application servers, so this pattern is well established. The gRPC communication between client and Gateway atually uses HTTP/2 as its transport.
+The following diagram demonstrates recommended practice for enabling access to an organization cluster through a single endpoint address while maintaining high availability. This use of a load balancer or ingress controller as a proxy in front of a set of internal endpoints is commonly used when deploying Web or Application servers, so this pattern is well established. The gRPC communication between client and Gateway actually uses HTTP/2 as its transport.
 
 ![Fabric Gateway deployment](../images/ApplicationDev/fabric-gateway-deployment.png)
 
