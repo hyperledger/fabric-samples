@@ -98,7 +98,7 @@ EOF
 function start_nginx() {
   kubectl apply -k https://github.com/hyperledger-labs/fabric-operator.git/config/ingress/kind
 
-  sleep 10
+  sleep 20
 
   kubectl wait --namespace ingress-nginx \
       --for=condition=ready pod \

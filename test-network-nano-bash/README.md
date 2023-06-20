@@ -73,7 +73,7 @@ For BFT consensus type:
 ./network.sh start -o BFT
 ```
 
-After the network has started, use seperate terminals to run peer commands.
+After the network has started, use separate terminals to run peer commands.
 You will need to configure the peer environment for each new terminal.
 For example to run against peer1, use:
 
@@ -100,10 +100,12 @@ peer lifecycle chaincode package basic.tar.gz --path ../asset-transfer-basic/cha
 peer lifecycle chaincode install basic.tar.gz
 ```
 
-The chaincode install may take a minute since the `fabric-ccenv` chaincode builder docker image will be downloaded if not already available on your machine. Copy the returned chaincode package ID into an environment variable for use in subsequent commands (your ID may be different):
+The chaincode install may take a minute since the `fabric-ccenv` chaincode builder docker image will be downloaded if not already available on your machine.
+
+Copy the returned chaincode package ID into a `CHAINCODE_ID` environment variable for use in subsequent commands, or better yet use the peer `calculatepackageid` command to set the environment variable:
 
 ```shell
-export CHAINCODE_ID=basic_1:faaa38f2fc913c8344986a7d1617d21f6c97bc8d85ee0a489c90020cd57af4a5
+export CHAINCODE_ID=$(peer lifecycle chaincode calculatepackageid basic.tar.gz) && echo $CHAINCODE_ID
 ```
 
 ## 2. Running the chaincode as a service
@@ -121,7 +123,7 @@ cd ..
 peer lifecycle chaincode install chaincode-external/external-chaincode.tgz
 ```
 
-Copy the returned chaincode package ID into an environment variable for use in subsequent commands (your ID may be different):
+Set the CHAINCODE_ID environment variable for use in subsequent commands:
 
 ```shell
 export CHAINCODE_ID=$(peer lifecycle chaincode calculatepackageid chaincode-external/external-chaincode.tgz) && echo $CHAINCODE_ID
@@ -164,7 +166,7 @@ peer lifecycle chaincode commit -o 127.0.0.1:6050 --channelID mychannel --name b
 
 **Note:** after following the instructions above, the chaincode will only be installed on peer1 and will only be available in the peer1admin shell.
 Rerun the `peer lifecycle chaincode install` command in other peer admin shells to install it on the corresponding peer.
-You will also need to rerun the `peer lifecycle chaincode approveformyorg` command to use the chaincode on peers in another organisation, e.g. using the peer3admin shell.
+You will also need to rerun the `peer lifecycle chaincode approveformyorg` command to use the chaincode on peers in another organization, e.g. using the peer3admin shell.
 
 ## Interact with the chaincode
 
@@ -172,19 +174,19 @@ Invoke the chaincode to create an asset (only a single endorser is required base
 Then query the asset, update it, and query again to see the resulting asset changes on the ledger. Note that you need to wait a bit for invoke transactions to complete.
 
 ```shell
-peer chaincode invoke -o 127.0.0.1:6050 -C mychannel -n basic -c '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' --tls --cafile "${PWD}"/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+peer chaincode invoke -o 127.0.0.1:6050 -C mychannel -n basic -c '{"Args":["CreateAsset","1","blue","35","tom","1000"]}' --waitForEvent --tls --cafile "${PWD}"/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
 
 peer chaincode query -C mychannel -n basic -c '{"Args":["ReadAsset","1"]}'
 
-peer chaincode invoke -o 127.0.0.1:6050 -C mychannel -n basic -c '{"Args":["UpdateAsset","1","blue","35","jerry","1000"]}' --tls --cafile "${PWD}"/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+peer chaincode invoke -o 127.0.0.1:6050 -C mychannel -n basic -c '{"Args":["UpdateAsset","1","blue","35","jerry","1000"]}' --waitForEvent --tls --cafile "${PWD}"/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
 
 peer chaincode query -C mychannel -n basic -c '{"Args":["ReadAsset","1"]}'
 ```
-For your convenience you can run `chaincode_interaction.sh` from peer1admin terminal to make this simple transaction. The ouput of the script is redirected to the logs folder.\
+For your convenience you can run `chaincode_interaction.sh` from peer1admin terminal to make this simple transaction. The output of the script is redirected to the logs folder.\
 Congratulations, you have deployed a minimal Fabric network! Inspect the scripts if you would like to see the minimal set of commands that were required to deploy the network.
 
 # Stopping the network
 
-If you started the Fabric componentes individually, utilize `Ctrl-C` in the orderer and peer terminal windows to kill the orderer and peer processes. You can run the scripts again to restart the components with their existing data, or run `./generate_artifacts` again to clean up the existing artifacts and data if you would like to restart with a clean environment.
+If you started the Fabric components individually, utilize `Ctrl-C` in the orderer and peer terminal windows to kill the orderer and peer processes. You can run the scripts again to restart the components with their existing data, or run `./generate_artifacts` again to clean up the existing artifacts and data if you would like to restart with a clean environment.
 
 If you used the `network.sh` script, utilize `Ctrl-C` to kill the orderer and peer processes. You can restart the network with the existing data, or run `./network.sh clean` to remove old data before restarting.
