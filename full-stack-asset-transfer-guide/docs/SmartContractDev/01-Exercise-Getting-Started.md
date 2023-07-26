@@ -92,7 +92,7 @@ _wallets
 
 Note that when MicroFab started it automatically launched a Certificate Authority that created these identities and their respective credentials.
 
-Pick one if the id files and look at the JSON content including the public certificate and private key:
+Pick one of the id files and look at the JSON content including the public certificate and private key:
 
 ```bash
 cat _cfg/uf/_wallets/org1/org1admin.id | jq

@@ -79,11 +79,11 @@ We'll create a digital representation of these cards on the blockchain ledger. T
 
 ## Smart Contract Development
 
-- [Introduction](./docs/SmartContractDev/00-Introduction.md)
-- **Exercise**: [Getting Started with a Smart Contract](./docs/SmartContractDev/01-Exercise-Getting-Started.md)
-- **Exercise**: [Adding a new transaction function](./docs/SmartContractDev/02-Exercise-Adding-tx-function.md)
+- [Introduction](./docs/SmartContractDev/00-Introduction.md) [Español](./docs/SmartContractDev/00-Introduction-ES.md)
+- **Exercise**: [Getting Started with a Smart Contract](./docs/SmartContractDev/01-Exercise-Getting-Started.md) [Español](./docs/SmartContractDev/01-Exercise-Getting-Started-ES.md)
+- **Exercise**: [Adding a new transaction function](./docs/SmartContractDev/02-Exercise-Adding-tx-function.md) [Español](./docs/SmartContractDev/02-Exercise-Adding-tx-function-ES.md)
 - Reference:
-  - [Detailed Test and Debug](./docs/SmartContractDev/03-Test-And-Debug-Reference.md)
+  - [Detailed Test and Debug](./docs/SmartContractDev/03-Test-And-Debug-Reference.md) [Español](./docs/SmartContractDev/03-Test-And-Debug-Reference-ES.md)
 
 ## Client Application Development
 
