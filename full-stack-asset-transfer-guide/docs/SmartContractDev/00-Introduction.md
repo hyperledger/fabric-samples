@@ -112,7 +112,7 @@ Simply both - the terms have been used in Fabric history almost interchangeable;
 The aim is to standardize on
 - the Smart Contract(s) are classes/structures - the code - that you write in Go/JavaScript/TypeScript/Java etc.
 - these are then packaged up and run inside a Chaincode-container (chaincode-image / chaincode-runtime depending on exactly the format of the packaging)
-- the chaincode definition is more than just the Smart Contract code, as it includes things such as the couchdb indexes, and the endorsement policy
+- the chaincode definition is more than just the Smart Contract code, as it includes things such as the CouchDB indexes, and the endorsement policy
 
 ## Packaging
 

@@ -44,7 +44,7 @@ You'll need to have docker available to you, along with VSCode. Also, install th
 
 ### What is Chaincode as Service?
 
-The chaincode-as-a-service feature is a very useful and practical way to run 'Smart Contracts. Traditionally the Fabric Peer has taken on the role of orchestrating
+The chaincode-as-a-service feature is a very useful and practical way to run 'Smart Contracts'. Traditionally the Fabric Peer has taken on the role of orchestrating
 the complete lifecycle of the chaincode. It required access to the Docker Daemon to create images, and start containers. Java, Node.js and Go chaincode frameworks were
  explicitly known to the peer including how they should be built and started.
 
@@ -72,11 +72,11 @@ Using the Typescript contract as an example, the difference is easier to see. Th
 ```
 
 The first is used when the peer is completely controlling the chaincode. The second `start:server-nontls` starts in the Chaincode-as-a-service mode (without using TLS). The command
-is very similar `fabric-chainmcode-node server` rather than `fabric-chaincode-node start`. Two options are provided here, these are the network address the chaincode
+is very similar `fabric-chaincode-node server` rather than `fabric-chaincode-node start`. Two options are provided here, these are the network address the chaincode
  will listen on and its id. (aside when the Peer runs the chaincode, it does pass extra options, but they aren't seen in the package.json)
 
 The third `start:server` adds the required TLS configuration, but is otherwise the same.
-The forth `start:server-debug` is the same as the non-TLS case, but includes the environment variable required to get Node.js to open a port to allow a debugger to connect remotely.
+The fourth `start:server-debug` is the same as the non-TLS case, but includes the environment variable required to get Node.js to open a port to allow a debugger to connect remotely.
 
 ### Java
 
@@ -91,7 +91,7 @@ For debug, the JVM needs to put into debug mode `java -agentlib:jdwp=transport=d
 ## How is the chaincode package different?
 
 A key difference is that the chaincode package does not contain code. It is used as a holder of data that indicates to the peer where the chaincode is.
-What host/port and what TLS configuration is needed? Chaincode packages already can hold data about the couchdb indexes to use or the private data collections.
+What host/port and what TLS configuration is needed? Chaincode packages already can hold data about the CouchDB indexes to use or the private data collections.
 
 Within the package, the `connection.json` is an important file. At its simplest it would be
 
