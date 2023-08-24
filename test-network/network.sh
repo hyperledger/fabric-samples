@@ -448,7 +448,6 @@ while [[ $# -ge 1 ]] ; do
     ;;
   -bft )
     BFT=1
-    shift
     ;;
   -ca )
     CRYPTO="Certificate Authorities"
@@ -512,6 +511,11 @@ while [[ $# -ge 1 ]] ; do
   esac
   shift
 done
+
+## Check if user attempts to use BFT orderer and CA together
+if [[ $BFT -eq 1 && "$CRYPTO" == "Certificate Authorities" ]]; then
+  fatalln "This sample does not yet support the use of consensus type BFT and CA together."
+fi
 
 if [ $BFT -eq 1 ]; then
   export FABRIC_CFG_PATH=${PWD}/bft-config
