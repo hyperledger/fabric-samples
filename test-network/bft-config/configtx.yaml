@@ -38,9 +38,9 @@ Organizations:
         Rule: "OR('OrdererMSP.admin')"
     OrdererEndpoints:
       - orderer.example.com:7050
-      - orderer.example.com:7052
-      - orderer.example.com:7056
-      - orderer.example.com:7058
+      - orderer2.example.com:7052
+      - orderer3.example.com:7056
+      - orderer4.example.com:7058
   - &Org1
     # DefaultOrg defines the organization which is used in the sampleconfig
     # of the fabric.git development environment
