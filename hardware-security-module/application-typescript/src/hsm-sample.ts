@@ -5,10 +5,9 @@
  */
 
 import * as grpc from '@grpc/grpc-js';
-import * as crypto from 'crypto';
 import { connect, Gateway, HSMSigner, HSMSignerFactory, HSMSignerOptions, signers } from '@hyperledger/fabric-gateway';
+import * as crypto from 'crypto';
 import * as fs from 'fs';
-import * as jsrsa from 'jsrsasign';
 import * as path from 'path';
 import { TextDecoder } from 'util';
 
@@ -42,7 +41,7 @@ async function main() {
 
         // Get the signer function and a close function. The close function closes the signer
         // once there is no further need for it.
-        hsmSigner = await newHSMSigner(hsmSignerFactory, credentials.toString());
+        hsmSigner = newHSMSigner(hsmSignerFactory, credentials);
         gateway = connect({
             client,
             identity: { mspId, credentials },
@@ -100,8 +99,9 @@ async function newGrpcConnection(): Promise<grpc.Client> {
 }
 
 // Create a new HSM Signer
-async function newHSMSigner(hsmSignerFactory: HSMSignerFactory, certificatePEM: string): Promise<HSMSigner> {
-    const ski = getSKIFromCertificate(certificatePEM);
+function newHSMSigner(hsmSignerFactory: HSMSignerFactory, certificatePEM: Buffer): HSMSigner {
+    const certificate = new crypto.X509Certificate(certificatePEM);
+    const ski = getSKIFromCertificate(certificate);
 
     // Options for the signer based on using SoftHSM with Token initialized as follows
     // softhsm2-util --init-token --slot 0 --label "ForFabric" --pin 98765432 --so-pin 1234
@@ -139,23 +139,25 @@ function findSoftHSMPKCS11Lib(): string {
 // fabric-ca-client set's the CKA_ID of the public/private keys in the HSM to a generated SKI
 // value. This function replicates that calculation from a certificate PEM so that the HSM
 // object associated with the certificate can be found
-function getSKIFromCertificate(certificatePEM: string): Buffer {
-    const key = jsrsa.KEYUTIL.getKey(certificatePEM);
-    const uncompressedPoint = getUncompressedPointOnCurve(key as jsrsa.KJUR.crypto.ECDSA);
-    const hashBuffer = crypto.createHash('sha256');
-    hashBuffer.update(uncompressedPoint);
-
-    const digest = hashBuffer.digest('hex');
-    return Buffer.from(digest, 'hex');
+function getSKIFromCertificate(certificate: crypto.X509Certificate): Buffer {
+    const uncompressedPoint = getUncompressedPointOnCurve(certificate.publicKey);
+    return crypto.createHash('sha256').update(uncompressedPoint).digest();
 }
 
-function getUncompressedPointOnCurve(key: jsrsa.KJUR.crypto.ECDSA): Buffer {
-    const xyhex = key.getPublicKeyXYHex();
-    const xBuffer = Buffer.from(xyhex.x, 'hex');
-    const yBuffer = Buffer.from(xyhex.y, 'hex');
-    const uncompressedPrefix = Buffer.from('04', 'hex');
-    const uncompressedPoint = Buffer.concat([uncompressedPrefix, xBuffer, yBuffer]);
-    return uncompressedPoint;
+function getUncompressedPointOnCurve(key: crypto.KeyObject): Buffer {
+    const jwk = key.export({ format: 'jwk' });
+    const x = Buffer.from(assertDefined(jwk.x), 'base64url');
+    const y = Buffer.from(assertDefined(jwk.y), 'base64url');
+    const prefix = Buffer.from('04', 'hex');
+    return Buffer.concat([prefix, x, y]);
+}
+
+function assertDefined<T>(value: T | undefined): T {
+    if (value === undefined) {
+        throw new Error('required value was undefined');
+    }
+
+    return value;
 }
 
 /**
