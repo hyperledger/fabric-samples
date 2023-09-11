@@ -1,14 +1,10 @@
 {
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "@tsconfig/node14/tsconfig.json",
     "compilerOptions": {
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
         "outDir": "dist",
-        "target": "es2017",
-        "moduleResolution": "node",
-        "module": "commonjs",
         "declaration": true,
         "sourceMap": true,
-        "noImplicitAny": true
     },
     "include": [
         "./src/**/*"

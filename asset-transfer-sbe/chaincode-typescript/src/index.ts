@@ -5,4 +5,4 @@
 import { AssetContract } from './assetContract';
 export { AssetContract } from './assetContract';
 
-export const contracts: any[] = [ AssetContract ];
+export const contracts: unknown[] = [ AssetContract ];

@@ -1,9 +1,8 @@
 {
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "@tsconfig/node18/tsconfig.json",
     "compilerOptions": {
         "outDir": "dist",
-        "target": "es2017",
-        "moduleResolution": "node",
-        "module": "commonjs",
         "declaration": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,

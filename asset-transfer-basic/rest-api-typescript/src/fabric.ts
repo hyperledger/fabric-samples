@@ -8,15 +8,16 @@ import {
   DefaultQueryHandlerStrategies,
   Gateway,
   GatewayOptions,
-  Wallets,
   Network,
   Transaction,
   Wallet,
+  Wallets,
 } from 'fabric-network';
-import * as config from './config';
-import { logger } from './logger';
-import { handleError } from './errors';
 import * as protos from 'fabric-protos';
+import Long from 'long';
+import * as config from './config';
+import { handleError } from './errors';
+import { logger } from './logger';
 
 /**
  * Creates an in memory wallet to hold credentials for an Org1 and Org2 user
@@ -189,7 +190,7 @@ export const getTransactionValidationCode = async (
  */
 export const getBlockHeight = async (
   qscc: Contract
-): Promise<number | Long.Long> => {
+): Promise<number | Long> => {
   const data = await qscc.evaluateTransaction(
     'GetChainInfo',
     config.channelName

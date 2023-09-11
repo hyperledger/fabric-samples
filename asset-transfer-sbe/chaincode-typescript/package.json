@@ -5,61 +5,31 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "engines": {
-    "node": ">=12"
+    "node": ">=18"
   },
   "scripts": {
-    "lint": "tslint -c tslint.json 'src/**/*.ts'",
+    "lint": "eslint ./src --ext .ts",
     "pretest": "npm run lint",
-    "test": "nyc mocha -r ts-node/register src/**/*.spec.ts",
+    "test": "echo 'No tests implemented'",
     "start": "fabric-chaincode-node start",
     "build": "tsc",
     "build:watch": "tsc -w",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "postinstall": "npm dedupe"
   },
   "engineStrict": true,
   "author": "Hyperledger",
   "license": "Apache-2.0",
   "dependencies": {
-    "@grpc/grpc-js": "1.8.1",
-    "fabric-contract-api": "~2.5.2",
-    "fabric-shim": "~2.5.2"
+    "fabric-contract-api": "~2.5.4",
+    "fabric-shim": "~2.5.4"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.11",
-    "@types/chai-as-promised": "^7.1.2",
-    "@types/mocha": "^7.0.2",
-    "@types/node": "^12.20.55",
-    "@types/sinon": "^7.5.2",
-    "@types/sinon-chai": "^3.2.3",
-    "chai": "^4.2.0",
-    "chai-as-promised": "^7.1.1",
-    "mocha": "^7.1.1",
-    "nyc": "^15.0.0",
-    "sinon": "^9.0.1",
-    "sinon-chai": "^3.5.0",
-    "ts-node": "^8.8.1",
-    "tslint": "^6.1.0",
-    "typescript": "^3.8.3",
-    "winston": "^3.2.1"
-  },
-  "nyc": {
-    "extension": [
-      ".ts",
-      ".tsx"
-    ],
-    "exclude": [
-      "coverage/**",
-      "dist/**"
-    ],
-    "reporter": [
-      "text-summary",
-      "html"
-    ],
-    "all": true,
-    "check-coverage": true,
-    "statements": 100,
-    "branches": 100,
-    "functions": 100,
-    "lines": 100
+    "@tsconfig/node18": "^18.2.2",
+    "@types/node": "^18.17.17",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "eslint": "^8.49.0",
+    "typescript": "~5.2.0"
   }
 }

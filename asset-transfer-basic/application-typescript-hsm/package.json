@@ -20,8 +20,8 @@
     "author": "Hyperledger",
     "license": "Apache-2.0",
     "dependencies": {
-        "fabric-ca-client": "^2.2.8",
-        "fabric-network": "^2.2.8"
+        "fabric-ca-client": "^2.2.19",
+        "fabric-network": "^2.2.19"
     },
     "devDependencies": {
         "@types/node": "^12.20.55",
