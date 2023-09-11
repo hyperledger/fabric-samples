@@ -7,14 +7,14 @@ import { Object, Property } from 'fabric-contract-api';
 @Object()
 export class Asset {
     @Property()
-    public ID: string;
+    public ID: string = '';
 
     @Property()
-    public Value: number;
+    public Value: number = 0;
 
     @Property()
-    public Owner: string;
+    public Owner: string = '';
 
     @Property()
-    public OwnerOrg: string;
+    public OwnerOrg: string = '';
 }

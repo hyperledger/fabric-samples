@@ -7,7 +7,7 @@ import { Application } from 'express';
 import { Contract, Transaction } from 'fabric-network';
 import * as fabricProtos from 'fabric-protos';
 import { mock, MockProxy } from 'jest-mock-extended';
-import { mocked } from 'ts-jest/utils';
+import { jest } from '@jest/globals';
 import request from 'supertest';
 import * as config from '../config';
 import { createServer } from '../server';
@@ -609,7 +609,7 @@ describe('Asset Transfer Besic REST API', () => {
     });
 
     it('GET should respond with 404 not found json when there is no job with the specified ID', async () => {
-      mocked(Job.fromId).mockResolvedValue(undefined);
+      jest.mocked(Job.fromId).mockResolvedValue(undefined);
 
       const response = await request(app)
         .get('/api/jobs/3')

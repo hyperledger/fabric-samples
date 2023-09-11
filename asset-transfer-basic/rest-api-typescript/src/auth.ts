@@ -40,7 +40,8 @@ export const authenticateApiKey = (
   passport.authenticate(
     'headerapikey',
     { session: false },
-    (err, user, _info) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (err: any, user: Express.User, _info: any) => {
       if (err) return next(err);
       if (!user)
         return res.status(UNAUTHORIZED).json({
