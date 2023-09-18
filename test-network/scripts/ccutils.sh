@@ -126,15 +126,24 @@ function chaincodeInvokeInit() {
   res=$?
   verifyResult $res "Invoke transaction failed on channel '$CHANNEL_NAME' due to uneven number of peer and org parameters "
 
-  # while 'peer chaincode' command can get the orderer endpoint from the
-  # peer (if join was successful), let's supply it directly as we know
-  # it using the "-o" option
-  set -x
-  fcn_call='{"function":"'${CC_INIT_FCN}'","Args":[]}'
-  infoln "invoke fcn call:${fcn_call}"
-  peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "$ORDERER_CA" -C $CHANNEL_NAME -n ${CC_NAME} "${PEER_CONN_PARMS[@]}" --isInit -c ${fcn_call} >&log.txt
-  res=$?
-  { set +x; } 2>/dev/null
+  local rc=1
+  local COUNTER=1
+  local fcn_call='{"function":"'${CC_INIT_FCN}'","Args":[]}'
+  # continue to poll
+  # we either get a successful response, or reach MAX RETRY
+  while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; do
+    sleep $DELAY
+    # while 'peer chaincode' command can get the orderer endpoint from the
+    # peer (if join was successful), let's supply it directly as we know
+    # it using the "-o" option
+    set -x
+    infoln "invoke fcn call:${fcn_call}"
+    peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "$ORDERER_CA" -C $CHANNEL_NAME -n ${CC_NAME} "${PEER_CONN_PARMS[@]}" --isInit -c ${fcn_call} >&log.txt
+    res=$?
+    { set +x; } 2>/dev/null
+    let rc=$res
+    COUNTER=$(expr $COUNTER + 1)
+  done
   cat log.txt
   verifyResult $res "Invoke execution on $PEERS failed "
   successln "Invoke transaction successful on $PEERS on channel '$CHANNEL_NAME'"
