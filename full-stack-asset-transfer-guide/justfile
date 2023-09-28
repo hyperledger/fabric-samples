@@ -284,7 +284,7 @@ cloud-frontend:
 # ANSIBLE PLAYBOOK TARGETS                                                    #
 ###############################################################################
 
-ansible_image   := env_var_or_default("ANSIBLE_IMAGE",      "ghcr.io/ibm-blockchain/ofs-ansibe:sha-ac6fd82")
+ansible_image   := env_var_or_default("ANSIBLE_IMAGE",      "ghcr.io/hyperledger-labs/fabric-ansible:latest")
 namespace       := env_var_or_default("WORKSHOP_NAMESPACE", "fabricinfra")
 
 # just set up everything with Ansible
@@ -339,7 +339,7 @@ ansible-ingress:
 
     docker run \
         --rm \
-        -v ${HOME}/.kube/:/home/ibp-user/.kube/ \
+        -v ${HOME}/.kube/:/home/hlf-user/.kube/ \
         -v ${CWDIR}/_cfg:/_cfg \
         -v $(pwd)/infrastructure/kind_console_ingress:/playbooks \
         --network=host ${EXTRAS} \
@@ -361,7 +361,7 @@ ansible-operator:
 
     docker run \
         --rm \
-        -v ${HOME}/.kube/:/home/ibp-user/.kube/ \
+        -v ${HOME}/.kube/:/home/hlf-user/.kube/ \
         -v ${CWDIR}/_cfg:/_cfg \
         -v $(pwd)/infrastructure/operator_console_playbooks:/playbooks ${EXTRAS} \
         --network=host \
@@ -380,7 +380,7 @@ ansible-console:
 
     docker run \
         --rm \
-        -v ${HOME}/.kube/:/home/ibp-user/.kube/ \
+        -v ${HOME}/.kube/:/home/hlf-user/.kube/ \
         -v $(pwd)/infrastructure/operator_console_playbooks:/playbooks  ${EXTRAS} \
         -v ${CWDIR}/_cfg:/_cfg \
         --network=host \
@@ -418,7 +418,7 @@ ansible-network: ansible-auth
     docker run \
         --rm \
         -u $(id -u) \
-        -v ${HOME}/.kube/:/home/ibp-user/.kube/ \
+        -v ${HOME}/.kube/:/home/hlf-user/.kube/ \
         -v ${CWDIR}/infrastructure/fabric_network_playbooks:/playbooks  ${EXTRAS} \
         -v ${CWDIR}/_cfg:/_cfg \
         --network=host \
@@ -469,7 +469,7 @@ ansible-deploy-chaincode:
     docker run \
         --rm \
         -u $(id -u) \
-        -v ${HOME}/.kube/:/home/ibp-user/.kube/ \
+        -v ${HOME}/.kube/:/home/hlf-user/.kube/ \
         -v ${CWDIR}/infrastructure/production_chaincode_playbooks:/playbooks ${EXTRAS} \
         -v ${CWDIR}/_cfg:/_cfg \
         --network=host \
@@ -479,7 +479,7 @@ ansible-deploy-chaincode:
     docker run \
         --rm \
         -u $(id -u) \
-        -v ${HOME}/.kube/:/home/ibp-user/.kube/ \
+        -v ${HOME}/.kube/:/home/hlf-user/.kube/ \
         -v ${CWDIR}/infrastructure/production_chaincode_playbooks:/playbooks ${EXTRAS} \
         -v ${CWDIR}/_cfg:/_cfg \
         --network=host \
@@ -489,7 +489,7 @@ ansible-deploy-chaincode:
     docker run \
         --rm \
         -u $(id -u) \
-        -v ${HOME}/.kube/:/home/ibp-user/.kube/ \
+        -v ${HOME}/.kube/:/home/hlf-user/.kube/ \
         -v ${CWDIR}/infrastructure/production_chaincode_playbooks:/playbooks ${EXTRAS} \
         -v ${CWDIR}/_cfg:/_cfg \
         --network=host \
@@ -509,7 +509,7 @@ ansible-ready-application:
     docker run \
         --rm \
         -u $(id -u) \
-        -v ${HOME}/.kube/:/home/ibp-user/.kube/ \
+        -v ${HOME}/.kube/:/home/hlf-user/.kube/ \
         -v ${CWDIR}/infrastructure/production_chaincode_playbooks:/playbooks ${EXTRAS} \
         -v ${CWDIR}/_cfg:/_cfg \
         --network=host \
