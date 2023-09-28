@@ -21,7 +21,7 @@ set -eo pipefail
 set -x
 
 KIND_CLUSTER_NAME=kind
-KIND_CLUSTER_IMAGE=${KIND_CLUSTER_IMAGE:-kindest/node:v1.24.4}        # Important! k8s v1.25.0 brings breaking changes.
+KIND_CLUSTER_IMAGE=${KIND_CLUSTER_IMAGE:-kindest/node:v1.28.0}        # Important! k8s v1.25.0 brings breaking changes.
 KIND_API_SERVER_ADDRESS=${KIND_API_SERVER_ADDRESS:-127.0.0.1}
 KIND_API_SERVER_PORT=${KIND_API_SERVER_PORT:-8888}
 CONTAINER_REGISTRY_NAME=${CONTAINER_REGISTRY_NAME:-kind-registry}

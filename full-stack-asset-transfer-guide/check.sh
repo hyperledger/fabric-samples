@@ -12,7 +12,7 @@ else
     echo -e "${SUCCESS} Docker found:\t$(cat /tmp/cmdpath)"
 fi
 
-KUBECTL_VERSION=v1.24.4       # $(curl -L -s https://dl.k8s.io/release/stable.txt)
+KUBECTL_VERSION=v1.28.2       # $(curl -L -s https://dl.k8s.io/release/stable.txt)
 if ! command -v kubectl &> /tmp/cmdpath
 then
   echo "${WARN} Please install kubectl if you want to use k8s; suggested install commands:"
@@ -46,7 +46,7 @@ else
 fi
 
 # Install kind
-KIND_VERSION=0.14.0
+KIND_VERSION=0.20.0
 if ! command -v kind &> /tmp/cmdpath
 then
   echo "${WARN} Please install kind; suggested install commands:"

@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VER: 1.19.6
+  GO_VER: 1.20.7
   NODE_VER: 18.x
   JAVA_VER: 11.x
 
