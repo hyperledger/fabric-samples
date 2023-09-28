@@ -10,4 +10,4 @@
     state: present
     wait_timeout: 3600
   roles:
-    - ibm.blockchain_platform.fabric_operator_crds
+    - hyperledger.fabric_ansible_collection.fabric_operator_crds
