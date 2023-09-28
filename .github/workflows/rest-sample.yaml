@@ -45,3 +45,14 @@ jobs:
       - name: Test REST Sample Application
         run: npm test
         working-directory: asset-transfer-basic/rest-api-typescript
+
+      - name: Build REST Sample Docker Image
+        run: docker build -t ghcr.io/hyperledger/fabric-rest-sample .
+        working-directory: asset-transfer-basic/rest-api-typescript
+
+      - name: Publish REST Sample Docker Image
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/hyperledger/fabric-rest-sample:latest
+        working-directory: asset-transfer-basic/rest-api-typescript
