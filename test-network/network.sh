@@ -351,6 +351,66 @@ function deployCCAAS() {
   fi
 }
 
+## Call the script to package the chaincode
+function packageChaincode() {
+
+  infoln "Packaging chaincode"
+
+  scripts/packageCC.sh $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION true
+
+  if [ $? -ne 0 ]; then
+    fatalln "Packaging the chaincode failed"
+  fi
+
+}
+
+## Call the script to list installed and committed chaincode on a peer
+function listChaincode() {
+
+  export FABRIC_CFG_PATH=${PWD}/../config
+
+  . scripts/envVar.sh
+  . scripts/ccutils.sh
+
+  setGlobals $ORG
+
+  println
+  queryInstalledOnPeer
+  println
+
+  listAllCommitted
+
+}
+
+## Call the script to invoke 
+function invokeChaincode() {
+
+  export FABRIC_CFG_PATH=${PWD}/../config
+
+  . scripts/envVar.sh
+  . scripts/ccutils.sh
+
+  setGlobals $ORG
+
+  chaincodeInvoke $ORG $CHANNEL_NAME $CC_NAME $CC_INVOKE_CONSTRUCTOR
+
+}
+
+## Call the script to query chaincode 
+function queryChaincode() {
+
+  export FABRIC_CFG_PATH=${PWD}/../config
+  
+  . scripts/envVar.sh
+  . scripts/ccutils.sh
+
+  setGlobals $ORG
+
+  chaincodeQuery $ORG $CHANNEL_NAME $CC_NAME $CC_QUERY_CONSTRUCTOR
+
+}
+
+
 # Tear down running network
 function networkDown() {
   local temp_compose=$COMPOSE_FILE_BASE
@@ -396,25 +456,8 @@ function networkDown() {
   fi
 }
 
-# Using crpto vs CA. default is cryptogen
-CRYPTO="cryptogen"
-# timeout duration - the duration the CLI should wait for a response from
-# another container before giving up
-MAX_RETRY=5
-# default for delay between commands
-CLI_DELAY=3
-# channel name defaults to "mychannel"
-CHANNEL_NAME="mychannel"
-# chaincode name defaults to "NA"
-CC_NAME="NA"
-# chaincode path defaults to "NA"
-CC_SRC_PATH="NA"
-# endorsement policy defaults to "NA". This would allow chaincodes to use the majority default policy.
-CC_END_POLICY="NA"
-# collection configuration defaults to "NA"
-CC_COLL_CONFIG="NA"
-# chaincode init function defaults to "NA"
-CC_INIT_FCN="NA"
+. ./network.config
+
 # use this as the default docker-compose yaml definition
 COMPOSE_FILE_BASE=compose-test-net.yaml
 # docker-compose.yaml file if you are using couchdb
@@ -428,16 +471,6 @@ COMPOSE_FILE_ORG3_COUCH=compose-couch-org3.yaml
 # certificate authorities compose file
 COMPOSE_FILE_ORG3_CA=compose-ca-org3.yaml
 #
-# chaincode language defaults to "NA"
-CC_SRC_LANGUAGE="NA"
-# default to running the docker commands for the CCAAS
-CCAAS_DOCKER_RUN=true
-# Chaincode version
-CC_VERSION="1.0"
-# Chaincode definition sequence
-CC_SEQUENCE=1
-# default database
-DATABASE="leveldb"
 
 # Get docker sock path from environment variable
 SOCK="${DOCKER_HOST:-/var/run/docker.sock}"
@@ -457,14 +490,28 @@ else
   shift
 fi
 
-# parse a createChannel subcommand if used
+## if no parameters are passed, show the help for cc
+if [ "$MODE" == "cc" ] && [[ $# -lt 1 ]]; then
+  printHelp $MODE
+  exit 0
+fi
+
+# parse subcommands if used
 if [[ $# -ge 1 ]] ; then
   key="$1"
+  # check for the createChannel subcommand
   if [[ "$key" == "createChannel" ]]; then
       export MODE="createChannel"
       shift
+  # check for the cc command
+  elif [[ "$MODE" == "cc" ]]; then
+    if [ "$1" != "-h" ]; then
+      export SUBCOMMAND=$key
+      shift
+    fi
   fi
 fi
+
 
 # parse flags
 
@@ -539,6 +586,26 @@ while [[ $# -ge 1 ]] ; do
   -verbose )
     VERBOSE=true
     ;;
+  -org )
+    ORG="$2"
+    shift
+    ;;
+  -i )
+    IMAGETAG="$2"
+    shift
+    ;;
+  -cai )
+    CA_IMAGETAG="$2"
+    shift
+    ;;
+  -ccic )
+    CC_INVOKE_CONSTRUCTOR="$2"
+    shift
+    ;;
+  -ccqc )
+    CC_QUERY_CONSTRUCTOR="$2"
+    shift
+    ;;    
   * )
     errorln "Unknown flag: $key"
     printHelp
@@ -566,7 +633,10 @@ else
 fi
 
 # Determine mode of operation and printing out what we asked for
-if [ "$MODE" == "up" ]; then
+if [ "$MODE" == "prereq" ]; then
+  infoln "Installing binaries and fabric images. Fabric Version: ${IMAGETAG}  Fabric CA Version: ${CA_IMAGETAG}"
+  installPrereqs
+elif [ "$MODE" == "up" ]; then
   infoln "Starting nodes with CLI timeout of '${MAX_RETRY}' tries and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE}' ${CRYPTO_MODE}"
   networkUp
 elif [ "$MODE" == "createChannel" ]; then
@@ -586,6 +656,14 @@ elif [ "$MODE" == "deployCC" ]; then
 elif [ "$MODE" == "deployCCAAS" ]; then
   infoln "deploying chaincode-as-a-service on channel '${CHANNEL_NAME}'"
   deployCCAAS
+elif [ "$MODE" == "cc" ] && [ "$SUBCOMMAND" == "package" ]; then
+  packageChaincode
+elif [ "$MODE" == "cc" ] && [ "$SUBCOMMAND" == "list" ]; then
+  listChaincode
+elif [ "$MODE" == "cc" ] && [ "$SUBCOMMAND" == "invoke" ]; then
+  invokeChaincode
+elif [ "$MODE" == "cc" ] && [ "$SUBCOMMAND" == "query" ]; then
+  queryChaincode
 else
   printHelp
   exit 1
