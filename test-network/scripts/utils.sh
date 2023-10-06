@@ -9,7 +9,18 @@ C_YELLOW='\033[1;33m'
 # Print the usage message
 function printHelp() {
   USAGE="$1"
-  if [ "$USAGE" == "up" ]; then
+  if [ "$USAGE" == "prereq" ]; then
+    println "Usage: "
+    println "  network.sh <Mode> [Flags]"
+    println "    Modes:"
+    println "      \033[0;32mprereq\033[0m - Install Fabric binaries and docker images"
+    println
+    println "    Flags:"
+    println "    Used with \033[0;32mnetwork.sh prereq\033[0m:"
+    println "    -i     FabricVersion (default: '2.5.4')"
+    println "    -cai   Fabric CA Version (default: '1.5.7')"
+    println  
+  elif [ "$USAGE" == "up" ]; then
     println "Usage: "
     println "  network.sh \033[0;32mup\033[0m [Flags]"
     println
@@ -62,7 +73,7 @@ function printHelp() {
     println "    -ccn <name> - Chaincode name."
     println "    -ccl <language> - Programming language of chaincode to deploy: go, java, javascript, typescript"
     println "    -ccv <version>  - Chaincode version. 1.0 (default), v2, version3.x, etc"
-    println "    -ccs <sequence>  - Chaincode definition sequence. Must be an integer, 1 (default), 2, 3, etc"
+    println "    -ccs <sequence>  - Chaincode definition sequence.  Must be auto (default) or an integer, 1 , 2, 3, etc"
     println "    -ccp <path>  - File path to the chaincode."
     println "    -ccep <policy>  - (Optional) Chaincode endorsement policy using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
     println "    -cccg <collection-config>  - (Optional) File path to private data collections configuration file"
@@ -84,7 +95,7 @@ function printHelp() {
     println "    -c <channel name> - Name of channel to deploy chaincode to"
     println "    -ccn <name> - Chaincode name."
     println "    -ccv <version>  - Chaincode version. 1.0 (default), v2, version3.x, etc"
-    println "    -ccs <sequence>  - Chaincode definition sequence. Must be an integer, 1 (default), 2, 3, etc"
+    println "    -ccs <sequence>  -  Chaincode definition sequence.  Must be auto (default) or an integer, 1 , 2, 3, etc"
     println "    -ccp <path>  - File path to the chaincode. (used to find the dockerfile for building the docker image only)"
     println "    -ccep <policy>  - (Optional) Chaincode endorsement policy using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
     println "    -cccg <collection-config>  - (Optional) File path to private data collections configuration file"
@@ -98,18 +109,59 @@ function printHelp() {
     println
     println " Examples:"
     println "   network.sh deployCCAAS  -ccn basicj -ccp ../asset-transfer-basic/chaincode-java"
-    println "   network.sh deployCCAAS  -ccn basict -ccp ../asset-transfer-basic/chaincode-typescript -ccaasdocker false"  
+    println "   network.sh deployCCAAS  -ccn basict -ccp ../asset-transfer-basic/chaincode-typescript -ccaasdocker false" 
+  elif [ "$USAGE" == "cc" ] ; then
+    println "Usage: "
+    println "  network.sh cc <Mode> [Flags]"
+    println
+    println "    Modes:"
+    println "      \033[0;32mlist\033[0m - list chaincodes installed on a peer and committed on a channel"
+    println "      \033[0;32mpackage\033[0m - package a chaincode in tar format. Stores in directory packagedChaincode"
+    println "      \033[0;32minvoke\033[0m - execute an invoke operation"
+    println "      \033[0;32mquery\033[0m - execute an query operation"
+    println
+    println "    Flags:"
+    println "    -org <number>     - Org number for the executing the command (1,2,etc) (default is 1)."    
+    println "    -c <channel name> - Name of channel"
+    println "    -ccn <name>       - Chaincode name."
+    println "    -ccl <language>   - Programming language of chaincode to deploy: go, java, javascript, typescript"
+    println "    -ccv <version>    - Chaincode version. 1.0 (default), v2, version3.x, etc"
+    println "    -ccp <path>       - File path to the chaincode."
+    println "    -ccic <string>    - Chaincode invoke constructor."
+    println "    -ccqc <string>    - Chaincode query constructor."
+    println "    -h                - Print this message"
+    println
+    println "   Possible Mode and flag combinations"
+    println "     \033[0;32mcc list\033[0m -org -verbose"
+    println "     \033[0;32mcc package\033[0m -ccn -ccl -ccv -ccp -verbose"
+    println "     \033[0;32mcc invoke\033[0m -org -c -ccic -verbose"
+    println "     \033[0;32mcc query\033[0m -org -c -ccqc -verbose"
+    println
+    println " Examples:"
+    println "   network.sh cc list -org 1"
+    println "   network.sh cc package -ccn basic -ccp chaincode/asset-transfer-basic/go -ccv 1.0.0 -ccl go"
+    println "   network.sh cc invoke -c channel1 -ccic '{\"Args\":[\"CreateAsset\",\"asset1\",\"red\",\"10\",\"fred\",\"500\"]}'"
+    println "   network.sh cc query -c channel1 -ccqc '{\"Args\":[\"ReadAsset\",\"asset1\"]}'"
+    println
+    println " NOTE: Default settings can be changed in network.config"
+    println
   else
     println "Usage: "
     println "  network.sh <Mode> [Flags]"
     println "    Modes:"
+    println "      \033[0;32mprereq\033[0m - Install Fabric binaries and docker images"
     println "      \033[0;32mup\033[0m - Bring up Fabric orderer and peer nodes. No channel is created"
     println "      \033[0;32mup createChannel\033[0m - Bring up fabric network with one channel"
     println "      \033[0;32mcreateChannel\033[0m - Create and join a channel after the network is created"
     println "      \033[0;32mdeployCC\033[0m - Deploy a chaincode to a channel (defaults to asset-transfer-basic)"
+    println "      \033[0;32mcc\033[0m - chaincode functions, use \"network.sh cc -h\" for options"
     println "      \033[0;32mdown\033[0m - Bring down the network"
     println
     println "    Flags:"
+    println "    Used with \033[0;32mnetwork.sh prereq\033[0m"
+    println "    -i     FabricVersion (default: '2.5.4')"
+    println "    -cai   Fabric CA Version (default: '1.5.7')"
+    println
     println "    Used with \033[0;32mnetwork.sh up\033[0m, \033[0;32mnetwork.sh createChannel\033[0m:"
     println "    -ca - Use Certificate Authorities to generate network crypto material"
     println "    -cfssl <use CFSSL> -  Use CFSSL CA to generate network crypto material"
@@ -120,12 +172,12 @@ function printHelp() {
     println "    -d <delay> - CLI delays for a certain number of seconds (defaults to 3)"
     println "    -verbose - Verbose mode"
     println
-    println "    Used with \033[0;32mnetwork.sh deployCC\033[0m"
+    println "    Used with \033[0;32mnetwork.sh deployCC\033[0m:"
     println "    -c <channel name> - Name of channel to deploy chaincode to"
     println "    -ccn <name> - Chaincode name."
     println "    -ccl <language> - Programming language of the chaincode to deploy: go, java, javascript, typescript"
     println "    -ccv <version>  - Chaincode version. 1.0 (default), v2, version3.x, etc"
-    println "    -ccs <sequence>  - Chaincode definition sequence. Must be an integer, 1 (default), 2, 3, etc"
+    println "    -ccs <sequence>  - Chaincode definition sequence.  Must be auto (default) or an integer, 1 , 2, 3, etc"
     println "    -ccp <path>  - File path to the chaincode."
     println "    -ccep <policy>  - (Optional) Chaincode endorsement policy using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
     println "    -cccg <collection-config>  - (Optional) File path to private data collections configuration file"
@@ -146,7 +198,34 @@ function printHelp() {
     println "   network.sh createChannel -c channelName"
     println "   network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ -ccl javascript"
     println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
+    println
+    println " NOTE: Default settings can be changed in network.config"
   fi
+}
+
+function installPrereqs() {
+
+  infoln "installing prereqs"
+
+  FILE=../install-fabric.sh     
+  if [ ! -f $FILE ]; then
+    curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh && chmod +x install-fabric.sh
+    cp install-fabric.sh ..
+  fi
+  
+  IMAGE_PARAMETER=""
+  if [ "$IMAGETAG" != "default" ]; then
+    IMAGE_PARAMETER="-f ${IMAGETAG}"
+  fi 
+
+  CA_IMAGE_PARAMETER=""
+  if [ "$CA_IMAGETAG" != "default" ]; then
+    CA_IMAGE_PARAMETER="-c ${CA_IMAGETAG}"
+  fi 
+
+  cd ..
+  ./install-fabric.sh ${IMAGE_PARAMETER} ${CA_IMAGE_PARAMETER} docker binary
+
 }
 
 # println echos string
