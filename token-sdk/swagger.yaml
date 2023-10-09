@@ -1,0 +1,519 @@
+openapi: 3.0.3
+info:
+  title: Tokens
+  version: "1.0"
+  description: |-
+    Issue, hold, transfer and redeem tokens. Backed by a distributed ledger,
+    preserving privacy using Zero Knowledge Proofs. This API definition fronts 4 different services, which each play a different
+    role in the ecosystem. 
+
+    To try it out, let the Issuer issue some funds to one of the users. Watch the balances
+    get updated and see the transaction history. Transfer it to another account, or redeem
+    the tokens to destroy them.
+servers:
+  - url: http://localhost:9000/api/v1/
+    description: auditor
+  - url: http://localhost:9100/api/v1/
+    description: issuer
+  - url: http://localhost:9200/api/v1/
+    description: alice and bob
+  - url: http://localhost:9300/api/v1/
+    description: carlos and dan
+
+paths:
+  # Auditor
+  /auditor/accounts/{id}:
+    servers:
+      - url: http://localhost:9000/api/v1/
+        description: auditor
+    get:
+      tags:
+        - auditor
+      parameters:
+        - $ref: "#/components/parameters/id"
+        - $ref: "#/components/parameters/code"
+          required: true
+      responses:
+        "200":
+          $ref: "#/components/responses/AccountSuccess"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: auditorAccount
+      summary: Get an account and their balance of a certain type
+
+  /auditor/accounts/{id}/transactions:
+    servers:
+      - url: http://localhost:9000/api/v1/
+        description: auditor
+    get:
+      tags:
+        - auditor
+      parameters:
+        - $ref: "#/components/parameters/id"
+      operationId: auditorTransactions
+      summary: Get all transactions for an account
+      responses:
+        "200":
+          $ref: "#/components/responses/TransactionsSuccess"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+  # Issuer
+  /issuer/issue:
+    servers:
+      - url: http://localhost:9100/api/v1/
+        description: issuer
+    summary: Issue tokens to an account
+    post:
+      tags:
+        - issuer
+      responses:
+        "200":
+          $ref: "#/components/responses/IssueSuccess"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+      requestBody:
+        description: Instructions to issue funds to an account
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequest"
+      operationId: issue
+      summary: Issue tokens of any kind to an account
+
+  # Owner
+  /owner/accounts:
+    servers:
+      - url: http://localhost:9200/api/v1/
+        description: alice and bob
+      - url: http://localhost:9300/api/v1/
+        description: carlos and dan
+    get:
+      tags:
+        - owner
+      responses:
+        "200":
+          $ref: "#/components/responses/AccountsSuccess"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: ownerAccounts
+      summary: Get all accounts on this node and their balances of each type
+
+  /owner/accounts/{id}:
+    servers:
+      - url: http://localhost:9200/api/v1/
+        description: alice and bob
+      - url: http://localhost:9300/api/v1/
+        description: carlos and dan
+    get:
+      tags:
+        - owner
+      parameters:
+        - $ref: "#/components/parameters/id"
+        - $ref: "#/components/parameters/code"
+      responses:
+        "200":
+          $ref: "#/components/responses/AccountSuccess"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: ownerAccount
+      summary: Get an account and its balances of each token type
+
+  /owner/accounts/{id}/transactions:
+    servers:
+      - url: http://localhost:9200/api/v1/
+        description: alice and bob
+      - url: http://localhost:9300/api/v1/
+        description: carlos and dan
+    get:
+      tags:
+        - owner
+      parameters:
+        - $ref: "#/components/parameters/id"
+      operationId: ownerTransactions
+      summary: Get all transactions for an account
+      description: |
+        Note that the system uses Unspent Transaction Outputs (UTXO).
+        For a transfer, you'll often see two transactions with the same id. The user specified amount goes
+        to the counterparty, and some other amount (the remaining part of the input token) goes back to the
+        sender!
+
+        This could be confusing for a user. A simple solution is to filter out the transactions with the same
+        sender and recipient.
+      responses:
+        "200":
+          $ref: "#/components/responses/TransactionsSuccess"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+  /owner/accounts/{id}/transfer:
+    servers:
+      - url: http://localhost:9200/api/v1/
+        description: alice and bob
+      - url: http://localhost:9300/api/v1/
+        description: carlos and dan
+    summary: Transfer tokens to another account
+    post:
+      tags:
+        - owner
+      parameters:
+        - $ref: "#/components/parameters/id"
+          name: id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/TransferSuccess"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: transfer
+      summary: Transfer tokens to another account
+
+  /owner/accounts/{id}/redeem:
+    servers:
+      - url: http://localhost:9200/api/v1/
+        description: alice and bob
+      - url: http://localhost:9300/api/v1/
+        description: carlos and dan
+    summary: Redeem (burn) tokens
+    post:
+      tags:
+        - owner
+      parameters:
+        - $ref: "#/components/parameters/id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RedeemRequest"
+      operationId: redeem
+      summary: Redeem (burn) tokens
+      responses:
+        "200":
+          $ref: "#/components/responses/RedeemSuccess"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+  # Operations
+  /healthz:
+    get:
+      tags:
+        - operations
+      operationId: healthz
+      summary: Returns 200 if the service is healthy
+      responses:
+        "200":
+          $ref: "#/components/responses/HealthSuccess"
+        "503":
+          $ref: "#/components/responses/ErrorResponse"
+  /readyz:
+    get:
+      tags:
+        - operations
+      operationId: readyz
+      summary: Returns 200 if the service is ready to accept calls
+      responses:
+        "200":
+          $ref: "#/components/responses/HealthSuccess"
+        "503":
+          $ref: "#/components/responses/ErrorResponse"
+
+components:
+  responses:
+    AccountSuccess:
+      description: Success response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+              - payload
+            properties:
+              message:
+                type: string
+              payload:
+                $ref: "#/components/schemas/Account"
+    AccountsSuccess:
+      description: Success response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+              - payload
+            properties:
+              message:
+                type: string
+              payload:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Account"
+    TransactionsSuccess:
+      description: Success response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+              - payload
+            properties:
+              message:
+                type: string
+                example: "transactions retrieved"
+              payload:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransactionRecord"
+    TransferSuccess:
+      description: Success response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+              - payload
+            properties:
+              message:
+                type: string
+              payload:
+                type: string
+                description: Transaction id
+          example:
+            message: transferred tokens
+            payload: 7c26ed6e5e05f7de81a82691b66b1069d1507d9edf3c7b78ea1fa98557ee57b4
+    RedeemSuccess:
+      description: Success response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+              - payload
+            properties:
+              message:
+                type: string
+                example: tokens redeemed
+              payload:
+                type: string
+                description: Transaction id
+                example: 7c26ed6e5e05f7de81a82691b66b1069d1507d9edf3c7b78ea1fa98557ee57b4
+    IssueSuccess:
+      description: Success or error response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+              - payload
+            properties:
+              message:
+                type: string
+              payload:
+                type: string
+                description: Transaction id
+    HealthSuccess:
+      description: Success response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                description: ok
+            example:
+              message: ok
+
+    ErrorResponse:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    # Common
+    Amount:
+      description: The amount to issue, transfer or redeem.
+      type: object
+      required:
+        - code
+        - value
+      properties:
+        code:
+          description: the code of the token
+          default: EURX
+          type: string
+        value:
+          description: value in base units (usually cents)
+          type: integer
+          format: int64
+          minimum: 0
+      example:
+        code: EURX
+        value: 100
+    Account:
+      type: object
+      description: Information about an account and its balance
+      required:
+        - id
+        - balance
+      properties:
+        id:
+          type: string
+          description: account id as registered at the Certificate Authority
+          example: alice
+        balance:
+          type: array
+          description: balance in base units for each currency
+          items:
+            $ref: "#/components/schemas/Amount"
+      example:
+        id: alice
+        balance:
+          - code: EURX
+            value: 10000
+          - code: USDX
+            value: 200
+    Counterparty:
+      description: The counterparty in a Transfer or Issuance transaction.
+      required:
+        - node
+        - account
+      type: object
+      properties:
+        node:
+          description: The node that holds the recipient account
+          type: string
+        account:
+          type: string
+      example:
+        node: owner1
+        account: alice
+    TransactionRecord:
+      type: object
+      description: A transaction
+      required:
+        - id
+        - sender
+        - recipient
+        - amount
+        - timestamp
+        - status
+        - message
+      properties:
+        id:
+          type: string
+          description: transaction id
+        sender:
+          type: string
+          description: the sender of the transaction
+        recipient:
+          type: string
+          description: the recipient of the transaction
+        amount:
+          $ref: "#/components/schemas/Amount"
+        timestamp:
+          type: string
+          format: date-time
+          description: 'timestamp in the format: "2018-03-20T09:12:28Z"'
+        status:
+          type: string
+          description: Unknown | Pending | Confirmed | Deleted
+        message:
+          type: string
+          description: user provided message
+      example:
+        id: 123
+        sender: alice
+        recipient: bob
+        amount:
+          code: EURX
+          value: 100
+        timestamp: "2018-03-20T09:12:28Z"
+        status: Confirmed
+        message: ""
+
+    # Owner
+    TransferRequest:
+      description: Instructions to issue or transfer tokens to an account
+      required:
+        - counterparty
+        - amount
+      type: object
+      properties:
+        amount:
+          $ref: "#/components/schemas/Amount"
+        counterparty:
+          $ref: "#/components/schemas/Counterparty"
+        message:
+          description: optional message that will be sent and stored with the transfer transaction
+          type: string
+    RedeemRequest:
+      description: Instructions to redeem tokens from an account
+      required:
+        - amount
+      type: object
+      properties:
+        amount:
+          $ref: "#/components/schemas/Amount"
+        message:
+          description: optional message that will be visible to the auditor
+          type: string
+    Error:
+      required:
+        - message
+        - payload
+      type: object
+      properties:
+        message:
+          description: High level error message
+          type: string
+        payload:
+          description: Details about the error
+          type: string
+      example:
+        message: error message
+        payload: ""
+  parameters:
+    id:
+      name: id
+      schema:
+        example: alice
+        description: account id as registered at the Certificate Authority
+        type: string
+      in: path
+      required: true
+    code:
+      name: code
+      in: query
+      schema:
+        example: EURX
+        description: The token code to filter on
+        type: string
+  securitySchemes: {}
+  headers: {}
+tags:
+  - name: issuer
+    description: can create tokens of any kind, and send them to owner accounts
+  - name: owner
+    description: is the service that hosts the keys and accounts of end users
+  - name: auditor
+    description: gets to see every transaction in the clear, and keeps a history
+  - name: operations
+    description: Service health and readiness
+security: []

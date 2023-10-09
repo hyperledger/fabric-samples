@@ -1,0 +1,5 @@
+package: e2e
+generate:
+  client: true
+  models: true
+output: e2e/client.gen.go

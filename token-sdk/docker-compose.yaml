@@ -1,0 +1,101 @@
+version: '3.7'
+
+# fabric_test is the name of the fabric-samples test network.
+# By connecting to it, we can reach the peers at their DNS names
+# (e.g. peer0.org1.example.com).
+networks:
+  test:
+    name: fabric_test
+    external: true
+
+services:
+  auditor:
+    hostname: auditor.example.com
+    restart: always
+    build:
+      context: ./auditor
+      dockerfile: ../Dockerfile
+    volumes:
+      - ./data/auditor:/var/fsc/data/auditor
+      - ./auditor/conf:/conf:ro
+      - ./keys:/var/fsc/keys:ro
+    ports:
+      - 9000:9000
+    expose:
+      - 9001
+    networks:
+      - test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/api/v1/readyz"]
+      interval: "5s"
+      timeout: "1s"
+      retries: 20
+
+  issuer:
+    hostname: issuer.example.com
+    restart: always
+    build:
+      context: ./issuer
+      dockerfile: ../Dockerfile
+    volumes:
+      - ./data/issuer:/var/fsc/data/issuer
+      - ./issuer/conf:/conf:ro
+      - ./keys:/var/fsc/keys:ro
+    ports:
+      - 9100:9000
+    expose:
+      - 9101  
+    networks:
+      - test
+    depends_on:
+      auditor:
+        condition: service_healthy
+
+  owner1:
+    hostname: owner1.example.com
+    restart: always
+    build:
+      context: ./owner
+      dockerfile: ../Dockerfile
+    volumes:
+      - ./data/owner1:/var/fsc/data/owner1
+      - ./owner/conf/owner1:/conf:ro
+      - ./keys:/var/fsc/keys:ro
+    ports:
+      - 9200:9000
+    expose:
+      - 9201
+    networks:
+      - test
+    depends_on:
+      auditor:
+        condition: service_healthy
+
+  owner2:
+    hostname: owner2.example.com
+    restart: always
+    build:
+      context: ./owner
+      dockerfile: ../Dockerfile
+    volumes:
+      - ./data/owner2:/var/fsc/data/owner2
+      - ./owner/conf/owner2:/conf:ro
+      - ./keys:/var/fsc/keys:ro
+    ports:
+      - 9300:9000
+    expose:
+      - 9301
+    networks:
+      - test
+    depends_on:
+      auditor:
+        condition: service_healthy
+
+  swagger-ui:
+      image: swaggerapi/swagger-ui
+      ports:
+          - '8080:8080'
+      environment:
+          - URL=/swagger.yaml
+      volumes:
+          - ./swagger.yaml:/usr/share/nginx/html/swagger.yaml

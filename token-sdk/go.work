@@ -1,0 +1,6 @@
+go 1.20
+
+use ./auditor
+use ./issuer
+use ./owner
+use ./e2e
