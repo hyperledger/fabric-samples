@@ -84,7 +84,7 @@ export class AssetTransfer {
 }
 
 async function submitWithRetry<T>(submit: () => Promise<T>): Promise<T> {
-    let lastError: unknown | undefined;
+    let lastError: unknown;
 
     for (let retryCount = 0; retryCount < RETRIES; retryCount++) {
         try {
