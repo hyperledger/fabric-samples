@@ -14,10 +14,10 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.hyperledger.fabric:fabric-gateway:1.2.2'
-    implementation 'org.hyperledger.fabric:fabric-protos:0.2.0'
-    compileOnly 'io.grpc:grpc-api:1.54.1'
-    runtimeOnly 'io.grpc:grpc-netty-shaded:1.54.1'
+    implementation 'org.hyperledger.fabric:fabric-gateway:1.4.0'
+    implementation 'org.hyperledger.fabric:fabric-protos:0.2.1'
+    compileOnly 'io.grpc:grpc-api:1.59.0'
+    runtimeOnly 'io.grpc:grpc-netty-shaded:1.59.0'
     implementation 'com.google.code.gson:gson:2.10.1'
 }
 

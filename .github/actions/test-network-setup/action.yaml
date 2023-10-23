@@ -3,7 +3,7 @@ description: Set up the Test Network Runtime
 inputs:
   go-version:
     description: Version of go
-    default: 1.20.7
+    default: '1.20'
   node-version:
     description: Version of node
     default: 18.x
@@ -20,13 +20,13 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-go@v3
+    - uses: actions/setup-go@v4
       with:
         go-version: ${{ inputs.go-version }}
         cache: true
         cache-dependency-path: '**/go.sum'
 
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'npm'

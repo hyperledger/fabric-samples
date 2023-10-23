@@ -82,7 +82,7 @@ async function readEvents(events: CloseableAsyncIterable<ChaincodeEvent>): Promi
         }
     } catch (error: unknown) {
         // Ignore the read error when events.close() is called explicitly
-        if (!(error instanceof GatewayError) || error.code !== grpc.status.CANCELLED) {
+        if (!(error instanceof GatewayError) || error.code !== grpc.status.CANCELLED.valueOf()) {
             throw error;
         }
     }

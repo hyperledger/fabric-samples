@@ -27,7 +27,7 @@ jobs:
           - ledger
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up the test network runtime
         uses: ./.github/actions/test-network-setup
