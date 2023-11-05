@@ -177,6 +177,8 @@ installChaincode 1
 infoln "Install chaincode on peer0.org2..."
 installChaincode 2
 
+resolveSequence
+
 ## query whether the chaincode is installed
 queryInstalled 1
 
