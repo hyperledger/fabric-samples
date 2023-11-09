@@ -44,7 +44,7 @@ setGlobals() {
     errorln "ORG Unknown"
   fi
 
-  if [ "$VERBOSE" == "true" ]; then
+  if [[ "$VERBOSE" == "true" ]]; then
     env | grep CORE
   fi
 }
