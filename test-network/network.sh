@@ -254,7 +254,7 @@ function createOrgs() {
 
 # The configtxgen tool is used to create the genesis block. Configtxgen consumes a
 # "configtx.yaml" file that contains the definitions for the sample network. The
-# genesis block is defined using the "TwoOrgsApplicationGenesis" profile at the bottom
+# genesis block is defined using the "ChannelUsingRaft" profile at the bottom
 # of the file. This profile defines an application channel consisting of our two Peer Orgs.
 # The peer and ordering organizations are defined in the "Profiles" section at the
 # top of the file. As part of each organization profile, the file points to the
