@@ -17,7 +17,11 @@ BFT="$5"
 : ${BFT:=0}
 
 : ${CONTAINER_CLI:="docker"}
-: ${CONTAINER_CLI_COMPOSE:="${CONTAINER_CLI}-compose"}
+if command -v docker-compose > /dev/null 2>&1; then
+    : ${CONTAINER_CLI_COMPOSE:="${CONTAINER_CLI}-compose"}
+else
+    : ${CONTAINER_CLI_COMPOSE:="${CONTAINER_CLI} compose"}
+fi
 infoln "Using ${CONTAINER_CLI} and ${CONTAINER_CLI_COMPOSE}"
 
 if [ ! -d "channel-artifacts" ]; then
