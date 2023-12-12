@@ -29,7 +29,7 @@ trap "popd > /dev/null" EXIT
 . scripts/utils.sh
 
 : ${CONTAINER_CLI:="docker"}
-if command -v docker-compose > /dev/null 2>&1; then
+if command -v ${CONTAINER_CLI}-compose > /dev/null 2>&1; then
     : ${CONTAINER_CLI_COMPOSE:="${CONTAINER_CLI}-compose"}
 else
     : ${CONTAINER_CLI_COMPOSE:="${CONTAINER_CLI} compose"}
