@@ -61,6 +61,15 @@ Organizations:
       Endorsement:
         Type: Signature
         Rule: "OR('Org1MSP.peer')"
+    AnchorPeers:
+      - Host: peer0.org1.example.com
+        Port: 7051
+      - Host: peer1.org1.example.com
+        Port: 7061
+      - Host: peer2.org1.example.com
+        Port: 7071
+      - Host: peer3.org1.example.com
+        Port: 7081
   - &Org2
     # DefaultOrg defines the organization which is used in the sampleconfig
     # of the fabric.git development environment
