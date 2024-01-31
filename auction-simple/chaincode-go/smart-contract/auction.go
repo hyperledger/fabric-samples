@@ -47,9 +47,8 @@ type BidHash struct {
 const bidKeyType = "bid"
 
 // CreateAuction creates on auction on the public channel. The identity that
-// submits the transacion becomes the seller of the auction
+// submits the transaction becomes the seller of the auction
 func (s *SmartContract) CreateAuction(ctx contractapi.TransactionContextInterface, auctionID string, itemsold string) error {
-
 	// get ID of submitting client
 	clientID, err := s.GetSubmittingClientIdentity(ctx)
 	if err != nil {
@@ -102,7 +101,6 @@ func (s *SmartContract) CreateAuction(ctx contractapi.TransactionContextInterfac
 // data collection on the peer of the bidder's organization. The function returns
 // the transaction ID so that users can identify and query their bid
 func (s *SmartContract) Bid(ctx contractapi.TransactionContextInterface, auctionID string) (string, error) {
-
 	// get bid from transient map
 	transientMap, err := ctx.GetStub().GetTransient()
 	if err != nil {
@@ -123,7 +121,7 @@ func (s *SmartContract) Bid(ctx contractapi.TransactionContextInterface, auction
 	// the bidder has to target their peer to store the bid
 	err = verifyClientOrgMatchesPeerOrg(ctx)
 	if err != nil {
-		return "", fmt.Errorf("Cannot store bid on this peer, not a member of this org: Error %v", err)
+		return "", fmt.Errorf("cannot store bid on this peer, not a member of this org: Error %v", err)
 	}
 
 	// the transaction ID is used as a unique index for the bid
@@ -141,7 +139,7 @@ func (s *SmartContract) Bid(ctx contractapi.TransactionContextInterface, auction
 		return "", fmt.Errorf("failed to input price into collection: %v", err)
 	}
 
-	// return the trannsaction ID so that the uset can identify their bid
+	// return the transaction ID so that the user can identify their bid
 	return txID, nil
 }
 
@@ -149,7 +147,6 @@ func (s *SmartContract) Bid(ctx contractapi.TransactionContextInterface, auction
 // auction. Note that this function alters the auction in private state, and needs
 // to meet the auction endorsement policy. Transaction ID is used identify the bid
 func (s *SmartContract) SubmitBid(ctx contractapi.TransactionContextInterface, auctionID string, txID string) error {
-
 	// get the MSP ID of the bidder's org
 	clientOrgID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
@@ -168,7 +165,7 @@ func (s *SmartContract) SubmitBid(ctx contractapi.TransactionContextInterface, a
 		return fmt.Errorf("cannot join closed or ended auction")
 	}
 
-	// get the inplicit collection name of bidder's org
+	// get the implicit collection name of bidder's org
 	collection, err := getCollectionName(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get implicit collection name: %v", err)
@@ -224,7 +221,6 @@ func (s *SmartContract) SubmitBid(ctx contractapi.TransactionContextInterface, a
 
 // RevealBid is used by a bidder to reveal their bid after the auction is closed
 func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, auctionID string, txID string) error {
-
 	// get bid from transient map
 	transientMap, err := ctx.GetStub().GetTransient()
 	if err != nil {
@@ -242,7 +238,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 		return fmt.Errorf("failed to get implicit collection name: %v", err)
 	}
 
-	// use transaction ID to create composit bid key
+	// use transaction ID to create composite bid key
 	bidKey, err := ctx.GetStub().CreateCompositeKey(bidKeyType, []string{auctionID, txID})
 	if err != nil {
 		return fmt.Errorf("failed to create composite key: %v", err)
@@ -289,7 +285,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 		)
 	}
 
-	// check 3; check hash of relealed bid matches hash of private bid that was
+	// check 3; check hash of revealed bid matches hash of private bid that was
 	// added earlier. This ensures that the bid has not changed since it
 	// was added to the auction
 
@@ -335,7 +331,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 
 	// check 4: make sure that the transaction is being submitted is the bidder
 	if bidInput.Bidder != clientID {
-		return fmt.Errorf("Permission denied, client id %v is not the owner of the bid", clientID)
+		return fmt.Errorf("permission denied, client id %v is not the owner of the bid", clientID)
 	}
 
 	revealedBids := make(map[string]FullBid)
@@ -357,7 +353,6 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 // CloseAuction can be used by the seller to close the auction. This prevents
 // bids from being added to the auction, and allows users to reveal their bid
 func (s *SmartContract) CloseAuction(ctx contractapi.TransactionContextInterface, auctionID string) error {
-
 	// get auction from public state
 	auction, err := s.QueryAuction(ctx, auctionID)
 	if err != nil {
@@ -397,7 +392,6 @@ func (s *SmartContract) CloseAuction(ctx contractapi.TransactionContextInterface
 // EndAuction both changes the auction status to closed and calculates the winners
 // of the auction
 func (s *SmartContract) EndAuction(ctx contractapi.TransactionContextInterface, auctionID string) error {
-
 	// get auction from public state
 	auction, err := s.QueryAuction(ctx, auctionID)
 	if err != nil {
