@@ -153,7 +153,8 @@ function query_chaincode() {
   peer chaincode query \
     -n  $cc_name \
     -C  $CHANNEL_NAME \
-    -c  $@
+    -c  $@ \
+    ${QUERY_EXTRA_ARGS}
 }
 
 function query_chaincode_metadata() {
@@ -186,7 +187,8 @@ function invoke_chaincode() {
     -c              $@ \
     --orderer       org0-orderer1.${DOMAIN}:${NGINX_HTTPS_PORT} \
     --connTimeout   ${ORDERER_TIMEOUT} \
-    --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
+    --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem \
+    ${INVOKE_EXTRA_ARGS}
 
   sleep 2
 }
@@ -324,7 +326,7 @@ function install_chaincode_for() {
 
   export_peer_context $org $peer
 
-  peer lifecycle chaincode install $cc_package
+  peer lifecycle chaincode install $cc_package ${INSTALL_EXTRA_ARGS}
 
   pop_fn
 }
@@ -357,7 +359,8 @@ function approve_chaincode() {
     --sequence      1 \
     --orderer       org0-orderer1.${DOMAIN}:${NGINX_HTTPS_PORT} \
     --connTimeout   ${ORDERER_TIMEOUT} \
-    --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
+    --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem \
+    ${APPROVE_EXTRA_ARGS}
 
   pop_fn
 }
@@ -379,7 +382,8 @@ function commit_chaincode() {
     --sequence      1 \
     --orderer       org0-orderer1.${DOMAIN}:${NGINX_HTTPS_PORT} \
     --connTimeout   ${ORDERER_TIMEOUT} \
-    --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
+    --tls --cafile  ${TEMP_DIR}/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem \
+    ${COMMIT_EXTRA_ARGS}
 
   pop_fn
 }
