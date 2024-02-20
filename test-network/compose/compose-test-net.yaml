@@ -18,7 +18,7 @@ services:
 
   orderer.example.com:
     container_name: orderer.example.com
-    image: hyperledger/fabric-orderer:latest
+    image: hyperledger/fabric-orderer:2.5.4
     labels:
       service: hyperledger-fabric
     environment:
@@ -60,7 +60,7 @@ services:
 
   peer0.org1.example.com:
     container_name: peer0.org1.example.com
-    image: hyperledger/fabric-peer:latest
+    image: hyperledger/fabric-peer:2.5.4
     labels:
       service: hyperledger-fabric
     environment:
@@ -99,7 +99,7 @@ services:
 
   peer0.org2.example.com:
     container_name: peer0.org2.example.com
-    image: hyperledger/fabric-peer:latest
+    image: hyperledger/fabric-peer:2.5.4
     labels:
       service: hyperledger-fabric
     environment:
@@ -138,7 +138,7 @@ services:
 
   cli:
     container_name: cli
-    image: hyperledger/fabric-tools:latest
+    image: hyperledger/fabric-tools:2.5.4
     labels:
       service: hyperledger-fabric
     tty: true
