@@ -6,7 +6,7 @@ inputs:
     default: 18.x
   just-version:
     description: Just Version
-    default: '1.13.0'
+    default: '1.24.0'
   k9s-version:
     description: k9s Version
     default: v0.25.3
@@ -35,9 +35,9 @@ runs:
         sudo chmod 755 /usr/local/bin/k9s
 
     - name: Install just
-      uses: extractions/setup-just@v1
+      uses: taiki-e/install-action@v2
       with:
-        just-version: ${{ inputs.just-version }}
+        tool: just@${{ inputs.just-version }}
 
     - name: Install weft
       shell: bash
