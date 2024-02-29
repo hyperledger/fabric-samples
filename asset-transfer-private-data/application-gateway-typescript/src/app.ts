@@ -7,7 +7,7 @@
 import { connect, Contract } from '@hyperledger/fabric-gateway';
 import { TextDecoder } from 'util';
 import {
-    certPathOrg1, certPathOrg2, keyDirectoryPathOrg1, keyDirectoryPathOrg2, newGrpcConnection, newIdentity,
+    certDirectoryPathOrg1, certDirectoryPathOrg2, keyDirectoryPathOrg1, keyDirectoryPathOrg2, newGrpcConnection, newIdentity,
     newSigner, peerEndpointOrg1, peerEndpointOrg2, peerNameOrg1, peerNameOrg2, tlsCertPathOrg1, tlsCertPathOrg2
 } from './connect';
 
@@ -39,7 +39,7 @@ async function main(): Promise<void> {
 
     const gatewayOrg1 = connect({
         client: clientOrg1,
-        identity: await newIdentity(certPathOrg1, mspIdOrg1),
+        identity: await newIdentity(certDirectoryPathOrg1, mspIdOrg1),
         signer: await newSigner(keyDirectoryPathOrg1),
     });
 
@@ -51,7 +51,7 @@ async function main(): Promise<void> {
 
     const gatewayOrg2 = connect({
         client: clientOrg2,
-        identity: await newIdentity(certPathOrg2, mspIdOrg2),
+        identity: await newIdentity(certDirectoryPathOrg2, mspIdOrg2),
         signer: await newSigner(keyDirectoryPathOrg2),
     });
 

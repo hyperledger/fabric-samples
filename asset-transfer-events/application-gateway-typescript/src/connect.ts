@@ -19,7 +19,7 @@ const cryptoPath = path.resolve(__dirname, '..', '..', '..', 'test-network', 'or
 const keyDirectoryPath = path.resolve(cryptoPath, 'users', 'User1@org1.example.com', 'msp', 'keystore');
 
 // Path to user certificate.
-const certPath = path.resolve(cryptoPath, 'users', 'User1@org1.example.com', 'msp', 'signcerts', 'cert.pem');
+const certDirectoryPath = path.resolve(cryptoPath, 'users', 'User1@org1.example.com', 'msp', 'signcerts');
 
 // Path to peer tls certificate.
 const tlsCertPath = path.resolve(cryptoPath, 'peers', 'peer0.org1.example.com', 'tls', 'ca.crt');
@@ -36,14 +36,19 @@ export async function newGrpcConnection(): Promise<grpc.Client> {
 }
 
 export async function newIdentity(): Promise<Identity> {
+    const certPath = await getFirstDirFileName(certDirectoryPath);
     const credentials = await fs.readFile(certPath);
     return { mspId, credentials };
 }
 
 export async function newSigner(): Promise<Signer> {
-    const files = await fs.readdir(keyDirectoryPath);
-    const keyPath = path.resolve(keyDirectoryPath, files[0]);
+    const keyPath = await getFirstDirFileName(keyDirectoryPath);
     const privateKeyPem = await fs.readFile(keyPath);
     const privateKey = crypto.createPrivateKey(privateKeyPem);
     return signers.newPrivateKeySigner(privateKey);
+}
+
+async function getFirstDirFileName(dirPath: string): Promise<string> {
+    const files = await fs.readdir(dirPath);
+    return path.join(dirPath, files[0]);
 }

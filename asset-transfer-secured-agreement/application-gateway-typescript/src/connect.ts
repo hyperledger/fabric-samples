@@ -21,7 +21,7 @@ export const cryptoPathOrg1 = path.resolve(__dirname, '..', '..', '..', 'test-ne
 export const keyDirectoryPathOrg1 = path.resolve(cryptoPathOrg1, 'users', 'User1@org1.example.com', 'msp', 'keystore');
 
 // Path to user certificate.
-export const certPathOrg1 = path.resolve(cryptoPathOrg1, 'users', 'User1@org1.example.com', 'msp', 'signcerts', 'cert.pem');
+export const certDirectoryPathOrg1 = path.resolve(cryptoPathOrg1, 'users', 'User1@org1.example.com', 'msp', 'signcerts');
 
 // Path to peer tls certificate.
 export const tlsCertPathOrg1 = path.resolve(cryptoPathOrg1, 'peers', 'peer0.org1.example.com', 'tls', 'ca.crt');
@@ -48,13 +48,12 @@ export const keyDirectoryPathOrg2 = path.resolve(
 );
 
 // Path to org2 user certificate.
-export const certPathOrg2 = path.resolve(
+export const certDirectoryPathOrg2 = path.resolve(
     cryptoPathOrg2,
     'users',
     'User1@org2.example.com',
     'msp',
-    'signcerts',
-    'cert.pem'
+    'signcerts'
 );
 
 // Path to org2 peer tls certificate.
@@ -89,15 +88,20 @@ export async function newGrpcConnection(
     });
 }
 
-export async function newIdentity(certPath: string, mspId: string): Promise<Identity> {
+export async function newIdentity(certDirectoryPath: string, mspId: string): Promise<Identity> {
+    const certPath = await getFirstDirFileName(certDirectoryPath);
     const credentials = await fs.readFile(certPath);
     return { mspId, credentials };
 }
 
 export async function newSigner(keyDirectoryPath: string): Promise<Signer> {
-    const files = await fs.readdir(keyDirectoryPath);
-    const keyPath = path.resolve(keyDirectoryPath, files[0]);
+    const keyPath = await getFirstDirFileName(keyDirectoryPath);
     const privateKeyPem = await fs.readFile(keyPath);
     const privateKey = crypto.createPrivateKey(privateKeyPem);
     return signers.newPrivateKeySigner(privateKey);
+}
+
+async function getFirstDirFileName(dirPath: string): Promise<string> {
+    const files = await fs.readdir(dirPath);
+    return path.join(dirPath, files[0]);
 }
