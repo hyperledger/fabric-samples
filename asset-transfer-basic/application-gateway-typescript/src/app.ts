@@ -21,8 +21,8 @@ const cryptoPath = envOrDefault('CRYPTO_PATH', path.resolve(__dirname, '..', '..
 // Path to user private key directory.
 const keyDirectoryPath = envOrDefault('KEY_DIRECTORY_PATH', path.resolve(cryptoPath, 'users', 'User1@org1.example.com', 'msp', 'keystore'));
 
-// Path to user certificate.
-const certPath = envOrDefault('CERT_PATH', path.resolve(cryptoPath, 'users', 'User1@org1.example.com', 'msp', 'signcerts', 'cert.pem'));
+// Path to user certificate directory.
+const certDirectoryPath = envOrDefault('CERT_DIRECTORY_PATH', path.resolve(cryptoPath, 'users', 'User1@org1.example.com', 'msp', 'signcerts'));
 
 // Path to peer tls certificate.
 const tlsCertPath = envOrDefault('TLS_CERT_PATH', path.resolve(cryptoPath, 'peers', 'peer0.org1.example.com', 'tls', 'ca.crt'));
@@ -106,13 +106,18 @@ async function newGrpcConnection(): Promise<grpc.Client> {
 }
 
 async function newIdentity(): Promise<Identity> {
+    const certPath = await getFirstDirFileName(certDirectoryPath);
     const credentials = await fs.readFile(certPath);
     return { mspId, credentials };
 }
 
+async function getFirstDirFileName(dirPath: string): Promise<string> {
+    const files = await fs.readdir(dirPath);
+    return path.join(dirPath, files[0]);
+}
+
 async function newSigner(): Promise<Signer> {
-    const files = await fs.readdir(keyDirectoryPath);
-    const keyPath = path.resolve(keyDirectoryPath, files[0]);
+    const keyPath = await getFirstDirFileName(keyDirectoryPath);
     const privateKeyPem = await fs.readFile(keyPath);
     const privateKey = crypto.createPrivateKey(privateKeyPem);
     return signers.newPrivateKeySigner(privateKey);
@@ -231,7 +236,7 @@ async function displayInputParameters(): Promise<void> {
     console.log(`mspId:             ${mspId}`);
     console.log(`cryptoPath:        ${cryptoPath}`);
     console.log(`keyDirectoryPath:  ${keyDirectoryPath}`);
-    console.log(`certPath:          ${certPath}`);
+    console.log(`certDirectoryPath: ${certDirectoryPath}`);
     console.log(`tlsCertPath:       ${tlsCertPath}`);
     console.log(`peerEndpoint:      ${peerEndpoint}`);
     console.log(`peerHostAlias:     ${peerHostAlias}`);
