@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-samples/asset-transfer-basic/chaincode-go
 
-go 1.17
+go 1. 17.10
 
 require (
 	github.com/hyperledger/fabric-chaincode-go v0.0.0-20230228194215-b84622ba6a7a
