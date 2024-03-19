@@ -257,7 +257,7 @@ Channel: &ChannelDefaults
 #
 ################################################################################
 Profiles:
-  ChannelUsingRaft:
+  TwoOrgsApplicationGenesis:
     <<: *ChannelDefaults
     Orderer:
       <<: *OrdererDefaults
