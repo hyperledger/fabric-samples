@@ -25,7 +25,7 @@ then
     ordererType="BFT"
     export FABRIC_CFG_PATH="${PWD}/bft-config"
 else
-    profile="ChannelUsingRaft"
+    profile="TwoOrgsApplicationGenesis"
 fi
 
 echo "Generating application channel genesis block with ${ordererType} consensus"
