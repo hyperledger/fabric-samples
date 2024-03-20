@@ -81,8 +81,6 @@ context PEER_IMAGE                ghcr.io/hyperledger-labs/fabric-builder-k8s/k8
 context PEER_IMAGE_LABEL          0.11.0 # When using k8s-fabric-peer in Fabric v2.5+, 0.11.0+ should be specified
 context ORDERER_IMAGE             ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer
 context ORDERER_IMAGE_LABEL       ${FABRIC_VERSION}
-context TOOLS_IMAGE               ${FABRIC_CONTAINER_REGISTRY}/fabric-tools
-context TOOLS_IMAGE_LABEL         ${FABRIC_VERSION}
 context OPERATOR_IMAGE            ghcr.io/hyperledger-labs/fabric-operator
 context OPERATOR_IMAGE_LABEL      1.0.4
 context INIT_IMAGE                registry.access.redhat.com/ubi8/ubi-minimal
@@ -102,7 +100,6 @@ export FABRIC_DEPLOYER_IMAGE=${DEPLOYER_IMAGE}:${DEPLOYER_IMAGE_LABEL}
 export FABRIC_CA_IMAGE=${CA_IMAGE}:${CA_IMAGE_LABEL}
 export FABRIC_PEER_IMAGE=${PEER_IMAGE}:${PEER_IMAGE_LABEL}
 export FABRIC_ORDERER_IMAGE=${ORDERER_IMAGE}:${ORDERER_IMAGE_LABEL}
-export FABRIC_TOOLS_IMAGE=${TOOLS_IMAGE}:${TOOLS_IMAGE_LABEL}
 
 export TEMP_DIR=${PWD}/temp
 

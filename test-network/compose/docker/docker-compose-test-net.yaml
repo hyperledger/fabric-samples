@@ -30,9 +30,3 @@ services:
     volumes:
       - ./docker/peercfg:/etc/hyperledger/peercfg
       - ${DOCKER_SOCK}:/host/var/run/docker.sock
-  
-  cli:
-    container_name: cli
-    image: hyperledger/fabric-tools:latest
-    volumes:
-      - ./docker/peercfg:/etc/hyperledger/peercfg

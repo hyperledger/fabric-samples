@@ -23,11 +23,13 @@ COUNTER=1
 MAX_RETRY=5
 
 # import environment variables
-. scripts/envVar.sh
+export test_network_home=..
+. ${test_network_home}/scripts/envVar.sh
 
 # joinChannel ORG
 joinChannel() {
   ORG=$1
+  setGlobals $ORG
   local rc=1
   local COUNTER=1
   ## Sometimes Join takes time, hence retry
@@ -54,7 +56,7 @@ BLOCKFILE="${CHANNEL_NAME}.block"
 
 echo "Fetching channel config block from orderer..."
 set -x
-peer channel fetch 0 $BLOCKFILE -o orderer.example.com:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME --tls --cafile "$ORDERER_CA" >&log.txt
+peer channel fetch 0 $BLOCKFILE -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME --tls --cafile "$ORDERER_CA" >&log.txt
 res=$?
 { set +x; } 2>/dev/null
 cat log.txt

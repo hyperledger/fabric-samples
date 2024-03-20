@@ -2,8 +2,6 @@
 
 # imports  
 . scripts/envVar.sh
-. scripts/utils.sh
-
 
 CHANNEL_NAME="$1"
 DELAY="$2"
@@ -94,7 +92,7 @@ joinChannel() {
 
 setAnchorPeer() {
   ORG=$1
-  ${CONTAINER_CLI} exec cli ./scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME 
+  . scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME 
 }
 
 
