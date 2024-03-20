@@ -94,7 +94,7 @@ joinChannel() {
 
 setAnchorPeer() {
   ORG=$1
-  ${CONTAINER_CLI} exec cli ./scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME 
+  . scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME 
 }
 
 
