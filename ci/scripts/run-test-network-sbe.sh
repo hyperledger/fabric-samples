@@ -26,6 +26,8 @@ function stopNetwork() {
 # Run Javascript application
 createNetwork
 print "Initializing Javascript application"
+# sleep 60s wait for chaincode ready
+sleep 60
 pushd ../asset-transfer-sbe/application-javascript
 npm install
 print "Executing app.js"

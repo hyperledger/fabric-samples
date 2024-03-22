@@ -161,13 +161,13 @@ function addOrg3 () {
   # Use the CLI container to create the configuration transaction needed to add
   # Org3 to the network
   infoln "Generating and submitting config tx to add Org3"
-  ${CONTAINER_CLI} exec cli ./scripts/org3-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  . ../scripts/org3-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to create config tx"
   fi
 
   infoln "Joining Org3 peers to network"
-  ${CONTAINER_CLI} exec cli ./scripts/org3-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  . ../scripts/org3-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to join Org3 peers to network"
   fi
