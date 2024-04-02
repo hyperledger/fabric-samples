@@ -49,6 +49,9 @@ Like other samples, the Fabric test network is used to deploy and run this sampl
 
 1. Deploy one of the smart contract implementations (from the `test-network` folder).
    ```
+   # To deploy the Go chaincode implementation
+   ./network.sh deployCC -ccn events -ccp ../asset-transfer-events/chaincode-go/ -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
+
    # To deploy the JavaScript chaincode implementation
    ./network.sh deployCC -ccn events -ccp ../asset-transfer-events/chaincode-javascript/ -ccl javascript -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
 
@@ -62,7 +65,7 @@ Like other samples, the Fabric test network is used to deploy and run this sampl
    cd application-gateway-go
    go run .
 
-   # To run the Typescript sample application
+   # To run the TypeScript sample application
    cd application-gateway-typescript
    npm install
    npm start
