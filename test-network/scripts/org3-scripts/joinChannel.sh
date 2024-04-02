@@ -23,6 +23,11 @@ COUNTER=1
 MAX_RETRY=5
 
 # import environment variables
+# test network home var targets to test network folder
+# the reason we use a var here is considering with org3 specific folder
+# when invoking this for org3 as test-network/scripts/org3-scripts
+# the value is changed from default as $PWD(test-network)
+# to .. as relative path to make the import works
 export test_network_home=..
 . ${test_network_home}/scripts/envVar.sh
 
@@ -48,7 +53,7 @@ joinChannel() {
 
 setAnchorPeer() {
   ORG=$1
-  scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME
+  ${test_network_home}/scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME
 }
 
 setGlobalsCLI 3

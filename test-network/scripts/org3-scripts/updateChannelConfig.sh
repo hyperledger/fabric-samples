@@ -23,6 +23,11 @@ MAX_RETRY=5
 
 
 # imports
+# test network home var targets to test network folder
+# the reason we use a var here is considering with org3 specific folder
+# when invoking this for org3 as test-network/scripts/org3-scripts
+# the value is changed from default as $PWD(test-network)
+# to .. as relative path to make the import works
 export test_network_home=..
 . ${test_network_home}/scripts/configUpdate.sh 
 
@@ -33,7 +38,7 @@ fetchChannelConfig 1 ${CHANNEL_NAME} config.json
 
 # Modify the configuration to append the new org
 set -x
-jq -s '.[0] * {"channel_group":{"groups":{"Application":{"groups": {"Org3MSP":.[1]}}}}}' config.json ../organizations/peerOrganizations/org3.example.com/org3.json > modified_config.json
+jq -s '.[0] * {"channel_group":{"groups":{"Application":{"groups": {"Org3MSP":.[1]}}}}}' config.json ${test_network_home}/organizations/peerOrganizations/org3.example.com/org3.json > modified_config.json
 { set +x; } 2>/dev/null
 
 # Compute a config update, based on the differences between config.json and modified_config.json, write it as a transaction to org3_update_in_envelope.pb
