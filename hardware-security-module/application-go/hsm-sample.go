@@ -33,7 +33,7 @@ const (
 	mspID        = "Org1MSP"
 	certPath     = "../crypto-material/hsm/HSMUser/signcerts/cert.pem"
 	tlsCertPath  = "../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
-	peerEndpoint = "localhost:7051"
+	peerEndpoint = "dns:///localhost:7051"
 )
 
 var now = time.Now()
@@ -122,7 +122,7 @@ func newGrpcConnection() *grpc.ClientConn {
 	certPool.AddCert(certificate)
 	transportCredentials := credentials.NewClientTLSFromCert(certPool, "peer0.org1.example.com")
 
-	connection, err := grpc.Dial(peerEndpoint, grpc.WithTransportCredentials(transportCredentials))
+	connection, err := grpc.NewClient(peerEndpoint, grpc.WithTransportCredentials(transportCredentials))
 	if err != nil {
 		panic(fmt.Errorf("failed to evaluate transaction: %w", err))
 	}
