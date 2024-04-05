@@ -4,12 +4,11 @@
 
 package org.hyperledger.fabric.samples.sbe;
 
-import java.util.Objects;
-
+import com.owlike.genson.annotation.JsonProperty;
 import org.hyperledger.fabric.contract.annotation.DataType;
 import org.hyperledger.fabric.contract.annotation.Property;
 
-import com.owlike.genson.annotation.JsonProperty;
+import java.util.Objects;
 
 @DataType()
 public final class Asset {
