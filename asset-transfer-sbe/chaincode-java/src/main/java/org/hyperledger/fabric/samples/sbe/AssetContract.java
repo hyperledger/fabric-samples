@@ -4,6 +4,7 @@
 
 package org.hyperledger.fabric.samples.sbe;
 
+import com.owlike.genson.Genson;
 import org.hyperledger.fabric.contract.Context;
 import org.hyperledger.fabric.contract.ContractInterface;
 import org.hyperledger.fabric.contract.annotation.Contract;
@@ -11,19 +12,19 @@ import org.hyperledger.fabric.contract.annotation.Default;
 import org.hyperledger.fabric.contract.annotation.Info;
 import org.hyperledger.fabric.contract.annotation.License;
 import org.hyperledger.fabric.contract.annotation.Transaction;
-import org.hyperledger.fabric.protos.common.MspPrincipal;
-import org.hyperledger.fabric.protos.common.Policies;
+import org.hyperledger.fabric.protos.common.MSPPrincipal;
+import org.hyperledger.fabric.protos.common.MSPRole;
+import org.hyperledger.fabric.protos.common.SignaturePolicy;
+import org.hyperledger.fabric.protos.common.SignaturePolicyEnvelope;
 import org.hyperledger.fabric.shim.ChaincodeException;
 import org.hyperledger.fabric.shim.ChaincodeStub;
 import org.hyperledger.fabric.shim.ext.sbe.StateBasedEndorsement;
 import org.hyperledger.fabric.shim.ext.sbe.impl.StateBasedEndorsementFactory;
 
-import com.owlike.genson.Genson;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Contract(
         name = "sbe",
@@ -36,7 +37,6 @@ import java.util.List;
                         url = "http://www.apache.org/licenses/LICENSE-2.0.html")))
 @Default
 public final class AssetContract implements ContractInterface {
-
     private final Genson genson = new Genson();
 
     private enum AssetTransferErrors {
@@ -71,7 +71,7 @@ public final class AssetContract implements ContractInterface {
         stub.putStringState(assetId, assetJSON);
 
         // Set the endorsement policy of the assetId Key, such that current owner Org is required to endorse future updates
-        setStateBasedEndorsement(ctx, assetId, new String[]{ownerOrg});
+        setStateBasedEndorsement(ctx, assetId, List.of(ownerOrg));
 
         // Optionally, set the endorsement policy of the assetId Key, such that any 1 Org (N) out of the specified Orgs can endorse future updates
         // setStateBasedEndorsementNOutOf(ctx, assetId, 1, new String[]{"Org1MSP", "Org2MSP"});
@@ -165,10 +165,10 @@ public final class AssetContract implements ContractInterface {
         stub.putStringState(assetId, updatedAssetJSON);
 
         // Re-Set the endorsement policy of the assetId Key, such that a new owner Org Peer is required to endorse future updates
-        setStateBasedEndorsement(ctx, assetId, new String[]{newOwnerOrg});
+        setStateBasedEndorsement(ctx, assetId, List.of(newOwnerOrg));
 
         // Optionally, set the endorsement policy of the assetId Key, such that any 1 Org (N) out of the specified Orgs can endorse future updates
-        // setStateBasedEndorsementNOutOf(ctx, assetId, 1, new String[]{"Org1MSP", "Org2MSP"});
+        // setStateBasedEndorsementNOutOf(ctx, assetId, 1, List.of("Org1MSP", "Org2MSP"));
 
         return asset;
     }
@@ -205,9 +205,9 @@ public final class AssetContract implements ContractInterface {
      * @param assetId the id of the asset
      * @param ownerOrgs the list of Owner Org MSPID's
      */
-    private static void setStateBasedEndorsement(final Context ctx, final String assetId, final String[] ownerOrgs) {
+    private static void setStateBasedEndorsement(final Context ctx, final String assetId, final List<String> ownerOrgs) {
         StateBasedEndorsement stateBasedEndorsement = StateBasedEndorsementFactory.getInstance().newStateBasedEndorsement(null);
-        stateBasedEndorsement.addOrgs(StateBasedEndorsement.RoleType.RoleTypeMember, ownerOrgs);
+        stateBasedEndorsement.addOrgs(StateBasedEndorsement.RoleType.RoleTypeMember, ownerOrgs.toArray(new String[0]));
         ctx.getStub().setStateValidationParameter(assetId, stateBasedEndorsement.policy());
     }
 
@@ -220,36 +220,50 @@ public final class AssetContract implements ContractInterface {
      * @param nOrgs the number of N Orgs to endorse out of the list of Orgs provided
      * @param ownerOrgs the list of Owner Org MSPID's
      */
-    private static void setStateBasedEndorsementNOutOf(final Context ctx, final String assetId, final int nOrgs, final String[] ownerOrgs) {
-        ctx.getStub().setStateValidationParameter(assetId, policy(nOrgs, Arrays.asList(ownerOrgs)));
+    private static void setStateBasedEndorsementNOutOf(final Context ctx, final String assetId, final int nOrgs, final List<String> ownerOrgs) {
+        ctx.getStub().setStateValidationParameter(assetId, policy(nOrgs, ownerOrgs));
     }
 
     /**
      * Create a policy that requires a given number (N) of Org principals signatures out of the provided list of Orgs
      *
      * @param nOrgs the number of Org principals signatures required to endorse (out of the provided list of Orgs)
-     * @param mspids the list of Owner Org MSPID's
+     * @param mspIds the list of Owner Org MSPID's
      */
-    private static byte[] policy(final int nOrgs, final List<String> mspids) {
-        mspids.sort(Comparator.naturalOrder());
-        final List<MspPrincipal.MSPPrincipal> principals = new ArrayList<>();
-        final List<Policies.SignaturePolicy> signPolicy = new ArrayList<>();
-        for (int i = 0; i < mspids.size(); i++) {
-            final String mspid = mspids.get(i);
-            principals.add(MspPrincipal.MSPPrincipal.newBuilder().setPrincipalClassification(MspPrincipal.MSPPrincipal.Classification.ROLE)
-                    .setPrincipal(MspPrincipal.MSPRole.newBuilder().setMspIdentifier(mspid).setRole(MspPrincipal.MSPRole.MSPRoleType.MEMBER).build().toByteString()).build());
-            signPolicy.add(signedBy(i));
-        }
-        // Create the policy such that it requires any N signature's from all of the principals provided
-        return Policies.SignaturePolicyEnvelope.newBuilder().setVersion(0).setRule(nOutOf(nOrgs, signPolicy))
-                .addAllIdentities(principals).build().toByteArray();
+    private static byte[] policy(final int nOrgs, final List<String> mspIds) {
+        mspIds.sort(Comparator.naturalOrder());
+
+        var principals = mspIds.stream()
+                .map(mspId -> MSPRole.newBuilder()
+                        .setMspIdentifier(mspId)
+                        .setRole(MSPRole.MSPRoleType.MEMBER)
+                        .build())
+                .map(role -> MSPPrincipal.newBuilder()
+                        .setPrincipalClassification(MSPPrincipal.Classification.ROLE)
+                        .setPrincipal(role.toByteString())
+                        .build())
+                .collect(Collectors.toList());
+
+        var signPolicy = IntStream.range(0, mspIds.size())
+                .mapToObj(AssetContract::signedBy)
+                .collect(Collectors.toList());
+
+        // Create the policy such that it requires any N signature's from all the principals provided
+        return SignaturePolicyEnvelope.newBuilder()
+                .setVersion(0)
+                .setRule(nOutOf(nOrgs, signPolicy))
+                .addAllIdentities(principals)
+                .build()
+                .toByteArray();
     }
 
-    private static Policies.SignaturePolicy signedBy(final int index) {
-        return Policies.SignaturePolicy.newBuilder().setSignedBy(index).build();
+    private static SignaturePolicy signedBy(final int index) {
+        return SignaturePolicy.newBuilder().setSignedBy(index).build();
     }
 
-    private static Policies.SignaturePolicy nOutOf(final int n, final List<Policies.SignaturePolicy> policies) {
-        return Policies.SignaturePolicy.newBuilder().setNOutOf(Policies.SignaturePolicy.NOutOf.newBuilder().setN(n).addAllRules(policies).build()).build();
+    private static SignaturePolicy nOutOf(final int n, final List<SignaturePolicy> policies) {
+        return SignaturePolicy.newBuilder().setNOutOf(
+                SignaturePolicy.NOutOf.newBuilder().setN(n).addAllRules(policies).build()
+        ).build();
     }
 }
