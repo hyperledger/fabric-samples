@@ -6,7 +6,13 @@
 #
 
 # import utils
-. scripts/envVar.sh
+# test network home var targets to test network folder
+# the reason we use a var here is considering with org3 specific folder
+# when invoking this for org3 as test-network/scripts/org3-scripts
+# the value is changed from default as $PWD(test-network)
+# to .. as relative path to make the import works
+test_network_home=${test_network_home:-${PWD}}
+. ${test_network_home}/scripts/envVar.sh
 
 # fetchChannelConfig <org> <channel_id> <output_json>
 # Writes the current channel config for a given channel to a JSON file
@@ -20,7 +26,7 @@ fetchChannelConfig() {
 
   infoln "Fetching the most recent configuration block for the channel"
   set -x
-  peer channel fetch config config_block.pb -o orderer.example.com:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL --tls --cafile "$ORDERER_CA"
+  peer channel fetch config config_block.pb -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL --tls --cafile "$ORDERER_CA"
   { set +x; } 2>/dev/null
 
   infoln "Decoding config block to JSON and isolating config to ${OUTPUT}"

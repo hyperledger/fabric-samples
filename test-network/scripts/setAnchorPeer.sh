@@ -6,8 +6,13 @@
 #
 
 # import utils
-. scripts/envVar.sh
-. scripts/configUpdate.sh
+# test network home var targets to test network folder
+# the reason we use a var here is considering with org3 specific folder
+# when invoking this for org3 as test-network/scripts/org3-scripts
+# the value is changed from default as $PWD(test-network)
+# to .. as relative path to make the import works
+test_network_home=${test_network_home:-${PWD}}
+. ${test_network_home}/scripts/configUpdate.sh
 
 
 # NOTE: this must be run in a CLI container since it requires jq and configtxlator 
@@ -42,7 +47,7 @@ createAnchorPeerUpdate() {
 }
 
 updateAnchorPeer() {
-  peer channel update -o orderer.example.com:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME -f ${CORE_PEER_LOCALMSPID}anchors.tx --tls --cafile "$ORDERER_CA" >&log.txt
+  peer channel update -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME -f ${CORE_PEER_LOCALMSPID}anchors.tx --tls --cafile "$ORDERER_CA" >&log.txt
   res=$?
   cat log.txt
   verifyResult $res "Anchor peer update failed"

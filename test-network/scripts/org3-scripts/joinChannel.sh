@@ -23,11 +23,18 @@ COUNTER=1
 MAX_RETRY=5
 
 # import environment variables
-. scripts/envVar.sh
+# test network home var targets to test network folder
+# the reason we use a var here is considering with org3 specific folder
+# when invoking this for org3 as test-network/scripts/org3-scripts
+# the value is changed from default as $PWD(test-network)
+# to .. as relative path to make the import works
+export test_network_home=..
+. ${test_network_home}/scripts/envVar.sh
 
 # joinChannel ORG
 joinChannel() {
   ORG=$1
+  setGlobals $ORG
   local rc=1
   local COUNTER=1
   ## Sometimes Join takes time, hence retry
@@ -46,7 +53,7 @@ joinChannel() {
 
 setAnchorPeer() {
   ORG=$1
-  scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME
+  ${test_network_home}/scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME
 }
 
 setGlobalsCLI 3
@@ -54,7 +61,7 @@ BLOCKFILE="${CHANNEL_NAME}.block"
 
 echo "Fetching channel config block from orderer..."
 set -x
-peer channel fetch 0 $BLOCKFILE -o orderer.example.com:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME --tls --cafile "$ORDERER_CA" >&log.txt
+peer channel fetch 0 $BLOCKFILE -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME --tls --cafile "$ORDERER_CA" >&log.txt
 res=$?
 { set +x; } 2>/dev/null
 cat log.txt
