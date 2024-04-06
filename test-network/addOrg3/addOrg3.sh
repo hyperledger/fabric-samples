@@ -12,7 +12,7 @@
 # prepending $PWD/../bin to PATH to ensure we are picking up the correct binaries
 # this may be commented out to resolve installed version of tools if desired
 export PATH=${PWD}/../../bin:${PWD}:$PATH
-export FABRIC_CFG_PATH=${PWD}
+export FABRIC_CFG_PATH=${PWD}/../../config
 export VERBOSE=false
 
 . ../scripts/utils.sh
@@ -161,7 +161,7 @@ function addOrg3 () {
   # Create the configuration transaction needed to add
   # Org3 to the network
   infoln "Generating and submitting config tx to add Org3"
-  cp ${PWD}/../../config/core.yaml ${PWD}
+  export FABRIC_CFG_PATH=${PWD}/../../config
   . ../scripts/org3-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to create config tx"
