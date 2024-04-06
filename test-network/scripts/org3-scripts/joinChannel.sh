@@ -5,11 +5,10 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-# This script is designed to be run in the cli container as the
-# second step of the EYFN tutorial. It joins the org3 peers to the
-# channel previously setup in the BYFN tutorial and install the
-# chaincode as version 2.0 on peer0.org3.
-#
+# This script is designed to be run by addOrg3.sh as the
+# second step of the Adding an Org to a Channel tutorial.
+# It joins the org3 peers to the channel previously setup in
+# the test network tutorial.
 
 CHANNEL_NAME="$1"
 DELAY="$2"
@@ -23,13 +22,13 @@ COUNTER=1
 MAX_RETRY=5
 
 # import environment variables
-# test network home var targets to test network folder
+# test network home var targets to test-network folder
 # the reason we use a var here is considering with org3 specific folder
 # when invoking this for org3 as test-network/scripts/org3-scripts
-# the value is changed from default as $PWD(test-network)
-# to .. as relative path to make the import works
-export test_network_home=..
-. ${test_network_home}/scripts/envVar.sh
+# the value is changed from default as $PWD (test-network)
+# to ${PWD}/.. to make the import works
+export TEST_NETWORK_HOME="${PWD}/.."
+. ${TEST_NETWORK_HOME}/scripts/envVar.sh
 
 # joinChannel ORG
 joinChannel() {
@@ -53,11 +52,11 @@ joinChannel() {
 
 setAnchorPeer() {
   ORG=$1
-  ${test_network_home}/scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME
+  ${TEST_NETWORK_HOME}/scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME
 }
 
-setGlobalsCLI 3
-BLOCKFILE="${CHANNEL_NAME}.block"
+setGlobals 3
+BLOCKFILE="${TEST_NETWORK_HOME}/channel-artifacts/${CHANNEL_NAME}.block"
 
 echo "Fetching channel config block from orderer..."
 set -x
