@@ -22,7 +22,7 @@ To set the path within the peer container, you will need to modify the docker co
 
 ```
         - ../..:/opt/gopath/src/github.com/hyperledger/fabric-samples
-        - ../../config/core.yaml:/etc/hyperledger/fabric/core.yaml
+        - ../../config/core.yaml:/etc/hyperledger/peercfg/core.yaml
 ```
 
 This update will mount the `core.yaml` that you modified into the peer container and override the configuration file within the peer image. The update also mounts the fabric-sample builder so that it can be found at the location that you specified in `core.yaml`. You also have the option of commenting out the line `- /var/run/docker.sock:/host/var/run/docker.sock`, since we no longer need to access the docker daemon from inside the peer container to launch the chaincode.
