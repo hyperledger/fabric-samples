@@ -1,0 +1,128 @@
+{
+  "payload": {
+    "header": {
+      "channel_header": {
+        "channel_id": "mychannel",
+        "type": 2
+      }
+    },
+    "data": {
+      "config_update": {
+        "channel_id": "mychannel",
+        "isolated_data": {},
+        "read_set": {
+          "groups": {
+            "Application": {
+              "groups": {
+                "Org2MSP": {
+                  "groups": {},
+                  "mod_policy": "",
+                  "policies": {
+                    "Admins": {
+                      "mod_policy": "",
+                      "policy": null,
+                      "version": "0"
+                    },
+                    "Endorsement": {
+                      "mod_policy": "",
+                      "policy": null,
+                      "version": "0"
+                    },
+                    "Readers": {
+                      "mod_policy": "",
+                      "policy": null,
+                      "version": "0"
+                    },
+                    "Writers": {
+                      "mod_policy": "",
+                      "policy": null,
+                      "version": "0"
+                    }
+                  },
+                  "values": {
+                    "MSP": {
+                      "mod_policy": "",
+                      "value": null,
+                      "version": "0"
+                    }
+                  },
+                  "version": "0"
+                }
+              },
+              "mod_policy": "",
+              "policies": {},
+              "values": {},
+              "version": "0"
+            }
+          },
+          "mod_policy": "",
+          "policies": {},
+          "values": {},
+          "version": "0"
+        },
+        "write_set": {
+          "groups": {
+            "Application": {
+              "groups": {
+                "Org2MSP": {
+                  "groups": {},
+                  "mod_policy": "Admins",
+                  "policies": {
+                    "Admins": {
+                      "mod_policy": "",
+                      "policy": null,
+                      "version": "0"
+                    },
+                    "Endorsement": {
+                      "mod_policy": "",
+                      "policy": null,
+                      "version": "0"
+                    },
+                    "Readers": {
+                      "mod_policy": "",
+                      "policy": null,
+                      "version": "0"
+                    },
+                    "Writers": {
+                      "mod_policy": "",
+                      "policy": null,
+                      "version": "0"
+                    }
+                  },
+                  "values": {
+                    "AnchorPeers": {
+                      "mod_policy": "Admins",
+                      "value": {
+                        "anchor_peers": [
+                          {
+                            "host": "peer0.org2.example.com",
+                            "port": 9051
+                          }
+                        ]
+                      },
+                      "version": "0"
+                    },
+                    "MSP": {
+                      "mod_policy": "",
+                      "value": null,
+                      "version": "0"
+                    }
+                  },
+                  "version": "1"
+                }
+              },
+              "mod_policy": "",
+              "policies": {},
+              "values": {},
+              "version": "0"
+            }
+          },
+          "mod_policy": "",
+          "policies": {},
+          "values": {},
+          "version": "0"
+        }
+      }
+    }
+  }
+}

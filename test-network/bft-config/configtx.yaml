@@ -181,11 +181,11 @@ Application: &ApplicationDefaults
 ################################################################################
 Orderer: &OrdererDefaults
   # Batch Timeout: The amount of time to wait before creating a batch
-  BatchTimeout: 2s
+  BatchTimeout: 5s
   # Batch Size: Controls the number of messages batched into a block
   BatchSize:
     # Max Message Count: The maximum number of messages to permit in a batch
-    MaxMessageCount: 10
+    MaxMessageCount: 30
     # Absolute Max Bytes: The absolute maximum number of bytes allowed for
     # the serialized messages in a batch.
     AbsoluteMaxBytes: 500 MB
