@@ -2,13 +2,13 @@
   "payload": {
     "header": {
       "channel_header": {
-        "channel_id": "mychannel",
+        "channel_id": "mynewchannel",
         "type": 2
       }
     },
     "data": {
       "config_update": {
-        "channel_id": "mychannel",
+        "channel_id": "mynewchannel",
         "isolated_data": {},
         "read_set": {
           "groups": {
