@@ -95,16 +95,16 @@ networkStart() {
     fi
 
     echo "Creating channel (peer1)..."
-    . peer1admin.sh && ./join_channel.sh
+    . ./peer1admin.sh && ./join_channel.sh
 
     echo "Joining channel (peer2)..."
-    . peer2admin.sh && ./join_channel.sh
+    . ./peer2admin.sh && ./join_channel.sh
 
     echo "Joining channel (peer3)..."
-    . peer3admin.sh && ./join_channel.sh
+    . ./peer3admin.sh && ./join_channel.sh
     
     echo "Joining channel (peer4)..."
-    . peer4admin.sh && ./join_channel.sh
+    . ./peer4admin.sh && ./join_channel.sh
   fi
   echo "Fabric network running. Use Ctrl-C to stop."
 

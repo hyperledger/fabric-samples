@@ -87,6 +87,7 @@ To deploy and invoke the chaincode, utilize the peer1 admin terminal that you ha
 
 1. Using a chaincode container
 2. Running the chaincode as a service
+3. Using the k8s builder and minikube
 
 For your convenience you can run `install&approve&commit_chaincode_peer1.sh` from peer1admin terminal to run basic chaincode as a container and activate it. The output of the script is redirected to the logs folder.
 
@@ -153,6 +154,17 @@ And start the chaincode service:
 ```shell
 npm run start:server-nontls
 ```
+
+## 3. Using the k8s builder and minikube
+
+It is also possible to launch chaincode in kubernetes pods using the k8s builder. A simple way to do this is using [minikube](https://minikube.sigs.k8s.io/docs/), which requires the chaincodeListenAddress and chaincodeAddress settings used by the Nano test network to be overridden using the following environment variables.
+
+```shell
+export CORE_PEER_CHAINCODEADDRESS_HOST_OVERRIDE=host.minikube.internal
+export CORE_PEER_CHAINCODELISTENADDRESS_HOST_OVERRIDE=0.0.0.0
+```
+
+See the [fabric-builder-k8s](https://github.com/hyperledger-labs/fabric-builder-k8s) project for more details on how to configure and use the k8s builder.
 
 ## Activate the chaincode
 
