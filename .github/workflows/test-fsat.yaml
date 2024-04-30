@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   ansible:
-    runs-on: fabric-ubuntu-20.04
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-20.04' || 'ubuntu-20.04' }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Full Stack Runtime
@@ -23,7 +23,7 @@ jobs:
         working-directory: full-stack-asset-transfer-guide
 
   appdev:
-    runs-on: fabric-ubuntu-20.04
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-20.04' || 'ubuntu-20.04' }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Full Stack Runtime
@@ -32,7 +32,7 @@ jobs:
         working-directory: full-stack-asset-transfer-guide
 
   chaincode:
-    runs-on: fabric-ubuntu-20.04
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-20.04' || 'ubuntu-20.04' }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Full Stack Runtime
@@ -41,7 +41,7 @@ jobs:
         working-directory: full-stack-asset-transfer-guide
 
   cloud:
-    runs-on: fabric-ubuntu-20.04
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-20.04' || 'ubuntu-20.04' }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Full Stack Runtime
@@ -50,7 +50,7 @@ jobs:
         working-directory: full-stack-asset-transfer-guide
 
   console:
-    runs-on: fabric-ubuntu-20.04
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-20.04' || 'ubuntu-20.04' }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Full Stack Runtime

@@ -3,7 +3,7 @@ description: Set up the Test Network Runtime
 inputs:
   go-version:
     description: Version of go
-    default: '1.20'
+    default: '1.21'
   node-version:
     description: Version of node
     default: 18.x
@@ -12,10 +12,10 @@ inputs:
     default: 11.x
   fabric-version:
     description: Version of Hyperledger Fabric
-    default: 2.5.4
+    default: 2.5.7
   ca-version:
     description: Version of Hyperledger Fabric CA
-    default: 1.5.7
+    default: 1.5.10
 
 runs:
   using: "composite"
