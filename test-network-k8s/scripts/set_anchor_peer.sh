@@ -98,12 +98,12 @@ set -x
 ORG_NUM=$1
 CHANNEL_NAME=$2
 PEER_NAME=$3
-ORG_NAME="org${ORG_NUM}"
+ORG_NAME=org${ORG_NUM}
 ANCHOR_PEER_HOST=${ORG_NAME}-${PEER_NAME}
 ANCHOR_PEER_PORT=7051
 ORDERER_TLS_CA_FILE=/var/hyperledger/fabric/organizations/ordererOrganizations/org0.example.com/msp/tlscacerts/org0-tls-ca.pem
 
-export CORE_PEER_LOCALMSPID="Org${ORG_NUM}MSP"
+export CORE_PEER_LOCALMSPID=Org${ORG_NUM}MSP
 
 set_anchor_peer
 
