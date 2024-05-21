@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 
 public class ERC721TokenContractTest {
 
-  private final class MockKeyValue implements KeyValue {
+  private static final class MockKeyValue implements KeyValue {
 
     private final String key;
     private final String value;
@@ -55,7 +55,7 @@ public class ERC721TokenContractTest {
     }
   }
 
-  private final class MockAssetResultsIterator implements QueryResultsIterator<KeyValue> {
+  private static final class MockAssetResultsIterator implements QueryResultsIterator<KeyValue> {
 
     private final List<KeyValue> assetList;
 
@@ -166,7 +166,7 @@ public class ERC721TokenContractTest {
     }
 
     @Test
-    public void whenSenderisApprovedClientOfToken()
+    public void whenSenderIsApprovedClientOfToken()
         throws CertificateException, JSONException, IOException {
       Approval approval = new Approval("Alice", "Charlie", false);
       CompositeKey ck = mock(CompositeKey.class);
@@ -184,7 +184,7 @@ public class ERC721TokenContractTest {
     }
 
     @Test
-    public void whenSenderisAuthorizedOperatorOfToken()
+    public void whenSenderIsAuthorizedOperatorOfToken()
         throws CertificateException, JSONException, IOException {
       Approval approval = new Approval("Alice", "Dave", true);
       CompositeKey ck = mock(CompositeKey.class);
@@ -254,7 +254,7 @@ public class ERC721TokenContractTest {
   class ERC721ApproveFunctionalitiesTest {
 
     @Test
-    public void invokeAprrove() throws CertificateException, JSONException, IOException {
+    public void invokeApprove() throws CertificateException, JSONException, IOException {
       Context ctx = mock(Context.class);
       ChaincodeStub stub = mock(ChaincodeStub.class);
       NFT nft = new NFT("101", "Alice", "http://test.com", "");
