@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.ThrowableAssert.catchThrowable;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ import org.mockito.InOrder;
 
 public final class AssetTransferTest {
 
-    private final class MockKeyValue implements KeyValue {
+    private static final class MockKeyValue implements KeyValue {
 
         private final String key;
         private final String value;
@@ -54,7 +54,7 @@ public final class AssetTransferTest {
 
     }
 
-    private final class MockAssetResultsIterator implements QueryResultsIterator<KeyValue> {
+    private static final class MockAssetResultsIterator implements QueryResultsIterator<KeyValue> {
 
         private final List<KeyValue> assetList;
 
@@ -102,7 +102,7 @@ public final class AssetTransferTest {
                 .hasMessage("Undefined contract method called");
         assertThat(((ChaincodeException) thrown).getPayload()).isEqualTo(null);
 
-        verifyZeroInteractions(ctx);
+        verifyNoInteractions(ctx);
     }
 
     @Nested
