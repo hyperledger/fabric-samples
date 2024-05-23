@@ -59,6 +59,16 @@ If you have trouble running bash scripts in your environment, you can just as ea
 
 Note the syntax of running the scripts. The peer admin scripts set the admin environment variables and must be run with the `source` command in order that the exported environment variables can be utilized by any subsequent user commands.
 
+## Running each component separately with CAs
+
+These instructions are for running the CAs from terminal sessions.  Open terminal windows for 3 CAs as seen in the following terminal setup. These instructions should be followd before opening the ordering and peer windows described above.
+
+![CA Terminal setup](ca_terminal_setup.png)
+
+- cd to the `test-network-nano-bash` directory in each terminal window
+- Before running the  `./generate_artifacts.sh -ca` in the first orderer terminal, run `./ordererca.sh`, `./org1ca.sh`, `./org2ca.sh` in the repsective terminals.
+- In the first orderer terminal, run `./generate_artifacts.sh -ca` to generate crypto material using the CAs and application channel genesis block and configuration transactions (calls configtxgen). The artifacts will be created in the `crypto-config` and `channel-artifacts` directories. If you are running BFT consensus then run `./generate_artifacts.sh BFT -ca`.  All artifacts generated with the CA will conform to the same directory structure as cryptogen.
+
 ## Starting the network with one command
 
 Using the individual scripts above gives you more control of the process of starting a Fabric network and demonstrates how all the required components fit together, however the same network can also be started using a single script for convenience.
@@ -71,6 +81,11 @@ For Raft consensus type:
 For BFT consensus type:
 ```shell
 ./network.sh start -o BFT
+```
+
+For Raft consensus type using CAs:
+```shell
+./network.sh start -ca
 ```
 
 After the network has started, use separate terminals to run peer commands.
