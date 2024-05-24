@@ -12,9 +12,10 @@ rules:
   - apiGroups:
       - ""
       - apps
+      - batch
     resources:
       - pods
-      - deployments
+      - jobs
       - configmaps
       - secrets
     verbs:
