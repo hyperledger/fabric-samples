@@ -568,6 +568,7 @@ chaincode:
         path: /var/hyperledger/fabric/external_builders/k8s_builder
         propagateEnvironment:
           - CORE_PEER_ID
+          - FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX
           - KUBERNETES_SERVICE_HOST
           - KUBERNETES_SERVICE_PORT
 
