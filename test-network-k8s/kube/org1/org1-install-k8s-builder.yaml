@@ -9,6 +9,7 @@ kind: Job
 metadata:
   name: org1-install-k8s-builder
 spec:
+  ttlSecondsAfterFinished: 600
   backoffLimit: 0
   completions: 1
   template:

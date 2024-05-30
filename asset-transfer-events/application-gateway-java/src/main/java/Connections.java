@@ -24,7 +24,7 @@ public final class Connections {
     // Path to crypto materials.
     private static final Path cryptoPath = Paths.get("..", "..", "test-network", "organizations", "peerOrganizations",	"org1.example.com");
     // Path to user certificate.
-    private static final Path certPath = cryptoPath.resolve(Paths.get("users", "User1@org1.example.com", "msp", "signcerts", "cert.pem"));
+    private static final Path certDirPath = cryptoPath.resolve(Paths.get("users", "User1@org1.example.com", "msp", "signcerts"));
     // Path to user private key directory.
     private static final Path keyDirPath = cryptoPath.resolve(Paths.get("users", "User1@org1.example.com", "msp", "keystore"));
     // Path to peer tls certificate.
@@ -50,22 +50,21 @@ public final class Connections {
     }
 
     public static Identity newIdentity() throws IOException, CertificateException {
-        var certReader = Files.newBufferedReader(certPath);
-        var certificate = Identities.readX509Certificate(certReader);
-
-        return new X509Identity(mspID, certificate);
+        try (var certReader = Files.newBufferedReader(getFirstFilePath(certDirPath))) {
+            var certificate = Identities.readX509Certificate(certReader);
+            return new X509Identity(mspID, certificate);
+        }
     }
 
     public static Signer newSigner() throws IOException, InvalidKeyException {
-        var keyReader = Files.newBufferedReader(getPrivateKeyPath());
-        var privateKey = Identities.readPrivateKey(keyReader);
-
-        return Signers.newPrivateKeySigner(privateKey);
-    }
-
-    private static Path getPrivateKeyPath() throws IOException {
-        try (var keyFiles = Files.list(keyDirPath)) {
-            return keyFiles.findFirst().orElseThrow();
+        try (var keyReader = Files.newBufferedReader(getFirstFilePath(keyDirPath))) {
+            var privateKey = Identities.readPrivateKey(keyReader);
+            return Signers.newPrivateKeySigner(privateKey);
         }
     }
-}
+
+    private static Path getFirstFilePath(Path dirPath) throws IOException {
+        try (var keyFiles = Files.list(dirPath)) {
+            return keyFiles.findFirst().orElseThrow();
+        }
+    }}

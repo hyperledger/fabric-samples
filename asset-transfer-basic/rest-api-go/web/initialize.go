@@ -3,8 +3,8 @@ package web
 import (
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"time"
 
@@ -49,7 +49,7 @@ func (setup OrgSetup) newGrpcConnection() *grpc.ClientConn {
 	certPool.AddCert(certificate)
 	transportCredentials := credentials.NewClientTLSFromCert(certPool, setup.GatewayPeer)
 
-	connection, err := grpc.Dial(setup.PeerEndpoint, grpc.WithTransportCredentials(transportCredentials))
+	connection, err := grpc.NewClient(setup.PeerEndpoint, grpc.WithTransportCredentials(transportCredentials))
 	if err != nil {
 		panic(fmt.Errorf("failed to create gRPC connection: %w", err))
 	}
@@ -74,11 +74,11 @@ func (setup OrgSetup) newIdentity() *identity.X509Identity {
 
 // newSign creates a function that generates a digital signature from a message digest using a private key.
 func (setup OrgSetup) newSign() identity.Sign {
-	files, err := ioutil.ReadDir(setup.KeyPath)
+	files, err := os.ReadDir(setup.KeyPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to read private key directory: %w", err))
 	}
-	privateKeyPEM, err := ioutil.ReadFile(path.Join(setup.KeyPath, files[0].Name()))
+	privateKeyPEM, err := os.ReadFile(path.Join(setup.KeyPath, files[0].Name()))
 
 	if err != nil {
 		panic(fmt.Errorf("failed to read private key file: %w", err))
@@ -98,7 +98,7 @@ func (setup OrgSetup) newSign() identity.Sign {
 }
 
 func loadCertificate(filename string) (*x509.Certificate, error) {
-	certificatePEM, err := ioutil.ReadFile(filename)
+	certificatePEM, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read certificate file: %w", err)
 	}

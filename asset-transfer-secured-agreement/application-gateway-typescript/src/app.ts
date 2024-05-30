@@ -6,7 +6,7 @@
 
 import { connect } from '@hyperledger/fabric-gateway';
 
-import { newGrpcConnection, newIdentity, newSigner, tlsCertPathOrg1, peerEndpointOrg1, peerNameOrg1, certPathOrg1, mspIdOrg1, keyDirectoryPathOrg1, tlsCertPathOrg2, peerEndpointOrg2, peerNameOrg2, certPathOrg2, mspIdOrg2, keyDirectoryPathOrg2 } from './connect';
+import { newGrpcConnection, newIdentity, newSigner, tlsCertPathOrg1, peerEndpointOrg1, peerNameOrg1, certDirectoryPathOrg1, mspIdOrg1, keyDirectoryPathOrg1, tlsCertPathOrg2, peerEndpointOrg2, peerNameOrg2, certDirectoryPathOrg2, mspIdOrg2, keyDirectoryPathOrg2 } from './connect';
 import { ContractWrapper } from './contractWrapper';
 import { RED, RESET } from './utils';
 
@@ -28,7 +28,7 @@ async function main(): Promise<void> {
 
     const gatewayOrg1 = connect({
         client: clientOrg1,
-        identity: await newIdentity(certPathOrg1, mspIdOrg1),
+        identity: await newIdentity(certDirectoryPathOrg1, mspIdOrg1),
         signer: await newSigner(keyDirectoryPathOrg1),
     });
 
@@ -41,7 +41,7 @@ async function main(): Promise<void> {
 
     const gatewayOrg2 = connect({
         client: clientOrg2,
-        identity: await newIdentity(certPathOrg2, mspIdOrg2),
+        identity: await newIdentity(certDirectoryPathOrg2, mspIdOrg2),
         signer: await newSigner(keyDirectoryPathOrg2),
     });
 

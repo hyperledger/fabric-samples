@@ -3,7 +3,7 @@
  */
 
 plugins {
-    id 'com.github.johnrengelman.shadow' version '5.1.0'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'application'
     id 'checkstyle'
     id 'jacoco'
@@ -17,16 +17,21 @@ dependencies {
     implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.5.+'
     implementation 'org.json:json:+'
 
-    testImplementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.+'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
-    testImplementation 'org.assertj:assertj-core:3.11.1'
-    testImplementation 'org.mockito:mockito-core:2.+'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.assertj:assertj-core:3.25.3'
+    testImplementation 'org.mockito:mockito-core:5.12.0'
 }
 
 repositories {
     mavenCentral()
     maven {
         url 'https://jitpack.io'
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
     }
 }
 
@@ -61,9 +66,10 @@ test {
 mainClassName = 'org.hyperledger.fabric.contract.ContractRouter'
 
 shadowJar {
-    baseName = 'chaincode'
-    version = null
-    classifier = null
+    archiveBaseName = 'chaincode'
+    archiveVersion = ''
+    archiveClassifier = ''
+    mergeServiceFiles()
 
     manifest {
         attributes 'Main-Class': 'org.hyperledger.fabric.contract.ContractRouter'

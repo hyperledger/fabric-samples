@@ -28,10 +28,10 @@ import (
 const (
 	mspID        = "Org1MSP"
 	cryptoPath   = "../../test-network/organizations/peerOrganizations/org1.example.com"
-	certPath     = cryptoPath + "/users/User1@org1.example.com/msp/signcerts/cert.pem"
-	keyPath      = cryptoPath + "/users/User1@org1.example.com/msp/keystore/"
+	certPath     = cryptoPath + "/users/User1@org1.example.com/msp/signcerts"
+	keyPath      = cryptoPath + "/users/User1@org1.example.com/msp/keystore"
 	tlsCertPath  = cryptoPath + "/peers/peer0.org1.example.com/tls/ca.crt"
-	peerEndpoint = "localhost:7051"
+	peerEndpoint = "dns:///localhost:7051"
 	gatewayPeer  = "peer0.org1.example.com"
 )
 
@@ -86,7 +86,12 @@ func main() {
 
 // newGrpcConnection creates a gRPC connection to the Gateway server.
 func newGrpcConnection() *grpc.ClientConn {
-	certificate, err := loadCertificate(tlsCertPath)
+	certificatePEM, err := os.ReadFile(tlsCertPath)
+	if err != nil {
+		panic(fmt.Errorf("failed to read TLS certifcate file: %w", err))
+	}
+
+	certificate, err := identity.CertificateFromPEM(certificatePEM)
 	if err != nil {
 		panic(err)
 	}
@@ -95,7 +100,7 @@ func newGrpcConnection() *grpc.ClientConn {
 	certPool.AddCert(certificate)
 	transportCredentials := credentials.NewClientTLSFromCert(certPool, gatewayPeer)
 
-	connection, err := grpc.Dial(peerEndpoint, grpc.WithTransportCredentials(transportCredentials))
+	connection, err := grpc.NewClient(peerEndpoint, grpc.WithTransportCredentials(transportCredentials))
 	if err != nil {
 		panic(fmt.Errorf("failed to create gRPC connection: %w", err))
 	}
@@ -105,7 +110,12 @@ func newGrpcConnection() *grpc.ClientConn {
 
 // newIdentity creates a client identity for this Gateway connection using an X.509 certificate.
 func newIdentity() *identity.X509Identity {
-	certificate, err := loadCertificate(certPath)
+	certificatePEM, err := readFirstFile(certPath)
+	if err != nil {
+		panic(fmt.Errorf("failed to read certificate file: %w", err))
+	}
+
+	certificate, err := identity.CertificateFromPEM(certificatePEM)
 	if err != nil {
 		panic(err)
 	}
@@ -118,22 +128,9 @@ func newIdentity() *identity.X509Identity {
 	return id
 }
 
-func loadCertificate(filename string) (*x509.Certificate, error) {
-	certificatePEM, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read certificate file: %w", err)
-	}
-	return identity.CertificateFromPEM(certificatePEM)
-}
-
 // newSign creates a function that generates a digital signature from a message digest using a private key.
 func newSign() identity.Sign {
-	files, err := os.ReadDir(keyPath)
-	if err != nil {
-		panic(fmt.Errorf("failed to read private key directory: %w", err))
-	}
-	privateKeyPEM, err := os.ReadFile(path.Join(keyPath, files[0].Name()))
-
+	privateKeyPEM, err := readFirstFile(keyPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to read private key file: %w", err))
 	}
@@ -149,6 +146,20 @@ func newSign() identity.Sign {
 	}
 
 	return sign
+}
+
+func readFirstFile(dirPath string) ([]byte, error) {
+	dir, err := os.Open(dirPath)
+	if err != nil {
+		return nil, err
+	}
+
+	fileNames, err := dir.Readdirnames(1)
+	if err != nil {
+		return nil, err
+	}
+
+	return os.ReadFile(path.Join(dirPath, fileNames[0]))
 }
 
 // This type of transaction would typically only be run once by an application the first time it was started after its
@@ -235,20 +246,24 @@ func exampleErrorHandling(contract *client.Contract) {
 
 	fmt.Println("*** Successfully caught the error:")
 
-	switch err := err.(type) {
-	case *client.EndorseError:
-		fmt.Printf("Endorse error for transaction %s with gRPC status %v: %s\n", err.TransactionID, status.Code(err), err)
-	case *client.SubmitError:
-		fmt.Printf("Submit error for transaction %s with gRPC status %v: %s\n", err.TransactionID, status.Code(err), err)
-	case *client.CommitStatusError:
+	var endorseErr *client.EndorseError
+	var submitErr *client.SubmitError
+	var commitStatusErr *client.CommitStatusError
+	var commitErr *client.CommitError
+
+	if errors.As(err, &endorseErr) {
+		fmt.Printf("Endorse error for transaction %s with gRPC status %v: %s\n", endorseErr.TransactionID, status.Code(endorseErr), endorseErr)
+	} else if errors.As(err, &submitErr) {
+		fmt.Printf("Submit error for transaction %s with gRPC status %v: %s\n", submitErr.TransactionID, status.Code(submitErr), submitErr)
+	} else if errors.As(err, &commitStatusErr) {
 		if errors.Is(err, context.DeadlineExceeded) {
-			fmt.Printf("Timeout waiting for transaction %s commit status: %s", err.TransactionID, err)
+			fmt.Printf("Timeout waiting for transaction %s commit status: %s", commitStatusErr.TransactionID, commitStatusErr)
 		} else {
-			fmt.Printf("Error obtaining commit status for transaction %s with gRPC status %v: %s\n", err.TransactionID, status.Code(err), err)
+			fmt.Printf("Error obtaining commit status for transaction %s with gRPC status %v: %s\n", commitStatusErr.TransactionID, status.Code(commitStatusErr), commitStatusErr)
 		}
-	case *client.CommitError:
-		fmt.Printf("Transaction %s failed to commit with status %d: %s\n", err.TransactionID, int32(err.Code), err)
-	default:
+	} else if errors.As(err, &commitErr) {
+		fmt.Printf("Transaction %s failed to commit with status %d: %s\n", commitErr.TransactionID, int32(commitErr.Code), err)
+	} else {
 		panic(fmt.Errorf("unexpected error type %T: %w", err, err))
 	}
 

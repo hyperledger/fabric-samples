@@ -41,7 +41,7 @@ public final class App {
 	// Path to crypto materials.
 	private static final Path CRYPTO_PATH = Paths.get("../../test-network/organizations/peerOrganizations/org1.example.com");
 	// Path to user certificate.
-	private static final Path CERT_PATH = CRYPTO_PATH.resolve(Paths.get("users/User1@org1.example.com/msp/signcerts/cert.pem"));
+	private static final Path CERT_DIR_PATH = CRYPTO_PATH.resolve(Paths.get("users/User1@org1.example.com/msp/signcerts"));
 	// Path to user private key directory.
 	private static final Path KEY_DIR_PATH = CRYPTO_PATH.resolve(Paths.get("users/User1@org1.example.com/msp/keystore"));
 	// Path to peer tls certificate.
@@ -84,21 +84,21 @@ public final class App {
 	}
 
 	private static Identity newIdentity() throws IOException, CertificateException {
-		var certReader = Files.newBufferedReader(CERT_PATH);
-		var certificate = Identities.readX509Certificate(certReader);
-
-		return new X509Identity(MSP_ID, certificate);
+		try (var certReader = Files.newBufferedReader(getFirstFilePath(CERT_DIR_PATH))) {
+			var certificate = Identities.readX509Certificate(certReader);
+			return new X509Identity(MSP_ID, certificate);
+		}
 	}
 
 	private static Signer newSigner() throws IOException, InvalidKeyException {
-		var keyReader = Files.newBufferedReader(getPrivateKeyPath());
-		var privateKey = Identities.readPrivateKey(keyReader);
-
-		return Signers.newPrivateKeySigner(privateKey);
+		try (var keyReader = Files.newBufferedReader(getFirstFilePath(KEY_DIR_PATH))) {
+			var privateKey = Identities.readPrivateKey(keyReader);
+			return Signers.newPrivateKeySigner(privateKey);
+		}
 	}
 
-	private static Path getPrivateKeyPath() throws IOException {
-		try (var keyFiles = Files.list(KEY_DIR_PATH)) {
+	private static Path getFirstFilePath(Path dirPath) throws IOException {
+		try (var keyFiles = Files.list(dirPath)) {
 			return keyFiles.findFirst().orElseThrow();
 		}
 	}

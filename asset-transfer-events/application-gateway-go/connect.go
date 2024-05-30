@@ -20,16 +20,21 @@ import (
 const (
 	mspID        = "Org1MSP"
 	cryptoPath   = "../../test-network/organizations/peerOrganizations/org1.example.com"
-	certPath     = cryptoPath + "/users/User1@org1.example.com/msp/signcerts/cert.pem"
-	keyPath      = cryptoPath + "/users/User1@org1.example.com/msp/keystore/"
+	certPath     = cryptoPath + "/users/User1@org1.example.com/msp/signcerts"
+	keyPath      = cryptoPath + "/users/User1@org1.example.com/msp/keystore"
 	tlsCertPath  = cryptoPath + "/peers/peer0.org1.example.com/tls/ca.crt"
-	peerEndpoint = "localhost:7051"
+	peerEndpoint = "dns:///localhost:7051"
 	gatewayPeer  = "peer0.org1.example.com"
 )
 
 // newGrpcConnection creates a gRPC connection to the Gateway server.
 func newGrpcConnection() *grpc.ClientConn {
-	certificate, err := loadCertificate(tlsCertPath)
+	certificatePEM, err := os.ReadFile(tlsCertPath)
+	if err != nil {
+		panic(fmt.Errorf("failed to read TLS certifcate file: %w", err))
+	}
+
+	certificate, err := identity.CertificateFromPEM(certificatePEM)
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +43,7 @@ func newGrpcConnection() *grpc.ClientConn {
 	certPool.AddCert(certificate)
 	transportCredentials := credentials.NewClientTLSFromCert(certPool, gatewayPeer)
 
-	connection, err := grpc.Dial(peerEndpoint, grpc.WithTransportCredentials(transportCredentials))
+	connection, err := grpc.NewClient(peerEndpoint, grpc.WithTransportCredentials(transportCredentials))
 	if err != nil {
 		panic(fmt.Errorf("failed to create gRPC connection: %w", err))
 	}
@@ -48,7 +53,12 @@ func newGrpcConnection() *grpc.ClientConn {
 
 // newIdentity creates a client identity for this Gateway connection using an X.509 certificate.
 func newIdentity() *identity.X509Identity {
-	certificate, err := loadCertificate(certPath)
+	certificatePEM, err := readFirstFile(certPath)
+	if err != nil {
+		panic(fmt.Errorf("failed to read certificate file: %w", err))
+	}
+
+	certificate, err := identity.CertificateFromPEM(certificatePEM)
 	if err != nil {
 		panic(err)
 	}
@@ -71,12 +81,7 @@ func loadCertificate(filename string) (*x509.Certificate, error) {
 
 // newSign creates a function that generates a digital signature from a message digest using a private key.
 func newSign() identity.Sign {
-	files, err := os.ReadDir(keyPath)
-	if err != nil {
-		panic(fmt.Errorf("failed to read private key directory: %w", err))
-	}
-	privateKeyPEM, err := os.ReadFile(path.Join(keyPath, files[0].Name()))
-
+	privateKeyPEM, err := readFirstFile(keyPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to read private key file: %w", err))
 	}
@@ -92,4 +97,18 @@ func newSign() identity.Sign {
 	}
 
 	return sign
+}
+
+func readFirstFile(dirPath string) ([]byte, error) {
+	dir, err := os.Open(dirPath)
+	if err != nil {
+		return nil, err
+	}
+
+	fileNames, err := dir.Readdirnames(1)
+	if err != nil {
+		return nil, err
+	}
+
+	return os.ReadFile(path.Join(dirPath, fileNames[0]))
 }

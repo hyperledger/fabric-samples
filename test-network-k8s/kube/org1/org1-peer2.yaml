@@ -54,6 +54,7 @@ data:
   CORE_PEER_FILESYSTEMPATH: /var/hyperledger/fabric/data/org1-peer2.org1.example.com
   CORE_LEDGER_SNAPSHOTS_ROOTDIR: /var/hyperledger/fabric/data/org1-peer2.org1.example.com/snapshots
   CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG: "{\"peername\":\"org1peer2\"}"
+  FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX: org1-peer2-cc
   CORE_LEDGER_STATE_STATEDATABASE: CouchDB
   CORE_LEDGER_STATE_COUCHDBCONFIG_MAXRETRIESONSTARTUP: "20"
   CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS: localhost:5984
