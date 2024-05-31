@@ -91,7 +91,7 @@ export class AssetTransferContract extends Contract {
     @Transaction(false)
     public async ReadAsset(ctx: Context, id: string): Promise<string> {
         const assetJSON = await ctx.stub.getState(id); // get the asset from chaincode state
-        if (!assetJSON || assetJSON.length === 0) {
+        if (assetJSON.length === 0) {
             throw new Error(`The asset ${id} does not exist`);
         }
         return assetJSON.toString();
@@ -132,14 +132,14 @@ export class AssetTransferContract extends Contract {
     @Returns('boolean')
     public async AssetExists(ctx: Context, id: string): Promise<boolean> {
         const assetJSON = await ctx.stub.getState(id);
-        return assetJSON && assetJSON.length > 0;
+        return assetJSON.length > 0;
     }
 
     // TransferAsset updates the owner field of asset with given id in the world state, and returns the old owner.
     @Transaction()
     public async TransferAsset(ctx: Context, id: string, newOwner: string): Promise<string> {
         const assetString = await this.ReadAsset(ctx, id);
-        const asset = JSON.parse(assetString);
+        const asset = JSON.parse(assetString) as Asset;
         const oldOwner = asset.Owner;
         asset.Owner = newOwner;
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
@@ -159,7 +159,7 @@ export class AssetTransferContract extends Contract {
             const strValue = Buffer.from(result.value.value.toString()).toString('utf8');
             let record;
             try {
-                record = JSON.parse(strValue);
+                record = JSON.parse(strValue) as Asset;
             } catch (err) {
                 console.log(err);
                 record = strValue;

@@ -84,9 +84,8 @@ describe('Asset Transfer Events Tests', () => {
 			Price: '90',
 			salt: Buffer.from(randomNumber.toString()).toString('hex')
 		};
-		transientMap = {
-			asset_properties: Buffer.from(JSON.stringify(asset_properties))
-		};
+		transientMap = new Map();
+		transientMap.set('asset_properties', Buffer.from(JSON.stringify(asset_properties)));
 	});
 
 	describe('Test CreateAsset', () => {

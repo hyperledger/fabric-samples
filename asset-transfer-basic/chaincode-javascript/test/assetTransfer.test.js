@@ -227,10 +227,10 @@ describe('Asset Transfer Basic Tests', () => {
             expect(ret.length).to.equal(4);
 
             let expected = [
-                {Record: {ID: 'asset1', Color: 'blue', Size: 5, Owner: 'Robert', AppraisedValue: 100}},
-                {Record: {ID: 'asset2', Color: 'orange', Size: 10, Owner: 'Paul', AppraisedValue: 200}},
-                {Record: {ID: 'asset3', Color: 'red', Size: 15, Owner: 'Troy', AppraisedValue: 300}},
-                {Record: {ID: 'asset4', Color: 'pink', Size: 20, Owner: 'Van', AppraisedValue: 400}}
+                {ID: 'asset1', Color: 'blue', Size: 5, Owner: 'Robert', AppraisedValue: 100},
+                {ID: 'asset2', Color: 'orange', Size: 10, Owner: 'Paul', AppraisedValue: 200},
+                {ID: 'asset3', Color: 'red', Size: 15, Owner: 'Troy', AppraisedValue: 300},
+                {ID: 'asset4', Color: 'pink', Size: 20, Owner: 'Van', AppraisedValue: 400}
             ];
 
             expect(ret).to.eql(expected);
@@ -256,10 +256,10 @@ describe('Asset Transfer Basic Tests', () => {
             expect(ret.length).to.equal(4);
 
             let expected = [
-                {Record: 'non-json-value'},
-                {Record: {ID: 'asset2', Color: 'orange', Size: 10, Owner: 'Paul', AppraisedValue: 200}},
-                {Record: {ID: 'asset3', Color: 'red', Size: 15, Owner: 'Troy', AppraisedValue: 300}},
-                {Record: {ID: 'asset4', Color: 'pink', Size: 20, Owner: 'Van', AppraisedValue: 400}}
+                'non-json-value',
+                {ID: 'asset2', Color: 'orange', Size: 10, Owner: 'Paul', AppraisedValue: 200},
+                {ID: 'asset3', Color: 'red', Size: 15, Owner: 'Troy', AppraisedValue: 300},
+                {ID: 'asset4', Color: 'pink', Size: 20, Owner: 'Van', AppraisedValue: 400}
             ];
 
             expect(ret).to.eql(expected);

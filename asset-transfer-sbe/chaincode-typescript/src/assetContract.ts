@@ -90,7 +90,7 @@ export class AssetContract extends Contract {
     // AssetExists returns true when asset with given ID exists
     public async AssetExists(ctx: Context, assetId: string): Promise<boolean> {
         const buffer = await ctx.stub.getState(assetId);
-        return (!!buffer && buffer.length > 0);
+        return buffer.length > 0;
     }
 
     // getClientOrgId gets the client's OrgId (MSPID)
