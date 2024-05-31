@@ -8,7 +8,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "lint": "eslint ./src --ext .ts",
+    "lint": "eslint src",
     "pretest": "npm run lint",
     "test": "echo 'No tests implemented'",
     "start": "fabric-chaincode-node start",
@@ -21,15 +21,15 @@
   "author": "Hyperledger",
   "license": "Apache-2.0",
   "dependencies": {
-    "fabric-contract-api": "~2.5.4",
-    "fabric-shim": "~2.5.4"
+    "fabric-contract-api": "~2.5.5",
+    "fabric-shim": "~2.5.5"
   },
   "devDependencies": {
-    "@tsconfig/node18": "^18.2.2",
-    "@types/node": "^18.17.17",
-    "@typescript-eslint/eslint-plugin": "^6.7.0",
-    "@typescript-eslint/parser": "^6.7.0",
-    "eslint": "^8.49.0",
-    "typescript": "~5.2.0"
-  }
+    "@types/node": "^18.19.33",
+    "@eslint/js": "^9.3.0",
+    "@tsconfig/node18": "^18.2.4",
+    "eslint": "^8.57.0",
+    "typescript": "~5.4.5",
+    "typescript-eslint": "^7.11.0"
+}
 }
