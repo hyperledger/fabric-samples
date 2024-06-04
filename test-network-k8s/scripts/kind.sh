@@ -66,7 +66,7 @@ function kind_load_docker_images() {
   kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION
   kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
   kind load docker-image ${FABRIC_PEER_IMAGE}
-  kind load docker-image couchdb:3.2.1
+  kind load docker-image couchdb:$COUCHDB_VERSION
 
   kind load docker-image ghcr.io/hyperledger/fabric-rest-sample:latest
   kind load docker-image redis:6.2.5
