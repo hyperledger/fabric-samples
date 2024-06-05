@@ -4,15 +4,21 @@
 #
 set -eu
 
-if [ "$(uname)" = "Linux" ] ; then
+if [ "$(uname)" = "Linux" ] || [  -d config ]
+then
   CCADDR="127.0.0.1"
 else
   CCADDR="host.docker.internal"
 fi
 
+if [  -d config  ] ; then
+  export FABRIC_CFG_PATH="${PWD}"/config
+else
+  export FABRIC_CFG_PATH="${PWD}"/../config
+fi
+
 # look for binaries in local dev environment /build/bin directory and then in local samples /bin directory
 export PATH="${PWD}"/../../fabric/build/bin:"${PWD}"/../bin:"$PATH"
-export FABRIC_CFG_PATH="${PWD}"/../config
 
 export FABRIC_LOGGING_SPEC=debug:cauthdsl,policies,msp,grpc,peer.gossip.mcs,gossip,leveldbhelper=info
 export CORE_PEER_TLS_ENABLED=true

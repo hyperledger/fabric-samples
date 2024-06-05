@@ -38,6 +38,34 @@ If you have [yq](https://mikefarah.gitbook.io/yq/) installed, run the following 
 yq -i 'del(.chaincode.externalBuilders) | .chaincode.externalBuilders[0].name = "ccaas_builder" | .chaincode.externalBuilders[0].path = env(PWD) + "/builders/ccaas" | .chaincode.externalBuilders[0].propagateEnvironment[0] = "CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG"' config/core.yaml
 ```
 
+## Run the chaincode without docker
+You can run chaincode as binaries by enabling the external builders in the core.yaml.  The external builders are configured to work with golang and node chaincode.  This is accomplished by running the following command:
+
+```
+$ ./configureExternalBuilders.sh
+```
+
+This script copies the config files from `fabric-samples/config` to `fabric-samples/test-network-nano-bash/config` and adds the external builders to the core.yaml.  The following is an example of the additions to core.yaml.
+
+```
+    externalBuilders:
+       - name: golang
+         path: /Users/nanofab/fabric-samples/test-network-nano-bash/external_builders/golang
+         propagateEnvironment:
+           - HOME   
+       - name: node
+         path: /Users/nanofab/fabric-samples/test-network-nano-bash/external_builders/node
+         propagateEnvironment:
+           - HOME
+           - npm_config_cache
+```
+
+Note:  Golang chaincode will require at least Go 1.20 installed and in the path.  Node chaincode will require at least Node 20 be installed.
+
+
+The peer shell scripts detect the presence of the config directory in the `test-network-nano-bash/` directory and will use these config files if they exist.  In order to revert to docker, simply delete the config directory in `test-network-nano-bash/`.
+
+
 # Instructions for starting network
 ## Running each component separately
 

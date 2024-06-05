@@ -1,0 +1,12 @@
+       - name: golang
+         path: _working_dir_/external_builders/golang
+         propagateEnvironment:
+           - GOCACHE
+           - GOENV
+           - HOME   
+           - GOPROXY
+       - name: node
+         path: _working_dir_/external_builders/node
+         propagateEnvironment:
+           - HOME
+           - npm_config_cache
