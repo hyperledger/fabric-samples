@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+set -euo pipefail
+exec 1>&2
+BUILD_OUTPUT_DIR="$1"
+RELEASE_OUTPUT_DIR="$2"
+if [ -d "${BUILD_OUTPUT_DIR}/META-INF" ] ; then
+   cp -a "${BUILD_OUTPUT_DIR}/META-INF/"* "${RELEASE_OUTPUT_DIR}/"
+fi

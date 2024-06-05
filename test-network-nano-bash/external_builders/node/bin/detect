@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+set -euo pipefail
+exec 1>&2
+CHAINCODE_METADATA_DIR="$2"
+if [ "$(jq -r .type "${CHAINCODE_METADATA_DIR}/metadata.json" | tr '[:upper:]' '[:lower:]')" = "node" ]; then
+    exit 0
+fi
+exit 1
