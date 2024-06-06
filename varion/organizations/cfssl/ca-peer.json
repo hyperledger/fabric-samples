@@ -1,0 +1,21 @@
+{
+    "CN": "cfssl-peer-ca",
+    "key": {
+        "algo": "ecdsa",
+        "size": 256
+    },
+    "names": [
+        {
+            "C": "IN",
+            "ST": "Delhi",
+            "L": "Aero city",
+            "O": "cfssl",
+            "OU": "Fabric"
+        }
+    ],
+    "hosts": [
+        "localhost",
+        "127.0.0.1",
+        "0.0.0.0"
+    ]
+}
