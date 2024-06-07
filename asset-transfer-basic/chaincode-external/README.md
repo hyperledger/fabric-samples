@@ -159,16 +159,14 @@ Now that we have started the chaincode service and deployed it to the channel, w
 
 ## Using the Asset-Transfer-Basic external chaincode
 
-Open yet another terminal and navigate to the `fabric-samples/asset-transfer-basic/application-javascript` directory:
+Open yet another terminal and navigate to the `fabric-samples/asset-transfer-basic/application-gateway-go` directory:
 ```
-cd fabric-samples/asset-transfer-basic/application-javascript
+cd fabric-samples/asset-transfer-basic/application-gateway-go
 ```
 
 Run the following commands to use the node application in this directory to test the external smart contract:
 ```
-rm -rf wallet # in case you ran this before
-npm install
-node app.js
+go run .
 ```
 
 If all goes well, the program should run exactly the same as described in the "Writing Your First Application" tutorial.

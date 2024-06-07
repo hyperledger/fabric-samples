@@ -11,7 +11,7 @@
         "prepare": "npm run build",
         "clean": "rimraf dist",
         "lint": "eslint src",
-        "start": "SOFTHSM2_CONF=${HOME}/softhsm2.conf node dist/hsm-sample.js",
+        "start": "SOFTHSM2_CONF=\"${SOFTHSM2_CONF:-${HOME}/softhsm2.conf}\" node dist/hsm-sample.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "",

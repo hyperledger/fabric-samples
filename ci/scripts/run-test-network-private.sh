@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -euo pipefail
 
 CHAINCODE_LANGUAGE=${CHAINCODE_LANGUAGE:-go}
@@ -23,25 +25,12 @@ function stopNetwork() {
   ./network.sh down
 }
 
-# Run Javascript application
-createNetwork
-print "Initializing Javascript application"
-pushd ../asset-transfer-private-data/application-javascript
-npm install
-print "Executing app.js"
-node app.js
-popd
-stopNetwork
-
-
 # Run typescript gateway application
 createNetwork
 print "Initializing typescript application"
 pushd ../asset-transfer-private-data/application-gateway-typescript
 npm install
-print "Build typescript app"
-npm run build
-print "Executing app.js"
+print "Start application"
 npm start
 popd
 stopNetwork

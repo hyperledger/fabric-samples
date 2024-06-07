@@ -38,44 +38,34 @@ set -x
 createNetwork
 
 
-# Run Go application
-print "Initializing Go application"
-export CHAINCODE_NAME=basic_${CHAINCODE_LANGUAGE}_for_go_app
+# Run Go gateway application
+print "Initializing Go gateway application"
+export CHAINCODE_NAME=go_gateway
 deployChaincode
-pushd ../asset-transfer-basic/application-go
+pushd ../asset-transfer-basic/application-gateway-go
 print "Executing AssetTransfer.go"
 go run .
 popd
 
-# Run Java application
+
+# Run gateway typescript application
+print "Initializing Typescript gateway application"
+export CHAINCODE_NAME=typescript_gateway
+deployChaincode
+pushd ../asset-transfer-basic/application-gateway-typescript
+npm install
+print "Start application"
+npm start
+popd
+
+
+# Run Java application using gateway
 print "Initializing Java application"
-export CHAINCODE_NAME=basic_${CHAINCODE_LANGUAGE}_for_java_app
+export CHAINCODE_NAME=java_gateway
 deployChaincode
-pushd ../asset-transfer-basic/application-java
+pushd ../asset-transfer-basic/application-gateway-java
 print "Executing Gradle Run"
-gradle run
-popd
-
-# Run Javascript application
-print "Initializing Javascript application"
-export CHAINCODE_NAME=basic_${CHAINCODE_LANGUAGE}_for_javascript_app
-deployChaincode
-pushd ../asset-transfer-basic/application-javascript
-npm install
-print "Executing app.js"
-node app.js
-popd
-
-# Run typescript application
-print "Initializing Typescript application"
-export CHAINCODE_NAME=basic_${CHAINCODE_LANGUAGE}_for_typescript_app
-deployChaincode
-pushd ../asset-transfer-basic/application-typescript
-npm install
-print "Building app.ts"
-npm run build
-print "Running the output app"
-node dist/app.js
+./gradlew run
 popd
 
 
