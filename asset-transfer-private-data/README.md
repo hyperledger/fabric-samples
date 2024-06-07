@@ -60,16 +60,10 @@ Like other samples, the Fabric test network is used to deploy and run this sampl
 
 3. Run the application (from the `asset-transfer-private-data` folder).
    ```
-   # To run the Javascript sample application
-   cd application-javascript
-   npm install
-   node app.js
-
    # To run the Typescript sample application
    cd application-gateway-typescript
    npm install
    npm start
-
    ```
 
 ## Clean up

@@ -32,7 +32,7 @@ To be able to register and enroll identities using an HSM you need a PKCS#11 ena
 To install this use the following command
 
 ```bash
-go install -tags 'pkcs11' github.com/hyperledger/fabric-ca/cmd/fabric-ca-client@latest
+go install -tags pkcs11 github.com/hyperledger/fabric-ca/cmd/fabric-ca-client@latest
 ```
 
 ## Create Fabric network and deploy the smart contract

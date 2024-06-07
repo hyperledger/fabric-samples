@@ -34,31 +34,14 @@ function stopNetwork() {
 # Each test will create an independent scope by installing a new chaincode contract to the channel.
 createNetwork
 
-
-# Run typescript HSM application
-print "Initializing Typescript HSM application"
-export CHAINCODE_NAME=typescript_hsm
-deployChaincode
-pushd ../asset-transfer-basic/application-typescript-hsm
-print "Setup SoftHSM"
-export SOFTHSM2_CONF=$PWD/softhsm2.conf
-print "install dependencies"
-npm install
-print "Building app.ts"
-npm run build
-print "Running the output app"
-node dist/app.js
-popd
+echo 'go install pkcs11 enabled fabric-ca-client'
+GOBIN=${PWD}/../bin go install -tags pkcs11 github.com/hyperledger/fabric-ca/cmd/fabric-ca-client@latest
+fabric-ca-client version
 
 # Run Typescript HSM gateway application
 print "Initializing Typescript HSM Gateway application"
 export CHAINCODE_NAME=ts_hsm_gateway
 deployChaincode
-echo 'Delete fabric-ca-client from samples bin'
-rm ../bin/fabric-ca-client
-echo 'go install pkcs11 enabled fabric-ca-client'
-GOBIN=${PWD}/../bin go install -tags pkcs11 github.com/hyperledger/fabric-ca/cmd/fabric-ca-client@latest
-fabric-ca-client version
 print "Initializing Typescript HSM gateway application"
 pushd ../hardware-security-module/scripts/
 print "Enroll and register User in HSM"

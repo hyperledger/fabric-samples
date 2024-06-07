@@ -1,7 +1,0 @@
-{
-    "peer_name": "peer0.org1.example.com",
-    "channelid": "mychannel",
-    "use_couchdb":true,
-    "create_history_log":true,
-    "couchdb_address": "http://admin:password@localhost:5990"
-}
