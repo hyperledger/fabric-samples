@@ -215,7 +215,7 @@ services:
     volumes:
       - ../organizations/peerOrganizations/farmer.varion.com/peers/peer0.farmer.varion.com:/etc/hyperledger/fabric
       - peer0.farmer.varion.com:/var/hyperledger/production
-    working_dir: /root
+    working_dir: /rootrg1
     command: peer node start
     ports:
       - 7051:7051

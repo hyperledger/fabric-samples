@@ -33,22 +33,23 @@ setGlobals() {
     USING_ORG="${OVERRIDE_ORG}"
   fi
   infoln "Using organization ${USING_ORG}"
-  if [ $USING_ORG -eq "farmer" ]; then
+  if [ $USING_ORG == "farmer" ]; then
     export CORE_PEER_LOCALMSPID=FarmerMSP
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_FARMER_CA
     export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/farmer.varion.com/users/Admin@farmer.varion.com/msp
+    infoln "mspconfigpath = ${CORE_PEER_MSPCONFIGPATH}"
     export CORE_PEER_ADDRESS=localhost:7051
-  elif [ $USING_ORG -eq "pulper" ]; then
+  elif [ $USING_ORG == "pulper" ]; then
     export CORE_PEER_LOCALMSPID=PulperMSP
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_PULPER_CA
-    export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/pulper.varion.com/users/Admin@farmer.varion.com/msp
+    export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/pulper.varion.com/users/Admin@pulper.varion.com/msp
     export CORE_PEER_ADDRESS=localhost:9051
-  elif [ $USING_ORG -eq "huller" ]; then
+  elif [ $USING_ORG == "huller" ]; then
     export CORE_PEER_LOCALMSPID=HullerMSP
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_HULLER_CA
     export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/huller.varion.com/users/Admin@huller.varion.com/msp
     export CORE_PEER_ADDRESS=localhost:11051
-  elif [ $USING_ORG -eq "export" ]; then
+  elif [ $USING_ORG == "export" ]; then
     export CORE_PEER_LOCALMSPID=ExportMSP
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_EXPORT_CA
     export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/export.varion.com/users/Admin@export.varion.com/msp

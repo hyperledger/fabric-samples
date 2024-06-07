@@ -22,16 +22,16 @@ createAnchorPeerUpdate() {
 
   infoln "Generating anchor peer update transaction for ${ORG} on channel $CHANNEL_NAME"
 
-  if [ $ORG -eq "farmer" ]; then
+  if [ $ORG == "farmer" ]; then
     HOST="peer0.farmer.varion.com"
     PORT=7051
-  elif [ $ORG -eq "pulper" ]; then
+  elif [ $ORG == "pulper" ]; then
     HOST="peer0.pulper.varion.com"
     PORT=9051
-  elif [ $ORG -eq "huller" ]; then
+  elif [ $ORG == "huller" ]; then
     HOST="peer0.huller.varion.com"
     PORT=11051
-  elif [ $ORG -eq "export" ]; then
+  elif [ $ORG == "export" ]; then
     HOST="peer0.export.varion.com"
     PORT=12051
   else
