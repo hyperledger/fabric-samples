@@ -73,46 +73,56 @@ checkPrereqs
 
 PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid ${CC_NAME}.tar.gz)
 
-## Install chaincode on peer0.org1 and peer0.org2
-infoln "Installing chaincode on peer0.org1..."
-installChaincode 1
-infoln "Install chaincode on peer0.org2..."
-installChaincode 2
+## Install chaincode on peer0.farmer, peer0.pulper, peer0.huller, and peer0.export
+infoln "Install chaincode on peer0.farmer..."
+installChaincode farmer
+infoln "Install chaincode on peer0.pulper..."
+installChaincode pulper
+infoln "Install chaincode on peer0.huller..."
+installChaincode huller
+infoln "Install chaincode on peer0.export..."
+installChaincode export
 
 resolveSequence
 
 ## query whether the chaincode is installed
-queryInstalled 1
+queryInstalled farmer
 
 ## approve the definition for org1
-approveForMyOrg 1
+approveForMyOrg farmer
 
 ## check whether the chaincode definition is ready to be committed
-## expect org1 to have approved and org2 not to
-checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": false"
-checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": false"
+## expect farmer to have approved and pulper not to
+checkCommitReadiness farmer "\"FarmerMSP\": true" "\"PulperMSP\": false"
+checkCommitReadiness pulper "\"FarmerMSP\": true" "\"PulperMSP\": false"
 
 ## now approve also for org2
-approveForMyOrg 2
+approveForMyOrg pulper
 
 ## check whether the chaincode definition is ready to be committed
 ## expect them both to have approved
-checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": true"
-checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": true"
+checkCommitReadiness farmer "\"FarmerMSP\": true" "\"PulperMSP\": true"
+checkCommitReadiness pulper "\"FarmerMSP\": true" "\"PulperMSP\": true"
+
+approveForMyOrg huller
+approveForMyOrg export
+
 
 ## now that we know for sure both orgs have approved, commit the definition
-commitChaincodeDefinition 1 2
+commitChaincodeDefinition farmer pulper huller export
 
 ## query on both orgs to see that the definition committed successfully
-queryCommitted 1
-queryCommitted 2
+queryCommitted farmer
+queryCommitted pulper
+queryCommitted huller
+queryCommitted export
 
 ## Invoke the chaincode - this does require that the chaincode have the 'initLedger'
 ## method defined
 if [ "$CC_INIT_FCN" = "NA" ]; then
   infoln "Chaincode initialization is not required"
 else
-  chaincodeInvokeInit 1 2
+  chaincodeInvokeInit farmer pulper huller export
 fi
 
 exit 0

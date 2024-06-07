@@ -680,7 +680,7 @@ ledger:
        # Internally the chaincode may execute multiple CouchDB queries,
        # each of size internalQueryLimit.
        internalQueryLimit: 1000
-       # Limit on the number of records per CouchDB bulk update batch
+       # Limit on the number of recordpulpers per CouchDB bulk update batch
        maxBatchUpdateSize: 1000
        # Create the _global_changes system database
        # This is optional.  Creating the global changes database will require

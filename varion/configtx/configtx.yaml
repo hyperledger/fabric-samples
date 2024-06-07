@@ -22,7 +22,7 @@ Organizations:
     # ID to load the MSP definition as
     ID: OrdererMSP
     # MSPDir is the filesystem path which contains the MSP configuration
-    MSPDir: ../organizations/ordererOrganizations/example.com/msp
+    MSPDir: ../organizations/ordererOrganizations/varion.com/msp
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
     #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
@@ -37,53 +37,99 @@ Organizations:
         Type: Signature
         Rule: "OR('OrdererMSP.admin')"
     OrdererEndpoints:
-      - orderer.example.com:7050
-  - &Org1
+      - orderer.varion.com:7050
+  - &Farmer
     # DefaultOrg defines the organization which is used in the sampleconfig
     # of the fabric.git development environment
-    Name: Org1MSP
+    Name: FarmerMSP
     # ID to load the MSP definition as
-    ID: Org1MSP
-    MSPDir: ../organizations/peerOrganizations/org1.example.com/msp
+    ID: FarmerMSP
+    MSPDir: ../organizations/peerOrganizations/farmer.varion.com/msp
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
     #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
     Policies:
       Readers:
         Type: Signature
-        Rule: "OR('Org1MSP.admin', 'Org1MSP.peer', 'Org1MSP.client')"
+        Rule: "OR('FarmerMSP.admin', 'FarmerMSP.peer', 'FarmerMSP.client')"
       Writers:
         Type: Signature
-        Rule: "OR('Org1MSP.admin', 'Org1MSP.client')"
+        Rule: "OR('FarmerMSP.admin', 'FarmerMSP.client')"
       Admins:
         Type: Signature
-        Rule: "OR('Org1MSP.admin')"
+        Rule: "OR('FarmerMSP.admin')"
       Endorsement:
         Type: Signature
-        Rule: "OR('Org1MSP.peer')"
-  - &Org2
+        Rule: "OR('FarmerMSP.peer')"
+  - &Pulper
     # DefaultOrg defines the organization which is used in the sampleconfig
     # of the fabric.git development environment
-    Name: Org2MSP
+    Name: PulperMSP
     # ID to load the MSP definition as
-    ID: Org2MSP
-    MSPDir: ../organizations/peerOrganizations/org2.example.com/msp
+    ID: PulperMSP
+    MSPDir: ../organizations/peerOrganizations/pulper.varion.com/msp
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
     #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
     Policies:
       Readers:
         Type: Signature
-        Rule: "OR('Org2MSP.admin', 'Org2MSP.peer', 'Org2MSP.client')"
+        Rule: "OR('PulperMSP.admin', 'PulperMSP.peer', 'PulperMSP.client')"
       Writers:
         Type: Signature
-        Rule: "OR('Org2MSP.admin', 'Org2MSP.client')"
+        Rule: "OR('PulperMSP.admin', 'PulperMSP.client')"
       Admins:
         Type: Signature
-        Rule: "OR('Org2MSP.admin')"
+        Rule: "OR('PulperMSP.admin')"
       Endorsement:
         Type: Signature
-        Rule: "OR('Org2MSP.peer')"
+        Rule: "OR('PulperMSP.peer')"
+  - &Huller
+    # DefaultOrg defines the organization which is used in the sampleconfig
+    # of the fabric.git development environment
+    Name: HullerMSP
+    # ID to load the MSP definition as
+    ID: HullerMSP
+    MSPDir: ../organizations/peerOrganizations/huller.varion.com/msp
+    # Policies defines the set of policies at this level of the config tree
+    # For organization policies, their canonical path is usually
+    #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('HullerMSP.admin', 'HullerMSP.peer', 'HullerMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('HullerMSP.admin', 'HullerMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('HullerMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('HullerMSP.peer')"
+  - &Export
+    # DefaultOrg defines the organization which is used in the sampleconfig
+    # of the fabric.git development environment
+    Name: ExportMSP
+    # ID to load the MSP definition as
+    ID: ExportMSP
+    MSPDir: ../organizations/peerOrganizations/export.varion.com/msp
+    # Policies defines the set of policies at this level of the config tree
+    # For organization policies, their canonical path is usually
+    #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('ExportMSP.admin', 'ExportMSP.peer', 'ExportMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('ExportMSP.admin', 'ExportMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('ExportMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('ExportMSP.peer')"
 ################################################################################
 #
 #   SECTION: Capabilities
@@ -183,7 +229,7 @@ Orderer: &OrdererDefaults
   # as TLS validation.  The preferred way to specify orderer addresses is now
   # to include the OrdererEndpoints item in your org definition
   Addresses:
-    - orderer.example.com:7050
+    - orderer.varion.com:7050
   # Batch Timeout: The amount of time to wait before creating a batch
   BatchTimeout: 2s
   # Batch Size: Controls the number of messages batched into a block
@@ -264,16 +310,16 @@ Profiles:
       OrdererType: etcdraft
       EtcdRaft:
         Consenters:
-          - Host: orderer.example.com
+          - Host: orderer.varion.com
             Port: 7050
-            ClientTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
-            ServerTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+            ClientTLSCert: ../organizations/ordererOrganizations/varion.com/orderers/orderer.varion.com/tls/server.crt
+            ServerTLSCert: ../organizations/ordererOrganizations/varion.com/orderers/orderer.varion.com/tls/server.crt
       Organizations:
         - *OrdererOrg
       Capabilities: *OrdererCapabilities
     Application:
       <<: *ApplicationDefaults
       Organizations:
-        - *Org1
-        - *Org2
+        - *Farmer
+        - *Pulper
       Capabilities: *ApplicationCapabilities

@@ -6,11 +6,19 @@
 version: '3.7'
 
 services:
-  peer0.org1.example.com:
+  peer0.farmer.varion.com:
     volumes:
       - ./podman/peercfg:/etc/hyperledger/peercfg
 
-  peer0.org2.example.com:
+  peer0.pulper.varion.com:
+    volumes:
+      - ./podman/peercfg:/etc/hyperledger/peercfg
+
+  peer0.huller.varion.com:
+    volumes:
+      - ./podman/peercfg:/etc/hyperledger/peercfg
+
+  peer0.export.varion.com:
     volumes:
       - ./podman/peercfg:/etc/hyperledger/peercfg
 

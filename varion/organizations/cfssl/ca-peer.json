@@ -1,16 +1,16 @@
 {
-    "CN": "cfssl-peer-ca",
+    "CN": "varion-peer-ca",
     "key": {
-        "algo": "ecdsa",
-        "size": 256
+        "algo": "rsa",
+        "size": 2048
     },
     "names": [
         {
-            "C": "IN",
-            "ST": "Delhi",
-            "L": "Aero city",
-            "O": "cfssl",
-            "OU": "Fabric"
+            "C": "ID",
+            "ST": "Jakarta",
+            "L": "Jakarta",
+            "O": "varion",
+            "OU": "Varion"
         }
     ],
     "hosts": [

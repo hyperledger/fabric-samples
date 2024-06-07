@@ -18,10 +18,11 @@ TEST_NETWORK_HOME=${TEST_NETWORK_HOME:-${PWD}}
 . ${TEST_NETWORK_HOME}/scripts/utils.sh
 
 export CORE_PEER_TLS_ENABLED=true
-export ORDERER_CA=${TEST_NETWORK_HOME}/organizations/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
-export PEER0_ORG1_CA=${TEST_NETWORK_HOME}/organizations/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem
-export PEER0_ORG2_CA=${TEST_NETWORK_HOME}/organizations/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem
-export PEER0_ORG3_CA=${TEST_NETWORK_HOME}/organizations/peerOrganizations/org3.example.com/tlsca/tlsca.org3.example.com-cert.pem
+export ORDERER_CA=${TEST_NETWORK_HOME}/organizations/ordererOrganizations/varion.com/tlsca/tlsca.varion.com-cert.pem
+export PEER0_FARMER_CA=${TEST_NETWORK_HOME}/organizations/peerOrganizations/farmer.varion.com/tlsca/tlsca.farmer.varion.com-cert.pem
+export PEER0_PULPER_CA=${TEST_NETWORK_HOME}/organizations/peerOrganizations/pulper.varion.com/tlsca/tlsca.pulper.varion.com-cert.pem
+export PEER0_HULLER_CA=${TEST_NETWORK_HOME}/organizations/peerOrganizations/huller.varion.com/tlsca/tlsca.huller.varion.com-cert.pem
+export PEER0_EXPORT_CA=${TEST_NETWORK_HOME}/organizations/peerOrganizations/export.varion.com/tlsca/tlsca.export.varion.com-cert.pem
 
 # Set environment variables for the peer org
 setGlobals() {
@@ -32,21 +33,26 @@ setGlobals() {
     USING_ORG="${OVERRIDE_ORG}"
   fi
   infoln "Using organization ${USING_ORG}"
-  if [ $USING_ORG -eq 1 ]; then
-    export CORE_PEER_LOCALMSPID=Org1MSP
-    export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG1_CA
-    export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+  if [ $USING_ORG -eq "farmer" ]; then
+    export CORE_PEER_LOCALMSPID=FarmerMSP
+    export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_FARMER_CA
+    export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/farmer.varion.com/users/Admin@farmer.varion.com/msp
     export CORE_PEER_ADDRESS=localhost:7051
-  elif [ $USING_ORG -eq 2 ]; then
-    export CORE_PEER_LOCALMSPID=Org2MSP
-    export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG2_CA
-    export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
+  elif [ $USING_ORG -eq "pulper" ]; then
+    export CORE_PEER_LOCALMSPID=PulperMSP
+    export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_PULPER_CA
+    export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/pulper.varion.com/users/Admin@farmer.varion.com/msp
     export CORE_PEER_ADDRESS=localhost:9051
-  elif [ $USING_ORG -eq 3 ]; then
-    export CORE_PEER_LOCALMSPID=Org3MSP
-    export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_ORG3_CA
-    export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp
+  elif [ $USING_ORG -eq "huller" ]; then
+    export CORE_PEER_LOCALMSPID=HullerMSP
+    export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_HULLER_CA
+    export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/huller.varion.com/users/Admin@huller.varion.com/msp
     export CORE_PEER_ADDRESS=localhost:11051
+  elif [ $USING_ORG -eq "export" ]; then
+    export CORE_PEER_LOCALMSPID=ExportMSP
+    export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_EXPORT_CA
+    export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/export.varion.com/users/Admin@export.varion.com/msp
+    export CORE_PEER_ADDRESS=localhost:12051
   else
     errorln "ORG Unknown"
   fi
@@ -64,7 +70,7 @@ parsePeerConnectionParameters() {
   PEERS=""
   while [ "$#" -gt 0 ]; do
     setGlobals $1
-    PEER="peer0.org$1"
+    PEER="peer0.$1"
     ## Set peer addresses
     if [ -z "$PEERS" ]
     then
@@ -74,7 +80,7 @@ parsePeerConnectionParameters() {
     fi
     PEER_CONN_PARMS=("${PEER_CONN_PARMS[@]}" --peerAddresses $CORE_PEER_ADDRESS)
     ## Set path to TLS certificate
-    CA=PEER0_ORG$1_CA
+    CA=PEER0_$1_CA
     TLSINFO=(--tlsRootCertFiles "${!CA}")
     PEER_CONN_PARMS=("${PEER_CONN_PARMS[@]}" "${TLSINFO[@]}")
     # shift by one to get to the next organization

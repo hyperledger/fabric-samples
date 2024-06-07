@@ -7,20 +7,20 @@ function peer_cert() {
     USER=$2
     ORG=$3
 
-    mkdir -p "organizations/peerOrganizations/$ORG.example.com/ca"
-    mkdir -p "organizations/peerOrganizations/$ORG.example.com/msp/cacerts"
-    mkdir -p "organizations/peerOrganizations/$ORG.example.com/msp/tlscacerts"
-    mkdir -p "organizations/peerOrganizations/$ORG.example.com/peers"
-    mkdir -p "organizations/peerOrganizations/$ORG.example.com/tlsca"
+    mkdir -p "organizations/peerOrganizations/$ORG.varion.com/ca"
+    mkdir -p "organizations/peerOrganizations/$ORG.varion.com/msp/cacerts"
+    mkdir -p "organizations/peerOrganizations/$ORG.varion.com/msp/tlscacerts"
+    mkdir -p "organizations/peerOrganizations/$ORG.varion.com/peers"
+    mkdir -p "organizations/peerOrganizations/$ORG.varion.com/tlsca"
 
-    CERT_DIR=organizations/peerOrganizations/$ORG.example.com
+    CERT_DIR=organizations/peerOrganizations/$ORG.varion.com
 
     if [ ! -f "$CERT_DIR/ca/ca-key.pem" ]; then
 
         cfssl gencert -initca "${PWD}/organizations/cfssl/ca-peer.json" | cfssljson -bare "$CERT_DIR/ca/ca"
 
-        cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/tlsca/tlsca.$ORG.example.com-cert.pem"
-        cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/ca/ca.$ORG.example.com-cert.pem"
+        cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/tlsca/tlsca.$ORG.varion.com-cert.pem"
+        cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/ca/ca.$ORG.varion.com-cert.pem"
 
         cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/msp/cacerts/"
         cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/msp/tlscacerts/"
@@ -55,24 +55,24 @@ function peer_cert() {
 
 function orderer_cert() {
     TYPE=$1 #orderer user
-    USER=$2 #orderer.example.com
+    USER=$2 #orderer.varion.com
 
-    mkdir -p organizations/ordererOrganizations/example.com/ca
-    mkdir -p organizations/ordererOrganizations/example.com/msp/cacerts
-    mkdir -p organizations/ordererOrganizations/example.com/msp/tlscacerts
-    mkdir -p organizations/ordererOrganizations/example.com/orderers
-    mkdir -p organizations/ordererOrganizations/example.com/tlsca
+    mkdir -p organizations/ordererOrganizations/varion.com/ca
+    mkdir -p organizations/ordererOrganizations/varion.com/msp/cacerts
+    mkdir -p organizations/ordererOrganizations/varion.com/msp/tlscacerts
+    mkdir -p organizations/ordererOrganizations/varion.com/orderers
+    mkdir -p organizations/ordererOrganizations/varion.com/tlsca
 
-    CERT_DIR=organizations/ordererOrganizations/example.com
+    CERT_DIR=organizations/ordererOrganizations/varion.com
 
     if [ ! -f "$CERT_DIR/ca/ca-key.pem" ]; then
 
         cfssl gencert -initca "${PWD}/organizations/cfssl/ca-orderer.json" | cfssljson -bare "$CERT_DIR/ca/ca"
 
-        cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/tlsca/tlsca.example.com-cert.pem"
+        cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/tlsca/tlsca.varion.com-cert.pem"
 
         cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/msp/cacerts/"
-        cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/msp/tlscacerts/tlsca.example.com-cert.pem"
+        cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/msp/tlscacerts/tlsca.varion.com-cert.pem"
 
         echo 'NodeOUs:
     Enable: true
@@ -224,10 +224,10 @@ function generate_orderer_certs() {
     USER=$2
 
     for DIR in cacerts keystore signcerts tlscacerts; do
-        mkdir -p "organizations/ordererOrganizations/example.com/orderers/$USER/msp/$DIR"
+        mkdir -p "organizations/ordererOrganizations/varion.com/orderers/$USER/msp/$DIR"
     done
 
-    mkdir -p "organizations/ordererOrganizations/example.com/orderers/$USER/tls"
+    mkdir -p "organizations/ordererOrganizations/varion.com/orderers/$USER/tls"
 
     sed -e "s/{USER}/$USER/g" <"$PWD/organizations/cfssl/orderer-csr-template.json" >"$PWD/organizations/cfssl/orderer-${USER}.json"
 
@@ -243,7 +243,7 @@ function generate_orderer_certs() {
     mv "$CERT_DIR/orderers/$USER/msp/signcerts/cert-key.pem" "$CERT_DIR/orderers/$USER/msp/keystore"
 
     cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/orderers/$USER/msp/cacerts"
-    cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/orderers/$USER/msp/tlscacerts/tlsca.example.com-cert.pem"
+    cp "$CERT_DIR/ca/ca.pem" "$CERT_DIR/orderers/$USER/msp/tlscacerts/tlsca.varion.com-cert.pem"
 
     echo 'NodeOUs:
     Enable: true

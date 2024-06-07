@@ -7,8 +7,8 @@
 
 # import utils
 # test network home var targets to test network folder
-# the reason we use a var here is considering with org3 specific folder
-# when invoking this for org3 as test-network/scripts/org3-scripts
+# the reason we use a var here is considering with huller specific folder
+# when invoking this for huller as test-network/scripts/huller-scripts
 # the value is changed from default as $PWD(test-network)
 # to .. as relative path to make the import works
 TEST_NETWORK_HOME=${TEST_NETWORK_HOME:-${PWD}}
@@ -20,17 +20,20 @@ createAnchorPeerUpdate() {
   infoln "Fetching channel config for channel $CHANNEL_NAME"
   fetchChannelConfig $ORG $CHANNEL_NAME ${TEST_NETWORK_HOME}/channel-artifacts/${CORE_PEER_LOCALMSPID}config.json
 
-  infoln "Generating anchor peer update transaction for Org${ORG} on channel $CHANNEL_NAME"
+  infoln "Generating anchor peer update transaction for ${ORG} on channel $CHANNEL_NAME"
 
-  if [ $ORG -eq 1 ]; then
-    HOST="peer0.org1.example.com"
+  if [ $ORG -eq "farmer" ]; then
+    HOST="peer0.farmer.varion.com"
     PORT=7051
-  elif [ $ORG -eq 2 ]; then
-    HOST="peer0.org2.example.com"
+  elif [ $ORG -eq "pulper" ]; then
+    HOST="peer0.pulper.varion.com"
     PORT=9051
-  elif [ $ORG -eq 3 ]; then
-    HOST="peer0.org3.example.com"
+  elif [ $ORG -eq "huller" ]; then
+    HOST="peer0.huller.varion.com"
     PORT=11051
+  elif [ $ORG -eq "export" ]; then
+    HOST="peer0.export.varion.com"
+    PORT=12051
   else
     errorln "Org${ORG} unknown"
   fi
@@ -50,7 +53,7 @@ createAnchorPeerUpdate() {
 }
 
 updateAnchorPeer() {
-  peer channel update -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME -f ${TEST_NETWORK_HOME}/channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx --tls --cafile "$ORDERER_CA" >&log.txt
+  peer channel update -o localhost:7050 --ordererTLSHostnameOverride orderer.varion.com -c $CHANNEL_NAME -f ${TEST_NETWORK_HOME}/channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx --tls --cafile "$ORDERER_CA" >&log.txt
   res=$?
   cat log.txt
   verifyResult $res "Anchor peer update failed"

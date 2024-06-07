@@ -22,7 +22,7 @@ Organizations:
     # ID to load the MSP definition as
     ID: OrdererMSP
     # MSPDir is the filesystem path which contains the MSP configuration
-    MSPDir: ../organizations/ordererOrganizations/example.com/msp
+    MSPDir: ../organizations/ordererOrganizations/varion.com/msp
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
     #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
@@ -37,56 +37,102 @@ Organizations:
         Type: Signature
         Rule: "OR('OrdererMSP.admin')"
     OrdererEndpoints:
-      - orderer.example.com:7050
-      - orderer2.example.com:7052
-      - orderer3.example.com:7056
-      - orderer4.example.com:7058
-  - &Org1
+      - orderer.varion.com:7050
+      - orderer2.varion.com:7052
+      - orderer3.varion.com:7056
+      - orderer4.varion.com:7058
+  - &Farmer
     # DefaultOrg defines the organization which is used in the sampleconfig
     # of the fabric.git development environment
-    Name: Org1MSP
+    Name: FarmerMSP
     # ID to load the MSP definition as
-    ID: Org1MSP
-    MSPDir: ../organizations/peerOrganizations/org1.example.com/msp
+    ID: FarmerMSP
+    MSPDir: ../organizations/peerOrganizations/farmer.varion.com/msp
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
     #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
     Policies:
       Readers:
         Type: Signature
-        Rule: "OR('Org1MSP.admin', 'Org1MSP.peer', 'Org1MSP.client')"
+        Rule: "OR('FarmerMSP.admin', 'FarmerMSP.peer', 'FarmerMSP.client')"
       Writers:
         Type: Signature
-        Rule: "OR('Org1MSP.admin', 'Org1MSP.client')"
+        Rule: "OR('FarmerMSP.admin', 'FarmerMSP.client')"
       Admins:
         Type: Signature
-        Rule: "OR('Org1MSP.admin')"
+        Rule: "OR('FarmerMSP.admin')"
       Endorsement:
         Type: Signature
-        Rule: "OR('Org1MSP.peer')"
-  - &Org2
+        Rule: "OR('FarmerMSP.peer')"
+  - &Pulper
     # DefaultOrg defines the organization which is used in the sampleconfig
     # of the fabric.git development environment
-    Name: Org2MSP
+    Name: PulperMSP
     # ID to load the MSP definition as
-    ID: Org2MSP
-    MSPDir: ../organizations/peerOrganizations/org2.example.com/msp
+    ID: PulperMSP
+    MSPDir: ../organizations/peerOrganizations/pulper.varion.com/msp
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
     #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
     Policies:
       Readers:
         Type: Signature
-        Rule: "OR('Org2MSP.admin', 'Org2MSP.peer', 'Org2MSP.client')"
+        Rule: "OR('PulperMSP.admin', 'PulperMSP.peer', 'PulperMSP.client')"
       Writers:
         Type: Signature
-        Rule: "OR('Org2MSP.admin', 'Org2MSP.client')"
+        Rule: "OR('PulperMSP.admin', 'PulperMSP.client')"
       Admins:
         Type: Signature
-        Rule: "OR('Org2MSP.admin')"
+        Rule: "OR('PulperMSP.admin')"
       Endorsement:
         Type: Signature
-        Rule: "OR('Org2MSP.peer')"
+        Rule: "OR('PulperMSP.peer')"
+  - &Huller
+    # DefaultOrg defines the organization which is used in the sampleconfig
+    # of the fabric.git development environment
+    Name: HullerMSP
+    # ID to load the MSP definition as
+    ID: HullerMSP
+    MSPDir: ../organizations/peerOrganizations/huller.varion.com/msp
+    # Policies defines the set of policies at this level of the config tree
+    # For organization policies, their canonical path is usually
+    #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('HullerMSP.admin', 'HullerMSP.peer', 'HullerMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('HullerMSP.admin', 'HullerMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('HullerMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('HullerMSP.peer')"
+  - &Export
+    # DefaultOrg defines the organization which is used in the sampleconfig
+    # of the fabric.git development environment
+    Name: ExportMSP
+    # ID to load the MSP definition as
+    ID: ExportMSP
+    MSPDir: ../organizations/peerOrganizations/export.varion.com/msp
+    # Policies defines the set of policies at this level of the config tree
+    # For organization policies, their canonical path is usually
+    #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('ExportMSP.admin', 'ExportMSP.peer', 'ExportMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('ExportMSP.admin', 'ExportMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('ExportMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('ExportMSP.peer')"
 ################################################################################
 #
 #   SECTION: Capabilities
@@ -237,7 +283,16 @@ Channel: &ChannelDefaults
       Rule: "ANY Writers"
     # By default, who may modify elements at this config level
     Admins:
-      Type: ImplicitMeta
+      Type: ImplicitMeta   farmer:
+      - department1
+      - department2
+   pulper:
+      - department1
+   huller:
+      - department1
+   export:
+      - department1
+
       Rule: "MAJORITY Admins"
   # Capabilities describes the channel level capabilities, see the
   # dedicated Capabilities section elsewhere in this file for a full
@@ -277,36 +332,38 @@ Profiles:
         LeaderHeartbeatCount: 10
       ConsenterMapping:
         - ID: 1
-          Host: orderer.example.com
+          Host: orderer.varion.com
           Port: 7050
           MSPID: OrdererMSP
-          Identity: ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/signcerts/orderer.example.com-cert.pem
-          ClientTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
-          ServerTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+          Identity: ../organizations/ordererOrganizations/varion.com/orderers/orderer.varion.com/msp/signcerts/orderer.varion.com-cert.pem
+          ClientTLSCert: ../organizations/ordererOrganizations/varion.com/orderers/orderer.varion.com/tls/server.crt
+          ServerTLSCert: ../organizations/ordererOrganizations/varion.com/orderers/orderer.varion.com/tls/server.crt
         - ID: 2
-          Host: orderer2.example.com
+          Host: orderer2.varion.com
           Port: 7052
           MSPID: OrdererMSP
-          Identity: ../organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/msp/signcerts/orderer2.example.com-cert.pem
-          ClientTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
-          ServerTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+          Identity: ../organizations/ordererOrganizations/varion.com/orderers/orderer2.varion.com/msp/signcerts/orderer2.varion.com-cert.pem
+          ClientTLSCert: ../organizations/ordererOrganizations/varion.com/orderers/orderer2.varion.com/tls/server.crt
+          ServerTLSCert: ../organizations/ordererOrganizations/varion.com/orderers/orderer2.varion.com/tls/server.crt
         - ID: 3
-          Host: orderer3.example.com
+          Host: orderer3.varion.com
           Port: 7056
           MSPID: OrdererMSP
-          Identity: ../organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/msp/signcerts/orderer3.example.com-cert.pem
-          ClientTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
-          ServerTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+          Identity: ../organizations/ordererOrganizations/varion.com/orderers/orderer3.varion.com/msp/signcerts/orderer3.varion.com-cert.pem
+          ClientTLSCert: ../organizations/ordererOrganizations/varion.com/orderers/orderer3.varion.com/tls/server.crt
+          ServerTLSCert: ../organizations/ordererOrganizations/varion.com/orderers/orderer3.varion.com/tls/server.crt
         - ID: 4
-          Host: orderer4.example.com
+          Host: orderer4.varion.com
           Port: 7058
           MSPID: OrdererMSP
-          Identity: ../organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/msp/signcerts/orderer4.example.com-cert.pem
-          ClientTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
-          ServerTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
+          Identity: ../organizations/ordererOrganizations/varion.com/orderers/orderer4.varion.com/msp/signcerts/orderer4.varion.com-cert.pem
+          ClientTLSCert: ../organizations/ordererOrganizations/varion.com/orderers/orderer4.varion.com/tls/server.crt
+          ServerTLSCert: ../organizations/ordererOrganizations/varion.com/orderers/orderer4.varion.com/tls/server.crt
     Application:
       <<: *ApplicationDefaults
       Organizations:
-        - *Org1
-        - *Org2
+        - *Farmer
+        - *Pulper
+        - *Huller
+        - *Export
       Capabilities: *ApplicationCapabilities
