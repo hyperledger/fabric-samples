@@ -24,7 +24,7 @@ package-lock.json
 # installed Fabric binaries etc.
 bin/
 builders/
-config/
+#config/
 external-chaincode/
 install-fabric.sh
 
