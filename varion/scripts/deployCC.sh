@@ -78,10 +78,10 @@ infoln "Install chaincode on peer0.farmer..."
 installChaincode farmer
 infoln "Install chaincode on peer0.pulper..."
 installChaincode pulper
-infoln "Install chaincode on peer0.huller..."
-installChaincode huller
-infoln "Install chaincode on peer0.export..."
-installChaincode export
+#infoln "Install chaincode on peer0.huller..."
+#installChaincode huller
+#infoln "Install chaincode on peer0.export..."
+#installChaincode export
 
 resolveSequence
 
@@ -104,22 +104,21 @@ approveForMyOrg pulper
 checkCommitReadiness farmer "\"FarmerMSP\": true" "\"PulperMSP\": true"
 checkCommitReadiness pulper "\"FarmerMSP\": true" "\"PulperMSP\": true"
 
-approveForMyOrg huller
-approveForMyOrg export
-
+#approveForMyOrg huller
+#approveForMyOrg export
 
 ## now that we know for sure both orgs have approved, commit the definition
-commitChaincodeDefinition farmer pulper huller export
+commitChaincodeDefinition farmer pulper #huller #export
 
 ## query on both orgs to see that the definition committed successfully
-queryCommitted farmer pulper huller export
+queryCommitted farmer pulper #huller #export
 
 ## Invoke the chaincode - this does require that the chaincode have the 'initLedger'
 ## method defined
 if [ "$CC_INIT_FCN" = "NA" ]; then
   infoln "Chaincode initialization is not required"
 else
-  chaincodeInvokeInit farmer pulper huller export
+  chaincodeInvokeInit farmer pulper #huller #export
 fi
 
 exit 0
