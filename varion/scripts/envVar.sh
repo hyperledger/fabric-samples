@@ -32,12 +32,10 @@ setGlobals() {
   else
     USING_ORG="${OVERRIDE_ORG}"
   fi
-  infoln "Using organization ${USING_ORG}"
   if [ $USING_ORG == "farmer" ]; then
     export CORE_PEER_LOCALMSPID=FarmerMSP
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_FARMER_CA
     export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/farmer.varion.com/users/Admin@farmer.varion.com/msp
-    infoln "mspconfigpath = ${CORE_PEER_MSPCONFIGPATH}"
     export CORE_PEER_ADDRESS=localhost:7051
   elif [ $USING_ORG == "pulper" ]; then
     export CORE_PEER_LOCALMSPID=PulperMSP
@@ -75,13 +73,21 @@ parsePeerConnectionParameters() {
     ## Set peer addresses
     if [ -z "$PEERS" ]
     then
-	PEERS="$PEER"
+    	PEERS="$PEER"
     else
-	PEERS="$PEERS $PEER"
+	    PEERS="$PEERS $PEER"
     fi
     PEER_CONN_PARMS=("${PEER_CONN_PARMS[@]}" --peerAddresses $CORE_PEER_ADDRESS)
     ## Set path to TLS certificate
-    CA=PEER0_$1_CA
+    if [ $1 == "farmer" ]; then
+      CA=PEER0_FARMER_CA
+    elif [ $1 == "pulper" ]; then
+      CA=PEER0_PULPER_CA
+    elif [ $1 == "huller" ]; then
+      CA=PEER0_HULLER_CA
+    elif [ $1 == "export" ]; then
+      CA=PEER0_EXPORT_CA
+    fi
     TLSINFO=(--tlsRootCertFiles "${!CA}")
     PEER_CONN_PARMS=("${PEER_CONN_PARMS[@]}" "${TLSINFO[@]}")
     # shift by one to get to the next organization

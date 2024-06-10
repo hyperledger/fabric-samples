@@ -112,10 +112,7 @@ approveForMyOrg export
 commitChaincodeDefinition farmer pulper huller export
 
 ## query on both orgs to see that the definition committed successfully
-queryCommitted farmer
-queryCommitted pulper
-queryCommitted huller
-queryCommitted export
+queryCommitted farmer pulper huller export
 
 ## Invoke the chaincode - this does require that the chaincode have the 'initLedger'
 ## method defined
