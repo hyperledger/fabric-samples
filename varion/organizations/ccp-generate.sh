@@ -36,7 +36,7 @@ echo "$(json_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrga
 echo "$(yaml_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/farmer.varion.com/connection-farmer.yaml
 
 ORG=pulper
-P0PORT=9051
+P0PORT=8051
 CAPORT=8054
 PEERPEM=organizations/peerOrganizations/pulper.varion.com/tlsca/tlsca.pulper.varion.com-cert.pem
 CAPEM=organizations/peerOrganizations/pulper.varion.com/ca/ca.pulper.varion.com-cert.pem
@@ -46,7 +46,7 @@ echo "$(yaml_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrga
 
 ORG=huller
 P0PORT=9051
-CAPORT=8054
+CAPORT=9054
 PEERPEM=organizations/peerOrganizations/huller.varion.com/tlsca/tlsca.huller.varion.com-cert.pem
 CAPEM=organizations/peerOrganizations/huller.varion.com/ca/ca.huller.varion.com-cert.pem
 
@@ -54,8 +54,8 @@ echo "$(json_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrga
 echo "$(yaml_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/huller.varion.com/connection-huller.yaml
 
 ORG=export
-P0PORT=9051
-CAPORT=8054
+P0PORT=10051
+CAPORT=10054
 PEERPEM=organizations/peerOrganizations/export.varion.com/tlsca/tlsca.export.varion.com-cert.pem
 CAPEM=organizations/peerOrganizations/export.varion.com/ca/ca.export.varion.com-cert.pem
 

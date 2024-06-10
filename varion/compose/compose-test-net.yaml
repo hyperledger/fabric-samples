@@ -84,7 +84,7 @@ services:
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.farmer.varion.com:7051
       - CORE_PEER_LOCALMSPID=FarmerMSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
-      - CORE_OPERATIONS_LISTENADDRESS=peer0.farmer.varion.com:9444
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.farmer.varion.com:7444
       - CORE_METRICS_PROVIDER=prometheus
       - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0farmer"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
@@ -95,7 +95,7 @@ services:
     command: peer node start
     ports:
       - 7051:7051
-      - 9444:9444
+      - 7444:7444
     networks:
       - test
 
@@ -115,15 +115,15 @@ services:
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
       - CORE_PEER_ID=peer0.pulper.varion.com
-      - CORE_PEER_ADDRESS=peer0.pulper.varion.com:9051
-      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.pulper.varion.com:9052
-      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.pulper.varion.com:9051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.pulper.varion.com:9051
+      - CORE_PEER_ADDRESS=peer0.pulper.varion.com:8051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.pulper.varion.com:8052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.pulper.varion.com:8051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.pulper.varion.com:8051
       - CORE_PEER_LOCALMSPID=PulperMSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
-      - CORE_OPERATIONS_LISTENADDRESS=peer0.pulper.varion.com:9445
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.pulper.varion.com:8445
       - CORE_METRICS_PROVIDER=prometheus
       - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0pulper"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
@@ -133,8 +133,8 @@ services:
     working_dir: /root
     command: peer node start
     ports:
-      - 9051:9051
-      - 9445:9445
+      - 8051:8051
+      - 8445:8445
     networks:
       - test
 
@@ -154,15 +154,15 @@ services:
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
       - CORE_PEER_ID=peer0.huller.varion.com
-      - CORE_PEER_ADDRESS=peer0.huller.varion.com:11051
-      - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.huller.varion.com:11052
-      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11052
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.huller.varion.com:11051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.huller.varion.com:11051
+      - CORE_PEER_ADDRESS=peer0.huller.varion.com:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.huller.varion.com:9052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.huller.varion.com:9051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.huller.varion.com:9051
       - CORE_PEER_LOCALMSPID=HullerMSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
-      - CORE_OPERATIONS_LISTENADDRESS=peer0.huller.varion.com:11446
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.huller.varion.com:9446
       - CORE_METRICS_PROVIDER=prometheus
       - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0huller"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
@@ -172,8 +172,8 @@ services:
     working_dir: /root
     command: peer node start
     ports:
-      - 11051:11051
-      - 11446:11446
+      - 9051:9051
+      - 9446:9446
     networks:
       - test
 
@@ -193,15 +193,15 @@ services:
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       # Peer specific variables
       - CORE_PEER_ID=peer0.export.varion.com
-      - CORE_PEER_ADDRESS=peer0.export.varion.com:12051
-      - CORE_PEER_LISTENADDRESS=0.0.0.0:12051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.export.varion.com:12052
-      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:12052
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.export.varion.com:12051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.export.varion.com:12051
+      - CORE_PEER_ADDRESS=peer0.export.varion.com:10051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:10051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.export.varion.com:10052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.export.varion.com:10051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.export.varion.com:10051
       - CORE_PEER_LOCALMSPID=ExportMSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
-      - CORE_OPERATIONS_LISTENADDRESS=peer0.export.varion.com:12447
+      - CORE_OPERATIONS_LISTENADDRESS=peer0.export.varion.com:10447
       - CORE_METRICS_PROVIDER=prometheus
       - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0export"}
       - CORE_CHAINCODE_EXECUTETIMEOUT=300s
@@ -211,7 +211,7 @@ services:
     working_dir: /root
     command: peer node start
     ports:
-      - 12051:12051
-      - 12447:12447
+      - 10051:10051
+      - 10447:10447
     networks:
       - test

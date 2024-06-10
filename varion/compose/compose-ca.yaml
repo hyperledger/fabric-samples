@@ -59,11 +59,11 @@ services:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
       - FABRIC_CA_SERVER_CA_NAME=ca-huller
       - FABRIC_CA_SERVER_TLS_ENABLED=true
-      - FABRIC_CA_SERVER_PORT=10054
-      - FABRIC_CA_SERVER_OPERATIONS_LISTENADDRESS=0.0.0.0:20054
+      - FABRIC_CA_SERVER_PORT=9054
+      - FABRIC_CA_SERVER_OPERATIONS_LISTENADDRESS=0.0.0.0:19054
     ports:
-      - "10054:10054"
-      - "20054:20054"
+      - "9054:9054"
+      - "19054:19054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
     volumes:
       - ../organizations/fabric-ca/huller:/etc/hyperledger/fabric-ca-server
@@ -79,11 +79,11 @@ services:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
       - FABRIC_CA_SERVER_CA_NAME=ca-export
       - FABRIC_CA_SERVER_TLS_ENABLED=true
-      - FABRIC_CA_SERVER_PORT=11054
-      - FABRIC_CA_SERVER_OPERATIONS_LISTENADDRESS=0.0.0.0:21054
+      - FABRIC_CA_SERVER_PORT=10054
+      - FABRIC_CA_SERVER_OPERATIONS_LISTENADDRESS=0.0.0.0:20054
     ports:
-      - "11054:11054"
-      - "21054:21054"
+      - "10054:10054"
+      - "20054:20054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
     volumes:
       - ../organizations/fabric-ca/export:/etc/hyperledger/fabric-ca-server
@@ -100,10 +100,10 @@ services:
       - FABRIC_CA_SERVER_CA_NAME=ca-orderer
       - FABRIC_CA_SERVER_TLS_ENABLED=true
       - FABRIC_CA_SERVER_PORT=9054
-      - FABRIC_CA_SERVER_OPERATIONS_LISTENADDRESS=0.0.0.0:19054
+      - FABRIC_CA_SERVER_OPERATIONS_LISTENADDRESS=0.0.0.0:21054
     ports:
-      - "9054:9054"
-      - "19054:19054"
+      - "11054:11054"
+      - "21054:21054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
     volumes:
       - ../organizations/fabric-ca/ordererOrg:/etc/hyperledger/fabric-ca-server

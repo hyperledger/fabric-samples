@@ -43,17 +43,17 @@ setGlobals() {
     export CORE_PEER_LOCALMSPID=PulperMSP
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_PULPER_CA
     export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/pulper.varion.com/users/Admin@pulper.varion.com/msp
-    export CORE_PEER_ADDRESS=localhost:9051
+    export CORE_PEER_ADDRESS=localhost:8051
   elif [ $USING_ORG == "huller" ]; then
     export CORE_PEER_LOCALMSPID=HullerMSP
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_HULLER_CA
     export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/huller.varion.com/users/Admin@huller.varion.com/msp
-    export CORE_PEER_ADDRESS=localhost:11051
+    export CORE_PEER_ADDRESS=localhost:9051
   elif [ $USING_ORG == "export" ]; then
     export CORE_PEER_LOCALMSPID=ExportMSP
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_EXPORT_CA
     export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/export.varion.com/users/Admin@export.varion.com/msp
-    export CORE_PEER_ADDRESS=localhost:12051
+    export CORE_PEER_ADDRESS=localhost:10051
   else
     errorln "ORG Unknown"
   fi

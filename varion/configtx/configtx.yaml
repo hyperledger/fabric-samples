@@ -322,4 +322,6 @@ Profiles:
       Organizations:
         - *Farmer
         - *Pulper
+        - *Huller
+        - *Export
       Capabilities: *ApplicationCapabilities
