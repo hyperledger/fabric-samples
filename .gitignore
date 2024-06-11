@@ -22,7 +22,6 @@ package-lock.json
 .settings
 
 # installed Fabric binaries etc.
-bin/
 builders/
 #config/
 external-chaincode/
