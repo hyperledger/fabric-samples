@@ -87,6 +87,30 @@ function printHelp() {
     println " Examples:"
     println "   network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ ./ -ccl javascript"
     println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
+  elif [ "$USAGE" == "deployCCcustom" ]; then
+    println "Usage: "
+    println "  network.sh \033[0;32mdeployCCcustom\033[0m [Flags]"
+    println
+    println "    Flags:"
+    println "    -c <channel name> - Name of channel to deploy chaincode to"
+    println "    -ccn <name> - Chaincode name."
+    println "    -ccl <language> - Programming language of chaincode to deploy: go, java, javascript, typescript"
+    println "    -ccv <version>  - Chaincode version. 1.0 (default), v2, version3.x, etc"
+    println "    -ccs <sequence>  - Chaincode definition sequence.  Must be auto (default) or an integer, 1 , 2, 3, etc"
+    println "    -ccp <path>  - File path to the chaincode."
+    println "    -ccep <policy>  - (Optional) Chaincode endorsement policy using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
+    println "    -cccg <collection-config>  - (Optional) File path to private data collections configuration file"
+    println "    -cci <fcn name>  - (Optional) Name of chaincode initialization function. When a function is provided, the execution of init will be requested and the function will be invoked."
+    println "    -peers <list of peers>  - Peers involved in chaincode."
+    println
+    println "    -h - Print this message"
+    println
+    println " Possible Mode and flag combinations"
+    println "   \033[0;32mdeployCCustom\033[0m -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose -peers"
+    println
+    println " Examples:"
+    println "   network.sh deployCCcustom -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ ./ -ccl javascript -peers org1 org3"
+    println "   network.sh deployCCcustom -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript -peers org1 org2"
   elif [ "$USAGE" == "deployCCAAS" ]; then
     println "Usage: "
     println "  network.sh \033[0;32mdeployCCAAS\033[0m [Flags]"

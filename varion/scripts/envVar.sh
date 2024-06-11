@@ -26,6 +26,7 @@ export PEER0_EXPORT_CA=${TEST_NETWORK_HOME}/organizations/peerOrganizations/expo
 
 # Set environment variables for the peer org
 setGlobals() {
+  infoln "passed org arguments are "$1
   local USING_ORG=""
   if [ -z "$OVERRIDE_ORG" ]; then
     USING_ORG=$1
@@ -43,6 +44,7 @@ setGlobals() {
     export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/pulper.varion.com/users/Admin@pulper.varion.com/msp
     export CORE_PEER_ADDRESS=localhost:8051
   elif [ $USING_ORG == "huller" ]; then
+    infoln "should be in here for huller"
     export CORE_PEER_LOCALMSPID=HullerMSP
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER0_HULLER_CA
     export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/huller.varion.com/users/Admin@huller.varion.com/msp
