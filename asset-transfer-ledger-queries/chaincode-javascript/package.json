@@ -14,8 +14,8 @@
 	"engine-strict": true,
 	"license": "Apache-2.0",
 	"dependencies": {
-		"fabric-contract-api": "~2.5.5",
-		"fabric-shim": "~2.5.5"
+		"fabric-contract-api": "~2.5",
+		"fabric-shim": "~2.5"
 	},
 	"devDependencies": {
 		"eslint": "^8.57.0"
