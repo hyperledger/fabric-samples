@@ -10,7 +10,7 @@
 #  Primary purpose it to create enrollment certificates for CA admins.
 ######################################################################################
 
-function createEnrollment() {
+createEnrollment() {
 
   local port=$1             # port of the CA used for creating the enrollment
   local username=$2         # username of the registered user on the CA 
@@ -37,7 +37,7 @@ function createEnrollment() {
 #
 ######################################################################################
 
-function createMSP() {
+createMSP() {
 
   local caname=$1       # name of the ca (ordererca, org1ca, org2ca)
   local orgname=$2      # name of the org (org1, org2)  Ordering Org is blank
@@ -61,7 +61,7 @@ function createMSP() {
 #  enrollent and TLS certificates for peers and orderers.
 ######################################################################################
 
-function registerAndEnroll() {
+registerAndEnroll() {
 
   local port=$1              # port of the CA used for creating the enrollment
   local username=$2          # username of the user to register on the CA 

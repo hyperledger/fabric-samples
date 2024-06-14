@@ -7,6 +7,8 @@ exec 1>&2
 BUILD_OUTPUT_DIR="$1"
 RUN_METADATA_DIR="$2"
 
+LOG_DIRECTORY=${PWD}/logs
+
 #######################################
 # Export environment variables and extract certificate files from chaincode.json
 # Globals:
@@ -51,5 +53,4 @@ process_chaincode_metadata_json
 # output for debug purposes
 env | grep CORE | sort
 
-
-exec "${BUILD_OUTPUT_DIR}/chaincode" -peer.address="${CORE_PEER_ADDRESS}"
+exec "${BUILD_OUTPUT_DIR}/chaincode" -peer.address="${CORE_PEER_ADDRESS}" > ${LOG_DIRECTORY}/${CORE_CHAINCODE_ID_NAME}.log 2>&1
