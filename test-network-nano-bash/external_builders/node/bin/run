@@ -8,6 +8,8 @@ exec 1>&2
 BUILD_OUTPUT_DIR="$1"
 RUN_METADATA_DIR="$2"
 
+LOG_DIRECTORY=${PWD}/logs
+
 cd "${BUILD_OUTPUT_DIR}"
 ls -lart
 
@@ -34,12 +36,17 @@ else
     jq -r .client_cert "$RUN_METADATA_DIR/chaincode.json" > "$CORE_TLS_CLIENT_CERT_FILE"
     jq -r .client_key  "$RUN_METADATA_DIR/chaincode.json" > "$CORE_TLS_CLIENT_KEY_FILE"
     jq -r .root_cert   "$RUN_METADATA_DIR/chaincode.json" > "$CORE_PEER_TLS_ROOTCERT_FILE"
-    
-    base64 -i "${CORE_TLS_CLIENT_CERT_FILE}" > "${CORE_TLS_CLIENT_CERT_PATH}"
-    base64 -i "${CORE_TLS_CLIENT_KEY_FILE}" > "${CORE_TLS_CLIENT_KEY_PATH}"
 
-    #base64 -w 0 "${CORE_TLS_CLIENT_CERT_FILE}" > "${CORE_TLS_CLIENT_CERT_PATH}"
-    #base64 -w 0 "${CORE_TLS_CLIENT_KEY_FILE}" > "${CORE_TLS_CLIENT_KEY_PATH}"
+    if [ "${OSTYPE}" == "linux-gnu" ]; then
+        base64 -w 0 "${CORE_TLS_CLIENT_CERT_FILE}" > "${CORE_TLS_CLIENT_CERT_PATH}"
+        base64 -w 0 "${CORE_TLS_CLIENT_KEY_FILE}" > "${CORE_TLS_CLIENT_KEY_PATH}"
+    elif [[ "${OSTYPE}" == "darwin"* ]]; then
+        base64 -i "${CORE_TLS_CLIENT_CERT_FILE}" > "${CORE_TLS_CLIENT_CERT_PATH}"
+        base64 -i "${CORE_TLS_CLIENT_KEY_FILE}" > "${CORE_TLS_CLIENT_KEY_PATH}"
+    else
+	      echo "OS "${OS}" not supported"
+	      exit 1
+    fi
 
     ls -lart "$BUILD_OUTPUT_DIR"
 fi
@@ -48,4 +55,4 @@ fi
 env | grep CORE | sort
 
 # run the chaincode
-exec npm start -- --peer.address="${CORE_PEER_ADDRESS}"
+exec npm start -- --peer.address="${CORE_PEER_ADDRESS}" > ${LOG_DIRECTORY}/${CORE_CHAINCODE_ID_NAME}.log 2>&1
