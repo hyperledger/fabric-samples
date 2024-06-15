@@ -7,7 +7,7 @@ export FABRIC_CFG_PATH="${PWD}"/../config
 
 #Configure the CA_NAME, CA_PORT, OPERATIONS_PORT and CSR_HOSTS for the CA
 export CA_NAME=org1ca
-export CA_PORT=7053
+export CA_PORT=5053
 export OPERATIONS_PORT=9844
 export CSR_HOSTS=org1ca,localhost,127.0.0.1
 
