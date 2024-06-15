@@ -21,10 +21,6 @@ export class Asset {
     @Property('Size', 'number')
     Size = 0;
 
-    constructor() {
-        // Nothing to do
-    }
-
     static newInstance(state: Partial<Asset> = {}): Asset {
         return {
             ID: assertHasValue(state.ID, 'Missing ID'),

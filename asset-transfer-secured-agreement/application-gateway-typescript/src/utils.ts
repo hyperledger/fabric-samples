@@ -9,5 +9,5 @@ export const GREEN = '\x1b[32m\n';
 export const RESET = '\x1b[0m';
 
 export function parse<T>(data: string): T {
-    return JSON.parse(data);
+    return JSON.parse(data) as T;
 }

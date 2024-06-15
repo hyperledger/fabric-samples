@@ -13,7 +13,7 @@ import { TextDecoder } from 'util';
 
 const mspId = 'Org1MSP';
 const user = 'HSMUser';
-const assetId = `asset${Date.now()}`;
+const assetId = `asset${String(Date.now())}`;
 const utf8Decoder = new TextDecoder();
 
 // Sample uses fabric-ca-client generated HSM identities, certificate is located in the signcerts directory
@@ -85,7 +85,7 @@ async function exampleTransaction(gateway: Gateway):Promise<void> {
     const resultBytes = await contract.evaluateTransaction('ReadAsset', assetId);
 
     const resultJson = utf8Decoder.decode(resultBytes);
-    const result = JSON.parse(resultJson);
+    const result: unknown = JSON.parse(resultJson);
     console.log('*** Result:', result);
 }
 
@@ -167,7 +167,7 @@ function envOrDefault(key: string, defaultValue: string): string {
     return process.env[key] || defaultValue;
 }
 
-main().catch(error => {
+main().catch((error: unknown) => {
     console.error('******** FAILED to run the application:', error);
     process.exitCode = 1;
 });

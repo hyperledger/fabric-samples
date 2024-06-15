@@ -50,7 +50,7 @@ export class AssetTransferContract extends Contract {
 
     async #readAsset(ctx: Context, id: string): Promise<Uint8Array> {
         const assetBytes = await ctx.stub.getState(id); // get the asset from chaincode state
-        if (!assetBytes || assetBytes.length === 0) {
+        if (assetBytes.length === 0) {
             throw new Error(`Sorry, asset ${id} has not been created`);
         }
 
@@ -64,7 +64,7 @@ export class AssetTransferContract extends Contract {
     @Transaction()
     @Param('assetObj', 'Asset', 'Part formed JSON of Asset')
     async UpdateAsset(ctx: Context, assetUpdate: Asset): Promise<void> {
-        if (assetUpdate.ID === undefined) {
+        if (!assetUpdate.ID) {
             throw new Error('No asset ID specified');
         }
 
@@ -113,7 +113,7 @@ export class AssetTransferContract extends Contract {
     @Returns('boolean')
     async AssetExists(ctx: Context, id: string): Promise<boolean> {
         const assetJson = await ctx.stub.getState(id);
-        return assetJson?.length > 0;
+        return assetJson.length > 0;
     }
 
     /**

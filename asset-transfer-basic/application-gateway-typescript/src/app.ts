@@ -34,11 +34,10 @@ const peerEndpoint = envOrDefault('PEER_ENDPOINT', 'localhost:7051');
 const peerHostAlias = envOrDefault('PEER_HOST_ALIAS', 'peer0.org1.example.com');
 
 const utf8Decoder = new TextDecoder();
-const assetId = `asset${Date.now()}`;
+const assetId = `asset${String(Date.now())}`;
 
 async function main(): Promise<void> {
-
-    await displayInputParameters();
+    displayInputParameters();
 
     // The gRPC client connection should be shared by all Gateway connections to this endpoint.
     const client = await newGrpcConnection();
@@ -92,7 +91,7 @@ async function main(): Promise<void> {
     }
 }
 
-main().catch(error => {
+main().catch((error: unknown) => {
     console.error('******** FAILED to run the application:', error);
     process.exitCode = 1;
 });
@@ -113,7 +112,11 @@ async function newIdentity(): Promise<Identity> {
 
 async function getFirstDirFileName(dirPath: string): Promise<string> {
     const files = await fs.readdir(dirPath);
-    return path.join(dirPath, files[0]);
+    const file = files[0];
+    if (!file) {
+        throw new Error(`No files in directory: ${dirPath}`);
+    }
+    return path.join(dirPath, file);
 }
 
 async function newSigner(): Promise<Signer> {
@@ -144,7 +147,7 @@ async function getAllAssets(contract: Contract): Promise<void> {
     const resultBytes = await contract.evaluateTransaction('GetAllAssets');
 
     const resultJson = utf8Decoder.decode(resultBytes);
-    const result = JSON.parse(resultJson);
+    const result: unknown = JSON.parse(resultJson);
     console.log('*** Result:', result);
 }
 
@@ -183,7 +186,7 @@ async function transferAssetAsync(contract: Contract): Promise<void> {
 
     const status = await commit.getStatus();
     if (!status.successful) {
-        throw new Error(`Transaction ${status.transactionId} failed to commit with status code ${status.code}`);
+        throw new Error(`Transaction ${status.transactionId} failed to commit with status code ${String(status.code)}`);
     }
 
     console.log('*** Transaction committed successfully');
@@ -195,7 +198,7 @@ async function readAssetByID(contract: Contract): Promise<void> {
     const resultBytes = await contract.evaluateTransaction('ReadAsset', assetId);
 
     const resultJson = utf8Decoder.decode(resultBytes);
-    const result = JSON.parse(resultJson);
+    const result: unknown = JSON.parse(resultJson);
     console.log('*** Result:', result);
 }
 
@@ -230,7 +233,7 @@ function envOrDefault(key: string, defaultValue: string): string {
 /**
  * displayInputParameters() will print the global scope parameters used by the main driver routine.
  */
-async function displayInputParameters(): Promise<void> {
+function displayInputParameters(): void {
     console.log(`channelName:       ${channelName}`);
     console.log(`chaincodeName:     ${chaincodeName}`);
     console.log(`mspId:             ${mspId}`);

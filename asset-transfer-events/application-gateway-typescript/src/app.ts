@@ -14,7 +14,7 @@ const chaincodeName = 'events';
 
 const utf8Decoder = new TextDecoder();
 const now = Date.now();
-const assetId = `asset${now}`;
+const assetId = `asset${String(now)}`;
 
 
 async function main(): Promise<void> {
@@ -60,7 +60,7 @@ async function main(): Promise<void> {
     }
 }
 
-main().catch(error => {
+main().catch((error: unknown) => {
     console.error('******** FAILED to run the application:', error);
     process.exitCode = 1;
 });
@@ -102,7 +102,7 @@ async function createAsset(contract: Contract): Promise<bigint> {
 
     const status = await result.getStatus();
     if (!status.successful) {
-        throw new Error(`failed to commit transaction ${status.transactionId} with status code ${status.code}`);
+        throw new Error(`failed to commit transaction ${status.transactionId} with status code ${String(status.code)}`);
     }
 
     console.log('\n*** CreateAsset committed successfully');

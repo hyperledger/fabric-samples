@@ -20,7 +20,10 @@ export async function main(client: Client): Promise<void> {
         const smartContract = new AssetTransferBasic(contract);
         const assets = await smartContract.getAllAssets();
         const assetsJson = JSON.stringify(assets, undefined, 2);
-        assetsJson.split('\n').forEach(line => console.log(line)); // Write line-by-line to avoid truncation
+        // Write line-by-line to avoid truncation
+        assetsJson.split('\n').forEach((line) => {
+            console.log(line);
+        });
     } finally {
         gateway.close();
     }
