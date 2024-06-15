@@ -16,36 +16,36 @@ import { logger } from './logger';
  * For details, see: https://docs.bullmq.io/guide/connections
  */
 export const isMaxmemoryPolicyNoeviction = async (): Promise<boolean> => {
-  let redis: Redis | undefined;
+    let redis: Redis | undefined;
 
-  const redisOptions: RedisOptions = {
-    port: config.redisPort,
-    host: config.redisHost,
-    username: config.redisUsername,
-    password: config.redisPassword,
-  };
+    const redisOptions: RedisOptions = {
+        port: config.redisPort,
+        host: config.redisHost,
+        username: config.redisUsername,
+        password: config.redisPassword,
+    };
 
-  try {
-    redis = new IORedis(redisOptions);
+    try {
+        redis = new IORedis(redisOptions);
 
-    const maxmemoryPolicyConfig = await (redis as Redis).config(
-      'GET',
-      'maxmemory-policy'
-    );
-    logger.debug({ maxmemoryPolicyConfig }, 'Got maxmemory-policy config');
+        const maxmemoryPolicyConfig = await (redis as Redis).config(
+            'GET',
+            'maxmemory-policy'
+        );
+        logger.debug({ maxmemoryPolicyConfig }, 'Got maxmemory-policy config');
 
-    if (
-      maxmemoryPolicyConfig.length == 2 &&
-      'maxmemory-policy' === maxmemoryPolicyConfig[0] &&
-      'noeviction' === maxmemoryPolicyConfig[1]
-    ) {
-      return true;
+        if (
+            maxmemoryPolicyConfig.length == 2 &&
+            'maxmemory-policy' === maxmemoryPolicyConfig[0] &&
+            'noeviction' === maxmemoryPolicyConfig[1]
+        ) {
+            return true;
+        }
+    } finally {
+        if (redis != undefined) {
+            redis.disconnect();
+        }
     }
-  } finally {
-    if (redis != undefined) {
-      redis.disconnect();
-    }
-  }
 
-  return false;
+    return false;
 };

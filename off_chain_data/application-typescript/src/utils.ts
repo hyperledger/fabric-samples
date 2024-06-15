@@ -9,7 +9,8 @@
  * @param values Candidate elements.
  */
 export function randomElement<T>(values: T[]): T {
-    return values[randomInt(values.length)];
+    const result = values[randomInt(values.length)];
+    return assertDefined(result, `Missing element in {String(values)}`);
 }
 
 /**
@@ -42,7 +43,7 @@ export async function allFulfilled(promises: Promise<unknown>[]): Promise<void> 
 
     if (failures.length > 0) {
         const failMessages = ' - ' + failures.join('\n - ');
-        throw new Error(`${failures.length} failures:\n${failMessages}\n`);
+        throw new Error(`${String(failures.length)} failures:\n${failMessages}\n`);
     }
 }
 

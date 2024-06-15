@@ -127,5 +127,9 @@ export async function newSigner(keyDirectoryPath: string): Promise<Signer> {
 
 async function getFirstDirFileName(dirPath: string): Promise<string> {
     const files = await fs.readdir(dirPath);
-    return path.join(dirPath, files[0]);
+    const file = files[0];
+    if (!file) {
+        throw new Error(`No files in directory: ${dirPath}`);
+    }
+    return path.join(dirPath, file);
 }

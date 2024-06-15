@@ -6,10 +6,10 @@
 import { Contract } from '@hyperledger/fabric-gateway';
 import { TextDecoder } from 'util';
 import { GREEN, parse, RED, RESET } from './utils';
-import crpto from 'crypto';
+import crypto from 'crypto';
 import { mspIdOrg2 } from './connect';
 
-const randomBytes = crpto.randomBytes(256).toString('hex');
+const randomBytes = crypto.randomBytes(256).toString('hex');
 
 interface AssetJSON {
     objectType: string;
@@ -151,7 +151,7 @@ export class ContractWrapper {
             endorsingOrganizations: this.#endorsingOrgs[assetPrice.assetId]
         });
 
-        console.log(`*** Result: committed, ${this.#org} has agreed to sell asset ${assetPrice.assetId} for ${assetPrice.price}`);
+        console.log(`*** Result: committed, ${this.#org} has agreed to sell asset ${assetPrice.assetId} for ${String(assetPrice.price)}`);
     }
 
     public async verifyAssetProperties(assetId: string, assetProperties: AssetProperties): Promise<void> {
@@ -169,16 +169,11 @@ export class ContractWrapper {
         const resultString = this.#utf8Decoder.decode(resultBytes);
         if (resultString.length !== 0) {
             const json = parse<AssetPropertiesJSON>(resultString);
-            const result: AssetProperties =  {
-                color: json.color,
-                size: json.size
-            };
-            if (result) {
+            if (typeof json === 'object') {
                 console.log(`*** Success VerifyAssetProperties, private information about asset ${assetId} has been verified by ${this.#org}`);
             } else {
                 console.log(`*** Failed: VerifyAssetProperties, private information about asset ${assetId} has not been verified by ${this.#org}`);
             }
-
         } else {
             throw new Error(`Private information about asset ${assetId} has not been verified by ${this.#org}`);
         }

@@ -87,10 +87,10 @@ export async function main(client: Client): Promise<void> {
         const network = gateway.getNetwork(channelName);
         const checkpointer = await checkpointers.file(checkpointFile);
 
-        console.log(`Starting event listening from block ${checkpointer.getBlockNumber() ?? startBlock}`);
+        console.log('Starting event listening from block', checkpointer.getBlockNumber() ?? startBlock);
         console.log('Last processed transaction ID within block:', checkpointer.getTransactionId());
         if (simulatedFailureCount > 0) {
-            console.log(`Simulating a write failure every ${simulatedFailureCount} transactions`);
+            console.log('Simulating a write failure every', simulatedFailureCount, 'transactions');
         }
 
         const blocks = await network.getBlockEvents({
@@ -135,7 +135,7 @@ class BlockProcessor {
     async process(): Promise<void> {
         const blockNumber = this.#block.getNumber();
 
-        console.log(`\nReceived block ${blockNumber}`);
+        console.log(`\nReceived block ${String(blockNumber)}`);
 
         const validTransactions = this.#getNewTransactions()
             .filter(transaction => transaction.isValid());
@@ -168,7 +168,7 @@ class BlockProcessor {
         const blockTransactionIds = transactions.map(transaction => transaction.getChannelHeader().getTxId());
         const lastProcessedIndex = blockTransactionIds.indexOf(lastTransactionId);
         if (lastProcessedIndex < 0) {
-            throw new Error(`Checkpoint transaction ID ${lastTransactionId} not found in block ${this.#block.getNumber()} containing transactions: ${blockTransactionIds.join(', ')}`);
+            throw new Error(`Checkpoint transaction ID ${lastTransactionId} not found in block ${String(this.#block.getNumber())} containing transactions: ${blockTransactionIds.join(', ')}`);
         }
 
         return transactions.slice(lastProcessedIndex + 1);

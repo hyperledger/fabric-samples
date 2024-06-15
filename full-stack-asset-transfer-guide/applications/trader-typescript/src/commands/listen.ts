@@ -19,10 +19,10 @@ export default async function main(gateway: Gateway): Promise<void> {
     const network = gateway.getNetwork(CHANNEL_NAME);
     const checkpointer = await checkpointers.file(checkpointFile);
 
-    console.log(`Starting event listening from block ${checkpointer.getBlockNumber() ?? startBlock}`);
+    console.log('Starting event listening from block', checkpointer.getBlockNumber() ?? startBlock);
     console.log('Last processed transaction ID within block:', checkpointer.getTransactionId());
     if (simulatedFailureCount > 0) {
-        console.log(`Simulating a write failure every ${simulatedFailureCount} transactions`);
+        console.log('Simulating a write failure every', simulatedFailureCount, 'transactions');
     }
 
     const events = await network.getChaincodeEvents(CHAINCODE_NAME, {

@@ -13,7 +13,8 @@ const utf8Decoder = new TextDecoder();
  * @param values Candidate elements.
  */
 export function randomElement<T>(values: T[]): T {
-    return values[randomInt(values.length)];
+    const result = values[randomInt(values.length)];
+    return assertDefined(result, `Missing element in {String(values)}`);
 }
 
 /**
@@ -47,7 +48,7 @@ export async function allFulfilled(promises: Promise<unknown>[]): Promise<void> 
 
     if (failures.length > 0) {
         const failMessages = '- ' + failures.join('\n- ');
-        throw new Error(`${failures.length} failures:\n${failMessages}\n`);
+        throw new Error(`${String(failures.length)} failures:\n${failMessages}\n`);
     }
 }
 
@@ -59,11 +60,6 @@ export function printable<T extends object>(event: T): PrintView<T> {
     return Object.fromEntries(
         Object.entries(event).map(([k, v]) => [k, v instanceof Uint8Array ? utf8Decoder.decode(v) : v])
     ) as PrintView<T>;
-}
-
-export function assertAllDefined<T>(values: (T | undefined)[], message: string | (() => string)): T[] {
-    values.forEach(value => assertDefined(value, message));
-    return values as T[];
 }
 
 export function assertDefined<T>(value: T | undefined, message: string | (() => string)): T {

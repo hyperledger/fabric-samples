@@ -1,17 +1,15 @@
 {
-   "extends":"@tsconfig/node18/tsconfig.json",
-   "compilerOptions": {
-       "experimentalDecorators": true,
-       "emitDecoratorMetadata": true,
-       "outDir": "dist",
-       "declaration": true,
-       "sourceMap": true,
-       "noImplicitAny": true
-   },
-   "include": [
-       "./src/**/*"
-   ],
-   "exclude": [
-       "./src/**/*.spec.ts"
-   ]
+    "extends": "@tsconfig/node18/tsconfig.json",
+    "compilerOptions": {
+        "outDir": "dist",
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "noUnusedLocals": true,
+        "noImplicitReturns": true,
+        "noUncheckedIndexedAccess": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": ["./src/**/*"],
+    "exclude": ["./src/**/*.spec.ts"]
 }

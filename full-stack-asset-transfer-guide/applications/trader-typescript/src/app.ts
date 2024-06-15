@@ -12,10 +12,10 @@ async function main(): Promise<void> {
     const commandName = process.argv[2];
     const args = process.argv.slice(3);
 
-    const command = commands[commandName];
+    const command = commandName && commands[commandName];
     if (!command) {
         printUsage();
-        throw new Error(`Unknown command: ${commandName}`);
+        throw new Error(`Unknown command: ${String(commandName)}`);
     }
 
     await runCommand(command, args);
@@ -41,7 +41,7 @@ function printUsage(): void {
     console.log(`\t${Object.keys(commands).sort().join('\n\t')}`);
 }
 
-main().catch(error => {
+main().catch((error: unknown) => {
     if (error instanceof ExpectedError) {
         console.log(error);
     } else {

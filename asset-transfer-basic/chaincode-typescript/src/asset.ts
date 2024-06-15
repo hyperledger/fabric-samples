@@ -10,17 +10,17 @@ export class Asset {
     public docType?: string;
 
     @Property()
-    public ID: string;
+    public ID: string = '';
 
     @Property()
-    public Color: string;
+    public Color: string = '';
 
     @Property()
-    public Size: number;
+    public Size: number = 0;
 
     @Property()
-    public Owner: string;
+    public Owner: string = '';
 
     @Property()
-    public AppraisedValue: number;
+    public AppraisedValue: number = 0;
 }

@@ -1,7 +1,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-FROM node:18.16 AS builder
+FROM node:18 AS builder
 
 WORKDIR /usr/src/app
 

@@ -14,15 +14,15 @@ import { logger } from './logger';
  * These errors will not be retried.
  */
 export class ContractError extends Error {
-  transactionId: string;
+    transactionId: string;
 
-  constructor(message: string, transactionId: string) {
-    super(message);
-    Object.setPrototypeOf(this, ContractError.prototype);
+    constructor(message: string, transactionId: string) {
+        super(message);
+        Object.setPrototypeOf(this, ContractError.prototype);
 
-    this.name = 'TransactionError';
-    this.transactionId = transactionId;
-  }
+        this.name = 'TransactionError';
+        this.transactionId = transactionId;
+    }
 }
 
 /**
@@ -30,12 +30,12 @@ export class ContractError extends Error {
  * evaluated is not implemented in a smart contract.
  */
 export class TransactionNotFoundError extends ContractError {
-  constructor(message: string, transactionId: string) {
-    super(message, transactionId);
-    Object.setPrototypeOf(this, TransactionNotFoundError.prototype);
+    constructor(message: string, transactionId: string) {
+        super(message, transactionId);
+        Object.setPrototypeOf(this, TransactionNotFoundError.prototype);
 
-    this.name = 'TransactionNotFoundError';
-  }
+        this.name = 'TransactionNotFoundError';
+    }
 }
 
 /**
@@ -43,12 +43,12 @@ export class TransactionNotFoundError extends ContractError {
  * implementation when an asset already exists.
  */
 export class AssetExistsError extends ContractError {
-  constructor(message: string, transactionId: string) {
-    super(message, transactionId);
-    Object.setPrototypeOf(this, AssetExistsError.prototype);
+    constructor(message: string, transactionId: string) {
+        super(message, transactionId);
+        Object.setPrototypeOf(this, AssetExistsError.prototype);
 
-    this.name = 'AssetExistsError';
-  }
+        this.name = 'AssetExistsError';
+    }
 }
 
 /**
@@ -56,35 +56,35 @@ export class AssetExistsError extends ContractError {
  * implementation when an asset does not exist.
  */
 export class AssetNotFoundError extends ContractError {
-  constructor(message: string, transactionId: string) {
-    super(message, transactionId);
-    Object.setPrototypeOf(this, AssetNotFoundError.prototype);
+    constructor(message: string, transactionId: string) {
+        super(message, transactionId);
+        Object.setPrototypeOf(this, AssetNotFoundError.prototype);
 
-    this.name = 'AssetNotFoundError';
-  }
+        this.name = 'AssetNotFoundError';
+    }
 }
 
 /**
  * Enumeration of possible retry actions.
  */
 export enum RetryAction {
-  /**
-   * Transactions should be retried using the same transaction ID to protect
-   * against duplicate transactions being committed if a timeout error occurs
-   */
-  WithExistingTransactionId,
+    /**
+     * Transactions should be retried using the same transaction ID to protect
+     * against duplicate transactions being committed if a timeout error occurs
+     */
+    WithExistingTransactionId,
 
-  /**
-   * Transactions which could not be committed due to other errors require a
-   * new transaction ID when retrying
-   */
-  WithNewTransactionId,
+    /**
+     * Transactions which could not be committed due to other errors require a
+     * new transaction ID when retrying
+     */
+    WithNewTransactionId,
 
-  /**
-   * Transactions that failed due to a duplicate transaction error, or errors
-   * from the smart contract, should not be retried
-   */
-  None,
+    /**
+     * Transactions that failed due to a duplicate transaction error, or errors
+     * from the smart contract, should not be retried
+     */
+    None,
 }
 
 /**
@@ -103,27 +103,27 @@ export enum RetryAction {
  *   - EXPIRED_CHAINCODE
  */
 export const getRetryAction = (err: unknown): RetryAction => {
-  if (isDuplicateTransactionError(err) || err instanceof ContractError) {
-    return RetryAction.None;
-  } else if (err instanceof TimeoutError) {
-    return RetryAction.WithExistingTransactionId;
-  }
+    if (isDuplicateTransactionError(err) || err instanceof ContractError) {
+        return RetryAction.None;
+    } else if (err instanceof TimeoutError) {
+        return RetryAction.WithExistingTransactionId;
+    }
 
-  return RetryAction.WithNewTransactionId;
+    return RetryAction.WithNewTransactionId;
 };
 
 /**
  * Type guard to make catching unknown errors easier
  */
 export const isErrorLike = (err: unknown): err is Error => {
-  return (
-    err != undefined &&
-    err != null &&
-    typeof (err as Error).name === 'string' &&
-    typeof (err as Error).message === 'string' &&
-    ((err as Error).stack === undefined ||
-      typeof (err as Error).stack === 'string')
-  );
+    return (
+        err != undefined &&
+        err != null &&
+        typeof (err as Error).name === 'string' &&
+        typeof (err as Error).message === 'string' &&
+        ((err as Error).stack === undefined ||
+            typeof (err as Error).stack === 'string')
+    );
 };
 
 /**
@@ -132,31 +132,31 @@ export const isErrorLike = (err: unknown): err is Error => {
  * This is ...painful.
  */
 export const isDuplicateTransactionError = (err: unknown): boolean => {
-  logger.debug({ err }, 'Checking for duplicate transaction error');
+    logger.debug({ err }, 'Checking for duplicate transaction error');
 
-  if (err === undefined || err === null) return false;
+    if (err === undefined || err === null) return false;
 
-  let isDuplicate;
-  if (typeof (err as TransactionError).transactionCode === 'string') {
-    // Checking whether a commit failure is caused by a duplicate transaction
-    // is straightforward because the transaction code should be available
-    isDuplicate =
-      (err as TransactionError).transactionCode === 'DUPLICATE_TXID';
-  } else {
-    // Checking whether an endorsement failure is caused by a duplicate
-    // transaction is only possible by processing error strings, which is not ideal.
-    const endorsementError = err as {
-      errors: { endorsements: { details: string }[] }[];
-    };
+    let isDuplicate;
+    if (typeof (err as TransactionError).transactionCode === 'string') {
+        // Checking whether a commit failure is caused by a duplicate transaction
+        // is straightforward because the transaction code should be available
+        isDuplicate =
+            (err as TransactionError).transactionCode === 'DUPLICATE_TXID';
+    } else {
+        // Checking whether an endorsement failure is caused by a duplicate
+        // transaction is only possible by processing error strings, which is not ideal.
+        const endorsementError = err as {
+            errors: { endorsements: { details: string }[] }[];
+        };
 
-    isDuplicate = endorsementError?.errors?.some((err) =>
-      err?.endorsements?.some((endorsement) =>
-        endorsement?.details?.startsWith('duplicate transaction found')
-      )
-    );
-  }
+        isDuplicate = endorsementError?.errors?.some((err) =>
+            err?.endorsements?.some((endorsement) =>
+                endorsement?.details?.startsWith('duplicate transaction found')
+            )
+        );
+    }
 
-  return isDuplicate === true;
+    return isDuplicate === true;
 };
 
 /**
@@ -168,18 +168,18 @@ export const isDuplicateTransactionError = (err: unknown): boolean => {
  *   - "Asset %s already exists"
  */
 const matchAssetAlreadyExistsMessage = (message: string): string | null => {
-  const assetAlreadyExistsRegex = /([tT]he )?[aA]sset \w* already exists/g;
-  const assetAlreadyExistsMatch = message.match(assetAlreadyExistsRegex);
-  logger.debug(
-    { message: message, result: assetAlreadyExistsMatch },
-    'Checking for asset already exists message'
-  );
+    const assetAlreadyExistsRegex = /([tT]he )?[aA]sset \w* already exists/g;
+    const assetAlreadyExistsMatch = message.match(assetAlreadyExistsRegex);
+    logger.debug(
+        { message: message, result: assetAlreadyExistsMatch },
+        'Checking for asset already exists message'
+    );
 
-  if (assetAlreadyExistsMatch !== null) {
-    return assetAlreadyExistsMatch[0];
-  }
+    if (assetAlreadyExistsMatch !== null) {
+        return assetAlreadyExistsMatch[0];
+    }
 
-  return null;
+    return null;
 };
 
 /**
@@ -191,18 +191,18 @@ const matchAssetAlreadyExistsMessage = (message: string): string | null => {
  *   - "Asset %s does not exist"
  */
 const matchAssetDoesNotExistMessage = (message: string): string | null => {
-  const assetDoesNotExistRegex = /([tT]he )?[aA]sset \w* does not exist/g;
-  const assetDoesNotExistMatch = message.match(assetDoesNotExistRegex);
-  logger.debug(
-    { message: message, result: assetDoesNotExistMatch },
-    'Checking for asset does not exist message'
-  );
+    const assetDoesNotExistRegex = /([tT]he )?[aA]sset \w* does not exist/g;
+    const assetDoesNotExistMatch = message.match(assetDoesNotExistRegex);
+    logger.debug(
+        { message: message, result: assetDoesNotExistMatch },
+        'Checking for asset does not exist message'
+    );
 
-  if (assetDoesNotExistMatch !== null) {
-    return assetDoesNotExistMatch[0];
-  }
+    if (assetDoesNotExistMatch !== null) {
+        return assetDoesNotExistMatch[0];
+    }
 
-  return null;
+    return null;
 };
 
 /**
@@ -213,23 +213,23 @@ const matchAssetDoesNotExistMessage = (message: string): string | null => {
  *   - "Failed to get transaction with id %s, error no such transaction ID [%s] in index"
  */
 const matchTransactionDoesNotExistMessage = (
-  message: string
+    message: string
 ): string | null => {
-  const transactionDoesNotExistRegex =
-    /Failed to get transaction with id [^,]*, error (?:(?:Entry not found)|(?:no such transaction ID \[[^\]]*\])) in index/g;
-  const transactionDoesNotExistMatch = message.match(
-    transactionDoesNotExistRegex
-  );
-  logger.debug(
-    { message: message, result: transactionDoesNotExistMatch },
-    'Checking for transaction does not exist message'
-  );
+    const transactionDoesNotExistRegex =
+        /Failed to get transaction with id [^,]*, error (?:(?:Entry not found)|(?:no such transaction ID \[[^\]]*\])) in index/g;
+    const transactionDoesNotExistMatch = message.match(
+        transactionDoesNotExistRegex
+    );
+    logger.debug(
+        { message: message, result: transactionDoesNotExistMatch },
+        'Checking for transaction does not exist message'
+    );
 
-  if (transactionDoesNotExistMatch !== null) {
-    return transactionDoesNotExistMatch[0];
-  }
+    if (transactionDoesNotExistMatch !== null) {
+        return transactionDoesNotExistMatch[0];
+    }
 
-  return null;
+    return null;
 };
 
 /**
@@ -242,32 +242,38 @@ const matchTransactionDoesNotExistMessage = (
  * Javascript implementations of the chaincode!
  */
 export const handleError = (
-  transactionId: string,
-  err: unknown
+    transactionId: string,
+    err: unknown
 ): Error | unknown => {
-  logger.debug({ transactionId: transactionId, err }, 'Processing error');
+    logger.debug({ transactionId: transactionId, err }, 'Processing error');
 
-  if (isErrorLike(err)) {
-    const assetAlreadyExistsMatch = matchAssetAlreadyExistsMessage(err.message);
-    if (assetAlreadyExistsMatch !== null) {
-      return new AssetExistsError(assetAlreadyExistsMatch, transactionId);
+    if (isErrorLike(err)) {
+        const assetAlreadyExistsMatch = matchAssetAlreadyExistsMessage(
+            err.message
+        );
+        if (assetAlreadyExistsMatch !== null) {
+            return new AssetExistsError(assetAlreadyExistsMatch, transactionId);
+        }
+
+        const assetDoesNotExistMatch = matchAssetDoesNotExistMessage(
+            err.message
+        );
+        if (assetDoesNotExistMatch !== null) {
+            return new AssetNotFoundError(
+                assetDoesNotExistMatch,
+                transactionId
+            );
+        }
+
+        const transactionDoesNotExistMatch =
+            matchTransactionDoesNotExistMessage(err.message);
+        if (transactionDoesNotExistMatch !== null) {
+            return new TransactionNotFoundError(
+                transactionDoesNotExistMatch,
+                transactionId
+            );
+        }
     }
 
-    const assetDoesNotExistMatch = matchAssetDoesNotExistMessage(err.message);
-    if (assetDoesNotExistMatch !== null) {
-      return new AssetNotFoundError(assetDoesNotExistMatch, transactionId);
-    }
-
-    const transactionDoesNotExistMatch = matchTransactionDoesNotExistMessage(
-      err.message
-    );
-    if (transactionDoesNotExistMatch !== null) {
-      return new TransactionNotFoundError(
-        transactionDoesNotExistMatch,
-        transactionId
-      );
-    }
-  }
-
-  return err;
+    return err;
 };

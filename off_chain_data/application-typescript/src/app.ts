@@ -47,7 +47,7 @@ function printUsage(): void {
     console.log('Available commands:', Object.keys(allCommands).join(', '));
 }
 
-main().catch(error => {
+main().catch((error: unknown) => {
     if (error instanceof ExpectedError) {
         console.log(error);
     } else {

@@ -27,8 +27,8 @@ const RESET = '\x1b[0m';
 
 // Use a unique key so that we can run multiple times
 const now = Date.now();
-const assetID1 = `asset${now}`;
-const assetID2 = `asset${now + 1}`;
+const assetID1 = `asset${String(now)}`;
+const assetID2 = `asset${String(now + 1)}`;
 
 async function main(): Promise<void> {
     const clientOrg1 = await newGrpcConnection(
@@ -74,14 +74,13 @@ async function main(): Promise<void> {
         // Read asset from the Org1's private data collection with ID in the given range.
         await getAssetsByRange(contractOrg1);
 
-        try{
+        try {
             // Attempt to transfer asset without prior aprroval from Org2, transaction expected to fail.
             console.log('\nAttempt TransferAsset without prior AgreeToTransfer');
             await transferAsset(contractOrg1, assetID1);
             doFail('TransferAsset transaction succeeded when it was expected to fail');
-        }
-        catch(e){
-            console.log(`*** Received expected error: ${e}`);
+        } catch (e) {
+            console.log('*** Received expected error:', e);
         }
 
         console.log('\n~~~~~~~~~~~~~~~~ As Org2 Client ~~~~~~~~~~~~~~~~');
@@ -122,7 +121,7 @@ async function main(): Promise<void> {
             await deleteAsset(contractOrg2, assetID2);
             doFail('DeleteAsset transaction succeeded when it was expected to fail');
         } catch (e) {
-            console.log(`*** Received expected error: ${e}`);
+            console.log('*** Received expected error:', e);
         }
 
         console.log('\n~~~~~~~~~~~~~~~~ As Org1 Client ~~~~~~~~~~~~~~~~');
@@ -142,7 +141,7 @@ async function main(): Promise<void> {
     }
 }
 
-main().catch((error) => {
+main().catch((error: unknown) => {
     console.error('******** FAILED to run the application:', error);
     process.exitCode = 1;
 });
@@ -192,14 +191,14 @@ async function getAssetsByRange(contract: Contract): Promise<void> {
     const resultBytes = await contract.evaluateTransaction(
         'GetAssetByRange',
         assetID1,
-        `asset${now + 2}`
+        `asset${String(now + 2)}`
     );
 
     const resultString = utf8Decoder.decode(resultBytes);
     if (!resultString) {
         doFail('Received empty query list for readAssetPrivateDetailsOrg1');
     }
-    const result = JSON.parse(resultString);
+    const result: unknown = JSON.parse(resultString);
     console.log('*** Result:', result);
 }
 
@@ -211,7 +210,7 @@ async function readAssetByID(contract: Contract, assetID: string): Promise<void>
     if (!resultString) {
         doFail('Received empty result for ReadAsset');
     }
-    const result = JSON.parse(resultString);
+    const result: unknown = JSON.parse(resultString);
     console.log('*** Result:', result);
 }
 
@@ -241,7 +240,7 @@ async function readTransferAgreement(contract: Contract, assetID: string): Promi
     if (!resultString) {
         doFail('Received no result for ReadTransferAgreement');
     }
-    const result = JSON.parse(resultString);
+    const result: unknown = JSON.parse(resultString);
     console.log('*** Result:', result);
 }
 
@@ -290,7 +289,7 @@ async function readAssetPrivateDetails(contract: Contract, assetID: string, coll
         console.log('*** No result');
         return false;
     }
-    const result = JSON.parse(resultJson);
+    const result: unknown = JSON.parse(resultJson);
     console.log('*** Result:', result);
     return true;
 }
