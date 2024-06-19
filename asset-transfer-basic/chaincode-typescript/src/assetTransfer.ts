@@ -170,4 +170,34 @@ export class AssetTransferContract extends Contract {
         return JSON.stringify(allResults);
     }
 
+     // GetHistoryForKey returns all assets history in the world state.
+     @Transaction(false)
+     @Returns("string")
+     public async GetHistoryForKey(ctx: Context, id: string): Promise<string> {
+         const results: string[] = [];
+         try {
+             const historyIterator = await ctx.stub.getHistoryForKey(id);
+             let result = await historyIterator.next();
+             if (result.done) {
+                 const errorMessage = `Asset ${id} does not exist`;
+                 console.log(errorMessage);
+                 throw new Error(errorMessage);
+             }
+ 
+             while (!result.done) {
+                 const iteratorValue = Buffer.from(
+                     result.value.value.toString()
+                 ).toString("utf8");
+                 results.push(iteratorValue);
+                 console.log(iteratorValue);
+                 result = await historyIterator.next();
+             }
+ 
+             await historyIterator.close();
+         } catch (error) {
+             console.log(error);
+         }
+         return JSON.stringify(results);
+     }
+     
 }
