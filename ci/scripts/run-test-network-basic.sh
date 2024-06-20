@@ -38,8 +38,8 @@ set -x
 createNetwork
 
 
-# Run Go gateway application
-print "Initializing Go gateway application"
+# Run Go application
+print "Initializing Go application"
 export CHAINCODE_NAME=go_gateway
 deployChaincode
 pushd ../asset-transfer-basic/application-gateway-go
@@ -48,8 +48,8 @@ go run .
 popd
 
 
-# Run gateway typescript application
-print "Initializing Typescript gateway application"
+# Run TypeScript application
+print "Initializing TypeScript application"
 export CHAINCODE_NAME=typescript_gateway
 deployChaincode
 pushd ../asset-transfer-basic/application-gateway-typescript
@@ -59,7 +59,18 @@ npm start
 popd
 
 
-# Run Java application using gateway
+# Run JavaScript application
+print "Initializing JavaScript application"
+export CHAINCODE_NAME=javascript_gateway
+deployChaincode
+pushd ../asset-transfer-basic/application-gateway-javascript
+npm install
+print "Start application"
+npm start
+popd
+
+
+# Run Java application
 print "Initializing Java application"
 export CHAINCODE_NAME=java_gateway
 deployChaincode
