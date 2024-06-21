@@ -8,10 +8,11 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
 type SmartContract struct {
@@ -106,10 +107,7 @@ func (s *SmartContract) SubmitBid(ctx contractapi.TransactionContextInterface, a
 		Hash: fmt.Sprintf("%x", bidHash),
 	}
 
-	bidders := make(map[string]BidHash)
-	bidders = auction.PrivateBids
-	bidders[bidKey] = newHash
-	auction.PrivateBids = bidders
+	auction.PrivateBids[bidKey] = newHash
 
 	// Add the bidding organization to the list of participating organization's if it is not already
 	orgs := auction.Orgs
@@ -183,7 +181,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 	// check that the bidders org is a participant in the auction
 	orgs := auction.Orgs
 	if !(contains(orgs, clientOrgID)) {
-		return fmt.Errorf("Particiant is not a member of the auction", err)
+		return fmt.Errorf("particiant %s is not a member of the auction", clientOrgID)
 	}
 
 	// Complete a series of three checks before we add the bid to the auction
@@ -192,7 +190,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 	// bid to an open auction
 	status := auction.Status
 	if status != "closed" {
-		return fmt.Errorf("cannot reveal bid for open or ended auction")
+		return errors.New("cannot reveal bid for open or ended auction")
 	}
 
 	// check 2: check that hash of revealed bid matches hash of private bid
@@ -216,8 +214,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 	// added earlier. This ensures that the bid has not changed since it
 	// was added to the auction
 
-	bidders := auction.PrivateBids
-	privateBidHashString := bidders[bidKey].Hash
+	privateBidHashString := auction.PrivateBids[bidKey].Hash
 
 	onChainBidHashString := fmt.Sprintf("%x", bidHash)
 	if privateBidHashString != onChainBidHashString {
@@ -260,13 +257,10 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 
 	// check 4: make sure that the transaction is being submitted is the bidder
 	if bidInput.Buyer != clientID {
-		return fmt.Errorf("Permission denied, client id %v is not the owner of the bid", clientID)
+		return fmt.Errorf("permission denied, client id %v is not the owner of the bid", clientID)
 	}
 
-	revealedBids := make(map[string]FullBid)
-	revealedBids = auction.RevealedBids
-	revealedBids[bidKey] = newBid
-	auction.RevealedBids = revealedBids
+	auction.RevealedBids[bidKey] = newBid
 
 	auctionJSON, _ := json.Marshal(auction)
 
@@ -298,7 +292,7 @@ func (s *SmartContract) CloseAuction(ctx contractapi.TransactionContextInterface
 	// check that the bidders org is a participant in the auction
 	orgs := auction.Orgs
 	if !(contains(orgs, clientOrgID)) {
-		return fmt.Errorf("Particiant is not a member of the auction", err)
+		return fmt.Errorf("particiant %s is not a member of the auction", clientOrgID)
 	}
 
 	// the auction can only be closed by the seller
@@ -316,7 +310,7 @@ func (s *SmartContract) CloseAuction(ctx contractapi.TransactionContextInterface
 
 	status := auction.Status
 	if status != "open" {
-		return fmt.Errorf("cannot close auction that is not open")
+		return errors.New("cannot close auction that is not open")
 	}
 
 	auction.Status = string("closed")
@@ -350,7 +344,7 @@ func (s *SmartContract) EndAuction(ctx contractapi.TransactionContextInterface, 
 	// check that the bidders org is a participant in the auction
 	orgs := auction.Orgs
 	if !(contains(orgs, clientOrgID)) {
-		return fmt.Errorf("Particiant is not a member of the auction", err)
+		return fmt.Errorf("particiant %s is not a member of the auction", clientOrgID)
 	}
 
 	// Check that the auction is being ended by the seller
@@ -368,14 +362,14 @@ func (s *SmartContract) EndAuction(ctx contractapi.TransactionContextInterface, 
 
 	status := auction.Status
 	if status != "closed" {
-		return fmt.Errorf("Can only end a closed auction")
+		return errors.New("can only end a closed auction")
 	}
 
 	// get the list of revealed bids
 
 	revealedBidMap := auction.RevealedBids
 	if len(auction.RevealedBids) == 0 {
-		return fmt.Errorf("No bids have been revealed, cannot end auction: %v", err)
+		return fmt.Errorf("no bids have been revealed, cannot end auction: %v", err)
 	}
 
 	// sort the map of revealed bids to make it easier to calculate winners
@@ -431,10 +425,10 @@ func (s *SmartContract) EndAuction(ctx contractapi.TransactionContextInterface, 
 	// check if there is a winning bid that has yet to be revealed
 	err = checkForHigherBid(ctx, auction.Price, auction.RevealedBids, auction.PrivateBids)
 	if err != nil {
-		return fmt.Errorf("Cannot end auction: %v", err)
+		return fmt.Errorf("cannot end auction: %v", err)
 	}
 
-	auction.Status = string("ended")
+	auction.Status = "ended"
 
 	endedAuctionJSON, _ := json.Marshal(auction)
 

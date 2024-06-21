@@ -4,8 +4,8 @@ package mocks
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric-chaincode-go/pkg/cid"
-	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"github.com/hyperledger/fabric-chaincode-go/v2/pkg/cid"
+	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
 )
 
 type TransactionContext struct {
@@ -38,15 +38,16 @@ func (fake *TransactionContext) GetClientIdentity() cid.ClientIdentity {
 	ret, specificReturn := fake.getClientIdentityReturnsOnCall[len(fake.getClientIdentityArgsForCall)]
 	fake.getClientIdentityArgsForCall = append(fake.getClientIdentityArgsForCall, struct {
 	}{})
+	stub := fake.GetClientIdentityStub
+	fakeReturns := fake.getClientIdentityReturns
 	fake.recordInvocation("GetClientIdentity", []interface{}{})
 	fake.getClientIdentityMutex.Unlock()
-	if fake.GetClientIdentityStub != nil {
-		return fake.GetClientIdentityStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getClientIdentityReturns
 	return fakeReturns.result1
 }
 
@@ -90,15 +91,16 @@ func (fake *TransactionContext) GetStub() shim.ChaincodeStubInterface {
 	ret, specificReturn := fake.getStubReturnsOnCall[len(fake.getStubArgsForCall)]
 	fake.getStubArgsForCall = append(fake.getStubArgsForCall, struct {
 	}{})
+	stub := fake.GetStubStub
+	fakeReturns := fake.getStubReturns
 	fake.recordInvocation("GetStub", []interface{}{})
 	fake.getStubMutex.Unlock()
-	if fake.GetStubStub != nil {
-		return fake.GetStubStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getStubReturns
 	return fakeReturns.result1
 }
 

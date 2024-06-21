@@ -7,7 +7,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
 // Define key names for options

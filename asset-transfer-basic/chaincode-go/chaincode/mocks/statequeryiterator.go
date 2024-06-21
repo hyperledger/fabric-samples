@@ -4,7 +4,7 @@ package mocks
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
+	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/queryresult"
 )
 
 type StateQueryIterator struct {
@@ -49,15 +49,16 @@ func (fake *StateQueryIterator) Close() error {
 	ret, specificReturn := fake.closeReturnsOnCall[len(fake.closeArgsForCall)]
 	fake.closeArgsForCall = append(fake.closeArgsForCall, struct {
 	}{})
+	stub := fake.CloseStub
+	fakeReturns := fake.closeReturns
 	fake.recordInvocation("Close", []interface{}{})
 	fake.closeMutex.Unlock()
-	if fake.CloseStub != nil {
-		return fake.CloseStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.closeReturns
 	return fakeReturns.result1
 }
 
@@ -101,15 +102,16 @@ func (fake *StateQueryIterator) HasNext() bool {
 	ret, specificReturn := fake.hasNextReturnsOnCall[len(fake.hasNextArgsForCall)]
 	fake.hasNextArgsForCall = append(fake.hasNextArgsForCall, struct {
 	}{})
+	stub := fake.HasNextStub
+	fakeReturns := fake.hasNextReturns
 	fake.recordInvocation("HasNext", []interface{}{})
 	fake.hasNextMutex.Unlock()
-	if fake.HasNextStub != nil {
-		return fake.HasNextStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.hasNextReturns
 	return fakeReturns.result1
 }
 
@@ -153,15 +155,16 @@ func (fake *StateQueryIterator) Next() (*queryresult.KV, error) {
 	ret, specificReturn := fake.nextReturnsOnCall[len(fake.nextArgsForCall)]
 	fake.nextArgsForCall = append(fake.nextArgsForCall, struct {
 	}{})
+	stub := fake.NextStub
+	fakeReturns := fake.nextReturns
 	fake.recordInvocation("Next", []interface{}{})
 	fake.nextMutex.Unlock()
-	if fake.NextStub != nil {
-		return fake.NextStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.nextReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

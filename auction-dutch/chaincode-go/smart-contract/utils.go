@@ -8,18 +8,18 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	"github.com/hyperledger/fabric-protos-go/common"
-	"github.com/hyperledger/fabric-protos-go/msp"
+	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
+	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
+	"google.golang.org/protobuf/proto"
 )
 
 func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionContextInterface) (string, error) {
 
 	b64ID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		return "", fmt.Errorf("Failed to read clientID: %v", err)
+		return "", fmt.Errorf("failed to read clientID: %v", err)
 	}
 	decodeID, err := base64.StdEncoding.DecodeString(b64ID)
 	if err != nil {
@@ -97,7 +97,7 @@ func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, 
 		}
 	}
 
-	if auditor == false {
+	if !auditor {
 		// create the defalt policy for an auction without an auditor
 
 		policy := &common.SignaturePolicyEnvelope{

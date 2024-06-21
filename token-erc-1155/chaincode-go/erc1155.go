@@ -9,7 +9,7 @@ package main
 import (
 	"erc1155/chaincode"
 
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
 func main() {
