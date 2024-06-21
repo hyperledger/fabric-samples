@@ -1,11 +1,12 @@
 package chaincode
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
 
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
 // SmartContract provides functions for transferring tokens using UTXO transactions
@@ -23,7 +24,6 @@ type UTXO struct {
 // Define key names for options
 const nameKey = "name"
 const symbolKey = "symbol"
-const totalSupplyKey = "totalSupply"
 
 // Mint creates a new unspent transaction output (UTXO) owned by the minter
 func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount int) (*UTXO, error) {
@@ -34,7 +34,7 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 		return nil, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
-		return nil, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+		return nil, errors.New("contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
 	// Check minter authorization - this sample assumes Org1 is the central banker with privilege to mint new tokens
@@ -43,7 +43,7 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 		return nil, fmt.Errorf("failed to get MSPID: %v", err)
 	}
 	if clientMSPID != "Org1MSP" {
-		return nil, fmt.Errorf("client is not authorized to mint new tokens")
+		return nil, errors.New("client is not authorized to mint new tokens")
 	}
 
 	// Get ID of submitting client identity
@@ -53,7 +53,7 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 	}
 
 	if amount <= 0 {
-		return nil, fmt.Errorf("mint amount must be a positive integer")
+		return nil, errors.New("mint amount must be a positive integer")
 	}
 
 	utxo := UTXO{}
@@ -63,6 +63,9 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 
 	// the utxo has a composite key of owner:utxoKey, this enables ClientUTXOs() function to query for an owner's utxos.
 	utxoCompositeKey, err := ctx.GetStub().CreateCompositeKey("utxo", []string{minter, utxo.Key})
+	if err != nil {
+		return nil, err
+	}
 
 	err = ctx.GetStub().PutState(utxoCompositeKey, []byte(strconv.Itoa(amount)))
 	if err != nil {
@@ -83,7 +86,7 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, ut
 		return nil, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
-		return nil, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+		return nil, errors.New("contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
 	// Get ID of submitting client identity
@@ -97,7 +100,7 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, ut
 	var totalInputAmount int
 	for _, utxoInputKey := range utxoInputKeys {
 		if utxoInputs[utxoInputKey] != nil {
-			return nil, fmt.Errorf("the same utxo input can not be spend twice")
+			return nil, errors.New("the same utxo input can not be spend twice")
 		}
 
 		utxoInputCompositeKey, err := ctx.GetStub().CreateCompositeKey("utxo", []string{clientID, utxoInputKey})
@@ -124,6 +127,10 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, ut
 		}
 
 		totalInputAmount, err = add(totalInputAmount, amount)
+		if err != nil {
+			return nil, err
+		}
+
 		utxoInputs[utxoInputKey] = utxoInput
 	}
 
@@ -133,12 +140,15 @@ func (s *SmartContract) Transfer(ctx contractapi.TransactionContextInterface, ut
 	for i, utxoOutput := range utxoOutputs {
 
 		if utxoOutput.Amount <= 0 {
-			return nil, fmt.Errorf("utxo output amount must be a positive integer")
+			return nil, errors.New("utxo output amount must be a positive integer")
 		}
 
 		utxoOutputs[i].Key = fmt.Sprintf("%s.%d", txID, i)
 
 		totalOutputAmount, err = add(totalOutputAmount, utxoOutput.Amount)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Validate total inputs equals total outputs
@@ -187,7 +197,7 @@ func (s *SmartContract) ClientUTXOs(ctx contractapi.TransactionContextInterface)
 		return nil, fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
-		return nil, fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+		return nil, errors.New("contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
 	// Get ID of submitting client identity
@@ -217,7 +227,7 @@ func (s *SmartContract) ClientUTXOs(ctx contractapi.TransactionContextInterface)
 		}
 
 		if len(compositeKeyParts) != 2 {
-			return nil, fmt.Errorf("expected composite key with two parts (owner:utxoKey)")
+			return nil, errors.New("expected composite key with two parts (owner:utxoKey)")
 		}
 
 		utxoKey := compositeKeyParts[1] // owner is at [0], utxoKey is at[1]
@@ -249,7 +259,7 @@ func (s *SmartContract) ClientID(ctx contractapi.TransactionContextInterface) (s
 		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
-		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+		return "", errors.New("contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
 	// Get ID of submitting client identity
@@ -272,7 +282,7 @@ func (s *SmartContract) Name(ctx contractapi.TransactionContextInterface) (strin
 		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
-		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+		return "", errors.New("contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
 	bytes, err := ctx.GetStub().GetState(nameKey)
@@ -294,7 +304,7 @@ func (s *SmartContract) Symbol(ctx contractapi.TransactionContextInterface) (str
 		return "", fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
-		return "", fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+		return "", errors.New("contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
 	bytes, err := ctx.GetStub().GetState(symbolKey)
@@ -316,7 +326,7 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 		return false, fmt.Errorf("failed to get MSPID: %v", err)
 	}
 	if clientMSPID != "Org1MSP" {
-		return false, fmt.Errorf("client is not authorized to initialize contract")
+		return false, errors.New("client is not authorized to initialize contract")
 	}
 
 	// check contract options are not already set, client is not authorized to change them once intitialized
@@ -325,7 +335,7 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 		return false, fmt.Errorf("failed to get Name: %v", err)
 	}
 	if bytes != nil {
-		return false, fmt.Errorf("contract options are already set, client is not authorized to change them")
+		return false, errors.New("contract options are already set, client is not authorized to change them")
 	}
 
 	err = ctx.GetStub().PutState(nameKey, []byte(name))
@@ -359,11 +369,10 @@ func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error)
 func add(b int, q int) (int, error) {
 
 	// Check overflow
-	var sum int
-	sum = q + b
+	sum := q + b
 
 	if (sum < q) == (b >= 0 && q >= 0) {
-		return 0, fmt.Errorf("Math: addition overflow occurred %d + %d", b, q)
+		return 0, fmt.Errorf("math: addition overflow occurred %d + %d", b, q)
 	}
 
 	return sum, nil

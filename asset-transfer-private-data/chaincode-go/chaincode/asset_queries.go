@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
 // ReadAsset reads the information from collection

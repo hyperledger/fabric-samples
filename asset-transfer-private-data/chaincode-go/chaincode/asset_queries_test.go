@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
+	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/queryresult"
 
 	"github.com/hyperledger/fabric-samples/asset-transfer-private-data/chaincode-go/chaincode"
 	"github.com/hyperledger/fabric-samples/asset-transfer-private-data/chaincode-go/chaincode/mocks"

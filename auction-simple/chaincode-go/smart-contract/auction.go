@@ -8,9 +8,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
 type SmartContract struct {
@@ -111,7 +112,7 @@ func (s *SmartContract) Bid(ctx contractapi.TransactionContextInterface, auction
 
 	BidJSON, ok := transientMap["bid"]
 	if !ok {
-		return "", fmt.Errorf("bid key not found in the transient map")
+		return "", errors.New("bid key not found in the transient map")
 	}
 
 	// get the implicit collection name using the bidder's organization ID
@@ -123,7 +124,7 @@ func (s *SmartContract) Bid(ctx contractapi.TransactionContextInterface, auction
 	// the bidder has to target their peer to store the bid
 	err = verifyClientOrgMatchesPeerOrg(ctx)
 	if err != nil {
-		return "", fmt.Errorf("Cannot store bid on this peer, not a member of this org: Error %v", err)
+		return "", fmt.Errorf("cannot store bid on this peer, not a member of this org: Error %v", err)
 	}
 
 	// the transaction ID is used as a unique index for the bid
@@ -165,7 +166,7 @@ func (s *SmartContract) SubmitBid(ctx contractapi.TransactionContextInterface, a
 	// the auction needs to be open for users to add their bid
 	Status := auction.Status
 	if Status != "open" {
-		return fmt.Errorf("cannot join closed or ended auction")
+		return errors.New("cannot join closed or ended auction")
 	}
 
 	// get the inplicit collection name of bidder's org
@@ -195,10 +196,7 @@ func (s *SmartContract) SubmitBid(ctx contractapi.TransactionContextInterface, a
 		Hash: fmt.Sprintf("%x", bidHash),
 	}
 
-	bidders := make(map[string]BidHash)
-	bidders = auction.PrivateBids
-	bidders[bidKey] = NewHash
-	auction.PrivateBids = bidders
+	auction.PrivateBids[bidKey] = NewHash
 
 	// Add the bidding organization to the list of participating organizations if it is not already
 	Orgs := auction.Orgs
@@ -233,7 +231,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 
 	transientBidJSON, ok := transientMap["bid"]
 	if !ok {
-		return fmt.Errorf("bid key not found in the transient map")
+		return errors.New("bid key not found in the transient map")
 	}
 
 	// get implicit collection name of organization ID
@@ -269,7 +267,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 	// bid to an open auction
 	Status := auction.Status
 	if Status != "closed" {
-		return fmt.Errorf("cannot reveal bid for open or ended auction")
+		return errors.New("cannot reveal bid for open or ended auction")
 	}
 
 	// check 2: check that hash of revealed bid matches hash of private bid
@@ -293,8 +291,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 	// added earlier. This ensures that the bid has not changed since it
 	// was added to the auction
 
-	bidders := auction.PrivateBids
-	privateBidHashString := bidders[bidKey].Hash
+	privateBidHashString := auction.PrivateBids[bidKey].Hash
 
 	onChainBidHashString := fmt.Sprintf("%x", bidHash)
 	if privateBidHashString != onChainBidHashString {
@@ -335,13 +332,10 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 
 	// check 4: make sure that the transaction is being submitted is the bidder
 	if bidInput.Bidder != clientID {
-		return fmt.Errorf("Permission denied, client id %v is not the owner of the bid", clientID)
+		return fmt.Errorf("permission denied, client id %v is not the owner of the bid", clientID)
 	}
 
-	revealedBids := make(map[string]FullBid)
-	revealedBids = auction.RevealedBids
-	revealedBids[bidKey] = NewBid
-	auction.RevealedBids = revealedBids
+	auction.RevealedBids[bidKey] = NewBid
 
 	newAuctionJSON, _ := json.Marshal(auction)
 
@@ -379,7 +373,7 @@ func (s *SmartContract) CloseAuction(ctx contractapi.TransactionContextInterface
 
 	Status := auction.Status
 	if Status != "open" {
-		return fmt.Errorf("cannot close auction that is not open")
+		return errors.New("cannot close auction that is not open")
 	}
 
 	auction.Status = string("closed")
@@ -419,13 +413,13 @@ func (s *SmartContract) EndAuction(ctx contractapi.TransactionContextInterface, 
 
 	Status := auction.Status
 	if Status != "closed" {
-		return fmt.Errorf("Can only end a closed auction")
+		return errors.New("can only end a closed auction")
 	}
 
 	// get the list of revealed bids
 	revealedBidMap := auction.RevealedBids
 	if len(auction.RevealedBids) == 0 {
-		return fmt.Errorf("No bids have been revealed, cannot end auction: %v", err)
+		return fmt.Errorf("no bids have been revealed, cannot end auction: %v", err)
 	}
 
 	// determine the highest bid
@@ -439,10 +433,10 @@ func (s *SmartContract) EndAuction(ctx contractapi.TransactionContextInterface, 
 	// check if there is a winning bid that has yet to be revealed
 	err = checkForHigherBid(ctx, auction.Price, auction.RevealedBids, auction.PrivateBids)
 	if err != nil {
-		return fmt.Errorf("Cannot end auction: %v", err)
+		return fmt.Errorf("cannot end auction: %v", err)
 	}
 
-	auction.Status = string("ended")
+	auction.Status = "ended"
 
 	endedAuctionJSON, _ := json.Marshal(auction)
 

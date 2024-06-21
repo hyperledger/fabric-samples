@@ -9,8 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
 // QueryResult structure used for handling result of query
@@ -161,13 +160,9 @@ func (s *SmartContract) QueryAssetHistory(ctx contractapi.TransactionContextInte
 			return nil, err
 		}
 
-		timestamp, err := ptypes.Timestamp(response.Timestamp)
-		if err != nil {
-			return nil, err
-		}
 		record := QueryResult{
 			TxId:      response.TxId,
-			Timestamp: timestamp,
+			Timestamp: response.Timestamp.AsTime(),
 			Record:    asset,
 		}
 		results = append(results, record)

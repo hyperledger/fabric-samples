@@ -13,10 +13,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/hyperledger/fabric-chaincode-go/pkg/statebased"
-	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-chaincode-go/v2/pkg/statebased"
+	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
 const (
@@ -485,13 +484,9 @@ func transferAssetState(ctx contractapi.TransactionContextInterface, asset *Asse
 		return fmt.Errorf("failed to create timestamp for receipt: %v", err)
 	}
 
-	timestamp, err := ptypes.Timestamp(txTimestamp)
-	if err != nil {
-		return err
-	}
 	assetReceipt := receipt{
 		price:     price,
-		timestamp: timestamp,
+		timestamp: txTimestamp.AsTime(),
 	}
 	receipt, err := json.Marshal(assetReceipt)
 	if err != nil {

@@ -81,15 +81,16 @@ func (fake *ClientIdentity) AssertAttributeValue(arg1 string, arg2 string) error
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.AssertAttributeValueStub
+	fakeReturns := fake.assertAttributeValueReturns
 	fake.recordInvocation("AssertAttributeValue", []interface{}{arg1, arg2})
 	fake.assertAttributeValueMutex.Unlock()
-	if fake.AssertAttributeValueStub != nil {
-		return fake.AssertAttributeValueStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.assertAttributeValueReturns
 	return fakeReturns.result1
 }
 
@@ -141,15 +142,16 @@ func (fake *ClientIdentity) GetAttributeValue(arg1 string) (string, bool, error)
 	fake.getAttributeValueArgsForCall = append(fake.getAttributeValueArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetAttributeValueStub
+	fakeReturns := fake.getAttributeValueReturns
 	fake.recordInvocation("GetAttributeValue", []interface{}{arg1})
 	fake.getAttributeValueMutex.Unlock()
-	if fake.GetAttributeValueStub != nil {
-		return fake.GetAttributeValueStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.getAttributeValueReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -206,15 +208,16 @@ func (fake *ClientIdentity) GetID() (string, error) {
 	ret, specificReturn := fake.getIDReturnsOnCall[len(fake.getIDArgsForCall)]
 	fake.getIDArgsForCall = append(fake.getIDArgsForCall, struct {
 	}{})
+	stub := fake.GetIDStub
+	fakeReturns := fake.getIDReturns
 	fake.recordInvocation("GetID", []interface{}{})
 	fake.getIDMutex.Unlock()
-	if fake.GetIDStub != nil {
-		return fake.GetIDStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getIDReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -261,15 +264,16 @@ func (fake *ClientIdentity) GetMSPID() (string, error) {
 	ret, specificReturn := fake.getMSPIDReturnsOnCall[len(fake.getMSPIDArgsForCall)]
 	fake.getMSPIDArgsForCall = append(fake.getMSPIDArgsForCall, struct {
 	}{})
+	stub := fake.GetMSPIDStub
+	fakeReturns := fake.getMSPIDReturns
 	fake.recordInvocation("GetMSPID", []interface{}{})
 	fake.getMSPIDMutex.Unlock()
-	if fake.GetMSPIDStub != nil {
-		return fake.GetMSPIDStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getMSPIDReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -316,15 +320,16 @@ func (fake *ClientIdentity) GetX509Certificate() (*x509.Certificate, error) {
 	ret, specificReturn := fake.getX509CertificateReturnsOnCall[len(fake.getX509CertificateArgsForCall)]
 	fake.getX509CertificateArgsForCall = append(fake.getX509CertificateArgsForCall, struct {
 	}{})
+	stub := fake.GetX509CertificateStub
+	fakeReturns := fake.getX509CertificateReturns
 	fake.recordInvocation("GetX509Certificate", []interface{}{})
 	fake.getX509CertificateMutex.Unlock()
-	if fake.GetX509CertificateStub != nil {
-		return fake.GetX509CertificateStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getX509CertificateReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

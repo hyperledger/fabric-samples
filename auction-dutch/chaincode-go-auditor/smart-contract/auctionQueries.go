@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
 // QueryAuction allows all members of the channel to read a public auction

@@ -75,9 +75,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
 const index = "color~name"
@@ -415,14 +414,9 @@ func (t *SimpleChaincode) GetAssetHistory(ctx contractapi.TransactionContextInte
 			}
 		}
 
-		timestamp, err := ptypes.Timestamp(response.Timestamp)
-		if err != nil {
-			return nil, err
-		}
-
 		record := HistoryQueryResult{
 			TxId:      response.TxId,
-			Timestamp: timestamp,
+			Timestamp: response.Timestamp.AsTime(),
 			Record:    &asset,
 			IsDelete:  response.IsDelete,
 		}

@@ -5,19 +5,19 @@ SPDX-License-Identifier: Apache-2.0
 package auction
 
 import (
-	"fmt"
 	"encoding/base64"
+	"fmt"
 
-	"github.com/hyperledger/fabric-chaincode-go/pkg/statebased"
-	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-chaincode-go/v2/pkg/statebased"
+	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
 func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionContextInterface) (string, error) {
 
 	b64ID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		return "", fmt.Errorf("Failed to read clientID: %v", err)
+		return "", fmt.Errorf("failed to read clientID: %v", err)
 	}
 	decodeID, err := base64.StdEncoding.DecodeString(b64ID)
 	if err != nil {

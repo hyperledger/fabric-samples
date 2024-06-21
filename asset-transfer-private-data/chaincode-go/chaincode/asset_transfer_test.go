@@ -6,14 +6,14 @@ SPDX-License-Identifier: Apache-2.0
 package chaincode_test
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"os"
 	"testing"
-	"encoding/base64"
 
-	"github.com/hyperledger/fabric-chaincode-go/pkg/cid"
-	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-chaincode-go/v2/pkg/cid"
+	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 
 	"github.com/hyperledger/fabric-samples/asset-transfer-private-data/chaincode-go/chaincode"
 	"github.com/hyperledger/fabric-samples/asset-transfer-private-data/chaincode-go/chaincode/mocks"

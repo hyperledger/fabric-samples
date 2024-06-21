@@ -7,7 +7,7 @@ package main
 import (
 	"log"
 
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 	auction "github.com/hyperledger/fabric-samples/auction/dutch-auction/chaincode-go-auditor/smart-contract"
 )
 
