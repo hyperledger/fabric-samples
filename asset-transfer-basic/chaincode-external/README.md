@@ -11,14 +11,16 @@ External Builders and Launchers is an advanced feature that typically requires c
 Open the `config/core.yaml` file at the top of the `fabric-samples` directory. If you do not have this file, follow the instructions to [Install the Samples, Binaries and Docker Images](https://hyperledger-fabric.readthedocs.io/en/latest/install.html) to download the Fabric binaries and configuration files alongside the Fabric samples.
 
 Modify the `externalBuilders` field in the `core.yaml` file to resemble the configuration below:
+
 ```
 externalBuilders:
     - path: /opt/gopath/src/github.com/hyperledger/fabric-samples/asset-transfer-basic/chaincode-external/sampleBuilder
       name: external-sample-builder
 ```
+
 This update sets the name of the external builder as `external-sample-builder`, and the path of the builder to the scripts provided in this sample. Note that this is the path within the peer container, not your local machine.
 
-To set the path within the peer container, you will need to modify the docker compose file to mount a couple of additional volumes. Open the file `test-network/docker/docker-compose-test-net.yaml`, and add to the `volumes` section of both `peer0.org1.example.com` and `peer0.org2.example.com` the following two lines:
+To set the path within the peer container, you will need to modify the docker compose file to mount a couple of additional volumes. Open the file `test-network/compose/docker/docker-compose-test-net.yaml`, and add to the `volumes` section of both `peer0.org1.example.com` and `peer0.org2.example.com` the following two lines:
 
 ```
         - ../..:/opt/gopath/src/github.com/hyperledger/fabric-samples
@@ -38,16 +40,19 @@ package that gets installed to each peer. Only the configuration and metadata in
 in the package. Since the packaging is trivial, we can manually create the chaincode package.
 
 Open a new terminal and navigate to the `fabric-samples/asset-transfer-basic/chaincode-external` directory.
+
 ```
 cd fabric-samples/asset-transfer-basic/chaincode-external
 ```
 
 First, create a `code.tar.gz` archive containing the `connection.json` file:
+
 ```
 tar cfz code.tar.gz connection.json
 ```
 
 Then, create the chaincode package, including the `code.tar.gz` file and the supplied `metadata.json` file:
+
 ```
 tar cfz asset-transfer-basic-external.tgz metadata.json code.tar.gz
 ```
@@ -57,11 +62,13 @@ You are now ready to deploy the external chaincode sample.
 ## Starting the test network
 
 We will use the Fabric test network to run the external chaincode. Open a new terminal and navigate to the `fabric-samples/test-network` directory.
+
 ```
 cd fabric-samples/test-network
 ```
 
 Run the following command to deploy the test network and create a new channel:
+
 ```
 ./network.sh up createChannel -c mychannel -ca
 ```
@@ -73,49 +80,56 @@ We are now ready to deploy the external chaincode.
 We can't use the test network script to install an external chaincode so we will have to do a bit more work. However, we can still leverage part of the test-network scripts to make this easier.
 
 From the `test-network` directory, set the following environment variables to use the Fabric binaries:
+
 ```
 export PATH=${PWD}/../bin:$PATH
 export FABRIC_CFG_PATH=$PWD/../config/
 ```
 
 Run the following command to import functions from the `envVar.sh` script into your terminal. These functions allow you to act as either test network organization.
+
 ```
 . ./scripts/envVar.sh
 ```
 
 Run the following commands to install the `asset-transfer-basic-external.tar.gz` chaincode on org1. The `setGlobals` function simply sets the environment variables that allow you to act as org1 or org2.
+
 ```
 setGlobals 1
 peer lifecycle chaincode install ../asset-transfer-basic/chaincode-external/asset-transfer-basic-external.tgz
 ```
 
 Install the chaincode package on the org2 peer:
+
 ```
 setGlobals 2
 peer lifecycle chaincode install ../asset-transfer-basic/chaincode-external/asset-transfer-basic-external.tgz
 ```
 
 Run the following command to query the package ID of the chaincode that you just installed:
+
 ```
 setGlobals 1
 peer lifecycle chaincode queryinstalled --peerAddresses localhost:7051 --tlsRootCertFiles organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
 ```
 
 The command will return output similar to the following:
+
 ```
 Installed chaincodes on peer:
 Package ID: basic_1.0:ecfc83f251b7c2d9ef376bc3fc20fc6b9744c0fc0a8923092af6542af94790c3, Label: basic_1.0
 ```
 
 Save the package ID that was returned by the command as an environment variable. The ID will not be the same for all users, so you need to set the variable using the ID from your command window:
+
 ```
 export CHAINCODE_ID=basic_1.0:ecfc83f251b7c2d9ef376bc3fc20fc6b9744c0fc0a8923092af6542af94790c3
 ```
 
-
 ## Running the Asset-Transfer-Basic external service
 
 We are going to run the smart contract as an external service by first building and then starting a docker container. Open a new terminal and navigate back to the `chaincode-external` directory:
+
 ```
 cd fabric-samples/asset-transfer-basic/chaincode-external
 ```
@@ -123,11 +137,13 @@ cd fabric-samples/asset-transfer-basic/chaincode-external
 In this directory, open the `chaincode.env` file to set the `CHAINCODE_ID` variable to the same package ID that was returned by the `peer lifecycle chaincode queryinstalled` command. The value should be the same as the environment variable that you set in the previous terminal.
 
 After you edit the `chaincode.env` file, you can use the `Dockerfile` to build an image of the external Asset-Transfer-Basic chaincode:
+
 ```
 docker build -t hyperledger/asset-transfer-basic .
 ```
 
 You can then run the image to start the Asset-Transfer-Basic service:
+
 ```
 docker run -it --rm --name asset-transfer-basic.org1.example.com --hostname asset-transfer-basic.org1.example.com --env-file chaincode.env --network=fabric_test hyperledger/asset-transfer-basic
 ```
@@ -160,11 +176,13 @@ Now that we have started the chaincode service and deployed it to the channel, w
 ## Using the Asset-Transfer-Basic external chaincode
 
 Open yet another terminal and navigate to the `fabric-samples/asset-transfer-basic/application-gateway-go` directory:
+
 ```
 cd fabric-samples/asset-transfer-basic/application-gateway-go
 ```
 
 Run the following commands to use the node application in this directory to test the external smart contract:
+
 ```
 go run .
 ```
@@ -179,7 +197,7 @@ In the sample so far, you connected both peers in `test-network` to the single i
 
 - As a first step generate a keypair that can be used. Run these commands from the `fabric-samples/asset-transfer-basic/chaincode-external` directory.
 
-*Find instructions to install `openssl` in [openssl.org](https://www.openssl.org/)*
+_Find instructions to install `openssl` in [openssl.org](https://www.openssl.org/)_
 
 For `org1.example.com`
 
