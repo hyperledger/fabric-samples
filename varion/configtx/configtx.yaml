@@ -210,14 +210,14 @@ Application: &ApplicationDefaults
 #      Type: ImplicitMeta
 #      Rule: "MAJORITY Endorsement"
       Type: Signature
-      Rule: "OutOf(2, 'FarmerMSP.peer', 'PulperMSP.peer', 'HullerMSP.peer', 'ExportMSP.peer')"
-#      Rule: "OR('FarmerMSP.peer', 'PulperMSP.peer', 'HullerMSP.peer', 'ExportMSP.peer')"
+#      Rule: "OutOf(2, 'FarmerMSP.peer', 'PulperMSP.peer', 'HullerMSP.peer', 'ExportMSP.peer')"
+      Rule: "OR('FarmerMSP.peer', 'PulperMSP.peer', 'HullerMSP.peer', 'ExportMSP.peer')"
     Endorsement:
 #      Type: ImplicitMeta
 #      Rule: "MAJORITY Endorsement"
       Type: Signature
-      Rule: "OutOf(2, 'FarmerMSP.peer', 'PulperMSP.peer', 'HullerMSP.peer', 'ExportMSP.peer')"
-#      Rule: "OR('FarmerMSP.peer', 'PulperMSP.peer', 'HullerMSP.peer', 'ExportMSP.peer')"
+#      Rule: "OutOf(2, 'FarmerMSP.peer', 'PulperMSP.peer', 'HullerMSP.peer', 'ExportMSP.peer')"
+      Rule: "OR('FarmerMSP.peer', 'PulperMSP.peer', 'HullerMSP.peer', 'ExportMSP.peer')"
   Capabilities:
     <<: *ApplicationCapabilities
 ################################################################################
