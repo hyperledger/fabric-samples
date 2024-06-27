@@ -47,7 +47,7 @@ function check_prereqs() {
   if [[ $? -ne 0 ]]; then
     echo "Downloading LATEST Fabric binaries and config"
     curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/bootstrap.sh \
-      | bash -s -- -s -d
+      | bash -s -- ${FABRIC_VERSION} ${FABRIC_CA_VERSION} -s -d
 
     # remove sample config files extracted by the installation script
     rm config/configtx.yaml
