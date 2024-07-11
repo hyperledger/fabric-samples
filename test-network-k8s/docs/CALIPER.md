@@ -62,7 +62,8 @@ Edit "url" and "grpcOptions" in "peers" section of connection-profile.json as be
     },
 ```
 
-Open networks/fabric/test-network.yaml and edit as below:
+Open networks/fabric/test-network.yaml and edit it as below:
+
 
 ```yaml
 name: Caliper Benchmarks
