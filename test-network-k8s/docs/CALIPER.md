@@ -99,7 +99,8 @@ organizations:
       discover: true
 ```
 
-Currently, sample code for running a performance benchmark targeting asset-transfer-basic is not published on github. Therefore, use the sample code published in [Caliper's user manual to build a test workload.](https://hyperledger.github.io/caliper/vNext/fabric-tutorial/tutorials-fabric-existing/)
+Currently, sample code for running a performance benchmark targeting asset-transfer-basic is not published on the Caliper repository. Therefore, use the sample code published in [Caliper's user manual to build a test workload.](https://hyperledger.github.io/caliper/vNext/fabric-tutorial/tutorials-fabric-existing/)
+
 
 As shown in "Step 3" of the above document, create workload/readAsset.js file and edit as below:
 
