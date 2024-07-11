@@ -170,7 +170,8 @@ function createWorkloadModule() {
 module.exports.createWorkloadModule = createWorkloadModule;
 ```
 
-As shown in "Step 4" of the above document, create benchmarks/myAssetBenchmark.yaml file and edit as below:
+As shown in "Step 4" of the above document, create benchmarks/myAssetBenchmark.yaml file and edit it as below:
+
 
 ```yaml
 test:
