@@ -91,7 +91,8 @@ organizations:
       certificates:
       - name: 'User1'
         clientPrivateKey:
-          path: '<fabric-samples install dir>/test-network-k8s/build/enrollments/org1/users/rcaadmin/msp/keystore/<key file name>'
+          path: '<fabric-samples install absolute dir>/test-network-k8s/build/enrollments/org1/users/org1admin/msp/keystore/key.pem'
+
         clientSignedCert:
           path: '<fabric-samples install dir>/test-network-k8s/build/enrollments/org1/users/rcaadmin/msp/signcerts/cert.pem'
     connectionProfile:
