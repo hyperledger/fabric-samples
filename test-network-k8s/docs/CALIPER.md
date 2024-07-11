@@ -94,7 +94,8 @@ organizations:
           path: '<fabric-samples install absolute dir>/test-network-k8s/build/enrollments/org1/users/org1admin/msp/keystore/key.pem'
 
         clientSignedCert:
-          path: '<fabric-samples install dir>/test-network-k8s/build/enrollments/org1/users/rcaadmin/msp/signcerts/cert.pem'
+          path: '<fabric-samples install absolute dir>/test-network-k8s/build/enrollments/org1/users/org1admin/msp/signcerts/cert.pem'
+
     connectionProfile:
       path: 'networks/fabric/connection-profile.json'
       discover: true
