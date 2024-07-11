@@ -192,6 +192,7 @@ test:
 
 After creating the above files, you can run a performance benchmark with the following command, which will create some assets and measure the time it takes to reference the assets.
 
-```bash
+```shell
+
 npx caliper launch manager --caliper-workspace . --caliper-benchconfig benchmarks/myAssetBenchmark.yaml --caliper-networkconfig networks/fabric/test-network.yaml
 ```
