@@ -44,3 +44,4 @@ _Chaincode-as-a-Service_ running in a shared Kubernetes namespace.
 - [Debugging Chaincode](CHAINCODE_AS_A_SERVICE.md)
 - [Working with Applications](APPLICATIONS.md)
 - [High Availability](HIGH_AVAILABILITY.md)
+- [Benchmarking the performance using Hyperledger Caliper](CALIPER.md)
