@@ -2,7 +2,7 @@
 
 This document introduces how to use [Hyperledger Caliper](https://hyperledger.github.io/caliper/) to benchmark the performance of the Hyperledger Fabric environment created with test-network-k8s.
 
-[Fabric adapter manual of Hyperledger Caliper v0.6.0](https://hyperledger.github.io/caliper/v0.6.0/fabric-config/new/) only describes how to connect to test-network. So this document will explain how to benchmark the performance of the Kubernetes test network using Hyperledger Caliper and Asset Transfer Basic chaincode.
+[Fabric adapter manual of Hyperledger Caliper v0.6.0](https://hyperledger.github.io/caliper/v0.6.0/fabric-config/new/) only describes how to connect to test-network. Furthermore, these chaincodes need to be executed as services to run in a K8s environment, but this is not supported by default, requiring customization. So we will explain how to benchmark the performance of the Kubernetes test network using Hyperledger Caliper and Asset Transfer Basic chaincode, which is most basic in current sample chaincodes.
 
 The following documentation assumes that test-network-k8s and Hyperledger Caliper v0.6.0 are located on the same host.
 
@@ -45,7 +45,7 @@ Copy the connection profile created in test-network-k8s environment to Caliper e
 ```shell
 cp <fabric-samples install dir>/test-network-k8s/build/fabric-rest-sample-config/HLF_CONNECTION_PROFILE_ORG1 networks/fabric/connection-profile.json
 ```
-Edit "url" and "grpcOptions" in "peers" section of connection-profile.json as below:
+Replace `*.test-network.svc.cluster.local` with `*.localho.st` in "url" and "grpcOptions" section of connection-profile.json as below:
 
 ```json
     "peers": {
@@ -61,6 +61,7 @@ Edit "url" and "grpcOptions" in "peers" section of connection-profile.json as be
         }
     },
 ```
+`*.localho.st` is wildcard domain defined for accessing K8s pod from external network via Nginx ingress controller. Please see [Working with Kubernetes](KUBERNETES.md) document for details.
 
 Open networks/fabric/test-network.yaml and edit it as below:
 
