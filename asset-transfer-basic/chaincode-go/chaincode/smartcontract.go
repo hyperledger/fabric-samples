@@ -3,10 +3,10 @@ package chaincode
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
-
 // SmartContract provides functions for managing an Asset
 type SmartContract struct {
 	contractapi.Contract
@@ -16,22 +16,63 @@ type SmartContract struct {
 // Insert struct field in alphabetic order => to achieve determinism across languages
 // golang keeps the order when marshal to json but doesn't order automatically
 type Asset struct {
-	AppraisedValue int    `json:"AppraisedValue"`
-	Color          string `json:"Color"`
 	ID             string `json:"ID"`
 	Owner          string `json:"Owner"`
-	Size           int    `json:"Size"`
+	PrescripcionAnteriorId string `json:"PrescripcionAnteriorId"`
+	Status string `json:"Status"`
+	StatusChange time.Time `json:"StatusChange"`
+	Prioridad string `json:"Prioridad"`
+	Medicacion string `json:"medicacion"`
+	Razon string `json:"Razon"`
+	Notas string `json:"Notas"`
+	PeriodoDeTratamiento string `json:"PeriodoDeTratamiento"`
+	InstruccionesTratamiento string `json:"PnstruccionesTratamiento"`
+	PeriodoDeValidez string `json:"PeriodoDeValidez"`
+	DniPaciente string `json:"DniPaciente"`
+	FechaDeAutorizacion time.Time `json:"FechaDeAutorizacion"`
+	Cantidad int `json:"Cantidad"`
+	ExpectedSupplyDuration time.Time `json:"ExpectedSupplyDuration"`
 }
 
 // InitLedger adds a base set of assets to the ledger
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	assets := []Asset{
-		{ID: "asset1", Color: "blue", Size: 5, Owner: "Tomoko", AppraisedValue: 300},
-		{ID: "asset2", Color: "red", Size: 5, Owner: "Brad", AppraisedValue: 400},
-		{ID: "asset3", Color: "green", Size: 10, Owner: "Jin Soo", AppraisedValue: 500},
-		{ID: "asset4", Color: "yellow", Size: 10, Owner: "Max", AppraisedValue: 600},
-		{ID: "asset5", Color: "black", Size: 15, Owner: "Adriana", AppraisedValue: 700},
-		{ID: "asset6", Color: "white", Size: 15, Owner: "Michel", AppraisedValue: 800},
+		{
+			ID:                       "asset1",
+			Owner:                    "Tomoko",
+			PrescripcionAnteriorId:   "presc123",
+			Status:                   "active",
+			StatusChange:             time.Date(2024, time.January, 15, 10, 0, 0, 0, time.UTC),
+			Prioridad:                "high",
+			Medicacion:               "medication1",
+			Razon:                    "reason1",
+			Notas:                    "some notes",
+			PeriodoDeTratamiento:     "30 days",
+			InstruccionesTratamiento: "take daily",
+			PeriodoDeValidez:         "1 year",
+			DniPaciente:              "12345678",
+			FechaDeAutorizacion:      time.Date(2024, time.January, 1, 9, 0, 0, 0, time.UTC),
+			Cantidad:                 5,
+			ExpectedSupplyDuration:   time.Date(2024, time.February, 1, 9, 0, 0, 0, time.UTC),
+		},
+		{
+			ID:                       "asset2",
+			Owner:                    "Alice",
+			PrescripcionAnteriorId:   "presc456",
+			Status:                   "completed",
+			StatusChange:             time.Date(2024, time.February, 20, 11, 0, 0, 0, time.UTC),
+			Prioridad:                "medium",
+			Medicacion:               "medication2",
+			Razon:                    "reason2",
+			Notas:                    "other notes",
+			PeriodoDeTratamiento:     "60 days",
+			InstruccionesTratamiento: "take twice daily",
+			PeriodoDeValidez:         "2 years",
+			DniPaciente:              "87654321",
+			FechaDeAutorizacion:      time.Date(2024, time.January, 10, 10, 0, 0, 0, time.UTC),
+			Cantidad:                 10,
+			ExpectedSupplyDuration:   time.Date(2024, time.April, 10, 10, 0, 0, 0, time.UTC),
+		},
 	}
 
 	for _, asset := range assets {
@@ -50,7 +91,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 }
 
 // CreateAsset issues a new asset to the world state with given details.
-func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface, id string, color string, size int, owner string, appraisedValue int) error {
+func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface, id string, owner string, prescripcionAnteriorId string, status string, statusChange time.Time, prioridad string, medicacion string, razon string, notas string, periodoDeTratamiento string, instruccionesTratamiento string, periodoDeValidez string, dniPaciente string, fechaDeAutorizacion time.Time, cantidad int, expectedSupplyDuration time.Time) error {
 	exists, err := s.AssetExists(ctx, id)
 	if err != nil {
 		return err
@@ -60,11 +101,22 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 	}
 
 	asset := Asset{
-		ID:             id,
-		Color:          color,
-		Size:           size,
-		Owner:          owner,
-		AppraisedValue: appraisedValue,
+		ID:                       id,
+		Owner:                    owner,
+		PrescripcionAnteriorId:   prescripcionAnteriorId,
+		Status:                   status,
+		StatusChange:             statusChange,
+		Prioridad:                prioridad,
+		Medicacion:               medicacion,
+		Razon:                    razon,
+		Notas:                    notas,
+		PeriodoDeTratamiento:     periodoDeTratamiento,
+		InstruccionesTratamiento: instruccionesTratamiento,
+		PeriodoDeValidez:         periodoDeValidez,
+		DniPaciente:              dniPaciente,
+		FechaDeAutorizacion:      fechaDeAutorizacion,
+		Cantidad:                 cantidad,
+		ExpectedSupplyDuration:   expectedSupplyDuration,
 	}
 	assetJSON, err := json.Marshal(asset)
 	if err != nil {
@@ -94,7 +146,7 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, i
 }
 
 // UpdateAsset updates an existing asset in the world state with provided parameters.
-func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface, id string, color string, size int, owner string, appraisedValue int) error {
+func (s *SmartContract)  UpdateAsset(ctx contractapi.TransactionContextInterface, id string, owner string, prescripcionAnteriorId string, status string, statusChange time.Time, prioridad string, medicacion string, razon string, notas string, periodoDeTratamiento string, instruccionesTratamiento string, periodoDeValidez string, dniPaciente string, fechaDeAutorizacion time.Time, cantidad int, expectedSupplyDuration time.Time) error {
 	exists, err := s.AssetExists(ctx, id)
 	if err != nil {
 		return err
@@ -105,11 +157,22 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 
 	// overwriting original asset with new asset
 	asset := Asset{
-		ID:             id,
-		Color:          color,
-		Size:           size,
-		Owner:          owner,
-		AppraisedValue: appraisedValue,
+		ID:                       id,
+		Owner:                    owner,
+		PrescripcionAnteriorId:   prescripcionAnteriorId,
+		Status:                   status,
+		StatusChange:             statusChange,
+		Prioridad:                prioridad,
+		Medicacion:               medicacion,
+		Razon:                    razon,
+		Notas:                    notas,
+		PeriodoDeTratamiento:     periodoDeTratamiento,
+		InstruccionesTratamiento: instruccionesTratamiento,
+		PeriodoDeValidez:         periodoDeValidez,
+		DniPaciente:              dniPaciente,
+		FechaDeAutorizacion:      fechaDeAutorizacion,
+		Cantidad:                 cantidad,
+		ExpectedSupplyDuration:   expectedSupplyDuration,
 	}
 	assetJSON, err := json.Marshal(asset)
 	if err != nil {
