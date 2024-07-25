@@ -16,9 +16,9 @@ services:
       context: ./auditor
       dockerfile: ../Dockerfile
     volumes:
-      - ./data/auditor:/var/fsc/data/auditor
+      - ./data/auditor:/Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/data/auditor
       - ./auditor/conf:/conf:ro
-      - ./keys:/var/fsc/keys:ro
+      - ./keys:/Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys:ro
     ports:
       - 9000:9000
     expose:
@@ -38,9 +38,9 @@ services:
       context: ./issuer
       dockerfile: ../Dockerfile
     volumes:
-      - ./data/issuer:/var/fsc/data/issuer
+      - ./data/issuer:/Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/data/issuer
       - ./issuer/conf:/conf:ro
-      - ./keys:/var/fsc/keys:ro
+      - ./keys:/Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys:ro
     ports:
       - 9100:9000
     expose:
@@ -58,9 +58,9 @@ services:
       context: ./owner
       dockerfile: ../Dockerfile
     volumes:
-      - ./data/owner1:/var/fsc/data/owner1
+      - ./data/owner1:/Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/data/owner1
       - ./owner/conf/owner1:/conf:ro
-      - ./keys:/var/fsc/keys:ro
+      - ./keys:/Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys:ro
     ports:
       - 9200:9000
     expose:
@@ -78,9 +78,9 @@ services:
       context: ./owner
       dockerfile: ../Dockerfile
     volumes:
-      - ./data/owner2:/var/fsc/data/owner2
+      - ./data/owner2:/Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/data/owner2
       - ./owner/conf/owner2:/conf:ro
-      - ./keys:/var/fsc/keys:ro
+      - ./keys:/Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys:ro
     ports:
       - 9300:9000
     expose:

@@ -7,9 +7,9 @@ logging:
 fsc:
   identity:
     cert:
-      file: /var/fsc/keys/auditor/fsc/msp/signcerts/cert.pem
+      file: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys/auditor/fsc/msp/signcerts/cert.pem
     key:
-      file: /var/fsc/keys/auditor/fsc/msp/keystore/priv_sk
+      file: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys/auditor/fsc/msp/keystore/priv_sk
   tls:
     enabled: false # TODO
   p2p:
@@ -21,7 +21,7 @@ fsc:
     persistence:
       type: badger # badger or memory
       opts:
-        path: /var/fsc/data/auditor/kvs
+        path: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/data/auditor/kvs
 
   # The endpoint section tells how to reach other FSC node in the network.
   # For each node, the name, the domain, the identity of the node, and its addresses must be specified.
@@ -30,19 +30,19 @@ fsc:
       - name: issuer
         identity:
           id: issuer
-          path: /var/fsc/keys/issuer/fsc/msp/signcerts/cert.pem
+          path: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys/issuer/fsc/msp/signcerts/cert.pem
         addresses:
           P2P: issuer.example.com:9101
       - name: owner1
         identity:
           id: owner1
-          path: /var/fsc/keys/owner1/fsc/msp/signcerts/cert.pem
+          path: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys/owner1/fsc/msp/signcerts/cert.pem
         addresses:
           P2P: owner1.example.com:9201
       - name: owner2
         identity:
           id: owner2
-          path: /var/fsc/keys/owner2/fsc/msp/signcerts/cert.pem
+          path: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys/owner2/fsc/msp/signcerts/cert.pem
         addresses:
           P2P: owner2.example.com:9301
 
@@ -51,13 +51,13 @@ fabric:
   enabled: true
   mynetwork:
     default: true
-    mspConfigPath: /var/fsc/keys/fabric/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp
+    mspConfigPath: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys/fabric/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp
     defaultMSP: Org1MSP
     msps:
       - id: Org1MSP
         mspType: bccsp
         mspID: Org1MSP
-        path: /var/fsc/keys/fabric/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp
+        path: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys/fabric/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp
     tls:
       enabled: true
     # If the keepalive values are too low, Fabric peers will complain with: ENHANCE_YOUR_CALM, debug data: "too_many_pings"
@@ -69,14 +69,14 @@ fabric:
       - address: orderer.example.com:7050
         connectionTimeout: 10s
         tlsEnabled: true
-        tlsRootCertFile: /var/fsc/keys/fabric/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
+        tlsRootCertFile: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys/fabric/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt
         serverNameOverride: orderer.example.com
     # List of trusted peers this node can connect to. There must be at least one trusted peer. Others are discovered.
     peers:
       - address: peer0.org1.example.com:7051
         connectionTimeout: 10s
         tlsEnabled: true
-        tlsRootCertFile: /var/fsc/keys/fabric/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+        tlsRootCertFile: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys/fabric/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
         serverNameOverride: peer0.org1.example.com
     # Channel where the token chaincode is deployed
     channels:
@@ -87,7 +87,7 @@ fabric:
       persistence:
         type: badger
         opts:
-          path: /var/fsc/data/auditor/vault
+          path: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/data/auditor/vault
 
 # ------------------- Token SDK Configuration -------------------------
 token:
@@ -102,11 +102,11 @@ token:
         auditors:
           - id: auditor # the unique identifier of this wallet. Here is an example of use: `ttx.GetIssuerWallet(context, "issuer)`
             default: true # is this the default issuer wallet
-            path: /var/fsc/keys/auditor/aud/msp
+            path: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/keys/auditor/aud/msp
   # Internal database to keep track of token transactions. 
   # It is used by auditors and token owners to track history
   ttxdb:
     persistence:
       type: badger
       opts:
-        path: /var/fsc/data/auditor/txdb
+        path: /Users/garvwadhwa/garv-internal-testing-repos/fabric-samples/token-sdk/data/auditor/txdb

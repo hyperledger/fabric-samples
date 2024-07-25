@@ -31,6 +31,13 @@ fabric-ca-client enroll -u http://alice:password@localhost:27054  -M "$(pwd)/key
 fabric-ca-client register -u http://localhost:27054 --id.name bob --id.secret password --id.type client --enrollment.type idemix --idemix.curve gurvy.Bn254
 fabric-ca-client enroll -u http://bob:password@localhost:27054 -M "$(pwd)/keys/owner1/wallet/bob/msp" --enrollment.type idemix --idemix.curve gurvy.Bn254
 
+fabric-ca-client register -u http://localhost:27054 --id.name garv --id.secret password --id.type client --enrollment.type idemix --idemix.curve gurvy.Bn254
+fabric-ca-client enroll -u http://bob:password@localhost:27054 -M "$(pwd)/keys/owner1/wallet/garv/msp" --enrollment.type idemix --idemix.curve gurvy.Bn254
+
+
+fabric-ca-client register -u http://localhost:27054 --id.name garv-2 --id.secret password --id.type client --enrollment.type idemix --idemix.curve gurvy.Bn254
+fabric-ca-client enroll -u http://bob:password@localhost:27054 -M "$(pwd)/keys/owner1/wallet/garv-2/msp" --enrollment.type idemix --idemix.curve gurvy.Bn254
+
 # Owner wallet users (pseudonymous) on the owner2 node
 fabric-ca-client register -u http://localhost:27054 --id.name carlos --id.secret password --id.type client --enrollment.type idemix --idemix.curve gurvy.Bn254
 fabric-ca-client enroll -u http://carlos:password@localhost:27054  -M "$(pwd)/keys/owner2/wallet/carlos/msp" --enrollment.type idemix --idemix.curve gurvy.Bn254

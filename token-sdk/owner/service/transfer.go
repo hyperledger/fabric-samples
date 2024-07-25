@@ -29,6 +29,7 @@ func (s TokenService) TransferTokens(tokenType string, quantity uint64, sender s
 			Message:       message,
 		},
 	})
+	logger.Info("GW TransferTokens: %s", res)
 	if err != nil {
 		logger.Error(err)
 		return
@@ -75,6 +76,7 @@ func (v *TransferView) Call(context view.Context) (interface{}, error) {
 		// Get recipient identity from own wallet
 		logger.Infof("getting local identity for %s", v.Recipient)
 		recipient, err = w.GetRecipientIdentity()
+		logger.Info("GW log-1: %s", recipient)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed getting recipient identity from own node: %s", v.Recipient)
 		}
@@ -90,6 +92,7 @@ func (v *TransferView) Call(context view.Context) (interface{}, error) {
 		// Request recipient identity from other node
 		logger.Infof("requesting [%s] identity from [%s]", v.Recipient, v.RecipientNode)
 		recipient, err = ttx.RequestRecipientIdentity(context, rec)
+		logger.Info("GW log-2: %s", recipient)
 		if err != nil {
 			return "", errors.Wrapf(err, "failed getting recipient identity from %s", v.RecipientNode)
 		}

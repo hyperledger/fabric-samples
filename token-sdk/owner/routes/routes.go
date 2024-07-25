@@ -92,6 +92,7 @@ func (c Controller) OwnerAccount(ctx context.Context, request OwnerAccountReques
 		code = *request.Params.Code
 	}
 	balance, err := c.Service.GetBalance(request.Id, code)
+	fmt.Print("balance is: ", balance)
 	if err != nil {
 		return OwnerAccountdefaultJSONResponse{
 			Body: Error{
@@ -111,7 +112,7 @@ func (c Controller) OwnerAccount(ctx context.Context, request OwnerAccountReques
 	}
 	return OwnerAccount200JSONResponse{
 		AccountSuccessJSONResponse: AccountSuccessJSONResponse{
-			Message: fmt.Sprintf("got balances for %s", request.Id),
+			Message: fmt.Sprintf("GOT balances for %s:", request.Id),
 			Payload: Account{
 				Id:      request.Id,
 				Balance: amounts,
@@ -137,6 +138,8 @@ func (c Controller) OwnerTransactions(ctx context.Context, request OwnerTransact
 		}, nil
 	}
 
+	fmt.Print("history is: ", history)
+
 	pl := []TransactionRecord{}
 	for _, tx := range history {
 		pl = append(pl, TransactionRecord{
@@ -154,7 +157,7 @@ func (c Controller) OwnerTransactions(ctx context.Context, request OwnerTransact
 	}
 	return OwnerTransactions200JSONResponse{
 		TransactionsSuccessJSONResponse: TransactionsSuccessJSONResponse{
-			Message: fmt.Sprintf("got %d transactions for %s", len(pl), request.Id),
+			Message: fmt.Sprintf("GOT %d transactions for %s", len(pl), request.Id),
 			Payload: pl,
 		},
 	}, nil
