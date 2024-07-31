@@ -79,7 +79,7 @@ function checkPrereqs() {
   infoln "DOCKER_IMAGE_VERSION=$DOCKER_IMAGE_VERSION"
 
   if [ "$LOCAL_VERSION" != "$DOCKER_IMAGE_VERSION" ]; then
-    warnln "Local fabric binaries and docker images are out of  sync. This may cause problems."
+    warnln "Local fabric binaries and docker images are out of sync. This may cause problems."
   fi
 
   for UNSUPPORTED_VERSION in $NONWORKING_VERSIONS; do
