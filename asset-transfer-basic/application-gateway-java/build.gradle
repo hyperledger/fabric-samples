@@ -31,6 +31,14 @@ java {
     }
 }
 
+sourceSets {
+    main {
+        java {
+            srcDirs = ['application-gateway-java/src/main/java']
+        }
+    }
+}
+
 application {
     // Define the main class for the application.
     mainClass = 'App'
