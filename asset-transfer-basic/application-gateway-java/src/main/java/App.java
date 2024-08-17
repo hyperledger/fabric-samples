@@ -30,8 +30,71 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.cert.CertificateException;
-import java.time.Instant;
 import java.util.concurrent.TimeUnit;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+class Asset {
+    private String id;
+    private String owner;
+    private String prescripcionAnteriorId;
+    private String status;
+    private LocalDateTime statusChange;
+    private String prioridad;
+    private String medicacion;
+    private String razon;
+    private String notas;
+    private String periodoDeTratamiento;
+    private String instruccionesTratamiento;
+    private String periodoDeValidez;
+    private String dniPaciente;
+    private LocalDate fechaDeAutorizacion;
+    private int cantidad;
+    private LocalDate expectedSupplyDuration;
+
+    public Asset(String id, String owner, String prescripcionAnteriorId, String status, LocalDateTime statusChange,
+                 String prioridad, String medicacion, String razon, String notas, String periodoDeTratamiento,
+                 String instruccionesTratamiento, String periodoDeValidez, String dniPaciente,
+                 LocalDate fechaDeAutorizacion, int cantidad, LocalDate expectedSupplyDuration) {
+        this.id = id;
+        this.owner = owner;
+        this.prescripcionAnteriorId = prescripcionAnteriorId;
+        this.status = status;
+        this.statusChange = statusChange;
+        this.prioridad = prioridad;
+        this.medicacion = medicacion;
+        this.razon = razon;
+        this.notas = notas;
+        this.periodoDeTratamiento = periodoDeTratamiento;
+        this.instruccionesTratamiento = instruccionesTratamiento;
+        this.periodoDeValidez = periodoDeValidez;
+        this.dniPaciente = dniPaciente;
+        this.fechaDeAutorizacion = fechaDeAutorizacion;
+        this.cantidad = cantidad;
+        this.expectedSupplyDuration = expectedSupplyDuration;
+    }
+
+    // Getters
+    public String getId() { return id; }
+    public String getOwner() { return owner; }
+    public String getPrescripcionAnteriorId() { return prescripcionAnteriorId; }
+    public String getStatus() { return status; }
+    public LocalDateTime getStatusChange() { return statusChange; }
+    public String getPrioridad() { return prioridad; }
+    public String getMedicacion() { return medicacion; }
+    public String getRazon() { return razon; }
+    public String getNotas() { return notas; }
+    public String getPeriodoDeTratamiento() { return periodoDeTratamiento; }
+    public String getInstruccionesTratamiento() { return instruccionesTratamiento; }
+    public String getPeriodoDeValidez() { return periodoDeValidez; }
+    public String getDniPaciente() { return dniPaciente; }
+    public LocalDate getFechaDeAutorizacion() { return fechaDeAutorizacion; }
+    public int getCantidad() { return cantidad; }
+    public LocalDate getExpectedSupplyDuration() { return expectedSupplyDuration; }
+}
+
+
 
 public final class App {
 	private static final String MSP_ID = System.getenv().getOrDefault("MSP_ID", "Org1MSP");
@@ -170,9 +233,46 @@ public final class App {
 	 * the ledger.
 	 */
 	private void createAsset() throws EndorseException, SubmitException, CommitStatusException, CommitException {
-		System.out.println("\n--> Submit Transaction: CreateAsset, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments");
+		System.out.println("\n--> Submit Transaction: CreateAsset, creates new asset with all arguments");
 
-		contract.submitTransaction("CreateAsset", assetId, "yellow", "5", "Tom", "1300");
+		Asset asset = new Asset(
+                assetId,
+                "Tom",
+                "presc456",
+                "active",
+                LocalDateTime.now(),
+                "high",
+                "Medicine XYZ",
+                "Condition ABC",
+                "Take with food",
+                "30 days",
+                "1 pill per day",
+                "1 year",
+                "12345678",
+                LocalDate.now(),
+                30,
+                LocalDate.now()  
+        );
+
+		contract.submitTransaction(
+                    "CreateAsset",
+                    asset.getId(),
+                    asset.getOwner(),
+                    asset.getPrescripcionAnteriorId(),
+                    asset.getStatus(),
+                    asset.getStatusChange().toString(),
+                    asset.getPrioridad(),
+                    asset.getMedicacion(),
+                    asset.getRazon(),
+                    asset.getNotas(),
+                    asset.getPeriodoDeTratamiento(),
+                    asset.getInstruccionesTratamiento(),
+                    asset.getPeriodoDeValidez(),
+                    asset.getDniPaciente(),
+                    asset.getFechaDeAutorizacion().toString(),
+                    Integer.toString(asset.getCantidad()),
+                    asset.getExpectedSupplyDuration().toString()
+            );
 
 		System.out.println("*** Transaction committed successfully");
 	}
@@ -222,7 +322,44 @@ public final class App {
 		try {
 			System.out.println("\n--> Submit Transaction: UpdateAsset asset70, asset70 does not exist and should return an error");
 			
-			contract.submitTransaction("UpdateAsset", "asset70", "blue", "5", "Tomoko", "300");
+			Asset asset = new Asset(
+                "asset70",                  // Asset ID
+                "Tomoko",                   // Owner
+                "presc789",                 // Prescripcion Anterior Id
+                "inactive",                 // Status
+                LocalDateTime.now()  ,     // Status Change
+                "medium",                   // Prioridad
+                "Medicine ABC",             // Medicacion
+                "Condition XYZ",            // Razon
+                "Take with water",          // Notas
+                "60 days",                  // Periodo De Tratamiento
+                "2 pills per day",          // Instrucciones Tratamiento
+                "60 days",               // Periodo De Validez
+                "87654321",                 // Dni Paciente
+                LocalDate.now() ,               // Fecha De Autorizacion
+                60,                       // Cantidad
+                LocalDate.now()               // Expected Supply Duration
+        	);
+
+			contract.submitTransaction(
+                    "UpdateAsset",
+                    "asset70",
+                    asset.getOwner(),
+                    asset.getPrescripcionAnteriorId(),
+                    asset.getStatus(),
+                    asset.getStatusChange().toString(),
+                    asset.getPrioridad(),
+                    asset.getMedicacion(),
+                    asset.getRazon(),
+                    asset.getNotas(),
+                    asset.getPeriodoDeTratamiento(),
+                    asset.getInstruccionesTratamiento(),
+                    asset.getPeriodoDeValidez(),
+                    asset.getDniPaciente(),
+                    asset.getFechaDeAutorizacion().toString(),
+                    Integer.toString(asset.getCantidad()),
+                    asset.getExpectedSupplyDuration().toString()
+            );
 			
 			System.out.println("******** FAILED to return an error");
 		} catch (EndorseException | SubmitException | CommitStatusException e) {
