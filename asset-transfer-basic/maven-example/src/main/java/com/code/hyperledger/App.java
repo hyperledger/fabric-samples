@@ -1,7 +1,7 @@
 package com.code.hyperledger;
 
 
-//import com.code.hyperledger.coso.Asset;
+import com.code.hyperledger.coso.Asset;
 import org.hyperledger.fabric.gateway.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -179,7 +179,7 @@ public final class App {
 	private void createAsset() throws EndorseException, SubmitException, CommitStatusException, CommitException {
 		System.out.println("\n--> Submit Transaction: CreateAsset, creates new asset with all arguments");
 
-		/*Asset asset = new Asset(
+		Asset asset = new Asset(
 				assetId,
 				"Tom",
 				"presc456",
@@ -216,7 +216,7 @@ public final class App {
 				asset.getFechaDeAutorizacion().toString(),
 				Integer.toString(asset.getCantidad()),
 				asset.getExpectedSupplyDuration().toString()
-		);*/
+		);
 
 		System.out.println("*** Transaction committed successfully");
 	}
@@ -263,10 +263,10 @@ public final class App {
 	 * responses from the smart contract.
 	 */
 	private void updateNonExistentAsset() {
-		//try {
+		try {
 			System.out.println("\n--> Submit Transaction: UpdateAsset asset70, asset70 does not exist and should return an error");
 
-			/*Asset asset = new Asset(
+			Asset asset = new Asset(
 					"asset70",                  // Asset ID
 					"Tomoko",                   // Owner
 					"presc789",                 // Prescripcion Anterior Id
@@ -324,6 +324,6 @@ public final class App {
 			e.printStackTrace(System.out);
 			System.out.println("Transaction ID: " + e.getTransactionId());
 			System.out.println("Status code: " + e.getCode());
-		}*/
+		}
 	}
 }

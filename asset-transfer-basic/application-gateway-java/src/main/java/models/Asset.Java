@@ -1,6 +1,6 @@
 package models;
 
-class Asset {
+public class Asset {
     private String id;
     private String owner;
     private String prescripcionAnteriorId;
