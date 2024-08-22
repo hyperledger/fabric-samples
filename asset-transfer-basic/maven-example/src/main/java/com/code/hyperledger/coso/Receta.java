@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Asset {
+public class Receta {
     private String id;
     private String owner;
     private String prescripcionAnteriorId;

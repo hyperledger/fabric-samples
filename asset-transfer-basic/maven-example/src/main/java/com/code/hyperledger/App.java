@@ -1,8 +1,7 @@
 package com.code.hyperledger;
 
 
-import com.code.hyperledger.coso.Asset;
-import org.hyperledger.fabric.gateway.*;
+import com.code.hyperledger.coso.Receta;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.google.gson.Gson;
@@ -23,6 +22,7 @@ import org.hyperledger.fabric.client.identity.Identity;
 import org.hyperledger.fabric.client.identity.Signer;
 import org.hyperledger.fabric.client.identity.Signers;
 import org.hyperledger.fabric.client.identity.X509Identity;
+import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -36,9 +36,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+
 @SpringBootApplication
-public final class App {
-	private static final String MSP_ID = System.getenv().getOrDefault("MSP_ID", "Org1MSP");
+public class App {
+	/*private static final String MSP_ID = System.getenv().getOrDefault("MSP_ID", "Org1MSP");
 	private static final String CHANNEL_NAME = System.getenv().getOrDefault("CHANNEL_NAME", "mychannel");
 	private static final String CHAINCODE_NAME = System.getenv().getOrDefault("CHAINCODE_NAME", "basic");
 
@@ -57,10 +58,10 @@ public final class App {
 
 	private final Contract contract;
 	private final String assetId = "asset" + Instant.now().toEpochMilli();
-	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();*/
 
 	public static void main(final String[] args) throws Exception {
-		System.out.println("\n--> ENTRANDO");
+		/*System.out.println("\n--> ENTRANDO");
 
 		// The gRPC client connection should be shared by all Gateway connections to
 		// this endpoint.
@@ -78,10 +79,12 @@ public final class App {
 			new App(gateway).run();
 		} finally {
 			channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
-		}
+		}*/
+        SpringApplication.run(App.class, args);
+
 	}
 
-	private static ManagedChannel newGrpcConnection() throws IOException {
+	/*private static ManagedChannel newGrpcConnection() throws IOException {
 		var credentials = TlsChannelCredentials.newBuilder()
 				.trustManager(TLS_CERT_PATH.toFile())
 				.build();
@@ -91,18 +94,18 @@ public final class App {
 	}
 
 	private static Identity newIdentity() throws IOException, CertificateException {
-		try (var certReader = Files.newBufferedReader(getFirstFilePath(CERT_DIR_PATH))) {
-			var certificate = Identities.readX509Certificate(certReader);
-			return new X509Identity(MSP_ID, certificate);
-		}
-	}
+        try (var certReader = Files.newBufferedReader(getFirstFilePath(CERT_DIR_PATH))) {
+            var certificate = Identities.readX509Certificate(certReader);
+            return new X509Identity(MSP_ID, certificate);
+        }
+    }
 
-	private static Signer newSigner() throws IOException, InvalidKeyException {
-		try (var keyReader = Files.newBufferedReader(getFirstFilePath(KEY_DIR_PATH))) {
-			var privateKey = Identities.readPrivateKey(keyReader);
-			return Signers.newPrivateKeySigner(privateKey);
-		}
-	}
+    private static Signer newSigner() throws IOException, InvalidKeyException {
+        try (var keyReader = Files.newBufferedReader(getFirstFilePath(KEY_DIR_PATH))) {
+            var privateKey = Identities.readPrivateKey(keyReader);
+            return Signers.newPrivateKeySigner(privateKey);
+        }
+    }
 
 	private static Path getFirstFilePath(Path dirPath) throws IOException {
 		try (var keyFiles = Files.list(dirPath)) {
@@ -137,25 +140,25 @@ public final class App {
 
 		// Update an asset which does not exist.
 		updateNonExistentAsset();
-	}
+	}*/
 
 	/**
 	 * This type of transaction would typically only be run once by an application
 	 * the first time it was started after its initial deployment. A new version of
 	 * the chaincode deployed later would likely not need to run an "init" function.
 	 */
-	private void initLedger() throws EndorseException, SubmitException, CommitStatusException, CommitException {
+	/*private void initLedger() throws EndorseException, SubmitException, CommitStatusException, CommitException {
 		System.out.println("\n--> Submit Transaction: InitLedger, function creates the initial set of assets on the ledger");
 
 		contract.submitTransaction("InitLedger");
 
 		System.out.println("*** Transaction committed successfully");
-	}
+	}*/
 
 	/**
 	 * Evaluate a transaction to query ledger state.
 	 */
-	private void getAllAssets() throws GatewayException {
+	/*private void getAllAssets() throws GatewayException {
 		System.out.println("\n--> Evaluate Transaction: GetAllAssets, function returns all the current assets on the ledger");
 
 		var result = contract.evaluateTransaction("GetAllAssets");
@@ -170,16 +173,16 @@ public final class App {
 	private String prettyJson(final String json) {
 		var parsedJson = JsonParser.parseString(json);
 		return gson.toJson(parsedJson);
-	}
+	}*/
 
 	/**
 	 * Submit a transaction synchronously, blocking until it has been committed to
 	 * the ledger.
 	 */
-	private void createAsset() throws EndorseException, SubmitException, CommitStatusException, CommitException {
+	/*private void createAsset() throws EndorseException, SubmitException, CommitStatusException, CommitException {
 		System.out.println("\n--> Submit Transaction: CreateAsset, creates new asset with all arguments");
 
-		Asset asset = new Asset(
+		Receta receta = new Receta(
 				assetId,
 				"Tom",
 				"presc456",
@@ -200,33 +203,33 @@ public final class App {
 
 		contract.submitTransaction(
 				"CreateAsset",
-				asset.getId(),
-				asset.getOwner(),
-				asset.getPrescripcionAnteriorId(),
-				asset.getStatus(),
-				asset.getStatusChange().toString(),
-				asset.getPrioridad(),
-				asset.getMedicacion(),
-				asset.getRazon(),
-				asset.getNotas(),
-				asset.getPeriodoDeTratamiento(),
-				asset.getInstruccionesTratamiento(),
-				asset.getPeriodoDeValidez(),
-				asset.getDniPaciente(),
-				asset.getFechaDeAutorizacion().toString(),
-				Integer.toString(asset.getCantidad()),
-				asset.getExpectedSupplyDuration().toString()
+				receta.getId(),
+				receta.getOwner(),
+				receta.getPrescripcionAnteriorId(),
+				receta.getStatus(),
+				receta.getStatusChange().toString(),
+				receta.getPrioridad(),
+				receta.getMedicacion(),
+				receta.getRazon(),
+				receta.getNotas(),
+				receta.getPeriodoDeTratamiento(),
+				receta.getInstruccionesTratamiento(),
+				receta.getPeriodoDeValidez(),
+				receta.getDniPaciente(),
+				receta.getFechaDeAutorizacion().toString(),
+				Integer.toString(receta.getCantidad()),
+				receta.getExpectedSupplyDuration().toString()
 		);
 
 		System.out.println("*** Transaction committed successfully");
-	}
+	}*/
 
 	/**
 	 * Submit transaction asynchronously, allowing the application to process the
 	 * smart contract response (e.g. update a UI) while waiting for the commit
 	 * notification.
 	 */
-	private void transferAssetAsync() throws EndorseException, SubmitException, CommitStatusException {
+	/*private void transferAssetAsync() throws EndorseException, SubmitException, CommitStatusException {
 		System.out.println("\n--> Async Submit Transaction: TransferAsset, updates existing asset owner");
 
 		var commit = contract.newProposal("TransferAsset")
@@ -256,17 +259,17 @@ public final class App {
 		var evaluateResult = contract.evaluateTransaction("ReadAsset", assetId);
 
 		System.out.println("*** Result:" + prettyJson(evaluateResult));
-	}
+	}*/
 
 	/**
 	 * submitTransaction() will throw an error containing details of any error
 	 * responses from the smart contract.
 	 */
-	private void updateNonExistentAsset() {
+	/*private void updateNonExistentAsset() {
 		try {
 			System.out.println("\n--> Submit Transaction: UpdateAsset asset70, asset70 does not exist and should return an error");
 
-			Asset asset = new Asset(
+			Receta receta = new Receta(
 					"asset70",                  // Asset ID
 					"Tomoko",                   // Owner
 					"presc789",                 // Prescripcion Anterior Id
@@ -288,21 +291,21 @@ public final class App {
 			contract.submitTransaction(
 					"UpdateAsset",
 					"asset70",
-					asset.getOwner(),
-					asset.getPrescripcionAnteriorId(),
-					asset.getStatus(),
-					asset.getStatusChange().toString(),
-					asset.getPrioridad(),
-					asset.getMedicacion(),
-					asset.getRazon(),
-					asset.getNotas(),
-					asset.getPeriodoDeTratamiento(),
-					asset.getInstruccionesTratamiento(),
-					asset.getPeriodoDeValidez(),
-					asset.getDniPaciente(),
-					asset.getFechaDeAutorizacion().toString(),
-					Integer.toString(asset.getCantidad()),
-					asset.getExpectedSupplyDuration().toString()
+					receta.getOwner(),
+					receta.getPrescripcionAnteriorId(),
+					receta.getStatus(),
+					receta.getStatusChange().toString(),
+					receta.getPrioridad(),
+					receta.getMedicacion(),
+					receta.getRazon(),
+					receta.getNotas(),
+					receta.getPeriodoDeTratamiento(),
+					receta.getInstruccionesTratamiento(),
+					receta.getPeriodoDeValidez(),
+					receta.getDniPaciente(),
+					receta.getFechaDeAutorizacion().toString(),
+					Integer.toString(receta.getCantidad()),
+					receta.getExpectedSupplyDuration().toString()
 			);
 
 			System.out.println("******** FAILED to return an error");
@@ -325,5 +328,5 @@ public final class App {
 			System.out.println("Transaction ID: " + e.getTransactionId());
 			System.out.println("Status code: " + e.getCode());
 		}
-	}
+	}*/
 }
