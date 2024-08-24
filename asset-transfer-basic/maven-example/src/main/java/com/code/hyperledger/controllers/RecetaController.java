@@ -7,11 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Map;
 
 @RestController
 
@@ -22,7 +24,7 @@ public class RecetaController {
     private RecetaService recetaService;
 
     @PostMapping("/crear")
-    public ResponseEntity<Receta> crear(Receta receta) {
+    public ResponseEntity<Receta> crear(@RequestBody Receta receta) {
         System.out.println("\n--> Submit Transaction: CreateAsset, creates new asset with all arguments");
 
         String assetId = "asset" + Instant.now().toEpochMilli();
@@ -38,12 +40,16 @@ public class RecetaController {
     }
 
     @PostMapping("/obtener")
-    public ResponseEntity<Receta> find(String id) {
+    public ResponseEntity<Receta> find(@RequestBody Map<String, String> requestBody) {
         try {
-            return new ResponseEntity<>(recetaService.obtenerReceta(id), HttpStatus.OK);
+            System.out.println("requestbody: " + requestBody);
+            String id = requestBody.get("id");
+            System.out.println("id: " + id);
+            Receta receta = recetaService.obtenerReceta(id);
+            return new ResponseEntity<>(receta, HttpStatus.OK);
         } catch (IOException | GatewayException e) {
             e.printStackTrace();
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
         }
-    }
+    }    
 }

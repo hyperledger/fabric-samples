@@ -13,6 +13,8 @@ import org.hyperledger.fabric.client.identity.*;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+
+import java.io.Console;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -148,8 +150,12 @@ public class RecetaService {
     public Receta obtenerReceta(String assetId) throws GatewayException, IOException {
         System.out.println("\n--> Evaluate Transaction: ReadAsset, function returns asset attributes");
 
+        System.out.println("assetId: " + assetId);
         var evaluateResult = contract.evaluateTransaction("ReadAsset", assetId);
+        System.out.println("evaluate");
         ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(evaluateResult, Receta.class);
+        var receta = objectMapper.readValue(evaluateResult, Receta.class);
+        System.out.println("mapper:" + receta.getDniPaciente());
+        return receta;
     }
 }
