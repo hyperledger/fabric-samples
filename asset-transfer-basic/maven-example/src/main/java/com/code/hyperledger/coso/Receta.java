@@ -1,11 +1,11 @@
 package com.code.hyperledger.coso;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -27,5 +27,4 @@ public class Receta {
     private LocalDate fechaDeAutorizacion;
     private int cantidad;
     private LocalDate expectedSupplyDuration;
-
 }

@@ -1,7 +1,7 @@
 package com.code.hyperledger.services;
 
-import com.code.hyperledger.App;
 import com.code.hyperledger.coso.Receta;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.grpc.Grpc;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,7 +46,7 @@ public class RecetaService {
     private static final String OVERRIDE_AUTH = "peer0.org1.example.com";
 
     private Contract contract;
-    private final String assetId = "asset" + Instant.now().toEpochMilli();
+    //private final String assetId = "asset" + Instant.now().toEpochMilli();
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 
@@ -71,9 +72,10 @@ public class RecetaService {
 
         try (var gateway = builder.connect()) {
             this.setContract(gateway);
-        } finally {
+            this.initLedger();
+        } /*finally {
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
-        }
+        }*/
 
     }
 
@@ -117,29 +119,9 @@ public class RecetaService {
         System.out.println("*** Transaction committed successfully");
     }
 
-    public void crearReceta() {
+    public void cargarReceta(Receta receta) throws CommitStatusException, EndorseException, CommitException, SubmitException {
         System.out.println("\n--> Submit Transaction: CreateAsset, creates new asset with all arguments");
 
-        Receta receta = new Receta(
-                assetId,
-                "Tom",
-                "presc456",
-                "active",
-                LocalDateTime.now(),
-                "high",
-                "Medicine XYZ",
-                "Condition ABC",
-                "Take with food",
-                "30 days",
-                "1 pill per day",
-                "1 year",
-                "12345678",
-                LocalDate.now(),
-                30,
-                LocalDate.now()
-        );
-
-        try {
             contract.submitTransaction(
                     "CreateAsset",
                     receta.getId(),
@@ -159,19 +141,15 @@ public class RecetaService {
                     Integer.toString(receta.getCantidad()),
                     receta.getExpectedSupplyDuration().toString()
             );
-        } catch (EndorseException e) {
-            e.printStackTrace();
-        } catch (SubmitException e) {
-            e.printStackTrace();
-        } catch (CommitStatusException e) {
-            e.printStackTrace();
-        } catch (CommitException e) {
-            e.printStackTrace();
-        }
 
         System.out.println("*** Transaction committed successfully");
-
     }
 
+    public Receta obtenerReceta(String assetId) throws GatewayException, IOException {
+        System.out.println("\n--> Evaluate Transaction: ReadAsset, function returns asset attributes");
 
+        var evaluateResult = contract.evaluateTransaction("ReadAsset", assetId);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(evaluateResult, Receta.class);
+    }
 }

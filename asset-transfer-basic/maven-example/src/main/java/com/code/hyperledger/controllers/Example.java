@@ -9,8 +9,6 @@ public class Example {
 
     @GetMapping("/hello")
     public String sayHello() {
-        Receta receta = new Receta();
-
         return "Hello, World!";
     }
 }
