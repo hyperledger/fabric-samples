@@ -1,6 +1,9 @@
 package com.code.hyperledger.controllers;
 
 import com.code.hyperledger.coso.Receta;
+import com.code.hyperledger.coso.RecetaDto;
+import com.code.hyperledger.coso.AssetIdDto;
+import com.code.hyperledger.Utils.Hashing;
 import com.code.hyperledger.services.RecetaService;
 import org.hyperledger.fabric.client.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
@@ -24,11 +28,17 @@ public class RecetaController {
     private RecetaService recetaService;
 
     @PostMapping("/crear")
-    public ResponseEntity<Receta> crear(@RequestBody Receta receta) {
+    public ResponseEntity<AssetIdDto> crear(@RequestBody Receta receta) {
         System.out.println("\n--> Submit Transaction: CreateAsset, creates new asset with all arguments");
 
-        String assetId = "asset" + Instant.now().toEpochMilli();
+        var now = LocalDateTime.now().toString();
+        var dni = receta.getDniPaciente();
+        var id = dni + now;
+        String assetId = Hashing.sha256(id);
         receta.setId(assetId);
+        var assetIdDto = new AssetIdDto();
+        assetIdDto.setDni(dni);
+        assetIdDto.setTimeStamp(now);
         try {
             recetaService.cargarReceta(receta);
         } catch (CommitStatusException | EndorseException | CommitException | SubmitException e) {
@@ -36,17 +46,35 @@ public class RecetaController {
 
         }
 
-        return new ResponseEntity<>(receta, HttpStatus.OK);
+        return new ResponseEntity<>(assetIdDto, HttpStatus.OK);
     }
 
     @PostMapping("/obtener")
-    public ResponseEntity<Receta> find(@RequestBody Map<String, String> requestBody) {
+    public ResponseEntity<RecetaDto> find(@RequestBody Map<String, String> requestBody) {
         try {
             System.out.println("requestbody: " + requestBody);
             String id = requestBody.get("id");
             System.out.println("id: " + id);
             Receta receta = recetaService.obtenerReceta(id);
-            return new ResponseEntity<>(receta, HttpStatus.OK);
+            RecetaDto recetaDto = new RecetaDto();
+            
+            recetaDto.setOwner(receta.getOwner());
+            recetaDto.setPrescripcionAnteriorId(receta.getPrescripcionAnteriorId());
+            recetaDto.setStatus(receta.getStatus());
+            recetaDto.setStatusChange(receta.getStatusChange());
+            recetaDto.setPrioridad(receta.getPrioridad());
+            recetaDto.setMedicacion(receta.getMedicacion());
+            recetaDto.setRazon(receta.getRazon());
+            recetaDto.setNotas(receta.getNotas());
+            recetaDto.setPeriodoDeTratamiento(receta.getPeriodoDeTratamiento());
+            recetaDto.setInstruccionesTratamiento(receta.getInstruccionesTratamiento());
+            recetaDto.setPeriodoDeValidez(receta.getPeriodoDeValidez());
+            recetaDto.setDniPaciente(receta.getDniPaciente());
+            recetaDto.setFechaDeAutorizacion(receta.getFechaDeAutorizacion());
+            recetaDto.setCantidad(receta.getCantidad());
+            recetaDto.setExpectedSupplyDuration(receta.getExpectedSupplyDuration());
+            
+            return new ResponseEntity<>(recetaDto, HttpStatus.OK);
         } catch (IOException | GatewayException e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);

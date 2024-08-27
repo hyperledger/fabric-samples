@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Receta {
-    private String id;
+public class RecetaDto {
     private String owner;
     private String prescripcionAnteriorId;
     private String status;
