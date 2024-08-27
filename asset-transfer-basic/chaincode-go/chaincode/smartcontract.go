@@ -16,22 +16,22 @@ type SmartContract struct {
 // Insert struct field in alphabetic order => to achieve determinism across languages
 // golang keeps the order when marshal to json but doesn't order automatically
 type Asset struct {
-	ID                       string `json:"ID"`
-	Owner                    string `json:"Owner"`
-	PrescripcionAnteriorId   string `json:"PrescripcionAnteriorId"`
-	Status                   string `json:"Status"`
-	StatusChange             string `json:"StatusChange"` // Changed to string
-	Prioridad                string `json:"Prioridad"`
+	ID                       string `json:"id"`
+	Owner                    string `json:"owner"`
+	PrescripcionAnteriorId   string `json:"prescripcionAnteriorId"`
+	Status                   string `json:"status"`
+	StatusChange             string `json:"statusChange"`
+	Prioridad                string `json:"prioridad"`
 	Medicacion               string `json:"medicacion"`
-	Razon                    string `json:"Razon"`
-	Notas                    string `json:"Notas"`
-	PeriodoDeTratamiento     string `json:"PeriodoDeTratamiento"`
-	InstruccionesTratamiento string `json:"InstruccionesTratamiento"`
-	PeriodoDeValidez         string `json:"PeriodoDeValidez"`
-	DniPaciente              string `json:"DniPaciente"`
-	FechaDeAutorizacion      string `json:"FechaDeAutorizacion"` // Changed to string
-	Cantidad                 string `json:"Cantidad"`
-	ExpectedSupplyDuration   string `json:"ExpectedSupplyDuration"` // Changed to string
+	Razon                    string `json:"razon"`
+	Notas                    string `json:"notas"`
+	PeriodoDeTratamiento     string `json:"periodoDeTratamiento"`
+	InstruccionesTratamiento string `json:"instruccionesTratamiento"`
+	PeriodoDeValidez         string `json:"periodoDeValidez"`
+	DniPaciente              string `json:"dniPaciente"`
+	FechaDeAutorizacion      string `json:"fechaDeAutorizacion"`
+	Cantidad                 string `json:"cantidad"`
+	ExpectedSupplyDuration   string `json:"expectedSupplyDuration"`
 }
 
 // InitLedger adds a base set of assets to the ledger

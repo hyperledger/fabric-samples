@@ -130,7 +130,7 @@ public class RecetaService {
                     receta.getOwner(),
                     receta.getPrescripcionAnteriorId(),
                     receta.getStatus(),
-                    receta.getStatusChange().toString(),
+                    receta.getStatusChange(),
                     receta.getPrioridad(),
                     receta.getMedicacion(),
                     receta.getRazon(),
@@ -139,9 +139,9 @@ public class RecetaService {
                     receta.getInstruccionesTratamiento(),
                     receta.getPeriodoDeValidez(),
                     receta.getDniPaciente(),
-                    receta.getFechaDeAutorizacion().toString(),
+                    receta.getFechaDeAutorizacion(),
                     Integer.toString(receta.getCantidad()),
-                    receta.getExpectedSupplyDuration().toString()
+                    receta.getExpectedSupplyDuration()
             );
 
         System.out.println("*** Transaction committed successfully");
