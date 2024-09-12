@@ -4,19 +4,17 @@
 
 ## Introduction
 
-This folder contains a structured set of smart contracts and application clients (ie. in a choice of languages, eg Node.js, Java, Go etc) relating to *Commercial Paper*, a finance 'instrument' (in Global Finance). At present, the Node.js sample contract in particular has further added functionality: an optional two-step authority check (see diagram below), when redeeming a commercial paper instance - and a range of sample ledger queries, to help consolidate your learning; both can be explored using the Node.js application client.
+This folder contains a structured set of smart contracts and application clients (ie. in a choice of languages, eg Node.js, Java, Go etc) relating to _Commercial Paper_, a finance 'instrument' (in Global Finance). At present, the Node.js sample contract in particular has further added functionality: an optional two-step authority check (see diagram below), when redeeming a commercial paper instance - and a range of sample ledger queries, to help consolidate your learning; both can be explored using the Node.js application client.
 
-While a more detailed 'explainer' of the Commercial Paper scenario (including use case analysis, code walkthrough & practices, logical/physical representation of ledger data etc) can be found in the [Hyperledger Fabric Commercial Paper Tutorial](https://hyperledger-fabric.readthedocs.io/en/latest/tutorial/commercial_paper.html), you don't have to read through this, just to try out this sample. There's also a [Wikipedia page](https://en.wikipedia.org/wiki/Commercial_paper)
+While a more detailed 'explainer' of the Commercial Paper scenario (including use case analysis, code walkthrough & practices, logical/physical representation of ledger data etc) can be found in the [Hyperledger Fabric Commercial Paper Tutorial](https://hyperledger-fabric.readthedocs.io/en/release-2.2/tutorial/commercial_paper.html), you don't have to read through this, just to try out this sample. There's also a [Wikipedia page](https://en.wikipedia.org/wiki/Commercial_paper)
 
 <details><summary>Key Objectives </summary>
 
-  * see a Commercial Paper use case in action 
-    
-  * explore the key 'takeaways': understand differences between asset _state_ changes ('e.g. 'lifecycle') and transaction _inputs_* (e.g. 'inputs' during lifecycle)
-    
-  * try out a number of different query types: asset history, asset state, ownership, partial key, named query (criteria-based), ad-hoc queries (you supply a query string) - presently available in the Node.js sample only.
+- see a Commercial Paper use case in action
+- explore the key 'takeaways': understand differences between asset _state_ changes ('e.g. 'lifecycle') and transaction _inputs_\* (e.g. 'inputs' during lifecycle)
+- try out a number of different query types: asset history, asset state, ownership, partial key, named query (criteria-based), ad-hoc queries (you supply a query string) - presently available in the Node.js sample only.
 
-    \* the smart contract uses these (along with business logic) to decide outcomes; some inputs change the asset _state_ (like 'ownership') ; some don't.
+  \* the smart contract uses these (along with business logic) to decide outcomes; some inputs change the asset _state_ (like 'ownership') ; some don't.
 
 </p>
 </details>
@@ -35,9 +33,8 @@ While a more detailed 'explainer' of the Commercial Paper scenario (including us
  
  </p>
  </details>
- 
 
- Expand the twisty below to see an overview diagram of a 'sample' Commercial paper marketplace - transactions, queries being executed by different organisations (we'll focus on two of these organisations)
+Expand the twisty below to see an overview diagram of a 'sample' Commercial paper marketplace - transactions, queries being executed by different organisations (we'll focus on two of these organisations)
 
 <details><summary>PaperNet Overview diagram - The sample commercial paper marketplace</summary>
 
@@ -48,8 +45,7 @@ While a more detailed 'explainer' of the Commercial Paper scenario (including us
  
 But first, it might useful to explain Commercial Paper, an unsecured promissory note issued to obtain capital, and operates in global financial markets. A Commercial Paper instance is represented as an asset with a lifecycle, recorded on the blockchain - transactions change its _state_ (over time) and those transactions, naturally - have _inputs_.
 
-
-#### Explainers 
+#### Explainers
 
 <details><summary>Commercial Paper - what is it briefly?</summary>
  
@@ -73,42 +69,41 @@ I mentioned marketplace: even during the typical 6-9 month period, a commercial 
 
 ## Scenario Overview
 
-![](https://hyperledger-fabric.readthedocs.io/en/latest/_images/commercial_paper.diagram.1.png)
+![](https://hyperledger-fabric.readthedocs.io/en/release-2.2/_images/commercial_paper.diagram.1.png)
 
-In this tutorial two organizations, MagnetoCorp and DigiBank, trade commercial paper with each other on 'PaperNet', the marketplace represented by a Hyperledger Fabric blockchain network. Note that there are two alternative transaction flows - one which mirrors the [Commercial Paper Tutorial](https://hyperledger-fabric.readthedocs.io/en/latest/tutorial/commercial_paper.html) as described in Fabric documentation, and one which requires the authorised owner of the paper to complete a transfer following a request to buy the commercial paper - the latter example features an authorization check in the smart contract that ensures the transactor is from the organization that currently owns the commercial paper - they approve and complete the buy request. These are the commercial paper transaction lifecycles you can try out:
+In this tutorial two organizations, MagnetoCorp and DigiBank, trade commercial paper with each other on 'PaperNet', the marketplace represented by a Hyperledger Fabric blockchain network. Note that there are two alternative transaction flows - one which mirrors the [Commercial Paper Tutorial](https://hyperledger-fabric.readthedocs.io/en/release-2.2/tutorial/commercial_paper.html) as described in Fabric documentation, and one which requires the authorised owner of the paper to complete a transfer following a request to buy the commercial paper - the latter example features an authorization check in the smart contract that ensures the transactor is from the organization that currently owns the commercial paper - they approve and complete the buy request. These are the commercial paper transaction lifecycles you can try out:
 
 ![Transaction Flow alternatives](img/transaction-flow.png)
 
 The tutorial exercises the commercial paper asset lifecycle: _issue_, _buy_ ( 1 to _n_ ) (or _buy_request_ / _transfer_ alternative), and _redeem_ transactions: the key 'takeaways' from the scenario are:
 
-- understanding the  _changes in state_ in the commercial paper asset (reflected in the ledger world state) which reaches maturity after 6 months.
-- understanding the _transaction inputs_  for each transaction (some inputs change the asset  _state_ - eg. ownership) and some _don't_  (e.g. purchase price) and not part of the asset - but importantly, the _inputs_ for a given transaction are recorded on the blockchain).
-- understanding the importance of _queries_  such as: asset history, rich queries (criteria matching etc), transaction history (where the inputs are recorded)
+- understanding the _changes in state_ in the commercial paper asset (reflected in the ledger world state) which reaches maturity after 6 months.
+- understanding the _transaction inputs_ for each transaction (some inputs change the asset _state_ - eg. ownership) and some _don't_ (e.g. purchase price) and not part of the asset - but importantly, the _inputs_ for a given transaction are recorded on the blockchain).
+- understanding the importance of _queries_ such as: asset history, rich queries (criteria matching etc), transaction history (where the inputs are recorded)
 
-Client applications (CLI based) are used: 
+Client applications (CLI based) are used:
 
 - to perform the transactions
 - run queries (Node.js sample only)
 - examine the transaction inputs (as opposed to _states_) that are written to the ledger after you perform a transaction (using the Node.js listener).
 
-This sample uses the `test-network` . You’ll act as Isabella, an employee of MagnetoCorp (Org2), who will issue a commercial paper on its behalf. You’ll then 'switch hats' to take the role of Balaji, an employee of DigiBank (Org1), who will buy this commercial paper, hold it for a period of time, and then redeem it with MagnetoCorp for a small profit or yield. Note that the smart contract sample doesn't enforce the actual hold period ; the user can, in fact, redeem the paper immediately. 
-
+This sample uses the `test-network` . You’ll act as Isabella, an employee of MagnetoCorp (Org2), who will issue a commercial paper on its behalf. You’ll then 'switch hats' to take the role of Balaji, an employee of DigiBank (Org1), who will buy this commercial paper, hold it for a period of time, and then redeem it with MagnetoCorp for a small profit or yield. Note that the smart contract sample doesn't enforce the actual hold period ; the user can, in fact, redeem the paper immediately.
 
 ## Quick Start
 
-Below are the quick start instructions for running the tutorial. As mentioned, if you're interested in a 'deeper dive' analysis and importance of the concepts, design, structure and implementation  of the smart contract,  they can be found in the [Hyperledger Fabric Commercial Paper Tutorial](https://hyperledger-fabric.readthedocs.io/en/latest/tutorial/commercial_paper.html). Suffice to say, you DON'T have to have read this, to do this tutorial.
+Below are the quick start instructions for running the tutorial. As mentioned, if you're interested in a 'deeper dive' analysis and importance of the concepts, design, structure and implementation of the smart contract, they can be found in the [Hyperledger Fabric Commercial Paper Tutorial](https://hyperledger-fabric.readthedocs.io/en/release-2.2/tutorial/commercial_paper.html). Suffice to say, you DON'T have to have read this, to do this tutorial.
 
 This `README.md` file is in the `commercial-paper` directory, the source code for client applications and the contracts is in the `organization` directory.
 
 ### High-Level Overview of Steps
 
-1) Install Binaries, Start the Hyperledger Fabric infrastructure
+1. Install Binaries, Start the Hyperledger Fabric infrastructure
 
-   The Fabric 'test-network' will be used - this has two organizations 'Org1' and 'Org2'  DigiBank will be Org1, and MagnetoCorp will be Org2. 
+   The Fabric 'test-network' will be used - this has two organizations 'Org1' and 'Org2' DigiBank will be Org1, and MagnetoCorp will be Org2.
 
-2) Install and Instantiate the Contracts
+2. Install and Instantiate the Contracts
 
-3) Run client applications in the roles of MagnetoCorp and DigiBank to trade the commercial paper
+3. Run client applications in the roles of MagnetoCorp and DigiBank to trade the commercial paper
 
    - Issue the Paper as Magnetocorp (org2)
    - Buy the paper as DigiBank (org1)
@@ -127,22 +122,21 @@ You will need a machine with the following
 - Java v8 if you want to run Java client applications
 - Maven to build the Java applications
 
-You will need to install the `peer` cli binaries and cloned the `fabric-samples` repository. For more information see 
-[Install the Samples, Binaries and Docker Images](https://hyperledger-fabric.readthedocs.io/en/latest/install.html) in the Hyperledger Fabric documentation. Once you have installed the cli binaries, ensure you have added the  `bin` directory (for your `peer` commands used by scripts below) to your exported `PATH` variable in your `.bashrc` or `.profile` directory (per below). This is important as you will be opening a number of windows which will need PATH set. Finally, check that it finds the `peer` command in your PATH using the `which` command  eg.
+You will need to install the `peer` cli binaries and cloned the `fabric-samples` repository. For more information see
+[Install the Samples, Binaries and Docker Images](https://hyperledger-fabric.readthedocs.io/en/release-2.2/install.html) in the Hyperledger Fabric documentation. Once you have installed the cli binaries, ensure you have added the `bin` directory (for your `peer` commands used by scripts below) to your exported `PATH` variable in your `.bashrc` or `.profile` directory (per below). This is important as you will be opening a number of windows which will need PATH set. Finally, check that it finds the `peer` command in your PATH using the `which` command eg.
 
 ```
 export PATH=<path_to_bin_directory>:$PATH
 which peer
 ```
 
+It is advised to have 3 terminal windows (consoles) open;
 
-It is advised to have 3 terminal windows (consoles) open; 
+- one to monitor the infrastructure
+- one for MagnetoCorp
+- one for DigiBank.
 
-* one to monitor the infrastructure
-* one for MagnetoCorp 
-* one for DigiBank. 
-
-Once you've cloned the `fabric-samples` - change to the `commercial-paper` directory in each window. 
+Once you've cloned the `fabric-samples` - change to the `commercial-paper` directory in each window.
 
 ```
 git clone https://github.com/hyperledger/fabric-samples.git
@@ -168,7 +162,7 @@ You can re-use this console window if you wish, but it is recommended to run a d
 
 ### Setup the Organizations' environments
 
-The contract code is available as either JavaScript, Java or Go. You can use either one, and the choice of contract language does not affect the choice of client language. With the v2.0 Fabric chaincode lifecycle, this requires operations for both MagnetoCorp and Digibank admin.  Open two windows in the fabric-samples/commercial paper directory, one for each organization.
+The contract code is available as either JavaScript, Java or Go. You can use either one, and the choice of contract language does not affect the choice of client language. With the v2.0 Fabric chaincode lifecycle, this requires operations for both MagnetoCorp and Digibank admin. Open two windows in the fabric-samples/commercial paper directory, one for each organization.
 
 In your 'MagnetoCorp' window run the following commands, to set the shell environment variables needed to act as that organization. The leading '.' in the command sequence sets in your current environment - if you do not run this, you will not be able to package the chaincode.
 
@@ -192,16 +186,13 @@ cd fabric-samples/commercial-paper/organization/digibank
 
 <sup>[_back to top_](#top)</sup>
 
-
 ### Deploy the smart contract to the channel
 
-You need to perform similar operations for _both_ organizations and for your language choice from the instructions below. For the different contract languages, the steps are very similar  - the full set of steps are actually shown in the JavaScript section (see twisty). However, you will perform one or two different initial steps for Java or Go before completing the remaining common steps as instructed in those language sections. 
+You need to perform similar operations for _both_ organizations and for your language choice from the instructions below. For the different contract languages, the steps are very similar - the full set of steps are actually shown in the JavaScript section (see twisty). However, you will perform one or two different initial steps for Java or Go before completing the remaining common steps as instructed in those language sections.
 
 Note that the commands below make use of the `jq` utility for parsing output - download and install it from [the jq download page](https://stedolan.github.io/jq/download/).
 
-
 **<details><summary>For a JavaScript Contract</summary>**
-
 
 Running in MagnetoCorp directory:
 
@@ -225,7 +216,7 @@ peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSH
                                           --sequence 1  \
                                           --tls  \
                                           --cafile $ORDERER_CA
-                                          
+
 peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
 ```
 
@@ -265,7 +256,7 @@ peer lifecycle chaincode commit -o localhost:7050 \
                                 --ordererTLSHostnameOverride orderer.example.com \
                                 --channelID mychannel --name papercontract -v 0 \
                                 --sequence 1 \
-                                --tls --cafile $ORDERER_CA --waitForEvent 
+                                --tls --cafile $ORDERER_CA --waitForEvent
 
 ```
 
@@ -287,12 +278,11 @@ peer chaincode query -o localhost:7050  --ordererTLSHostnameOverride orderer.exa
                                         --peerAddresses localhost:9051 --tlsRootCertFiles ${PEER0_ORG2_CA} \
                                         --tls --cafile $ORDERER_CA | jq '.' -C | more
 ```
+
 </p>
 </details>
 
-
 **<details><summary>For a Java Contract:</summary>**
-
 
 Before the `peer lifecycle chaincode package` command below, you will first need to change into each organization's `contract-java` directory and issue
 
@@ -301,7 +291,6 @@ Before the `peer lifecycle chaincode package` command below, you will first need
 ```
 
 Then complete the steps below.
-
 
 Running in MagnetoCorp contract directory:
 
@@ -325,7 +314,7 @@ peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSH
                                           --sequence 1  \
                                           --tls  \
                                           --cafile $ORDERER_CA
-                                          
+
 peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
 ```
 
@@ -365,7 +354,7 @@ peer lifecycle chaincode commit -o localhost:7050 \
                                 --ordererTLSHostnameOverride orderer.example.com \
                                 --channelID mychannel --name papercontract -v 0 \
                                 --sequence 1 \
-                                --tls --cafile $ORDERER_CA --waitForEvent 
+                                --tls --cafile $ORDERER_CA --waitForEvent
 
 ```
 
@@ -393,15 +382,13 @@ peer chaincode query -o localhost:7050  --ordererTLSHostnameOverride orderer.exa
 
 **<details><summary>For a Go Contract</summary>**
 
-
 Before the `peer lifecycle chaincode package` command step, you will need to change into <ins>each</ins> organization's `contract-go` directory and issue
 
 ```
 go mod vendor
 ```
 
-Then complete the steps below. 
-
+Then complete the steps below.
 
 Running in MagnetoCorp contract directory:
 
@@ -425,7 +412,7 @@ peer lifecycle chaincode approveformyorg  --orderer localhost:7050 --ordererTLSH
                                           --sequence 1  \
                                           --tls  \
                                           --cafile $ORDERER_CA
-                                          
+
 peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name papercontract -v 0 --sequence 1
 ```
 
@@ -465,7 +452,7 @@ peer lifecycle chaincode commit -o localhost:7050 \
                                 --ordererTLSHostnameOverride orderer.example.com \
                                 --channelID mychannel --name papercontract -v 0 \
                                 --sequence 1 \
-                                --tls --cafile $ORDERER_CA --waitForEvent 
+                                --tls --cafile $ORDERER_CA --waitForEvent
 
 ```
 
@@ -488,14 +475,10 @@ peer chaincode query -o localhost:7050  --ordererTLSHostnameOverride orderer.exa
                                         --tls --cafile $ORDERER_CA | jq '.' -C | more
 ```
 
-
-
 </p>
 </details>
 
-
 <sup>[_back to top_](#top)</sup>
-
 
 ## Client Applications
 
@@ -510,13 +493,14 @@ Note for JavaScript applications, you will need to install the dependencies firs
 ```
 npm install
 ```
->  Note that there is NO dependency between the language of any one client application and any contract. Mix and match as you wish!
+
+> Note that there is NO dependency between the language of any one client application and any contract. Mix and match as you wish!
 
 The docker containers don't contain the node or Java runtimes; so it is best to exit the docker containers - but keep the windows open and run the applications locally.
 
-As mentioned earlier in the Sample introduction section, transaction _inputs_ are recorded on the ledger, as well as any asset _state_ changes. Just *before* you run the _issue_ application script below - you need to launch a block 'listener' application that will show you these _inputs_, as you complete each transaction in the commercial paper lifecycle (eg. Paper Number: 00001, 00002 etc) . 
+As mentioned earlier in the Sample introduction section, transaction _inputs_ are recorded on the ledger, as well as any asset _state_ changes. Just _before_ you run the _issue_ application script below - you need to launch a block 'listener' application that will show you these _inputs_, as you complete each transaction in the commercial paper lifecycle (eg. Paper Number: 00001, 00002 etc) .
 
-For the listener, its best to open a *new* terminal for this in the `commercial-paper/organization/magnetocorp/application` directory (javascript). Next, run the `addToWallet` step in the `issue` transaction below, to add Isabella's identity to the wallet - the listener will use this wallet. Once the listener is launched, it will show the inputs for transactions you will perform and which are committed to blocks (ie part of the ledger).  Note: initially, the listener may show a spurious message, and then go into a _listening_ or 'wait' state. As transactions complete below, messages will be displayed by the listener - so keep an eye out. *After* adding Isabella's wallet, you can then launch the listener as follows:
+For the listener, its best to open a _new_ terminal for this in the `commercial-paper/organization/magnetocorp/application` directory (javascript). Next, run the `addToWallet` step in the `issue` transaction below, to add Isabella's identity to the wallet - the listener will use this wallet. Once the listener is launched, it will show the inputs for transactions you will perform and which are committed to blocks (ie part of the ledger). Note: initially, the listener may show a spurious message, and then go into a _listening_ or 'wait' state. As transactions complete below, messages will be displayed by the listener - so keep an eye out. _After_ adding Isabella's wallet, you can then launch the listener as follows:
 
 ```
 node cpListener.js
@@ -524,12 +508,12 @@ node cpListener.js
 
 **<details><summary>Issue the commercial paper</summary>**
 
-The paper is issued by *MagnetoCorp* 
+The paper is issued by _MagnetoCorp_
 
-You can now run the applications to issue the commercial paper. Change to either the 
-`commercial-paper/organization/magnetocorp/application` directory (javascript) or  `commercial-paper/organization/magnetocorp/application-java` directory (java)
+You can now run the applications to issue the commercial paper. Change to either the
+`commercial-paper/organization/magnetocorp/application` directory (javascript) or `commercial-paper/organization/magnetocorp/application-java` directory (java)
 
-*Add the Identity to be used to the wallet*
+_Add the Identity to be used to the wallet_
 
 ```
 node addToWallet.js
@@ -537,7 +521,7 @@ node addToWallet.js
 java -cp target/commercial-paper-0.0.1-SNAPSHOT.jar org.magnetocorp.AddToWallet
 ```
 
-*Issue the Commercial Paper*
+_Issue the Commercial Paper_
 
 ```
 node issue.js
@@ -550,15 +534,14 @@ Don't forget to check the application listener for messages above!
 </p>
 </details>
 
-
 **<details><summary>Buy the commercial paper</summary>**
 
-_Buy_ is performed as *Digibank*; 
+_Buy_ is performed as _Digibank_;
 
 You can now run the applications to buy the paper. Change to either the
-`commercial-paper/organization/digibank/application` directory or  `commercial-paper/organization/digibank/application-java`
+`commercial-paper/organization/digibank/application` directory or `commercial-paper/organization/digibank/application-java`
 
-*Add the Identity to be used*
+_Add the Identity to be used_
 
 ```
 node addToWallet.js
@@ -566,7 +549,7 @@ node addToWallet.js
 java -cp target/commercial-paper-0.0.1-SNAPSHOT.jar org.digibank.AddToWallet
 ```
 
-*Buy the paper*
+_Buy the paper_
 
 ```
 node buy.js
@@ -576,7 +559,7 @@ java -cp target/commercial-paper-0.0.1-SNAPSHOT.jar org.digibank.Buy
 
 If you have just executed a `buy` transaction above - jump to the `redeem` transaction below - otherwise execute the _buy_/_transfer_ sequence as described earlier.
 
-*Alternative: Request to Buy the paper (buy/transfer)*
+_Alternative: Request to Buy the paper (buy/transfer)_
 
 ```
 node buy_request.js
@@ -595,13 +578,12 @@ node transfer.js
 
 **<details><summary>Redeem the commercial paper</summary>**
 
-_Redeem_ is performed as *Digibank*  - the current owner (buyer) in the lifecycle.
+_Redeem_ is performed as _Digibank_ - the current owner (buyer) in the lifecycle.
 
 You can now run the applications to redeem the paper. Change to either the
-`commercial-paper/organization/digibank/application` directory or  `commercial-paper/organization/digibank/application-java`
+`commercial-paper/organization/digibank/application` directory or `commercial-paper/organization/digibank/application-java`
 
-
-*Redeem*
+_Redeem_
 
 ```
 node redeem.js
@@ -612,35 +594,35 @@ java -cp target/commercial-paper-0.0.1-SNAPSHOT.jar org.digibank.Redeem
 </p>
 </details>
 
-
 **<details><summary>Perform Queries: Ownership, Asset History etc (Node.js sample only) </summary>**
- 
- Having completed the full commercial paper lifecycle for one paper (paper number: 00001) some queries below won't show a lot of data - as an optional exercise, you can change the scripts above (paper number: 00002) to create another paper lifecycle and run the `queryapp` application below (change query 1 to the new CP number FYI), with more data available. As indicated, the query transactions mentioned are presently only available in the Node.js sample.
- 
- Execute the Node.js application client script, which will run the following 5 queries, in order:
- 
-  - History of Commercial Paper (Note: the paper state is shown more descriptively eg.  'ISSUED', 'TRADING' and based on currentState values on ledger)
-  - Ownership of Commercial Papers
-  - Partial Key query, for Commercial papers in org.papernet.papers namespace belonging to MagnetoCorp
-  - Named Query: all redeemed papers in a state of 'redeemed' (currentState = 4)
-  - Named Query: all commercial papers with a face value > $4m
-  
-  From the `digibank/application` subdirectory run:
-  
-  ```
-  node queryapp.js 
-  ```
-  
+
+Having completed the full commercial paper lifecycle for one paper (paper number: 00001) some queries below won't show a lot of data - as an optional exercise, you can change the scripts above (paper number: 00002) to create another paper lifecycle and run the `queryapp` application below (change query 1 to the new CP number FYI), with more data available. As indicated, the query transactions mentioned are presently only available in the Node.js sample.
+
+Execute the Node.js application client script, which will run the following 5 queries, in order:
+
+- History of Commercial Paper (Note: the paper state is shown more descriptively eg. 'ISSUED', 'TRADING' and based on currentState values on ledger)
+- Ownership of Commercial Papers
+- Partial Key query, for Commercial papers in org.papernet.papers namespace belonging to MagnetoCorp
+- Named Query: all redeemed papers in a state of 'redeemed' (currentState = 4)
+- Named Query: all commercial papers with a face value > $4m
+
+From the `digibank/application` subdirectory run:
+
+```
+node queryapp.js
+```
+
  </p>
 </details>
 
 When you're done with this section, return to the terminal where your Node.js _listener_ application is running, and terminate the process.
 
 ## Clean up
+
 When you are finished using the Fabric test network and the commercial paper smart contract and applications, you can use the following command to clean up the network:
 
 ```
-./network-clean.sh 
+./network-clean.sh
 ```
 
 <sup>[_back to top_](#top)</sup>

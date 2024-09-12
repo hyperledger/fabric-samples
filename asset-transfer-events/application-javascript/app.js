@@ -27,7 +27,7 @@
  * before executing this application.
  *        export HFC_LOGGING='{"debug":"console"}'
  * See the following on how the SDK is working with the Peer's Event Services
- * https://hyperledger-fabric.readthedocs.io/en/latest/peer_event_services.html
+ * https://hyperledger-fabric.readthedocs.io/en/release-2.2/peer_event_services.html
  *
  * See the following for more details on using the Node SDK
  * https://hyperledger.github.io/fabric-sdk-node/release-2.2/module-fabric-network.html
