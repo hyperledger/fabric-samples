@@ -56,7 +56,7 @@ function checkPrereqs() {
     errorln "Peer binary and configuration files not found.."
     errorln
     errorln "Follow the instructions in the Fabric docs to install the Fabric Binaries:"
-    errorln "https://hyperledger-fabric.readthedocs.io/en/latest/install.html"
+    errorln "https://hyperledger-fabric.readthedocs.io/en/release-2.2/install.html"
     exit 1
   fi
   # use the fabric tools container to see if the samples and binaries match your
@@ -91,7 +91,7 @@ function checkPrereqs() {
       errorln "fabric-ca-client binary not found.."
       errorln
       errorln "Follow the instructions in the Fabric docs to install the Fabric Binaries:"
-      errorln "https://hyperledger-fabric.readthedocs.io/en/latest/install.html"
+      errorln "https://hyperledger-fabric.readthedocs.io/en/release-2.2/install.html"
       exit 1
     fi
     CA_LOCAL_VERSION=$(fabric-ca-client version | sed -ne 's/ Version: //p')

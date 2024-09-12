@@ -81,7 +81,7 @@ function generateOrg3() {
       echo "ERROR! fabric-ca-client binary not found.."
       echo
       echo "Follow the instructions in the Fabric docs to install the Fabric Binaries:"
-      echo "https://hyperledger-fabric.readthedocs.io/en/latest/install.html"
+      echo "https://hyperledger-fabric.readthedocs.io/en/release-2.2/install.html"
       exit 1
     fi
 

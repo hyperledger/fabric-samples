@@ -1,6 +1,6 @@
 # Asset-Transfer-Basic as an external service
 
-This sample provides an introduction to how to use external builder and launcher scripts to run chaincode as an external service to your peer. For more information, see the [Chaincode as an external service](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html) topic in the Fabric documentation.
+This sample provides an introduction to how to use external builder and launcher scripts to run chaincode as an external service to your peer. For more information, see the [Chaincode as an external service](https://hyperledger-fabric.readthedocs.io/en/release-2.2/cc_launcher.html) topic in the Fabric documentation.
 
 **Note:** each organization in a real network would need to setup and host their own instance of the external service. For simplification purpose, in this sample we use the same instance for both organizations.
 
@@ -8,14 +8,16 @@ This sample provides an introduction to how to use external builder and launcher
 
 External Builders and Launchers is an advanced feature that typically requires custom packaging of the peer image so that it contains all the tools your builder and launcher require. For this sample we use very simple (and crude) shell scripts that can be run directly within the default Fabric peer images.
 
-Open the `config/core.yaml` file at the top of the `fabric-samples` hierarchy. Note that this file comes along with the Fabric binaries, so if you don't have it, follow the [Install the Samples, Binaries and Docker Images](https://hyperledger-fabric.readthedocs.io/en/latest/install.html) instructions in the Hyperledger Fabric documentation to download the binaries and config files.
+Open the `config/core.yaml` file at the top of the `fabric-samples` hierarchy. Note that this file comes along with the Fabric binaries, so if you don't have it, follow the [Install the Samples, Binaries and Docker Images](https://hyperledger-fabric.readthedocs.io/en/release-2.2/install.html) instructions in the Hyperledger Fabric documentation to download the binaries and config files.
 
 Modify the field `externalBuilders` as the following:
+
 ```
 externalBuilders:
     - path: /opt/gopath/src/github.com/hyperledger/fabric-samples/asset-transfer-basic/chaincode-external/sampleBuilder
       name: external-sample-builder
 ```
+
 This configuration sets the name of the external builder as `external-sample-builder`, and the path of the builder to the scripts provided in this sample. Note that this is the path within the peer container, not your local machine.
 
 To set the path within the peer container, you will need to modify the container compose file to mount a couple of additional volumes.
@@ -107,7 +109,6 @@ setGlobals 1
 ```
 
 Edit the `chaincode.env` file in the `fabric-samples/asset-transfer-basic/chaincode-external` directory as necessary to set the `CHAINCODE_ID` variable to the chaincode package-id obtained above.
-
 
 ## Running the Asset-Transfer-Basic external service
 
