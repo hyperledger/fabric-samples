@@ -12,7 +12,7 @@ inputs:
     default: 11.x
   fabric-version:
     description: Version of Hyperledger Fabric
-    default: 2.5.9
+    default: 3.0.0-rc1
   ca-version:
     description: Version of Hyperledger Fabric CA
     default: 1.5.12
