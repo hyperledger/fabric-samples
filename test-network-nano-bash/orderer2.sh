@@ -27,7 +27,7 @@ then
         echo "Unsupported input consensus type ${1}"
         exit 1
     fi
-    export ORDERER_CONSENSUS_TYPE=${1}
+    export ORDERER_CONSENSUS_TYPE="${1}"
 fi
 export ORDERER_CONSENSUS_WALDIR="${PWD}"/data/orderer2/consensus/wal
 export ORDERER_CONSENSUS_SNAPDIR="${PWD}"/data/orderer2/consensus/snap

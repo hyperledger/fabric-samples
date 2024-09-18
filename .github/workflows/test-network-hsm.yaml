@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   hsm:
-    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-20.04' || 'ubuntu-20.04' }}
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     strategy:
       matrix:
         chaincode-language:
