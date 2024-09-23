@@ -1,19 +1,19 @@
 module github.com/hyperledger/fabric-samples/hardware-security-module/application-go
 
-go 1.21
+go 1.22.0
 
 require (
-	github.com/hyperledger/fabric-gateway v1.5.0
-	google.golang.org/grpc v1.63.2
+	github.com/hyperledger/fabric-gateway v1.6.0
+	google.golang.org/grpc v1.67.0
 )
 
 require (
 	github.com/hyperledger/fabric-protos-go-apiv2 v0.3.3 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
-	golang.org/x/crypto v0.22.0 // indirect
-	golang.org/x/net v0.24.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240401170217-c3f982113cda // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
+	golang.org/x/crypto v0.27.0 // indirect
+	golang.org/x/net v0.28.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
+	golang.org/x/text v0.18.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 )

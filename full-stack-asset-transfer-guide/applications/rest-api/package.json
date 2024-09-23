@@ -29,10 +29,10 @@
     "typescript": "~5.2.2"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.10",
-    "@hyperledger/fabric-gateway": "^1.5",
-    "body-parser": "^1.18.3",
+    "@grpc/grpc-js": "^1.11.3",
+    "@hyperledger/fabric-gateway": "^1.6.0",
+    "body-parser": "^1.20.3",
     "cors": "^2.8.5",
-    "express": "^4.16.3"
+    "express": "^4.21.0"
   }
 }
