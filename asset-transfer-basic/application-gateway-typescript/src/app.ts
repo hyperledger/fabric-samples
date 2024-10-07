@@ -5,7 +5,7 @@
  */
 
 import * as grpc from '@grpc/grpc-js';
-import { connect, Contract, Identity, Signer, signers } from '@hyperledger/fabric-gateway';
+import { connect, Contract, hash, Identity, Signer, signers } from '@hyperledger/fabric-gateway';
 import * as crypto from 'crypto';
 import { promises as fs } from 'fs';
 import * as path from 'path';
@@ -46,6 +46,7 @@ async function main(): Promise<void> {
         client,
         identity: await newIdentity(),
         signer: await newSigner(),
+        hash: hash.sha256,
         // Default timeouts for different gRPC calls
         evaluateOptions: () => {
             return { deadline: Date.now() + 5000 }; // 5 seconds

@@ -5,7 +5,7 @@
  */
 
 import * as grpc from '@grpc/grpc-js';
-import { connect, Gateway, HSMSigner, HSMSignerFactory, HSMSignerOptions, signers } from '@hyperledger/fabric-gateway';
+import { connect, Gateway, hash, HSMSigner, HSMSignerFactory, HSMSignerOptions, signers } from '@hyperledger/fabric-gateway';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -46,6 +46,7 @@ async function main() {
             client,
             identity: { mspId, credentials },
             signer:hsmSigner.signer,
+            hash: hash.sha256,
         });
 
         await exampleTransaction(gateway);

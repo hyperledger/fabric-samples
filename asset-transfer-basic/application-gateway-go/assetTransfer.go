@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
+	"github.com/hyperledger/fabric-gateway/pkg/hash"
 	"github.com/hyperledger/fabric-gateway/pkg/identity"
 	"github.com/hyperledger/fabric-protos-go-apiv2/gateway"
 	"google.golang.org/grpc"
@@ -50,6 +51,7 @@ func main() {
 	gw, err := client.Connect(
 		id,
 		client.WithSign(sign),
+		client.WithHash(hash.SHA256),
 		client.WithClientConnection(clientConnection),
 		// Default timeouts for different gRPC calls
 		client.WithEvaluateTimeout(5*time.Second),

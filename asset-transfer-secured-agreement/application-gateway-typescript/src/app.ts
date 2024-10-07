@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { connect } from '@hyperledger/fabric-gateway';
+import { connect, hash } from '@hyperledger/fabric-gateway';
 
 import { newGrpcConnection, newIdentity, newSigner, tlsCertPathOrg1, peerEndpointOrg1, peerNameOrg1, certDirectoryPathOrg1, mspIdOrg1, keyDirectoryPathOrg1, tlsCertPathOrg2, peerEndpointOrg2, peerNameOrg2, certDirectoryPathOrg2, mspIdOrg2, keyDirectoryPathOrg2 } from './connect';
 import { ContractWrapper } from './contractWrapper';
@@ -30,6 +30,7 @@ async function main(): Promise<void> {
         client: clientOrg1,
         identity: await newIdentity(certDirectoryPathOrg1, mspIdOrg1),
         signer: await newSigner(keyDirectoryPathOrg1),
+        hash: hash.sha256,
     });
 
     // The gRPC client connection from org2 should be shared by all Gateway connections to this endpoint.
@@ -43,6 +44,7 @@ async function main(): Promise<void> {
         client: clientOrg2,
         identity: await newIdentity(certDirectoryPathOrg2, mspIdOrg2),
         signer: await newSigner(keyDirectoryPathOrg2),
+        hash: hash.sha256,
     });
 
 

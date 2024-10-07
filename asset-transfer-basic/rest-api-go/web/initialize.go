@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
+	"github.com/hyperledger/fabric-gateway/pkg/hash"
 	"github.com/hyperledger/fabric-gateway/pkg/identity"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -24,6 +25,7 @@ func Initialize(setup OrgSetup) (*OrgSetup, error) {
 	gateway, err := client.Connect(
 		id,
 		client.WithSign(sign),
+		client.WithHash(hash.SHA256),
 		client.WithClientConnection(clientConnection),
 		client.WithEvaluateTimeout(5*time.Second),
 		client.WithEndorseTimeout(15*time.Second),

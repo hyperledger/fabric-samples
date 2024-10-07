@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { connect, Contract } from '@hyperledger/fabric-gateway';
+import { connect, Contract, hash } from '@hyperledger/fabric-gateway';
 import { TextDecoder } from 'util';
 import {
     certDirectoryPathOrg1, certDirectoryPathOrg2, keyDirectoryPathOrg1, keyDirectoryPathOrg2, newGrpcConnection, newIdentity,
@@ -41,6 +41,7 @@ async function main(): Promise<void> {
         client: clientOrg1,
         identity: await newIdentity(certDirectoryPathOrg1, mspIdOrg1),
         signer: await newSigner(keyDirectoryPathOrg1),
+        hash: hash.sha256,
     });
 
     const clientOrg2 = await newGrpcConnection(
@@ -53,6 +54,7 @@ async function main(): Promise<void> {
         client: clientOrg2,
         identity: await newIdentity(certDirectoryPathOrg2, mspIdOrg2),
         signer: await newSigner(keyDirectoryPathOrg2),
+        hash: hash.sha256,
     });
 
     try {

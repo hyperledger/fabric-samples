@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
+	"github.com/hyperledger/fabric-gateway/pkg/hash"
 	"github.com/hyperledger/fabric-gateway/pkg/identity"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -63,7 +64,8 @@ func main() {
 	defer hsmSignClose()
 
 	// Create a Gateway connection for a specific client identity
-	gateway, err := client.Connect(id, client.WithSign(hsmSign), client.WithClientConnection(clientConnection))
+	gateway, err := client.Connect(id, client.WithSign(hsmSign), client.WithHash(hash.SHA256),
+		client.WithClientConnection(clientConnection))
 	if err != nil {
 		panic(err)
 	}

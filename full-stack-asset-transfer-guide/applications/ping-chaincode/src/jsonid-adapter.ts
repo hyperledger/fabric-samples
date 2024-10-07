@@ -5,10 +5,9 @@
  */
 
 import { Identity, Signer, signers } from '@hyperledger/fabric-gateway';
+import * as crypto from 'crypto';
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import * as crypto from 'crypto';
-import { errorMonitor } from 'events';
 
 /** Internal interface used to describe all the possible components
  * of the identity

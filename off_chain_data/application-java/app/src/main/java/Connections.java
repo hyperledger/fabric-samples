@@ -9,6 +9,7 @@ import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
 import io.grpc.TlsChannelCredentials;
 import org.hyperledger.fabric.client.Gateway;
+import org.hyperledger.fabric.client.Hash;
 import org.hyperledger.fabric.client.identity.Identities;
 import org.hyperledger.fabric.client.identity.Identity;
 import org.hyperledger.fabric.client.identity.Signer;
@@ -86,6 +87,7 @@ public final class Connections {
         return Gateway.newInstance()
                 .identity(newIdentity())
                 .signer(newSigner())
+                .hash(Hash.SHA256)
                 .connection(grpcChannel)
                 .evaluateOptions(options -> options.withDeadlineAfter(EVALUATE_TIMEOUT_SECONDS, TimeUnit.SECONDS))
                 .endorseOptions(options -> options.withDeadlineAfter(ENDORSE_TIMEOUT_SECONDS, TimeUnit.SECONDS))

@@ -5,7 +5,7 @@
  */
 
 const grpc = require('@grpc/grpc-js');
-const { connect, signers } = require('@hyperledger/fabric-gateway');
+const { connect, hash, signers } = require('@hyperledger/fabric-gateway');
 const crypto = require('node:crypto');
 const fs = require('node:fs/promises');
 const path = require('node:path');
@@ -79,6 +79,7 @@ async function main() {
         client,
         identity: await newIdentity(),
         signer: await newSigner(),
+        hash: hash.sha256,
         // Default timeouts for different gRPC calls
         evaluateOptions: () => {
             return { deadline: Date.now() + 5000 }; // 5 seconds
