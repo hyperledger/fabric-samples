@@ -5,7 +5,7 @@
  */
 
 import * as grpc from '@grpc/grpc-js';
-import { ChaincodeEvent, CloseableAsyncIterable, connect, Contract, GatewayError, Network } from '@hyperledger/fabric-gateway';
+import { ChaincodeEvent, CloseableAsyncIterable, connect, Contract, GatewayError, hash, Network } from '@hyperledger/fabric-gateway';
 import { TextDecoder } from 'util';
 import { newGrpcConnection, newIdentity, newSigner } from './connect';
 
@@ -23,6 +23,7 @@ async function main(): Promise<void> {
         client,
         identity: await newIdentity(),
         signer: await newSigner(),
+        hash: hash.sha256,
         evaluateOptions: () => {
             return { deadline: Date.now() + 5000 }; // 5 seconds
         },
@@ -136,7 +137,7 @@ async function deleteAssetByID(contract: Contract): Promise<void>{
 
 async function replayChaincodeEvents(network: Network, startBlock: bigint): Promise<void> {
     console.log('\n*** Start chaincode event replay');
-    
+
     const events = await network.getChaincodeEvents(chaincodeName, {
         startBlock,
     });

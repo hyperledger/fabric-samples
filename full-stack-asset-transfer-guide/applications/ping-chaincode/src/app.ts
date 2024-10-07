@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { connect, Contract, Identity, Signer, signers } from '@hyperledger/fabric-gateway';
+import { connect, Contract, hash } from '@hyperledger/fabric-gateway';
 import * as path from 'path';
 import { TextDecoder } from 'util';
 import { ConnectionHelper } from './fabric-connection-profile';
@@ -12,9 +12,9 @@ import JSONIDAdapter from './jsonid-adapter';
 
 import { dump } from 'js-yaml';
 
-import {config} from 'dotenv';
+import { config } from 'dotenv';
+import * as env from 'env-var';
 config({path:'app.env'});
-import * as env from 'env-var'
 
 const channelName = env.get('CHANNEL_NAME').default('mychannel').asString();
 const chaincodeName = env.get('CHAINCODE_NAME').default('conga-nft-contract').asString();
@@ -31,7 +31,7 @@ const utf8Decoder = new TextDecoder();
 async function main(): Promise<void> {
 
     const cp = await ConnectionHelper.loadProfile(connectionProfile);
-    
+
 
     // The gRPC client connection should be shared by all Gateway connections to this endpoint.
     const client = await ConnectionHelper.newGrpcConnection(cp,tls);
@@ -46,6 +46,7 @@ async function main(): Promise<void> {
         client,
         identity,
         signer,
+        hash: hash.sha256,
         // Default timeouts for different gRPC calls
         evaluateOptions: () => {
             return { deadline: Date.now() + 5000 }; // 5 seconds
@@ -95,4 +96,3 @@ async function ping(contract: Contract): Promise<void> {
     console.log('*** Result:');
     console.log(dump(result));
 }
-

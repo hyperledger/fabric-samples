@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
+	"github.com/hyperledger/fabric-gateway/pkg/hash"
 )
 
 const (
@@ -35,6 +36,7 @@ func main() {
 	gateway, err := client.Connect(
 		id,
 		client.WithSign(sign),
+		client.WithHash(hash.SHA256),
 		client.WithClientConnection(clientConnection),
 		client.WithEvaluateTimeout(5*time.Second),
 		client.WithEndorseTimeout(15*time.Second),

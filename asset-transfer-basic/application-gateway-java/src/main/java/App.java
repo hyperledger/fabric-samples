@@ -16,6 +16,7 @@ import org.hyperledger.fabric.client.Contract;
 import org.hyperledger.fabric.client.EndorseException;
 import org.hyperledger.fabric.client.Gateway;
 import org.hyperledger.fabric.client.GatewayException;
+import org.hyperledger.fabric.client.Hash;
 import org.hyperledger.fabric.client.SubmitException;
 import org.hyperledger.fabric.client.identity.Identities;
 import org.hyperledger.fabric.client.identity.Identity;
@@ -60,7 +61,11 @@ public final class App {
 		// this endpoint.
 		var channel = newGrpcConnection();
 
-		var builder = Gateway.newInstance().identity(newIdentity()).signer(newSigner()).connection(channel)
+		var builder = Gateway.newInstance()
+                .identity(newIdentity())
+                .signer(newSigner())
+                .hash(Hash.SHA256)
+                .connection(channel)
 				// Default timeouts for different gRPC calls
 				.evaluateOptions(options -> options.withDeadlineAfter(5, TimeUnit.SECONDS))
 				.endorseOptions(options -> options.withDeadlineAfter(15, TimeUnit.SECONDS))
@@ -131,7 +136,7 @@ public final class App {
 		// Update an asset which does not exist.
 		updateNonExistentAsset();
 	}
-	
+
 	/**
 	 * This type of transaction would typically only be run once by an application
 	 * the first time it was started after its initial deployment. A new version of
@@ -152,7 +157,7 @@ public final class App {
 		System.out.println("\n--> Evaluate Transaction: GetAllAssets, function returns all the current assets on the ledger");
 
 		var result = contract.evaluateTransaction("GetAllAssets");
-		
+
 		System.out.println("*** Result: " + prettyJson(result));
 	}
 
@@ -202,7 +207,7 @@ public final class App {
 			throw new RuntimeException("Transaction " + status.getTransactionId() +
 					" failed to commit with status code " + status.getCode());
 		}
-		
+
 		System.out.println("*** Transaction committed successfully");
 	}
 
@@ -210,7 +215,7 @@ public final class App {
 		System.out.println("\n--> Evaluate Transaction: ReadAsset, function returns asset attributes");
 
 		var evaluateResult = contract.evaluateTransaction("ReadAsset", assetId);
-		
+
 		System.out.println("*** Result:" + prettyJson(evaluateResult));
 	}
 
@@ -221,9 +226,9 @@ public final class App {
 	private void updateNonExistentAsset() {
 		try {
 			System.out.println("\n--> Submit Transaction: UpdateAsset asset70, asset70 does not exist and should return an error");
-			
+
 			contract.submitTransaction("UpdateAsset", "asset70", "blue", "5", "Tomoko", "300");
-			
+
 			System.out.println("******** FAILED to return an error");
 		} catch (EndorseException | SubmitException | CommitStatusException e) {
 			System.out.println("*** Successfully caught the error: ");
