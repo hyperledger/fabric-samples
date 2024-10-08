@@ -200,7 +200,7 @@ peer:
             # and the private data residing inside the transient store that is guaranteed not to be purged.
             # Private data is purged from the transient store when blocks with sequences that are multiples
             # of transientstoreMaxBlockRetention are committed.
-            transientstoreMaxBlockRetention: 1000
+            transientstoreMaxBlockRetention: 20000
             # pushAckTimeout is the maximum time to wait for an acknowledgement from each peer
             # at private data push at endorsement time.
             pushAckTimeout: 3s
@@ -363,7 +363,7 @@ peer:
         # via gossip.
         # Note that 'gossip.state.enabled' controls point to point block replication
         # of blocks committed in the past.
-        blockGossipEnabled: true
+        blockGossipEnabled: false
         # It sets the total time the delivery service may spend in reconnection
         # attempts until its retry logic gives up and returns an error
         reconnectTotalTimeThreshold: 3600s
@@ -573,11 +573,11 @@ chaincode:
         # tools added for java shim layer packaging.
         # This image is packed with shim layer libraries that are necessary
         # for Java chaincode runtime.
-        runtime: $(DOCKER_NS)/fabric-javaenv:$(TWO_DIGIT_VERSION)
+        runtime: $(DOCKER_NS)/fabric-javaenv:2.5
 
     node:
         # This is an image based on node:$(NODE_VER)-alpine
-        runtime: $(DOCKER_NS)/fabric-nodeenv:$(TWO_DIGIT_VERSION)
+        runtime: $(DOCKER_NS)/fabric-nodeenv:2.5
 
     # List of directories to treat as external builders and launchers for
     # chaincode. The external builder detection processing will iterate over the
