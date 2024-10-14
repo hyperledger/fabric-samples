@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-samples/token-sdk/issuer
 
-go 1.20
+go 1.22.0
 
 replace github.com/ugorji/go v1.1.4 => github.com/ugorji/go/codec v1.2.9
 

@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-samples/auction/dutch-auction/chaincode-go
 
-go 1.21
+go 1.22.0
 
 require (
 	github.com/hyperledger/fabric-chaincode-go/v2 v2.0.0-20240618210511-f7903324a8af
