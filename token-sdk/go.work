@@ -1,6 +1,8 @@
-go 1.20
+go 1.22.0
 
-use ./auditor
-use ./issuer
-use ./owner
-use ./e2e
+use (
+	./auditor
+	./e2e
+	./issuer
+	./owner
+)
