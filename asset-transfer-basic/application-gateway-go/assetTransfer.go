@@ -280,7 +280,7 @@ func exampleErrorHandling(contract *client.Contract) {
 		for _, detail := range details {
 			switch detail := detail.(type) {
 			case *gateway.ErrorDetail:
-				fmt.Printf("- address: %s, mspId: %s, message: %s\n", detail.Address, detail.MspId, detail.Message)
+				fmt.Printf("- address: %s; mspId: %s; message: %s\n", detail.Address, detail.MspId, detail.Message)
 			}
 		}
 	}
