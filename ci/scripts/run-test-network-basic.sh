@@ -77,6 +77,8 @@ deployChaincode
 pushd ../asset-transfer-basic/application-gateway-java
 print "Executing Gradle Run"
 ./gradlew run
+print "Executing Maven Run"
+mvn --batch-mode --no-transfer-progress compile exec:java -Dexec.mainClass=App
 popd
 
 
