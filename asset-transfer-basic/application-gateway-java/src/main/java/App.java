@@ -231,20 +231,11 @@ public final class App {
 
 			System.out.println("******** FAILED to return an error");
 		} catch (EndorseException | SubmitException | CommitStatusException e) {
-			System.out.println("*** Successfully caught the error: ");
+			System.out.println("*** Successfully caught the error:");
 			e.printStackTrace(System.out);
 			System.out.println("Transaction ID: " + e.getTransactionId());
-
-			var details = e.getDetails();
-			if (!details.isEmpty()) {
-				System.out.println("Error Details:");
-				for (var detail : details) {
-					System.out.println("- address: " + detail.getAddress() + ", mspId: " + detail.getMspId()
-							+ ", message: " + detail.getMessage());
-				}
-			}
 		} catch (CommitException e) {
-			System.out.println("*** Successfully caught the error: " + e);
+			System.out.println("*** Successfully caught the error:");
 			e.printStackTrace(System.out);
 			System.out.println("Transaction ID: " + e.getTransactionId());
 			System.out.println("Status code: " + e.getCode());
