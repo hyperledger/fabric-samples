@@ -18,14 +18,14 @@ const mspIdOrg2 = 'Org2MSP';
 
 const utf8Decoder = new TextDecoder();
 
-// Collection Names
+// Collection names.
 const org1PrivateCollectionName = 'Org1MSPPrivateCollection';
 const org2PrivateCollectionName = 'Org2MSPPrivateCollection';
 
 const RED = '\x1b[31m\n';
 const RESET = '\x1b[0m';
 
-// Use a unique key so that we can run multiple times
+// Use a unique key so that we can run multiple times.
 const now = Date.now();
 const assetID1 = `asset${String(now)}`;
 const assetID2 = `asset${String(now + 1)}`;
@@ -74,10 +74,10 @@ async function main(): Promise<void> {
         await createAssets(contractOrg1);
 
         // Read asset from the Org1's private data collection with ID in the given range.
-        await getAssetsByRange(contractOrg1);
+        await getAssetByRange(contractOrg1);
 
         try {
-            // Attempt to transfer asset without prior aprroval from Org2, transaction expected to fail.
+            // Attempt to transfer asset without prior approval from Org2, transaction expected to fail.
             console.log('\nAttempt TransferAsset without prior AgreeToTransfer');
             await transferAsset(contractOrg1, assetID1);
             doFail('TransferAsset transaction succeeded when it was expected to fail');
@@ -101,7 +101,7 @@ async function main(): Promise<void> {
         // Transfer asset to Org2.
         await transferAsset(contractOrg1, assetID1);
 
-        // Again ReadAsset : results will show that the buyer identity now owns the asset.
+        // Again ReadAsset: results will show that the buyer identity now owns the asset.
         await readAssetByID(contractOrg1, assetID1);
 
         // Confirm that transfer removed the private details from the Org1 collection.
@@ -112,7 +112,7 @@ async function main(): Promise<void> {
 
         console.log('\n~~~~~~~~~~~~~~~~ As Org2 Client ~~~~~~~~~~~~~~~~');
 
-        // Org2 can read asset private details: Org2 is owner, and private details exist in new owner's Collection
+        // Org2 can read asset private details: Org2 is owner, and private details exist in new owner's collection.
         const org2ReadSuccess = await readAssetPrivateDetails(contractOrg2, assetID1, org2PrivateCollectionName);
         if (!org2ReadSuccess) {
             doFail(`Asset private data not found in ${org2PrivateCollectionName}`);
@@ -131,8 +131,8 @@ async function main(): Promise<void> {
         // Delete AssetID2 as Org1.
         await deleteAsset(contractOrg1, assetID2);
 
-        // Trigger a purge of the private data for the asset
-        // The previous delete is optinal if purge is used
+        // Trigger a purge of the private data for the asset.
+        // The previous delete is optional if purge is used.
         await purgeAsset(contractOrg1, assetID2);
     } finally {
         gatewayOrg1.close();
@@ -186,9 +186,9 @@ async function createAssets(contract: Contract): Promise<void> {
     console.log('*** Transaction committed successfully');
 }
 
-async function getAssetsByRange(contract: Contract): Promise<void> {
+async function getAssetByRange(contract: Contract): Promise<void> {
     // GetAssetByRange returns assets on the ledger with ID in the range of startKey (inclusive) and endKey (exclusive).
-    console.log(`\n--> Evaluate Transaction: ReadAssetPrivateDetails from ${org1PrivateCollectionName}`);
+    console.log(`\n--> Evaluate Transaction: GetAssetByRange from ${org1PrivateCollectionName}`);
 
     const resultBytes = await contract.evaluateTransaction(
         'GetAssetByRange',
@@ -198,7 +198,7 @@ async function getAssetsByRange(contract: Contract): Promise<void> {
 
     const resultString = utf8Decoder.decode(resultBytes);
     if (!resultString) {
-        doFail('Received empty query list for readAssetPrivateDetailsOrg1');
+        doFail('Received empty query list for GetAssetByRange');
     }
     const result: unknown = JSON.parse(resultString);
     console.log('*** Result:', result);
@@ -217,8 +217,8 @@ async function readAssetByID(contract: Contract, assetID: string): Promise<void>
 }
 
 async function agreeToTransfer(contract: Contract, assetID: string): Promise<void> {
-    // Buyer from Org2 agrees to buy the asset//
-    // To purchase the asset, the buyer needs to agree to the same value as the asset owner
+    // Buyer from Org2 agrees to buy the asset.
+    // To purchase the asset, the buyer needs to agree to the same value as the asset owner.
 
     const dataForAgreement = { assetID, appraisedValue: 100 };
     console.log('\n--> Submit Transaction: AgreeToTransfer, payload:', dataForAgreement);
