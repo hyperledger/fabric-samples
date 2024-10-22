@@ -53,9 +53,15 @@ deployChaincode
 print "Initializing off-chain data application"
 pushd ../off_chain_data/application-java
 rm -f app/checkpoint.json app/store.log
-print "Running the output app"
+print "Running the Gradle app"
 SIMULATED_FAILURE_COUNT=1 ./gradlew run --quiet --args='getAllAssets transact getAllAssets listen'
 SIMULATED_FAILURE_COUNT=1 ./gradlew run --quiet --args=listen
+pushd app
+rm -f checkpoint.json store.log
+print "Executing Maven application"
+SIMULATED_FAILURE_COUNT=1 mvn --batch-mode --no-transfer-progress compile exec:java -Dexec.mainClass=App -Dexec.args='getAllAssets transact getAllAssets listen'
+SIMULATED_FAILURE_COUNT=1 mvn --batch-mode --no-transfer-progress compile exec:java -Dexec.mainClass=App -Dexec.args=listen
+popd
 popd
 
 stopNetwork

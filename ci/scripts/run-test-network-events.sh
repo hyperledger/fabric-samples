@@ -48,7 +48,9 @@ stopNetwork
 createNetwork
 print "Initializing Java gateway application"
 pushd ../asset-transfer-events/application-gateway-java
-print "Executing application"
+print "Executing Gradle application"
 ./gradlew run
+print "Executing Maven application"
+mvn --batch-mode --no-transfer-progress compile exec:java -Dexec.mainClass=App
 popd
 stopNetwork
