@@ -28,7 +28,7 @@ The client application provides several "commands" that can be invoked using the
 
 To keep the sample code concise, the **listen** command writes ledger updates to an output file named `store.log` in the current working directory (which for the Java sample is the `application-java/app` directory). A real implementation could write ledger updates directly to an off-chain data store of choice. You can inspect the information captured in this file as you run the sample.
 
-Note that the **listen** command is is restartable and will resume event listening after the last successfully processed block / transaction. This is achieved using a checkpointer to persist the current listening position. Checkpoint state is persisted to a file named `checkpoint.json` in the current working directory. If no checkpoint state is present, event listening begins from the start of the ledger (block number zero).
+Note that the **listen** command is restartable and will resume event listening after the last successfully processed block / transaction. This is achieved using a checkpointer to persist the current listening position. Checkpoint state is persisted to a file named `checkpoint.json` in the current working directory. If no checkpoint state is present, event listening begins from the start of the ledger (block number zero).
 
 ### Smart Contract
 
