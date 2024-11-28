@@ -168,15 +168,16 @@ microfab: microfab-down
             }
 
         ],
-        "capability_level":"V2_0"
+        "capability_level":"V2_5"
     }'
 
     mkdir -p $CFG
     echo
     echo "Stating microfab...."
 
-    docker run --name microfab -p 8080:8080 --add-host host.docker.internal:host-gateway --rm -d -e MICROFAB_CONFIG="${MICROFAB_CONFIG}" ghcr.io/hyperledger-labs/microfab:latest
-    sleep 5
+    timeout 60s bash -c \
+        'docker run --name microfab -p 8080:8080 --add-host host.docker.internal:host-gateway --rm -d -e MICROFAB_CONFIG="${MICROFAB_CONFIG}" ghcr.io/hyperledger-labs/microfab:latest \
+        && docker logs -f microfab | grep --max-count=1 "Microfab started"'
 
     curl -s http://console.127-0-0-1.nip.io:8080/ak/api/v1/components | weft microfab -w $CFG/_wallets -p $CFG/_gateways -m $CFG/_msp -f
     cat << EOF > $CFG/org1admin.env

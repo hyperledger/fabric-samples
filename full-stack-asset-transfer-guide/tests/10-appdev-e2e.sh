@@ -36,7 +36,7 @@ source "${WORKSHOP_PATH}/_cfg/uf/org1admin.env"
 cd "${WORKSHOP_PATH}/contracts/asset-transfer-typescript"
 npm install
 npm run build
-npm run start:server-nontls &
+node_modules/.bin/fabric-chaincode-node server --chaincode-address="${CHAINCODE_SERVER_ADDRESS}" --chaincode-id="${CHAINCODE_ID}" &
 CHAINCODE_PID=$!
 
 sleep 5
