@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/hyperledger/fabric-gateway/pkg/identity"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
@@ -258,10 +260,72 @@ type Payload interface {
 	GetChannelHeader() *common.ChannelHeader
 	GetEndorserTransaction() EndorserTransaction
 	GetSignatureHeader() *common.SignatureHeader
-	GetTransactionValidationCode() uint64
+	GetTransactionValidationCode() int32
 	IsEndorserTransaction() bool
 	IsValid() bool
 	ToProto() *common.Payload
+}
+
+type PayloadImpl struct {
+	payload    *common.Payload
+	statusCode int32
+}
+
+func NewPayloadImpl(payload *common.Payload, statusCode int32) Payload {
+	return &PayloadImpl{payload, statusCode}
+}
+
+func (p *PayloadImpl) GetChannelHeader() *common.ChannelHeader {
+	header := assertDefined(p.payload.GetHeader(), "missing payload header")
+
+	// TODO add cache, return cachedChannelHeader like in blockParser.ts:77
+	result := &common.ChannelHeader{}
+	if err := proto.Unmarshal(header.GetChannelHeader(), result); err != nil {
+		panic(err)
+	}
+
+	return result
+}
+
+func (p *PayloadImpl) GetEndorserTransaction() EndorserTransaction {
+	if !p.IsEndorserTransaction() {
+		panic(fmt.Errorf("unexpected payload type: %d", p.GetChannelHeader().GetType()))
+	}
+
+	result := &peer.Transaction{}
+	if err := proto.Unmarshal(p.payload.GetData(), result); err != nil {
+		panic(err)
+	}
+
+	return NewParsedEndorserTransaction(result)
+}
+
+func (p *PayloadImpl) GetSignatureHeader() *common.SignatureHeader {
+	header := assertDefined(p.payload.GetHeader(), "missing payload header")
+
+	// TODO add cache, return cachedSignatureHeader like in blockParser.ts:77
+	result := &common.SignatureHeader{}
+	if err := proto.Unmarshal(header.GetSignatureHeader(), result); err != nil {
+		panic(err)
+	}
+
+	return result
+}
+
+func (p *PayloadImpl) GetTransactionValidationCode() int32 {
+	return p.statusCode
+}
+
+func (p *PayloadImpl) IsEndorserTransaction() bool {
+	return p.GetChannelHeader().GetType() == int32(common.HeaderType_ENDORSER_TRANSACTION)
+}
+
+func (p *PayloadImpl) IsValid() bool {
+	return p.statusCode == int32(peer.TxValidationCode_VALID)
+}
+
+func (p *PayloadImpl) ToProto() *common.Payload {
+	return p.payload
 }
 
 func getTransactionValidationCodes(block *common.Block) []byte {
