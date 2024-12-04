@@ -7,6 +7,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset/kvrwset"
+	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"google.golang.org/protobuf/proto"
 )
@@ -15,15 +16,6 @@ type Block interface {
 	GetNumber() uint64
 	GetTransactions() []Transaction
 	ToProto() *common.Block
-}
-
-type Transaction interface {
-	GetChannelHeader() *common.ChannelHeader
-	GetCreator() identity.Identity
-	GetValidationCode() uint64
-	IsValid() bool
-	GetNamespaceReadWriteSets() []NamespaceReadWriteSet
-	ToProto() *common.Payload
 }
 
 type ParsedBlock struct {
@@ -50,6 +42,70 @@ func (pb *ParsedBlock) GetTransactions() []Transaction {
 
 func (pb *ParsedBlock) ToProto() *common.Block {
 	return nil
+}
+
+// Implements identity.Identity Interface
+type IdentityImpl struct {
+	creator *msp.SerializedIdentity
+}
+
+func (i *IdentityImpl) MspID() string {
+	return i.creator.GetMspid()
+}
+
+func (i *IdentityImpl) Credentials() []byte {
+	return i.creator.GetIdBytes()
+}
+
+type Transaction interface {
+	GetChannelHeader() *common.ChannelHeader
+	GetCreator() identity.Identity
+	GetValidationCode() int32
+	IsValid() bool
+	GetNamespaceReadWriteSets() []NamespaceReadWriteSet
+	ToProto() *common.Payload
+}
+
+type TransactionImpl struct {
+	payload Payload
+}
+
+func NewTransaction(payload Payload) Transaction {
+	return &TransactionImpl{payload}
+}
+
+func (t *TransactionImpl) GetChannelHeader() *common.ChannelHeader {
+	return t.payload.GetChannelHeader()
+}
+
+func (t *TransactionImpl) GetCreator() identity.Identity {
+	creator := &msp.SerializedIdentity{}
+	if err := proto.Unmarshal(t.payload.GetSignatureHeader().GetCreator(), creator); err != nil {
+		panic(err)
+	}
+
+	return &IdentityImpl{creator}
+}
+
+func (t *TransactionImpl) GetNamespaceReadWriteSets() []NamespaceReadWriteSet {
+	result := []NamespaceReadWriteSet{}
+	for _, readWriteSet := range t.payload.GetEndorserTransaction().GetReadWriteSets() {
+		result = append(result, readWriteSet.GetNamespaceReadWriteSets()...)
+	}
+
+	return result
+}
+
+func (t *TransactionImpl) GetValidationCode() int32 {
+	return t.payload.GetTransactionValidationCode()
+}
+
+func (t *TransactionImpl) IsValid() bool {
+	return t.payload.IsValid()
+}
+
+func (t *TransactionImpl) ToProto() *common.Payload {
+	return t.payload.ToProto()
 }
 
 type EndorserTransaction interface {
