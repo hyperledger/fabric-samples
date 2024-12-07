@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 
+	atb "offChainData/contract"
+	"offChainData/utils"
+
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"google.golang.org/grpc"
 )
@@ -17,29 +20,19 @@ func transact(clientConnection *grpc.ClientConn) {
 
 	contract := gateway.GetNetwork(channelName).GetContract(chaincodeName)
 
-	smartContract := newAssetTransferBasic(contract)
+	smartContract := atb.NewAssetTransferBasic(contract)
 	app := newTransactApp(smartContract)
 	app.run()
 }
 
 type transactApp struct {
-	smartContract *assetTransferBasic
+	smartContract *atb.AssetTransferBasic
 	batchSize     uint
 }
 
-func newTransactApp(smartContract *assetTransferBasic) *transactApp {
+func newTransactApp(smartContract *atb.AssetTransferBasic) *transactApp {
 	return &transactApp{smartContract, 10}
 }
-
-var (
-	colors = []string{"red", "green", "blue"}
-	owners = []string{"alice", "bob", "charlie"}
-)
-
-const (
-	maxInitialValue = 1000
-	maxInitialSize  = 10
-)
 
 func (t *transactApp) run() {
 	for i := 0; i < int(t.batchSize); i++ {
@@ -48,21 +41,21 @@ func (t *transactApp) run() {
 }
 
 func (t *transactApp) transact() {
-	anAsset := NewAsset()
+	anAsset := atb.NewAsset()
 
-	t.smartContract.createAsset(anAsset)
+	t.smartContract.CreateAsset(anAsset)
 	fmt.Printf("\nCreated asset %s\n", anAsset.ID)
 
 	// Transfer randomly 1 in 2 assets to a new owner.
-	if randomInt(2) == 0 {
-		newOwner := differentElement(owners, anAsset.Owner)
-		oldOwner := t.smartContract.transferAsset(anAsset.ID, newOwner)
+	if utils.RandomInt(2) == 0 {
+		newOwner := utils.DifferentElement(atb.Owners, anAsset.Owner)
+		oldOwner := t.smartContract.TransferAsset(anAsset.ID, newOwner)
 		fmt.Printf("Transferred asset %s from %s to %s\n", anAsset.ID, oldOwner, newOwner)
 	}
 
 	// Delete randomly 1 in 4 created assets.
-	if randomInt(4) == 0 {
-		t.smartContract.deleteAsset(anAsset.ID)
+	if utils.RandomInt(4) == 0 {
+		t.smartContract.DeleteAsset(anAsset.ID)
 		fmt.Printf("Deleted asset %s\n", anAsset.ID)
 	}
 }
