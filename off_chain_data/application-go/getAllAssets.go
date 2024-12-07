@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	atb "offChainData/contract"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"google.golang.org/grpc"
@@ -24,8 +25,8 @@ func getAllAssets(clientConnection *grpc.ClientConn) {
 	defer gateway.Close()
 
 	contract := gateway.GetNetwork(channelName).GetContract(chaincodeName)
-	smartContract := newAssetTransferBasic(contract)
-	assets := smartContract.getAllAssets()
+	smartContract := atb.NewAssetTransferBasic(contract)
+	assets := smartContract.GetAllAssets()
 
 	fmt.Printf("%s\n", formatJSON(assets))
 }

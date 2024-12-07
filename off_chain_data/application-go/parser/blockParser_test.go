@@ -1,10 +1,11 @@
-package main_test
+package parser_test
 
 import (
 	"encoding/json"
 	"testing"
 
-	ocd "offChainData"
+	atb "offChainData/contract"
+	"offChainData/parser"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset/kvrwset"
@@ -34,25 +35,30 @@ func TestGetReadWriteSetsFromEndorserTransaction(t *testing.T) {
 		},
 	}
 
-	parsedEndorserTransaction := ocd.NewParsedEndorserTransaction(transaction)
-	if len(parsedEndorserTransaction.GetReadWriteSets()) != 1 {
-		t.Fatal("expected 1 ReadWriteSet, got", len(parsedEndorserTransaction.GetReadWriteSets()))
+	parsedEndorserTransaction := parser.ParseEndorserTransaction(transaction)
+	if len(parsedEndorserTransaction.ReadWriteSets()) != 1 {
+		t.Fatal("expected 1 ReadWriteSet, got", len(parsedEndorserTransaction.ReadWriteSets()))
 	}
 
 	assertReadWriteSet(
-		parsedEndorserTransaction.GetReadWriteSets()[0].GetNamespaceReadWriteSets()[0],
+		parsedEndorserTransaction.ReadWriteSets()[0].NamespaceReadWriteSets()[0],
 		expectedNamespace,
 		expectedAsset,
 		t,
 	)
 }
 
-func assertReadWriteSet(parsedNsRwSet ocd.NamespaceReadWriteSet, expectedNamespace string, expectedAsset ocd.Asset, t *testing.T) {
-	if parsedNsRwSet.GetNamespace() != expectedNamespace {
-		t.Errorf("expected namespace %s, got %s", expectedNamespace, parsedNsRwSet.GetNamespace())
+func assertReadWriteSet(
+	parsedNsRwSet parser.NamespaceReadWriteSet,
+	expectedNamespace string,
+	expectedAsset atb.Asset,
+	t *testing.T,
+) {
+	if parsedNsRwSet.Namespace() != expectedNamespace {
+		t.Errorf("expected namespace %s, got %s", expectedNamespace, parsedNsRwSet.Namespace())
 	}
 
-	actualKVRWSet := parsedNsRwSet.GetReadWriteSet()
+	actualKVRWSet := parsedNsRwSet.ReadWriteSet()
 	if len(actualKVRWSet.Writes) != 1 {
 		t.Fatal("expected 1 write, got", len(actualKVRWSet.Writes))
 	}
@@ -74,16 +80,16 @@ func TestReadWriteSetWrapping(t *testing.T) {
 		NsRwset: []*rwset.NsReadWriteSet{nsReadWriteSetFake},
 	}
 
-	parsedRwSet := ocd.NewParsedReadWriteSet(txReadWriteSetFake)
-	if len(parsedRwSet.GetNamespaceReadWriteSets()) != 1 {
-		t.Fatalf("Expected 1 NamespaceReadWriteSet, got %d", len(parsedRwSet.GetNamespaceReadWriteSets()))
+	parsedRwSet := parser.ParseReadWriteSet(txReadWriteSetFake)
+	if len(parsedRwSet.NamespaceReadWriteSets()) != 1 {
+		t.Fatalf("Expected 1 NamespaceReadWriteSet, got %d", len(parsedRwSet.NamespaceReadWriteSets()))
 	}
 }
 
 func TestNamespaceReadWriteSetParsing(t *testing.T) {
 	nsReadWriteSetFake, expectedNamespace, expectedAsset := nsReadWriteSetFake()
 
-	parsedNsRwSet := ocd.NewParsedNamespaceReadWriteSet(nsReadWriteSetFake)
+	parsedNsRwSet := parser.ParseNamespaceReadWriteSet(nsReadWriteSetFake)
 	assertReadWriteSet(
 		parsedNsRwSet,
 		expectedNamespace,
@@ -92,9 +98,9 @@ func TestNamespaceReadWriteSetParsing(t *testing.T) {
 	)
 }
 
-func nsReadWriteSetFake() (*rwset.NsReadWriteSet, string, ocd.Asset) {
+func nsReadWriteSetFake() (*rwset.NsReadWriteSet, string, atb.Asset) {
 	expectedNamespace := "basic"
-	expectedAsset := ocd.NewAsset()
+	expectedAsset := atb.NewAsset()
 
 	result := &rwset.NsReadWriteSet{
 		Namespace: expectedNamespace,

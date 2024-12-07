@@ -1,14 +1,12 @@
 module offChainData
 
-go 1.22.7
-
-toolchain go1.23.0
+go 1.22.0
 
 require (
 	github.com/google/uuid v1.6.0
 	github.com/hyperledger/fabric-gateway v1.7.0
 	github.com/hyperledger/fabric-protos-go-apiv2 v0.3.4
-	google.golang.org/grpc v1.68.0
+	google.golang.org/grpc v1.68.0-dev
 	google.golang.org/protobuf v1.35.2
 )
 
