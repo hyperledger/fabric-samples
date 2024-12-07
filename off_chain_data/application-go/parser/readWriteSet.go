@@ -6,6 +6,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// TODO remove interface, use struct; encapsulate; extract into file
 type ReadWriteSet interface {
 	NamespaceReadWriteSets() []NamespaceReadWriteSet
 	ToProto() *rwset.TxReadWriteSet
@@ -28,10 +29,12 @@ func (p *ReadWriteSetImpl) NamespaceReadWriteSets() []NamespaceReadWriteSet {
 	return result
 }
 
+// TODO remove unused
 func (p *ReadWriteSetImpl) ToProto() *rwset.TxReadWriteSet {
 	return p.readWriteSet
 }
 
+// TODO remove interface, use struct
 type NamespaceReadWriteSet interface {
 	Namespace() string
 	ReadWriteSet() *kvrwset.KVRWSet
@@ -60,6 +63,7 @@ func (p *NamespaceReadWriteSetImpl) ReadWriteSet() *kvrwset.KVRWSet {
 	return &result
 }
 
+// TODO remove unused
 func (p *NamespaceReadWriteSetImpl) ToProto() *rwset.NsReadWriteSet {
 	return p.nsReadWriteSet
 }
