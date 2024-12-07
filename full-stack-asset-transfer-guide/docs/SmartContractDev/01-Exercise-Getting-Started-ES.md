@@ -1,6 +1,6 @@
 # Comenzar con un Contrato Inteligente
 
-[ANTERIOR - Introducción](./00-Introduction-ES.md) <==>  [SIGUIENTE - Agregar una Función Transaccional](./02-Exercise-Adding-tx-function-ES.md)
+[ANTERIOR - Introducción](./00-Introduction-ES.md) <==> [SIGUIENTE - Agregar una Función Transaccional](./02-Exercise-Adding-tx-function-ES.md)
 
 ---
 
@@ -29,13 +29,14 @@ Tiene ademas credenciales para una organización `org1`, que sera utilizada para
 
 Usaremos recetas de `just` para ejecutar múltiples comandos. Las recetas `just` son similares a make `make` pero mas fáciles de comprender. Puedes abrir el [justfile](../../justfile) en el directorio raíz del proyecto para ver qué comandos son ejecutados con cada receta.
 
-Inicia el contenedor de MicroFab ejecutando la receta `just`. Esto establecerá algunas propiedades para el ambiente MicroFab e iniciará el contenedor docker de MicroFab. 
+Inicia el contenedor de MicroFab ejecutando la receta `just`. Esto establecerá algunas propiedades para el ambiente MicroFab e iniciará el contenedor docker de MicroFab.
 
 ```bash
 just microfab
 ```
 
 Esto arrancará el contenedor docker (lo descargara automáticamente si es necesario), y adicionalmente escribirá algunos archivos de configuración/data en el directorio `_cfg/uf`.
+
 ```bash
 ls -1 _cfg/uf
 
@@ -46,7 +47,7 @@ org1admin.env
 org2admin.env
 ```
 
-Un archivo `org1admin.env` es generado que contiene las variables de entorno necesarias para ejecutar aplicaciones  _con la identidad de org1 admin_. Una segunda organización es creada, con un `org2admin.env` - esto es para ejercicios más adelante y no es requerido para el actual.
+Un archivo `org1admin.env` es generado que contiene las variables de entorno necesarias para ejecutar aplicaciones _con la identidad de org1 admin_. Una segunda organización es creada, con un `org2admin.env` - esto es para ejercicios más adelante y no es requerido para el actual.
 
 Veamos cuáles son las variables de entorno y usemos source para establecer las mismas:
 
@@ -218,7 +219,7 @@ npm install
 npm run build
 ```
 
-Una forma fácil de verificar que el contrato ha sido construido correctamente es generar la metadata del contrato ('Contract Metadata') en un archivo `metadata.json`. Esta es una definición del contrato y de los tipos de datos que éste retornó que es agnóstica a lenguajes. Toma prestado conceptos de OpenAPI utilizados en la definición de REST APIs.  Es también muy útil para compartir con equipos que están escribiendo aplicaciones cliente para que conozcan la estructura de la data y las funciones de las transacciones que pueden invocar.
+Una forma fácil de verificar que el contrato ha sido construido correctamente es generar la metadata del contrato ('Contract Metadata') en un archivo `metadata.json`. Esta es una definición del contrato y de los tipos de datos que éste retornó que es agnóstica a lenguajes. Toma prestado conceptos de OpenAPI utilizados en la definición de REST APIs. Es también muy útil para compartir con equipos que están escribiendo aplicaciones cliente para que conozcan la estructura de la data y las funciones de las transacciones que pueden invocar.
 Como es un documento JSON, puede ser utilizado para crear otros recursos.
 
 El comando que genera la metadata ha sido colocado en el `package.json`:
@@ -228,7 +229,6 @@ npm run metadata
 ```
 
 Revisa el archivo `metadata.json` generado y observa el resumen de la información del contrato, las funciones de transacciones y los tipos de datos. Esta información puede ser obtenida también en el momento de ejecución y es una buena forma de probar la implementación.
-
 
 ## Desarrollo Iterativo y Pruebas
 
@@ -279,7 +279,7 @@ peer chaincode query -C mychannel -n asset-transfer -c '{"Args":["org.hyperledge
 Creemos un activo con ID=001:
 
 ```
-peer chaincode invoke -C mychannel -n asset-transfer -c '{"Args":["CreateAsset","{\"ID\":\"001\", \"Color\":\"Red\",\"Size\":52,\"Owner\":\"Fred\",\"AppraisedValue\":234234}"]}' --connTimeout 15s
+peer chaincode invoke -C mychannel -o orderer-api.127-0-0-1.nip.io:8080 -n asset-transfer -c '{"Args":["CreateAsset","{\"ID\":\"001\", \"Color\":\"Red\",\"Size\":52,\"Owner\":\"Fred\",\"AppraisedValue\":234234}"]}' --connTimeout 15s
 ```
 
 Si estas observando los logs de MicroFab veras que el peer grabo un nuevo bloque al ledger.
@@ -316,6 +316,7 @@ Supongamos que queremos cambiar ese mensaje de error por otra cosa.
 - Abrir el archivo `src/assetTransfer.ts` en el editor de tu preferencia
 - Alrededor de la linea 51, encuentra el string del error y haz una modificación. Recuerda guardar el cambio.
 - Compila nuevamente el contrato en typescript:
+
 ```
 npm run build
 ```
@@ -325,7 +326,6 @@ Puedes arrancar nuevamente el contrato como hiciste antes
 ```
 npm run start:server-debug
 ```
-
 
 Y ejecutar la misma consulta visualizando el mensaje de error actualizado:
 
@@ -344,8 +344,8 @@ Puedes entonces arrancar la depuración 'asociada al proceso', y seleccionar el 
 Recuerda establecer un punto de quiebre al comienzo de la función transaccional que quieres depurar.
 
 Presta atención a:
-    - VSCode usa node, así que ten cuidado para seleccionar el proceso correcto
-    - recuerda que existe un límite de tiempo de la transacción cliente/fabric, mientras tengas al chaincode detenido en el depurador, el límite de tiempo sigue 'contando'
 
+- VSCode usa node, así que ten cuidado para seleccionar el proceso correcto
+- recuerda que existe un límite de tiempo de la transacción cliente/fabric, mientras tengas al chaincode detenido en el depurador, el límite de tiempo sigue 'contando'
 
 Revisa [Probar y Depurar Contratos](./03-Test-And-Debug-Reference-ES.md) para mas detalles e información en otros lenguajes.
