@@ -1,23 +1,20 @@
 package parser
 
 import (
+	"fmt"
 	"offChainData/utils"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
-	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"google.golang.org/protobuf/proto"
 )
 
 type Block struct {
-	block           *common.Block
-	validationCodes []byte
-	transactions    []Transaction
+	block        *common.Block
+	transactions []*Transaction
 }
 
-func ParseBlock(block *common.Block) Block {
-	validationCodes := extractTransactionValidationCodes(block)
-
-	return Block{block, validationCodes, nil}
+func ParseBlock(block *common.Block) *Block {
+	return &Block{block, nil}
 }
 
 func (b *Block) Number() uint64 {
@@ -25,58 +22,53 @@ func (b *Block) Number() uint64 {
 	return header.GetNumber()
 }
 
-// TODO: needs cache, getPayloads, parsePayload
-func (b *Block) Transactions() []Transaction {
-	return nil
-}
-
-func (b *Block) ToProto() *common.Block {
-	return nil
-}
-
-func (b *Block) payloads() []*common.Payload {
-	var payloads []*common.Payload
-
-	for _, envelopeBytes := range b.block.GetData().GetData() {
+// TODO: needs cache; decompose
+func (b *Block) Transactions() []*Transaction {
+	envelopes := []*common.Envelope{}
+	for _, blockData := range b.block.GetData().GetData() {
 		envelope := &common.Envelope{}
-		if err := proto.Unmarshal(envelopeBytes, envelope); err != nil {
+		if err := proto.Unmarshal(blockData, envelope); err != nil {
 			panic(err)
 		}
+		envelopes = append(envelopes, envelope)
+	}
 
-		payload := &common.Payload{}
-		if err := proto.Unmarshal(envelope.Payload, payload); err != nil {
+	commonPayloads := []*common.Payload{}
+	for _, envelope := range envelopes {
+		commonPayload := &common.Payload{}
+		if err := proto.Unmarshal(envelope.GetPayload(), commonPayload); err != nil {
 			panic(err)
 		}
-
-		payloads = append(payloads, payload)
+		commonPayloads = append(commonPayloads, commonPayload)
 	}
 
-	return payloads
+	validationCodes := b.extractTransactionValidationCodes()
+	payloads := []*PayloadImpl{}
+	for i, commonPayload := range commonPayloads {
+		payload := ParsePayload(
+			commonPayload,
+			int32(utils.AssertDefined(
+				validationCodes[i],
+				fmt.Sprint("missing validation code index", i),
+			),
+			),
+		)
+		if payload.IsEndorserTransaction() {
+			payloads = append(payloads, payload)
+		}
+	}
+
+	result := []*Transaction{}
+	for _, payload := range payloads {
+		result = append(result, NewTransaction(payload))
+	}
+
+	return result
 }
 
-// TODO not sure about this
-func (pb *Block) statusCode(txIndex int) peer.TxValidationCode {
-	blockMetadata := utils.AssertDefined(
-		pb.block.GetMetadata(),
-		"missing block metadata",
-	)
-
-	metadata := blockMetadata.GetMetadata()
-	if int(common.BlockMetadataIndex_TRANSACTIONS_FILTER) >= len(metadata) {
-		return peer.TxValidationCode_INVALID_OTHER_REASON
-	}
-
-	statusCodes := metadata[common.BlockMetadataIndex_TRANSACTIONS_FILTER]
-	if txIndex >= len(statusCodes) {
-		return peer.TxValidationCode_INVALID_OTHER_REASON
-	}
-
-	return peer.TxValidationCode(statusCodes[txIndex])
-}
-
-func extractTransactionValidationCodes(block *common.Block) []byte {
+func (b *Block) extractTransactionValidationCodes() []byte {
 	metadata := utils.AssertDefined(
-		block.GetMetadata(),
+		b.block.GetMetadata(),
 		"missing block metadata",
 	)
 
@@ -84,4 +76,9 @@ func extractTransactionValidationCodes(block *common.Block) []byte {
 		metadata.GetMetadata()[common.BlockMetadataIndex_TRANSACTIONS_FILTER],
 		"missing transaction validation code",
 	)
+}
+
+// TODO remove unused?
+func (b *Block) ToProto() *common.Block {
+	return b.block
 }
