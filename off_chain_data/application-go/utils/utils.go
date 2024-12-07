@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"crypto/rand"
@@ -6,12 +6,12 @@ import (
 	"math/big"
 )
 
-func randomElement(values []string) string {
-	result := values[randomInt(len(values))]
+func RandomElement(values []string) string {
+	result := values[RandomInt(len(values))]
 	return result
 }
 
-func randomInt(max int) int {
+func RandomInt(max int) int {
 	result, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
 	if err != nil {
 		panic(err)
@@ -20,17 +20,17 @@ func randomInt(max int) int {
 	return int(result.Int64())
 }
 
-func differentElement(values []string, currentValue string) string {
+func DifferentElement(values []string, currentValue string) string {
 	candidateValues := []string{}
 	for _, v := range values {
 		if v != currentValue {
 			candidateValues = append(candidateValues, v)
 		}
 	}
-	return randomElement(candidateValues)
+	return RandomElement(candidateValues)
 }
 
-func assertDefined[T any](value T, message string) T {
+func AssertDefined[T any](value T, message string) T {
 	if any(value) == any(nil) {
 		panic(errors.New(message))
 	}
