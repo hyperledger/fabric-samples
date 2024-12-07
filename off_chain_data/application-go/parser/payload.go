@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// TODO remove interface, use struct; encapsulate
 type Payload interface {
 	ChannelHeader() *common.ChannelHeader
 	EndorserTransaction() EndorserTransaction
@@ -77,6 +78,7 @@ func (p *PayloadImpl) IsValid() bool {
 	return p.statusCode == int32(peer.TxValidationCode_VALID)
 }
 
+// TODO remove unused
 func (p *PayloadImpl) ToProto() *common.Payload {
 	return p.payload
 }

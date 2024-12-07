@@ -11,28 +11,20 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type Transaction interface {
-	ChannelHeader() *common.ChannelHeader
-	Creator() identity.Identity
-	ValidationCode() int32
-	IsValid() bool
-	NamespaceReadWriteSets() []NamespaceReadWriteSet
-	ToProto() *common.Payload
-}
-
-type TransactionImpl struct {
+type Transaction struct {
 	payload Payload
 }
 
-func NewTransactionImpl(payload Payload) *TransactionImpl {
-	return &TransactionImpl{payload}
+func NewTransaction(payload Payload) *Transaction {
+	return &Transaction{payload}
 }
 
-func (t *TransactionImpl) ChannelHeader() *common.ChannelHeader {
+func (t *Transaction) ChannelHeader() *common.ChannelHeader {
 	return t.payload.ChannelHeader()
 }
 
-func (t *TransactionImpl) Creator() identity.Identity {
+// TODO remove unused?
+func (t *Transaction) Creator() identity.Identity {
 	creator := &msp.SerializedIdentity{}
 	if err := proto.Unmarshal(t.payload.SignatureHeader().GetCreator(), creator); err != nil {
 		panic(err)
@@ -41,7 +33,7 @@ func (t *TransactionImpl) Creator() identity.Identity {
 	return &identityImpl{creator}
 }
 
-func (t *TransactionImpl) NamespaceReadWriteSets() []NamespaceReadWriteSet {
+func (t *Transaction) NamespaceReadWriteSets() []NamespaceReadWriteSet {
 	result := []NamespaceReadWriteSet{}
 	for _, readWriteSet := range t.payload.EndorserTransaction().ReadWriteSets() {
 		result = append(result, readWriteSet.NamespaceReadWriteSets()...)
@@ -50,18 +42,22 @@ func (t *TransactionImpl) NamespaceReadWriteSets() []NamespaceReadWriteSet {
 	return result
 }
 
-func (t *TransactionImpl) ValidationCode() int32 {
+// TODO remove unused?
+func (t *Transaction) ValidationCode() int32 {
 	return t.payload.TransactionValidationCode()
 }
 
-func (t *TransactionImpl) IsValid() bool {
+// TODO remove unused?
+func (t *Transaction) IsValid() bool {
 	return t.payload.IsValid()
 }
 
-func (t *TransactionImpl) ToProto() *common.Payload {
+// TODO remove unused?
+func (t *Transaction) ToProto() *common.Payload {
 	return t.payload.ToProto()
 }
 
+// TODO remove interface, use struct; encapsulate; extract into file
 type EndorserTransaction interface {
 	ReadWriteSets() []ReadWriteSet
 	ToProto() *peer.Transaction
@@ -164,6 +160,7 @@ func (*EndorserTransactionImpl) parseReadWriteSets(txReadWriteSets []*rwset.TxRe
 	return result
 }
 
+// TODO remove unused
 func (p *EndorserTransactionImpl) ToProto() *peer.Transaction {
 	return p.transaction
 }
