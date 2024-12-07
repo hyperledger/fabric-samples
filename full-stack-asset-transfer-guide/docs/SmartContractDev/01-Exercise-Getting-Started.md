@@ -1,6 +1,6 @@
 # Getting Started with a Smart Contract
 
-[PREVIOUS - Introduction](./00-Introduction.md) <==>  [NEXT Adding a Transaction Function](./02-Exercise-Adding-tx-function.md)
+[PREVIOUS - Introduction](./00-Introduction.md) <==> [NEXT Adding a Transaction Function](./02-Exercise-Adding-tx-function.md)
 
 ---
 
@@ -36,6 +36,7 @@ just microfab
 ```
 
 This will start the docker container (automatically download it if necessary), and also write out some configuration/data files in the `_cfg/uf` directory.
+
 ```bash
 ls -1 _cfg/uf
 
@@ -162,7 +163,7 @@ cat << CONNECTIONJSON-EOF > connection.json
 CONNECTIONJSON-EOF
 ```
 
-We can now build the actual package.  Create a code.tar.gz archive containing the connection.json file.
+We can now build the actual package. Create a code.tar.gz archive containing the connection.json file.
 
 ```bash
 tar -czf code.tar.gz connection.json
@@ -218,7 +219,7 @@ npm install
 npm run build
 ```
 
-An easy way to test the contract has been built ok, is to generate the 'Contract Metadata' into a `metadata.json` file. This is a language agnostic definition of the contracts, and the datatypes the contract returns. It borrows from the OpenAPI used for defining REST APIs.  It is also very useful to share to teams writing client applications so they know the data structures and transaction functions they can call.
+An easy way to test the contract has been built ok, is to generate the 'Contract Metadata' into a `metadata.json` file. This is a language agnostic definition of the contracts, and the datatypes the contract returns. It borrows from the OpenAPI used for defining REST APIs. It is also very useful to share to teams writing client applications so they know the data structures and transaction functions they can call.
 As it's a JSON document, it's amenable to process to create other resources.
 
 The metadata-generate command has been put into the `package.json`:
@@ -228,7 +229,6 @@ npm run metadata
 ```
 
 Review the generated `metadata.json` and see the summary of the contract information, the transaction functions, and datatypes. This information can also be captured at runtime and is a good way of testing deployment.
-
 
 ## Iterative Development and Test
 
@@ -279,7 +279,7 @@ peer chaincode query -C mychannel -n asset-transfer -c '{"Args":["org.hyperledge
 Let's create an asset with ID=001:
 
 ```
-peer chaincode invoke -C mychannel -n asset-transfer -c '{"Args":["CreateAsset","{\"ID\":\"001\", \"Color\":\"Red\",\"Size\":52,\"Owner\":\"Fred\",\"AppraisedValue\":234234}"]}' --connTimeout 15s
+peer chaincode invoke -C mychannel -o orderer-api.127-0-0-1.nip.io:8080 -n asset-transfer -c '{"Args":["CreateAsset","{\"ID\":\"001\", \"Color\":\"Red\",\"Size\":52,\"Owner\":\"Fred\",\"AppraisedValue\":234234}"]}' --connTimeout 15s
 ```
 
 If you are watching the MicroFab logs you'll see that the peer committed a new block to the ledger.
@@ -316,6 +316,7 @@ Let's say we want to change that error message to something else.
 - Load the `src/assetTransfer.ts` file into an editor of your choice
 - Around line 51, find the error string and make a modification. Remember to save the change.
 - Rebuild the typescript contract:
+
 ```
 npm run build
 ```
@@ -325,7 +326,6 @@ You can now restart the contract as before
 ```
 npm run start:server-debug
 ```
-
 
 And run the same query, and see the updated error message:
 
@@ -344,8 +344,8 @@ You can then start the 'attached to process' debug, and pick the process to debu
 Remember to set a breakpoint at the start of the transaction function you want to debug.
 
 Watch out for:
-    - VSCode uses node, so take care in selecting the right process
-    - remember the client/fabric transaction timeout, whilst you have the chaincode stopped in the debugger, the timeout is still 'ticking'
 
+- VSCode uses node, so take care in selecting the right process
+- remember the client/fabric transaction timeout, whilst you have the chaincode stopped in the debugger, the timeout is still 'ticking'
 
 Look at the [Test and Debugging Contracts](./03-Test-And-Debug-Reference.md) for more details and information on other languages.
