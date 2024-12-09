@@ -22,28 +22,30 @@ func (b *Block) Number() uint64 {
 	return header.GetNumber()
 }
 
-// TODO: needs cache; decompose
+// TODO: needs cache
 func (b *Block) Transactions() []*Transaction {
-	envelopes := []*common.Envelope{}
-	for _, blockData := range b.block.GetData().GetData() {
-		envelope := &common.Envelope{}
-		if err := proto.Unmarshal(blockData, envelope); err != nil {
-			panic(err)
-		}
-		envelopes = append(envelopes, envelope)
-	}
+	envelopes := b.unmarshalEnvelopesFromBlockData()
 
-	commonPayloads := []*common.Payload{}
-	for _, envelope := range envelopes {
-		commonPayload := &common.Payload{}
-		if err := proto.Unmarshal(envelope.GetPayload(), commonPayload); err != nil {
-			panic(err)
-		}
-		commonPayloads = append(commonPayloads, commonPayload)
-	}
+	commonPayloads := b.unmarshalPayloadsFrom(envelopes)
 
+	payloads := b.parse(commonPayloads)
+
+	result := b.createTransactionsFrom(payloads)
+
+	return result
+}
+
+func (*Block) createTransactionsFrom(payloads []*PayloadImpl) []*Transaction {
+	result := []*Transaction{}
+	for _, payload := range payloads {
+		result = append(result, NewTransaction(payload))
+	}
+	return result
+}
+
+func (b *Block) parse(commonPayloads []*common.Payload) []*PayloadImpl {
 	validationCodes := b.extractTransactionValidationCodes()
-	payloads := []*PayloadImpl{}
+	result := []*PayloadImpl{}
 	for i, commonPayload := range commonPayloads {
 		payload := ParsePayload(
 			commonPayload,
@@ -54,15 +56,33 @@ func (b *Block) Transactions() []*Transaction {
 			),
 		)
 		if payload.IsEndorserTransaction() {
-			payloads = append(payloads, payload)
+			result = append(result, payload)
 		}
 	}
+	return result
+}
 
-	result := []*Transaction{}
-	for _, payload := range payloads {
-		result = append(result, NewTransaction(payload))
+func (*Block) unmarshalPayloadsFrom(envelopes []*common.Envelope) []*common.Payload {
+	result := []*common.Payload{}
+	for _, envelope := range envelopes {
+		commonPayload := &common.Payload{}
+		if err := proto.Unmarshal(envelope.GetPayload(), commonPayload); err != nil {
+			panic(err)
+		}
+		result = append(result, commonPayload)
 	}
+	return result
+}
 
+func (b *Block) unmarshalEnvelopesFromBlockData() []*common.Envelope {
+	result := []*common.Envelope{}
+	for _, blockData := range b.block.GetData().GetData() {
+		envelope := &common.Envelope{}
+		if err := proto.Unmarshal(blockData, envelope); err != nil {
+			panic(err)
+		}
+		result = append(result, envelope)
+	}
 	return result
 }
 
