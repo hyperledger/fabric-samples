@@ -148,7 +148,7 @@ func (s *SmartContract) RevealBid(ctx contractapi.TransactionContextInterface, a
 
 	transientBidJSON, ok := transientMap["bid"]
 	if !ok {
-		return fmt.Errorf("bid key not found in the transient map")
+		return errors.New("bid key not found in the transient map")
 	}
 
 	// get implicit collection name of organization ID

@@ -273,7 +273,7 @@ cp "${PWD}/organizations/peerOrganizations/org1.example.com/msp/config.yaml" "${
 
 The minter intends to approve 500 tokens to be transferred by the spender, but first the spender needs to provide their own client ID as the payment address.
 
-Open a 3rd terminal to represent the spender in Org1 and navigate to fabric-samples/test-network. Set the the environment variables for the Org1 spender user.
+Open a 3rd terminal to represent the spender in Org1 and navigate to fabric-samples/test-network. Set the environment variables for the Org1 spender user.
 
 ```
 export PATH=${PWD}/../bin:${PWD}:$PATH

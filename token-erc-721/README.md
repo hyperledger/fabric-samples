@@ -274,7 +274,7 @@ cp ${PWD}/organizations/peerOrganizations/org1.example.com/msp/config.yaml ${PWD
 
 The minter intends to approve a non-fungible token to be transferred by the operator, but first the operator needs to provide their own client ID as the payment address.
 
-Open a 3rd terminal to represent the operator in Org1 and navigate to fabric-samples/test-network. Set the the environment variables for the Org1 operator user.
+Open a 3rd terminal to represent the operator in Org1 and navigate to fabric-samples/test-network. Set the environment variables for the Org1 operator user.
 
 ```
 export PATH=${PWD}/../bin:${PWD}:$PATH
@@ -304,7 +304,7 @@ And then request the approval for the operator to transfer the token.
 
 ```
 # Issue a new token
-peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n token_erc721 -c '{"function":"MintWithTokenURI","Args":["102", "https://example.com/nft102.json"]}' --waitForEvent 
+peer chaincode invoke $TARGET_TLS_OPTIONS -C mychannel -n token_erc721 -c '{"function":"MintWithTokenURI","Args":["102", "https://example.com/nft102.json"]}' --waitForEvent
 
 # The owner approves
 export OPERATOR="x509::/C=US/ST=North Carolina/O=Hyperledger/OU=client/CN=operator::/C=US/ST=North Carolina/L=Durham/O=org1.example.com/CN=ca.org1.example.com"

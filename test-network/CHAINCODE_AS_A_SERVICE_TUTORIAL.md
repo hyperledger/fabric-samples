@@ -14,7 +14,7 @@ We need to use the latest 2.4.1 release as this contains some improvements to ma
 - The `ccaasbuilder` applications are included in the binary tgz archive download for use in other circumstances. The `sampleconfig/core.yaml` is updated as well to refer to 'ccaasbuilder'
 - The 2.4.1 Java Chaincode release has been updated to remove the need to write a custom bootstrap main class, similar  to the Node.js Chaincode. It is intended that this will be added to the go chaincode as well.
 
-## End-to-end with the the test-network
+## End-to-end with the test-network
 
 The `test-network` and some of the chaincodes have been updated to support running chaincode-as-a-service. The commands below assume that you've got the latest fabric-samples cloned, along with the latest Fabric docker images.
 
@@ -181,7 +181,7 @@ For Java please note:
 In the traditional approach, each peer that the chaincode is approved on will have a container running the chaincode. With the '-as-a-service' approach we need to achieve the same architecture.
 
 As the `connection.json` contains the address of the running chaincode container, it can be updated to ensure that each peer connects to a different container. However the as the `connection.json` in the chaincode package, Fabric mandates that the package id is consistent amongst all peers in an organization. To achieve that
-the the external builder supports a template capability. The context from this template is taken from an environment variable set on each Peer. `CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG`
+the external builder supports a template capability. The context from this template is taken from an environment variable set on each Peer. `CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG`
 
 We can define the address to be a template in the `connection.json`
 

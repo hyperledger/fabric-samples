@@ -43,7 +43,7 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
-		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+		return errors.New("Contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 
 	// Check minter authorization - this sample assumes Org1 is the central banker with privilege to mint new tokens
@@ -52,7 +52,7 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 		return fmt.Errorf("failed to get MSPID: %v", err)
 	}
 	if clientMSPID != "Org1MSP" {
-		return fmt.Errorf("client is not authorized to mint new tokens")
+		return errors.New("client is not authorized to mint new tokens")
 	}
 
 	// Get ID of submitting client identity
@@ -62,7 +62,7 @@ func (s *SmartContract) Mint(ctx contractapi.TransactionContextInterface, amount
 	}
 
 	if amount <= 0 {
-		return fmt.Errorf("mint amount must be a positive integer")
+		return errors.New("mint amount must be a positive integer")
 	}
 
 	currentBalanceBytes, err := ctx.GetStub().GetState(minter)
@@ -141,7 +141,7 @@ func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount
 		return fmt.Errorf("failed to check if contract is already initialized: %v", err)
 	}
 	if !initialized {
-		return fmt.Errorf("Contract options need to be set before calling any function, call Initialize() to initialize contract")
+		return errors.New("Contract options need to be set before calling any function, call Initialize() to initialize contract")
 	}
 	// Check minter authorization - this sample assumes Org1 is the central banker with privilege to burn new tokens
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
@@ -149,7 +149,7 @@ func (s *SmartContract) Burn(ctx contractapi.TransactionContextInterface, amount
 		return fmt.Errorf("failed to get MSPID: %v", err)
 	}
 	if clientMSPID != "Org1MSP" {
-		return fmt.Errorf("client is not authorized to mint new tokens")
+		return errors.New("client is not authorized to mint new tokens")
 	}
 
 	// Get ID of submitting client identity
@@ -719,7 +719,7 @@ func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error)
 // sub two number checking for overflow
 func sub(b int, q int) (int, error) {
 
-	// sub two number checking 
+	// sub two number checking
 	if q <= 0 {
 		return 0, fmt.Errorf("Error: the subtraction number is %d, it should be greater than 0", q)
 	}
