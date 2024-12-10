@@ -8,7 +8,8 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/json"
-	"fmt"
+    "errors"
+    "fmt"
 	"sort"
 
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
@@ -129,7 +130,7 @@ func (s *SmartContract) Bid(ctx contractapi.TransactionContextInterface, auction
 
 	bidJSON, ok := transientMap["bid"]
 	if !ok {
-		return "", fmt.Errorf("bid key not found in the transient map")
+		return "", errors.New("bid key not found in the transient map")
 	}
 
 	// get the implicit collection name using the bidder's organization ID

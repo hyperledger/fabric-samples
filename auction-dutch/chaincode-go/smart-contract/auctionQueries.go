@@ -6,6 +6,7 @@ package auction
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/hyperledger/fabric-chaincode-go/v2/shim"
@@ -20,7 +21,7 @@ func (s *SmartContract) QueryAuction(ctx contractapi.TransactionContextInterface
 		return nil, fmt.Errorf("failed to get auction object %v: %v", auctionID, err)
 	}
 	if auctionJSON == nil {
-		return nil, fmt.Errorf("auction does not exist")
+		return nil, errors.New("auction does not exist")
 	}
 
 	var auction *Auction
