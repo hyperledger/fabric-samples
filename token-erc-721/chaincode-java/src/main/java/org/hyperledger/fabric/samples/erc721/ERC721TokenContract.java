@@ -445,7 +445,7 @@ public class ERC721TokenContract implements ContractInterface {
   }
 
   /**
-   * Get the the NFT details by token id.
+   * Get the NFT details by token id.
    *
    * @param ctx the transaction context
    * @param tokenId Unique ID of a non-fungible token

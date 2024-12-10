@@ -44,7 +44,7 @@ Now you are ready to call the deployed smart contract via peer CLI calls. But le
 
 The smart contract supports UTXO ownership based on individual client identities from organizations that are members of the channel. In our scenario, the minter of the tokens will be a member of Org1, while the recipient will belong to Org2. To highlight the connection between the `GetClientIdentity().GetID()` API and the information within a user's certificate, we will register two new identities using the Org1 and Org2 Certificate Authorities (CA's), and then use the CA's to generate each identity's certificate and private key.
 
-First, we need to set the following environment variables to use the the Fabric CA client (and subsequent commands)
+First, we need to set the following environment variables to use the Fabric CA client (and subsequent commands)
 ```
 export PATH=${PWD}/../bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=$PWD/../config/

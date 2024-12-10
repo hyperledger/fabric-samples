@@ -61,7 +61,7 @@ export class AssetTransfer extends Contract {
 
     // AgreeToTransfer is used by the potential buyer of the asset to agree to the
     // asset value. The agreed to appraisal value is stored in the buying orgs
-    // org specifc collection, while the the buyer client ID is stored in the asset collection
+    // org specifc collection, while the buyer client ID is stored in the asset collection
     // using a composite key
     @Transaction()
     public async AgreeToTransfer(ctx: Context): Promise<void> {
