@@ -8,8 +8,8 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/json"
-    "errors"
-    "fmt"
+	"errors"
+	"fmt"
 	"sort"
 
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
