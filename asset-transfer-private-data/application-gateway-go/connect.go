@@ -1,5 +1,5 @@
 /*
-Copyright 2022 IBM All Rights Reserved.
+Copyright 2024 IBM All Rights Reserved.
 
 SPDX-License-Identifier: Apache-2.0
 */
@@ -77,8 +77,8 @@ func newIdentity(certDirectoryPath, mspId string) *identity.X509Identity {
 }
 
 // newSign creates a function that generates a digital signature from a message digest using a private key.
-func newSign(keyDirectoryPash string) identity.Sign {
-	privateKeyPEM, err := readFirstFile(keyDirectoryPash)
+func newSign(keyDirectoryPath string) identity.Sign {
+	privateKeyPEM, err := readFirstFile(keyDirectoryPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to read private key file: %w", err))
 	}
