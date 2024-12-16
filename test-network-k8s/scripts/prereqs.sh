@@ -43,7 +43,7 @@ function check_prereqs() {
   fi
 
   # Define the sed expression to extract the version number
-  VERSION_SED_EXPR='s/^ Version: v\?\(.*\)$/\1/p'
+  VERSION_SED_EXPR='s/^ Version: v\{0,1\}\(.*\)$/\1/p'
 
   # Use the fabric peer and ca containers to check fabric image versions
   # NOTE: About extracting the version number:
