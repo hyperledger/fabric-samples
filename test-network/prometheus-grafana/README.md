@@ -11,7 +11,7 @@ You will need to have installed **docker-compose with version 1.29 or above** (n
 
 1. Go to the test-network directory and run bring up the test-network **./network.sh up createChannel**
 2. Bring up the Prometheus/Grafana network in the test-network/prometheus-grafana directory and run **docker-compose up -d**
-3. Log in: type “localhost:3000” on your web browser -> username=“admin”, password=“admin” -> set a new password
+3. Log in: type "localhost:3000" on your web browser -> username="admin", password="admin" -> set a new password
 4. Browse dashboard and analyse results
    - The default dashboard "HLF Performances Review" can be found and displayed by hovering over the dashboard menu and clicking on the browse button.
    ![picture alt]("https://user-images.githubusercontent.com/86831094/149115445-5e5f6d95-ecc3-4b46-aadb-5c01148770b3.png "Title is optional")
