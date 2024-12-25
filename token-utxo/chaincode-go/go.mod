@@ -2,7 +2,7 @@ module github.com/hyperledger/fabric-samples/token-utxo/chaincode-go
 
 go 1.22.0
 
-require github.com/hyperledger/fabric-contract-api-go/v2 v2.1.0
+require github.com/hyperledger/fabric-contract-api-go/v2 v2.2.0
 
 require (
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
@@ -21,6 +21,6 @@ require (
 	golang.org/x/text v0.17.0 // indirect
 	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
 	google.golang.org/grpc v1.67.0 // indirect
-	google.golang.org/protobuf v1.35.2 // indirect
+	google.golang.org/protobuf v1.36.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
