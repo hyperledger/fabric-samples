@@ -6,6 +6,7 @@
 ====CHAINCODE EXECUTION SAMPLES (CLI) ==================
 
 ==== Invoke assets ====
+
 peer chaincode invoke -C myc1 -n asset_transfer -c '{"Args":["CreateAsset","asset1","blue","5","tom","35"]}'
 peer chaincode invoke -C myc1 -n asset_transfer -c '{"Args":["CreateAsset","asset2","red","4","tom","50"]}'
 peer chaincode invoke -C myc1 -n asset_transfer -c '{"Args":["CreateAsset","asset3","blue","6","tom","70"]}'
@@ -39,7 +40,7 @@ index which you can find in META-INF/statedb/couchdb/indexes/indexOwner.json.
 
 If you have access to the your peer's CouchDB state database in a development environment,
 you may want to iteratively test various indexes in support of your chaincode queries.  You
-can use the CouchDB Fauxton interface or a command line curl utility to create and update
+can use the CouchDB Fauxton interface ork a command line curl utility to create and update
 indexes. Then once you finalize an index, include the index definition alongside your
 chaincode in the META-INF/statedb/couchdb/indexes directory, for packaging and deployment
 to managed environments.
