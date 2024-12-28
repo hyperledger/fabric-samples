@@ -36,7 +36,7 @@ func newTransactApp(smartContract *atb.AssetTransferBasic) *transactApp {
 
 func (t *transactApp) run() {
 	for i := 0; i < int(t.batchSize); i++ {
-		go t.transact()
+		t.transact()
 	}
 }
 
