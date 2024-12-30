@@ -76,7 +76,7 @@ registerAndEnroll "5052" "orderer2" "orderer2pw" "orderer" "" "${orderer2_dir}" 
 registerAndEnroll "5052" "orderer3" "orderer3pw" "orderer" "" "${orderer3_dir}" "${orderer_org_dir}" "${orderer_org_tls}"
 
 # Create enrollment and TLS certificates for orderer4
-registerAndEnroll "5052" "orderer4" "orderer4pw" "orderer" "" "${orderer4_dir}" "${orderer_org}" "${orderer_org_tls}"
+registerAndEnroll "5052" "orderer4" "orderer4pw" "orderer" "" "${orderer4_dir}" "${orderer_org_dir}" "${orderer_org_tls}"
 
 # Create enrollment and TLS certificates for orderer5
 registerAndEnroll "5052" "orderer5" "orderer5pw" "orderer" "" "${orderer5_dir}" "${orderer_org_dir}" "${orderer_org_tls}"
