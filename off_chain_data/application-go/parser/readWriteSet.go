@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"offChainData/utils"
+
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset/kvrwset"
 	"google.golang.org/protobuf/proto"
@@ -53,14 +55,15 @@ func (p *NamespaceReadWriteSetImpl) Namespace() string {
 	return p.nsReadWriteSet.GetNamespace()
 }
 
-// TODO add cache
 func (p *NamespaceReadWriteSetImpl) ReadWriteSet() *kvrwset.KVRWSet {
-	result := kvrwset.KVRWSet{}
-	if err := proto.Unmarshal(p.nsReadWriteSet.GetRwset(), &result); err != nil {
-		panic(err)
-	}
+	return utils.Cache(func() *kvrwset.KVRWSet {
+		result := kvrwset.KVRWSet{}
+		if err := proto.Unmarshal(p.nsReadWriteSet.GetRwset(), &result); err != nil {
+			panic(err)
+		}
 
-	return &result
+		return &result
+	})()
 }
 
 // TODO remove unused

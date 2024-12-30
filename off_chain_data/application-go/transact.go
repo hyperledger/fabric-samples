@@ -44,7 +44,7 @@ func (t *transactApp) transact() {
 	anAsset := atb.NewAsset()
 
 	t.smartContract.CreateAsset(anAsset)
-	fmt.Printf("\nCreated asset %s\n", anAsset.ID)
+	fmt.Println("Created asset", anAsset.ID)
 
 	// Transfer randomly 1 in 2 assets to a new owner.
 	if utils.RandomInt(2) == 0 {
@@ -56,6 +56,6 @@ func (t *transactApp) transact() {
 	// Delete randomly 1 in 4 created assets.
 	if utils.RandomInt(4) == 0 {
 		t.smartContract.DeleteAsset(anAsset.ID)
-		fmt.Printf("Deleted asset %s\n", anAsset.ID)
+		fmt.Println("Deleted asset", anAsset.ID)
 	}
 }

@@ -33,7 +33,7 @@ func main() {
 			printUsage()
 			panic(fmt.Errorf("unknown command: %s", name))
 		}
-		fmt.Printf("command: %s\n", name)
+		fmt.Println("command:", name)
 	}
 
 	client := newGrpcConnection()
@@ -47,7 +47,7 @@ func main() {
 
 func printUsage() {
 	fmt.Println("Arguments: <command1> [<command2> ...]")
-	fmt.Printf("Available commands: %v\n", availableCommands())
+	fmt.Println("Available commands:", availableCommands())
 }
 
 func availableCommands() string {

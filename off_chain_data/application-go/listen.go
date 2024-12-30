@@ -108,8 +108,8 @@ func listen(clientConnection *grpc.ClientConn) {
 	}
 	defer checkpointer.Close()
 
-	fmt.Printf("Start event listening from block %d\n", checkpointer.BlockNumber())
-	fmt.Printf("Last processed transaction ID within block: %s\n", checkpointer.TransactionID())
+	fmt.Println("Start event listening from block", checkpointer.BlockNumber())
+	fmt.Println("Last processed transaction ID within block:", checkpointer.TransactionID())
 	if simulatedFailureCount > 0 {
 		fmt.Printf("Simulating a write failure every %d transactions\n", simulatedFailureCount)
 	}

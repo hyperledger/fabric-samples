@@ -30,15 +30,16 @@ func ParsePayload(payload *common.Payload, statusCode int32) *PayloadImpl {
 }
 
 func (p *PayloadImpl) ChannelHeader() *common.ChannelHeader {
-	header := utils.AssertDefined(p.payload.GetHeader(), "missing payload header")
+	return utils.Cache(func() *common.ChannelHeader {
+		header := utils.AssertDefined(p.payload.GetHeader(), "missing payload header")
 
-	// TODO add cache, return cachedChannelHeader like in blockParser.ts:77
-	result := &common.ChannelHeader{}
-	if err := proto.Unmarshal(header.GetChannelHeader(), result); err != nil {
-		panic(err)
-	}
+		result := &common.ChannelHeader{}
+		if err := proto.Unmarshal(header.GetChannelHeader(), result); err != nil {
+			panic(err)
+		}
 
-	return result
+		return result
+	})()
 }
 
 func (p *PayloadImpl) EndorserTransaction() EndorserTransaction {
@@ -55,15 +56,16 @@ func (p *PayloadImpl) EndorserTransaction() EndorserTransaction {
 }
 
 func (p *PayloadImpl) SignatureHeader() *common.SignatureHeader {
-	header := utils.AssertDefined(p.payload.GetHeader(), "missing payload header")
+	return utils.Cache(func() *common.SignatureHeader {
+		header := utils.AssertDefined(p.payload.GetHeader(), "missing payload header")
 
-	// TODO add cache, return cachedSignatureHeader like in blockParser.ts:77
-	result := &common.SignatureHeader{}
-	if err := proto.Unmarshal(header.GetSignatureHeader(), result); err != nil {
-		panic(err)
-	}
+		result := &common.SignatureHeader{}
+		if err := proto.Unmarshal(header.GetSignatureHeader(), result); err != nil {
+			panic(err)
+		}
 
-	return result
+		return result
+	})()
 }
 
 func (p *PayloadImpl) TransactionValidationCode() int32 {

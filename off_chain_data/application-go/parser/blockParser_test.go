@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func TestGetReadWriteSetsFromEndorserTransaction(t *testing.T) {
+func Test_GetReadWriteSetsFromEndorserTransaction(t *testing.T) {
 	nsReadWriteSetFake, expectedNamespace, expectedAsset := nsReadWriteSetFake()
 
 	transaction := &peer.Transaction{
@@ -73,7 +73,7 @@ func assertReadWriteSet(
 	}
 }
 
-func TestReadWriteSetWrapping(t *testing.T) {
+func Test_ReadWriteSetWrapping(t *testing.T) {
 	nsReadWriteSetFake, _, _ := nsReadWriteSetFake()
 
 	txReadWriteSetFake := &rwset.TxReadWriteSet{
@@ -86,7 +86,7 @@ func TestReadWriteSetWrapping(t *testing.T) {
 	}
 }
 
-func TestNamespaceReadWriteSetParsing(t *testing.T) {
+func Test_NamespaceReadWriteSetParsing(t *testing.T) {
 	nsReadWriteSetFake, expectedNamespace, expectedAsset := nsReadWriteSetFake()
 
 	parsedNsRwSet := parser.ParseNamespaceReadWriteSet(nsReadWriteSetFake)
