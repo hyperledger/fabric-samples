@@ -71,21 +71,20 @@ func ParseEndorserTransaction(transaction *peer.Transaction) *EndorserTransactio
 	return &EndorserTransactionImpl{transaction}
 }
 
-// TODO add cache
 func (p *EndorserTransactionImpl) ReadWriteSets() []ReadWriteSet {
-	chaincodeActionPayloads := p.unmarshalChaincodeActionPayloads()
+	return utils.Cache(func() []ReadWriteSet {
+		chaincodeActionPayloads := p.unmarshalChaincodeActionPayloads()
 
-	chaincodeEndorsedActions := p.extractChaincodeEndorsedActionsFrom(chaincodeActionPayloads)
+		chaincodeEndorsedActions := p.extractChaincodeEndorsedActionsFrom(chaincodeActionPayloads)
 
-	proposalResponsePayloads := p.unmarshalProposalResponsePayloadsFrom(chaincodeEndorsedActions)
+		proposalResponsePayloads := p.unmarshalProposalResponsePayloadsFrom(chaincodeEndorsedActions)
 
-	chaincodeActions := p.unmarshalChaincodeActionsFrom(proposalResponsePayloads)
+		chaincodeActions := p.unmarshalChaincodeActionsFrom(proposalResponsePayloads)
 
-	txReadWriteSets := p.unmarshalTxReadWriteSetsFrom(chaincodeActions)
+		txReadWriteSets := p.unmarshalTxReadWriteSetsFrom(chaincodeActions)
 
-	parsedReadWriteSets := p.parseReadWriteSets(txReadWriteSets)
-
-	return parsedReadWriteSets
+		return p.parseReadWriteSets(txReadWriteSets)
+	})()
 }
 
 func (p *EndorserTransactionImpl) unmarshalChaincodeActionPayloads() []*peer.ChaincodeActionPayload {

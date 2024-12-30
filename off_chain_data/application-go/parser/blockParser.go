@@ -22,23 +22,38 @@ func (b *Block) Number() uint64 {
 	return header.GetNumber()
 }
 
-// TODO: needs cache
 func (b *Block) Transactions() []*Transaction {
-	envelopes := b.unmarshalEnvelopesFromBlockData()
+	return utils.Cache(func() []*Transaction {
+		envelopes := b.unmarshalEnvelopesFromBlockData()
 
-	commonPayloads := b.unmarshalPayloadsFrom(envelopes)
+		commonPayloads := b.unmarshalPayloadsFrom(envelopes)
 
-	payloads := b.parse(commonPayloads)
+		payloads := b.parse(commonPayloads)
 
-	result := b.createTransactionsFrom(payloads)
+		return b.createTransactionsFrom(payloads)
+	})()
+}
 
+func (b *Block) unmarshalEnvelopesFromBlockData() []*common.Envelope {
+	result := []*common.Envelope{}
+	for _, blockData := range b.block.GetData().GetData() {
+		envelope := &common.Envelope{}
+		if err := proto.Unmarshal(blockData, envelope); err != nil {
+			panic(err)
+		}
+		result = append(result, envelope)
+	}
 	return result
 }
 
-func (*Block) createTransactionsFrom(payloads []*PayloadImpl) []*Transaction {
-	result := []*Transaction{}
-	for _, payload := range payloads {
-		result = append(result, NewTransaction(payload))
+func (*Block) unmarshalPayloadsFrom(envelopes []*common.Envelope) []*common.Payload {
+	result := []*common.Payload{}
+	for _, envelope := range envelopes {
+		commonPayload := &common.Payload{}
+		if err := proto.Unmarshal(envelope.GetPayload(), commonPayload); err != nil {
+			panic(err)
+		}
+		result = append(result, commonPayload)
 	}
 	return result
 }
@@ -62,30 +77,6 @@ func (b *Block) parse(commonPayloads []*common.Payload) []*PayloadImpl {
 	return result
 }
 
-func (*Block) unmarshalPayloadsFrom(envelopes []*common.Envelope) []*common.Payload {
-	result := []*common.Payload{}
-	for _, envelope := range envelopes {
-		commonPayload := &common.Payload{}
-		if err := proto.Unmarshal(envelope.GetPayload(), commonPayload); err != nil {
-			panic(err)
-		}
-		result = append(result, commonPayload)
-	}
-	return result
-}
-
-func (b *Block) unmarshalEnvelopesFromBlockData() []*common.Envelope {
-	result := []*common.Envelope{}
-	for _, blockData := range b.block.GetData().GetData() {
-		envelope := &common.Envelope{}
-		if err := proto.Unmarshal(blockData, envelope); err != nil {
-			panic(err)
-		}
-		result = append(result, envelope)
-	}
-	return result
-}
-
 func (b *Block) extractTransactionValidationCodes() []byte {
 	metadata := utils.AssertDefined(
 		b.block.GetMetadata(),
@@ -96,6 +87,14 @@ func (b *Block) extractTransactionValidationCodes() []byte {
 		metadata.GetMetadata()[common.BlockMetadataIndex_TRANSACTIONS_FILTER],
 		"missing transaction validation code",
 	)
+}
+
+func (*Block) createTransactionsFrom(payloads []*PayloadImpl) []*Transaction {
+	result := []*Transaction{}
+	for _, payload := range payloads {
+		result = append(result, NewTransaction(payload))
+	}
+	return result
 }
 
 // TODO remove unused?

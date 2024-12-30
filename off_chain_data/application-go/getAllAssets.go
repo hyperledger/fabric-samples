@@ -28,7 +28,7 @@ func getAllAssets(clientConnection *grpc.ClientConn) {
 	smartContract := atb.NewAssetTransferBasic(contract)
 	assets := smartContract.GetAllAssets()
 
-	fmt.Printf("%s\n", formatJSON(assets))
+	fmt.Println(formatJSON(assets))
 }
 
 func formatJSON(data []byte) string {
