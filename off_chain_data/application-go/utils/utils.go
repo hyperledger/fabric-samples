@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"math/big"
+	"os"
 )
 
 // Pick a random element from an array.
@@ -54,4 +55,12 @@ func Cache[T any](f func() T) func() T {
 
 		return value.(T)
 	}
+}
+
+func EnvOrDefault(key, defaultValue string) string {
+	result := os.Getenv(key)
+	if result == "" {
+		return defaultValue
+	}
+	return result
 }

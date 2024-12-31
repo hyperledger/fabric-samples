@@ -44,6 +44,7 @@ func (t *transactApp) transact() {
 	anAsset := atb.NewAsset()
 
 	t.smartContract.CreateAsset(anAsset)
+	// TODO print txID to compare easier with block processing
 	fmt.Println("Created asset", anAsset.ID)
 
 	// Transfer randomly 1 in 2 assets to a new owner.
