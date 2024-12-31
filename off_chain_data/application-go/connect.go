@@ -9,6 +9,7 @@ package main
 import (
 	"crypto/x509"
 	"fmt"
+	"offChainData/utils"
 	"os"
 	"path"
 	"time"
@@ -23,36 +24,28 @@ import (
 const peerName = "peer0.org1.example.com"
 
 var (
-	channelName   = envOrDefault("CHANNEL_NAME", "mychannel")
-	chaincodeName = envOrDefault("CHAINCODE_NAME", "basic")
-	mspID         = envOrDefault("MSP_ID", "Org1MSP")
+	channelName   = utils.EnvOrDefault("CHANNEL_NAME", "mychannel")
+	chaincodeName = utils.EnvOrDefault("CHAINCODE_NAME", "basic")
+	mspID         = utils.EnvOrDefault("MSP_ID", "Org1MSP")
 
 	// Path to crypto materials.
-	cryptoPath = envOrDefault("CRYPTO_PATH", "../../test-network/organizations/peerOrganizations/org1.example.com")
+	cryptoPath = utils.EnvOrDefault("CRYPTO_PATH", "../../test-network/organizations/peerOrganizations/org1.example.com")
 
 	// Path to user private key directory.
-	keyDirectoryPath = envOrDefault("KEY_DIRECTORY_PATH", cryptoPath+"/users/User1@org1.example.com/msp/keystore")
+	keyDirectoryPath = utils.EnvOrDefault("KEY_DIRECTORY_PATH", cryptoPath+"/users/User1@org1.example.com/msp/keystore")
 
 	// Path to user certificate.
-	certPath = envOrDefault("CERT_PATH", cryptoPath+"/users/User1@org1.example.com/msp/signcerts/cert.pem")
+	certPath = utils.EnvOrDefault("CERT_PATH", cryptoPath+"/users/User1@org1.example.com/msp/signcerts/cert.pem")
 
 	// Path to peer tls certificate.
-	tlsCertPath = envOrDefault("TLS_CERT_PATH", cryptoPath+"/peers/peer0.org1.example.com/tls/ca.crt")
+	tlsCertPath = utils.EnvOrDefault("TLS_CERT_PATH", cryptoPath+"/peers/peer0.org1.example.com/tls/ca.crt")
 
 	// Gateway peer endpoint.
-	peerEndpoint = envOrDefault("PEER_ENDPOINT", "dns:///localhost:7051")
+	peerEndpoint = utils.EnvOrDefault("PEER_ENDPOINT", "dns:///localhost:7051")
 
 	// Gateway peer SSL host name override.
-	peerHostAlias = envOrDefault("PEER_HOST_ALIAS", peerName)
+	peerHostAlias = utils.EnvOrDefault("PEER_HOST_ALIAS", peerName)
 )
-
-func envOrDefault(key, defaultValue string) string {
-	result := os.Getenv(key)
-	if result == "" {
-		return defaultValue
-	}
-	return result
-}
 
 func newGrpcConnection() *grpc.ClientConn {
 	certificatePEM, err := os.ReadFile(tlsCertPath)
