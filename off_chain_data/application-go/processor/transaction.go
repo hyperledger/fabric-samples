@@ -7,14 +7,14 @@ import (
 	"slices"
 )
 
-type transactionProcessor struct {
+type transaction struct {
 	blockNumber  uint64
 	transaction  *parser.Transaction
 	writeToStore store.Writer
 	channelName  string
 }
 
-func (t *transactionProcessor) process() {
+func (t *transaction) process() {
 	transactionId := t.transaction.ChannelHeader().GetTxId()
 
 	writes := t.writes()
@@ -32,10 +32,12 @@ func (t *transactionProcessor) process() {
 	})
 }
 
-func (t *transactionProcessor) writes() []store.Write {
+func (t *transaction) writes() []store.Write {
+	// TODO this entire code should live in the parser and just return the kvWrite which
+	// we then map to store.Write and return
 	t.channelName = t.transaction.ChannelHeader().GetChannelId()
 
-	nonSystemCCReadWriteSets := []parser.NamespaceReadWriteSet{}
+	nonSystemCCReadWriteSets := []*parser.NamespaceReadWriteSet{}
 	for _, nsReadWriteSet := range t.transaction.NamespaceReadWriteSets() {
 		if !t.isSystemChaincode(nsReadWriteSet.Namespace()) {
 			nonSystemCCReadWriteSets = append(nonSystemCCReadWriteSets, nsReadWriteSet)
@@ -60,7 +62,7 @@ func (t *transactionProcessor) writes() []store.Write {
 	return writes
 }
 
-func (t *transactionProcessor) isSystemChaincode(chaincodeName string) bool {
+func (t *transaction) isSystemChaincode(chaincodeName string) bool {
 	systemChaincodeNames := []string{
 		"_lifecycle",
 		"cscc",

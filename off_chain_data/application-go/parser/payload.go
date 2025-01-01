@@ -9,29 +9,18 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// TODO remove interface, use struct; encapsulate
-type Payload interface {
-	ChannelHeader() *common.ChannelHeader
-	EndorserTransaction() EndorserTransaction
-	SignatureHeader() *common.SignatureHeader
-	TransactionValidationCode() int32
-	IsEndorserTransaction() bool
-	IsValid() bool
-	ToProto() *common.Payload
+type payload struct {
+	commonPayload *common.Payload
+	statusCode    int32
 }
 
-type PayloadImpl struct {
-	payload    *common.Payload
-	statusCode int32
+func parsePayload(commonPayload *common.Payload, statusCode int32) *payload {
+	return &payload{commonPayload, statusCode}
 }
 
-func ParsePayload(payload *common.Payload, statusCode int32) *PayloadImpl {
-	return &PayloadImpl{payload, statusCode}
-}
-
-func (p *PayloadImpl) ChannelHeader() *common.ChannelHeader {
+func (p *payload) channelHeader() *common.ChannelHeader {
 	return utils.Cache(func() *common.ChannelHeader {
-		header := utils.AssertDefined(p.payload.GetHeader(), "missing payload header")
+		header := utils.AssertDefined(p.commonPayload.GetHeader(), "missing payload header")
 
 		result := &common.ChannelHeader{}
 		if err := proto.Unmarshal(header.GetChannelHeader(), result); err != nil {
@@ -42,45 +31,23 @@ func (p *PayloadImpl) ChannelHeader() *common.ChannelHeader {
 	})()
 }
 
-func (p *PayloadImpl) EndorserTransaction() EndorserTransaction {
-	if !p.IsEndorserTransaction() {
-		panic(fmt.Errorf("unexpected payload type: %d", p.ChannelHeader().GetType()))
+func (p *payload) endorserTransaction() *endorserTransaction {
+	if !p.isEndorserTransaction() {
+		panic(fmt.Errorf("unexpected payload type: %d", p.channelHeader().GetType()))
 	}
 
 	result := &peer.Transaction{}
-	if err := proto.Unmarshal(p.payload.GetData(), result); err != nil {
+	if err := proto.Unmarshal(p.commonPayload.GetData(), result); err != nil {
 		panic(err)
 	}
 
-	return ParseEndorserTransaction(result)
+	return parseEndorserTransaction(result)
 }
 
-func (p *PayloadImpl) SignatureHeader() *common.SignatureHeader {
-	return utils.Cache(func() *common.SignatureHeader {
-		header := utils.AssertDefined(p.payload.GetHeader(), "missing payload header")
-
-		result := &common.SignatureHeader{}
-		if err := proto.Unmarshal(header.GetSignatureHeader(), result); err != nil {
-			panic(err)
-		}
-
-		return result
-	})()
+func (p *payload) isEndorserTransaction() bool {
+	return p.channelHeader().GetType() == int32(common.HeaderType_ENDORSER_TRANSACTION)
 }
 
-func (p *PayloadImpl) TransactionValidationCode() int32 {
-	return p.statusCode
-}
-
-func (p *PayloadImpl) IsEndorserTransaction() bool {
-	return p.ChannelHeader().GetType() == int32(common.HeaderType_ENDORSER_TRANSACTION)
-}
-
-func (p *PayloadImpl) IsValid() bool {
+func (p *payload) isValid() bool {
 	return p.statusCode == int32(peer.TxValidationCode_VALID)
-}
-
-// TODO remove unused
-func (p *PayloadImpl) ToProto() *common.Payload {
-	return p.payload
 }

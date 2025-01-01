@@ -27,7 +27,7 @@ func transact(clientConnection *grpc.ClientConn) {
 
 type transactApp struct {
 	smartContract *atb.AssetTransferBasic
-	batchSize     uint
+	batchSize     int
 }
 
 func newTransactApp(smartContract *atb.AssetTransferBasic) *transactApp {
@@ -35,7 +35,7 @@ func newTransactApp(smartContract *atb.AssetTransferBasic) *transactApp {
 }
 
 func (t *transactApp) run() {
-	for i := 0; i < int(t.batchSize); i++ {
+	for i := 0; i < t.batchSize; i++ {
 		t.transact()
 	}
 }

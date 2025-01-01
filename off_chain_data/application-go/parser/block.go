@@ -58,11 +58,11 @@ func (*Block) unmarshalPayloadsFrom(envelopes []*common.Envelope) []*common.Payl
 	return result
 }
 
-func (b *Block) parse(commonPayloads []*common.Payload) []*PayloadImpl {
+func (b *Block) parse(commonPayloads []*common.Payload) []*payload {
 	validationCodes := b.extractTransactionValidationCodes()
-	result := []*PayloadImpl{}
+	result := []*payload{}
 	for i, commonPayload := range commonPayloads {
-		payload := ParsePayload(
+		payload := parsePayload(
 			commonPayload,
 			int32(utils.AssertDefined(
 				validationCodes[i],
@@ -70,7 +70,7 @@ func (b *Block) parse(commonPayloads []*common.Payload) []*PayloadImpl {
 			),
 			),
 		)
-		if payload.IsEndorserTransaction() {
+		if payload.isEndorserTransaction() {
 			result = append(result, payload)
 		}
 	}
@@ -89,15 +89,10 @@ func (b *Block) extractTransactionValidationCodes() []byte {
 	)
 }
 
-func (*Block) createTransactionsFrom(payloads []*PayloadImpl) []*Transaction {
+func (*Block) createTransactionsFrom(payloads []*payload) []*Transaction {
 	result := []*Transaction{}
 	for _, payload := range payloads {
-		result = append(result, NewTransaction(payload))
+		result = append(result, newTransaction(payload))
 	}
 	return result
-}
-
-// TODO remove unused?
-func (b *Block) ToProto() *common.Block {
-	return b.block
 }

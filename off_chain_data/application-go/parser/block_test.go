@@ -1,11 +1,10 @@
-package parser_test
+package parser
 
 import (
 	"encoding/json"
 	"testing"
 
 	atb "offChainData/contract"
-	"offChainData/parser"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset/kvrwset"
@@ -35,13 +34,13 @@ func Test_GetReadWriteSetsFromEndorserTransaction(t *testing.T) {
 		},
 	}
 
-	parsedEndorserTransaction := parser.ParseEndorserTransaction(transaction)
-	if len(parsedEndorserTransaction.ReadWriteSets()) != 1 {
-		t.Fatal("expected 1 ReadWriteSet, got", len(parsedEndorserTransaction.ReadWriteSets()))
+	parsedEndorserTransaction := parseEndorserTransaction(transaction)
+	if len(parsedEndorserTransaction.readWriteSets()) != 1 {
+		t.Fatal("expected 1 ReadWriteSet, got", len(parsedEndorserTransaction.readWriteSets()))
 	}
 
 	assertReadWriteSet(
-		parsedEndorserTransaction.ReadWriteSets()[0].NamespaceReadWriteSets()[0],
+		parsedEndorserTransaction.readWriteSets()[0].namespaceReadWriteSets()[0],
 		expectedNamespace,
 		expectedAsset,
 		t,
@@ -49,7 +48,7 @@ func Test_GetReadWriteSetsFromEndorserTransaction(t *testing.T) {
 }
 
 func assertReadWriteSet(
-	parsedNsRwSet parser.NamespaceReadWriteSet,
+	parsedNsRwSet *NamespaceReadWriteSet,
 	expectedNamespace string,
 	expectedAsset atb.Asset,
 	t *testing.T,
@@ -80,16 +79,16 @@ func Test_ReadWriteSetWrapping(t *testing.T) {
 		NsRwset: []*rwset.NsReadWriteSet{nsReadWriteSetFake},
 	}
 
-	parsedRwSet := parser.ParseReadWriteSet(txReadWriteSetFake)
-	if len(parsedRwSet.NamespaceReadWriteSets()) != 1 {
-		t.Fatalf("Expected 1 NamespaceReadWriteSet, got %d", len(parsedRwSet.NamespaceReadWriteSets()))
+	parsedRwSet := parseReadWriteSet(txReadWriteSetFake)
+	if len(parsedRwSet.namespaceReadWriteSets()) != 1 {
+		t.Fatalf("Expected 1 NamespaceReadWriteSet, got %d", len(parsedRwSet.namespaceReadWriteSets()))
 	}
 }
 
 func Test_NamespaceReadWriteSetParsing(t *testing.T) {
 	nsReadWriteSetFake, expectedNamespace, expectedAsset := nsReadWriteSetFake()
 
-	parsedNsRwSet := parser.ParseNamespaceReadWriteSet(nsReadWriteSetFake)
+	parsedNsRwSet := parseNamespaceReadWriteSet(nsReadWriteSetFake)
 	assertReadWriteSet(
 		parsedNsRwSet,
 		expectedNamespace,

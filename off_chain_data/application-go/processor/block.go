@@ -9,20 +9,20 @@ import (
 )
 
 type block struct {
-	block        *parser.Block
+	parsedBlock  *parser.Block
 	checkpointer *client.FileCheckpointer
 	writeToStore store.Writer
 	channelName  string
 }
 
 func NewBlock(
-	_block *parser.Block,
+	parsedBlock *parser.Block,
 	checkpointer *client.FileCheckpointer,
 	writeToStore store.Writer,
 	channelName string,
 ) *block {
 	return &block{
-		_block,
+		parsedBlock,
 		checkpointer,
 		writeToStore,
 		channelName,
@@ -30,25 +30,25 @@ func NewBlock(
 }
 
 func (b *block) Process() {
-	blockNumber := b.block.Number()
+	blockNumber := b.parsedBlock.Number()
 
 	fmt.Println("\nReceived block", blockNumber)
 
-	for _, transaction := range b.validTransactions() {
-		aTransactionProcessor := transactionProcessor{
+	for _, validTransaction := range b.validTransactions() {
+		aTransaction := transaction{
 			blockNumber,
-			transaction,
+			validTransaction,
 			// TODO use pointer to parent and get blockNumber, store and channelName from parent
 			b.writeToStore,
 			b.channelName,
 		}
-		aTransactionProcessor.process()
+		aTransaction.process()
 
-		transactionId := transaction.ChannelHeader().GetTxId()
+		transactionId := validTransaction.ChannelHeader().GetTxId()
 		b.checkpointer.CheckpointTransaction(blockNumber, transactionId)
 	}
 
-	b.checkpointer.CheckpointBlock(b.block.Number())
+	b.checkpointer.CheckpointBlock(b.parsedBlock.Number())
 }
 
 func (b *block) validTransactions() []*parser.Transaction {
@@ -62,7 +62,7 @@ func (b *block) validTransactions() []*parser.Transaction {
 }
 
 func (b *block) getNewTransactions() []*parser.Transaction {
-	transactions := b.block.Transactions()
+	transactions := b.parsedBlock.Transactions()
 
 	lastTransactionId := b.checkpointer.TransactionID()
 	if lastTransactionId == "" {
@@ -77,7 +77,7 @@ func (b *block) getNewTransactions() []*parser.Transaction {
 
 func (b *block) findLastProcessedIndex() int {
 	blockTransactionIds := []string{}
-	for _, transaction := range b.block.Transactions() {
+	for _, transaction := range b.parsedBlock.Transactions() {
 		blockTransactionIds = append(blockTransactionIds, transaction.ChannelHeader().GetTxId())
 	}
 
@@ -93,7 +93,7 @@ func (b *block) findLastProcessedIndex() int {
 			fmt.Errorf(
 				"checkpoint transaction ID %s not found in block %d containing transactions: %s",
 				lastTransactionId,
-				b.block.Number(),
+				b.parsedBlock.Number(),
 				b.joinByComma(blockTransactionIds),
 			),
 		)
