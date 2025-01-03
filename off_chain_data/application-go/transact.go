@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 
 	atb "offChainData/contract"
 	"offChainData/utils"
@@ -35,16 +36,23 @@ func newTransactApp(smartContract *atb.AssetTransferBasic) *transactApp {
 }
 
 func (t *transactApp) run() {
+	var wg sync.WaitGroup
+
 	for i := 0; i < t.batchSize; i++ {
-		t.transact()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			t.transact()
+		}()
 	}
+
+	wg.Wait()
 }
 
 func (t *transactApp) transact() {
 	anAsset := atb.NewAsset()
 
 	t.smartContract.CreateAsset(anAsset)
-	// TODO print txID to compare easier with block processing
 	fmt.Println("Created asset", anAsset.ID)
 
 	// Transfer randomly 1 in 2 assets to a new owner.
