@@ -29,7 +29,7 @@ func NewBlock(
 	}
 }
 
-func (b *block) Process() {
+func (b *block) Process() error {
 	blockNumber := b.parsedBlock.Number()
 
 	fmt.Println("\nReceived block", blockNumber)
@@ -42,13 +42,17 @@ func (b *block) Process() {
 			b.writeToStore,
 			b.channelName,
 		}
-		aTransaction.process()
+		if err := aTransaction.process(); err != nil {
+			return err
+		}
 
 		transactionId := validTransaction.ChannelHeader().GetTxId()
 		b.checkpointer.CheckpointTransaction(blockNumber, transactionId)
 	}
 
 	b.checkpointer.CheckpointBlock(b.parsedBlock.Number())
+
+	return nil
 }
 
 func (b *block) validTransactions() []*parser.Transaction {
