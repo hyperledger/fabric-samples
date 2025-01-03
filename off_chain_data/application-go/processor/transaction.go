@@ -14,22 +14,25 @@ type transaction struct {
 	channelName  string
 }
 
-func (t *transaction) process() {
+func (t *transaction) process() error {
 	transactionId := t.transaction.ChannelHeader().GetTxId()
 
 	writes := t.writes()
 	if len(writes) == 0 {
 		fmt.Println("Skipping read-only or system transaction", transactionId)
-		return
+		return nil
 	}
 
 	fmt.Println("Process transaction", transactionId)
 
-	t.writeToStore(store.LedgerUpdate{
+	if err := t.writeToStore(store.LedgerUpdate{
 		BlockNumber:   t.blockNumber,
 		TransactionId: transactionId,
 		Writes:        writes,
-	})
+	}); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (t *transaction) writes() []store.Write {

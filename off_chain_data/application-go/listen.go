@@ -43,17 +43,20 @@ func listen(clientConnection *grpc.ClientConn) {
 		fmt.Printf("Simulating a write failure every %d transactions\n", store.SimulatedFailureCount)
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx, close := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer func() {
-		stop()
+		close()
 		fmt.Println("Context closed.")
 	}()
 
 	network := gateway.GetNetwork(channelName)
 	blocks, err := network.BlockEvents(
 		ctx,
+		// Used only if there is no checkpoint block number.
+		// Order matters. WithStartBlock must be set before
+		// WithCheckpoint to work.
+		client.WithStartBlock(0),
 		client.WithCheckpoint(checkpointer),
-		client.WithStartBlock(0), // Used only if there is no checkpoint block number
 	)
 	if err != nil {
 		panic(err)
@@ -76,11 +79,15 @@ func listen(clientConnection *grpc.ClientConn) {
 					store.ApplyWritesToOffChainStore,
 					channelName,
 				)
-				blockProcessor.Process()
+
+				if err := blockProcessor.Process(); err == store.ErrExpected {
+					fmt.Println(err)
+					return
+				}
 			}
 		}
 	}()
 
 	wg.Wait()
-	fmt.Println("\nReceived 'SIGTERM' signal. Shutting down listener gracefully...")
+	fmt.Println("\nShutting down listener gracefully...")
 }

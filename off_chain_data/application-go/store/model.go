@@ -1,7 +1,7 @@
 package store
 
 // Apply writes for a given transaction to off-chain data store, ideally in a single operation for fault tolerance.
-type Writer = func(data LedgerUpdate)
+type Writer = func(data LedgerUpdate) error
 
 // Ledger update made by a specific transaction.
 type LedgerUpdate struct {

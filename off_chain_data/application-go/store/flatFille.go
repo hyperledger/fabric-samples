@@ -14,18 +14,17 @@ import (
 var storeFile = utils.EnvOrDefault("STORE_FILE", "store.log")
 var SimulatedFailureCount = getSimulatedFailureCount()
 var transactionCount uint = 0 // Used only to simulate failures
+var ErrExpected = errors.New("[expected error]: simulated write failure")
 
 // Apply writes for a given transaction to off-chain data store, ideally in a single operation for fault tolerance.
 // This implementation just writes to a file.
-func ApplyWritesToOffChainStore(data LedgerUpdate) {
+func ApplyWritesToOffChainStore(data LedgerUpdate) error {
 	if err := simulateFailureIfRequired(); err != nil {
-		fmt.Println("[expected error]: " + err.Error())
-		return
+		return err
 	}
 
 	writes := []string{}
 	for _, write := range data.Writes {
-		// TODO write also the TxID and block number so that you can compare easier to the output
 		marshaled, err := json.Marshal(write)
 		if err != nil {
 			panic(err)
@@ -47,12 +46,14 @@ func ApplyWritesToOffChainStore(data LedgerUpdate) {
 	if err := f.Close(); err != nil {
 		panic(err)
 	}
+
+	return nil
 }
 
 func simulateFailureIfRequired() error {
 	if SimulatedFailureCount > 0 && transactionCount >= SimulatedFailureCount {
 		transactionCount = 0
-		return errors.New("simulated write failure")
+		return ErrExpected
 	}
 
 	transactionCount += 1
