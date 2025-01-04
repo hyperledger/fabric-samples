@@ -35,12 +35,17 @@ func Test_GetReadWriteSetsFromEndorserTransaction(t *testing.T) {
 	}
 
 	parsedEndorserTransaction := parseEndorserTransaction(transaction)
-	if len(parsedEndorserTransaction.readWriteSets()) != 1 {
-		t.Fatal("expected 1 ReadWriteSet, got", len(parsedEndorserTransaction.readWriteSets()))
+	readWriteSets, err := parsedEndorserTransaction.readWriteSets()
+	if err != nil {
+		t.Fatal("unexpected error:", err)
+	}
+
+	if len(readWriteSets) != 1 {
+		t.Fatal("expected 1 ReadWriteSet, got", len(readWriteSets))
 	}
 
 	assertReadWriteSet(
-		parsedEndorserTransaction.readWriteSets()[0].namespaceReadWriteSets()[0],
+		readWriteSets[0].namespaceReadWriteSets()[0],
 		expectedNamespace,
 		expectedAsset,
 		t,
@@ -57,7 +62,10 @@ func assertReadWriteSet(
 		t.Errorf("expected namespace %s, got %s", expectedNamespace, parsedNsRwSet.Namespace())
 	}
 
-	actualKVRWSet := parsedNsRwSet.ReadWriteSet()
+	actualKVRWSet, err := parsedNsRwSet.ReadWriteSet()
+	if err != nil {
+		t.Fatal("unexpected error:", err)
+	}
 	if len(actualKVRWSet.Writes) != 1 {
 		t.Fatal("expected 1 write, got", len(actualKVRWSet.Writes))
 	}

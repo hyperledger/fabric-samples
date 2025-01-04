@@ -80,8 +80,8 @@ func listen(clientConnection *grpc.ClientConn) {
 					channelName,
 				)
 
-				if err := blockProcessor.Process(); err == store.ErrExpected {
-					fmt.Println(err)
+				if err := blockProcessor.Process(); err != nil {
+					fmt.Println("\033[31m[ERROR]\033[0m", err)
 					return
 				}
 			}

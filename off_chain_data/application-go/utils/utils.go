@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"math/big"
 	"os"
 )
@@ -35,25 +36,32 @@ func DifferentElement(values []string, currentValue string) string {
 }
 
 // Return the value if it is defined; otherwise panics with an error message.
-func AssertDefined[T any](value T, message string) T {
+func AssertDefined[T any](value T, message string) (T, error) {
 	if any(value) == any(nil) {
-		panic(errors.New(message))
+		var zeroValue T
+		return zeroValue, errors.New(message)
 	}
 
-	return value
+	return value, nil
 }
 
 // Wrap a function call with a cache. On first call the wrapped function is invoked to
 // obtain a result. Subsequent calls return the cached result.
-func Cache[T any](f func() T) func() T {
-	value := any(nil)
+func Cache[T any](f func() (T, error)) func() (T, error) {
+	var value T
+	var err error
+	var cached bool
 
-	return func() T {
-		if value == nil {
-			value = f()
+	return func() (T, error) {
+		if !cached {
+			value, err = f()
+			if err != nil {
+				var zeroValue T
+				return zeroValue, fmt.Errorf("in Cache: %w", err)
+			}
+			cached = true
 		}
-
-		return value.(T)
+		return value, nil
 	}
 }
 
