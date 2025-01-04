@@ -30,11 +30,21 @@ func NewBlock(
 }
 
 func (b *block) Process() error {
-	blockNumber := b.parsedBlock.Number()
+	funcName := "Process"
+
+	blockNumber, err := b.parsedBlock.Number()
+	if err != nil {
+		return fmt.Errorf("in %s: %w", funcName, err)
+	}
 
 	fmt.Println("\nReceived block", blockNumber)
 
-	for _, validTransaction := range b.validTransactions() {
+	validTransactions, err := b.validTransactions()
+	if err != nil {
+		return fmt.Errorf("in %s: %w", funcName, err)
+	}
+
+	for _, validTransaction := range validTransactions {
 		aTransaction := transaction{
 			blockNumber,
 			validTransaction,
@@ -43,46 +53,74 @@ func (b *block) Process() error {
 			b.channelName,
 		}
 		if err := aTransaction.process(); err != nil {
-			return err
+			return fmt.Errorf("in %s: %w", funcName, err)
 		}
 
-		transactionId := validTransaction.ChannelHeader().GetTxId()
+		channelHeader, err := validTransaction.ChannelHeader()
+		if err != nil {
+			return fmt.Errorf("in %s: %w", funcName, err)
+		}
+		transactionId := channelHeader.GetTxId()
 		b.checkpointer.CheckpointTransaction(blockNumber, transactionId)
 	}
 
-	b.checkpointer.CheckpointBlock(b.parsedBlock.Number())
+	b.checkpointer.CheckpointBlock(blockNumber)
 
 	return nil
 }
 
-func (b *block) validTransactions() []*parser.Transaction {
+func (b *block) validTransactions() ([]*parser.Transaction, error) {
 	result := []*parser.Transaction{}
-	for _, transaction := range b.getNewTransactions() {
+	newTransactions, err := b.getNewTransactions()
+	if err != nil {
+		return nil, fmt.Errorf("in validTransactions: %w", err)
+	}
+
+	for _, transaction := range newTransactions {
 		if transaction.IsValid() {
 			result = append(result, transaction)
 		}
 	}
-	return result
+	return result, nil
 }
 
-func (b *block) getNewTransactions() []*parser.Transaction {
-	transactions := b.parsedBlock.Transactions()
+func (b *block) getNewTransactions() ([]*parser.Transaction, error) {
+	funcName := "getNewTransactions"
+
+	transactions, err := b.parsedBlock.Transactions()
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
 
 	lastTransactionId := b.checkpointer.TransactionID()
 	if lastTransactionId == "" {
 		// No previously processed transactions within this block so all are new
-		return transactions
+		return transactions, nil
 	}
 
 	// Ignore transactions up to the last processed transaction ID
-	lastProcessedIndex := b.findLastProcessedIndex()
-	return transactions[lastProcessedIndex+1:]
+	lastProcessedIndex, err := b.findLastProcessedIndex()
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
+	return transactions[lastProcessedIndex+1:], nil
 }
 
-func (b *block) findLastProcessedIndex() int {
+func (b *block) findLastProcessedIndex() (int, error) {
+	funcName := "findLastProcessedIndex"
+
+	transactions, err := b.parsedBlock.Transactions()
+	if err != nil {
+		return 0, fmt.Errorf("in %s: %w", funcName, err)
+	}
+
 	blockTransactionIds := []string{}
-	for _, transaction := range b.parsedBlock.Transactions() {
-		blockTransactionIds = append(blockTransactionIds, transaction.ChannelHeader().GetTxId())
+	for _, transaction := range transactions {
+		channelHeader, err := transaction.ChannelHeader()
+		if err != nil {
+			return 0, fmt.Errorf("in %s: %w", funcName, err)
+		}
+		blockTransactionIds = append(blockTransactionIds, channelHeader.GetTxId())
 	}
 
 	lastTransactionId := b.checkpointer.TransactionID()
@@ -92,27 +130,18 @@ func (b *block) findLastProcessedIndex() int {
 			lastProcessedIndex = index
 		}
 	}
+
 	if lastProcessedIndex < 0 {
-		panic(
-			fmt.Errorf(
-				"checkpoint transaction ID %s not found in block %d containing transactions: %s",
-				lastTransactionId,
-				b.parsedBlock.Number(),
-				b.joinByComma(blockTransactionIds),
-			),
+		blockNumber, err := b.parsedBlock.Number()
+		if err != nil {
+			return 0, fmt.Errorf("in %s: %w", funcName, err)
+		}
+		return lastProcessedIndex, newTxIdNotFoundError(
+			lastTransactionId,
+			blockNumber,
+			blockTransactionIds,
 		)
 	}
-	return lastProcessedIndex
-}
 
-func (b *block) joinByComma(list []string) string {
-	result := ""
-	for index, item := range list {
-		if len(list)-1 == index {
-			result += item
-		} else {
-			result += item + ", "
-		}
-	}
-	return result
+	return lastProcessedIndex, nil
 }

@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 )
 
@@ -12,17 +14,29 @@ func newTransaction(payload *payload) *Transaction {
 	return &Transaction{payload}
 }
 
-func (t *Transaction) ChannelHeader() *common.ChannelHeader {
+func (t *Transaction) ChannelHeader() (*common.ChannelHeader, error) {
 	return t.payload.channelHeader()
 }
 
-func (t *Transaction) NamespaceReadWriteSets() []*NamespaceReadWriteSet {
+func (t *Transaction) NamespaceReadWriteSets() ([]*NamespaceReadWriteSet, error) {
+	funcName := "NamespaceReadWriteSets"
+
+	endorserTransaction, err := t.payload.endorserTransaction()
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
+
+	txReadWriteSets, err := endorserTransaction.readWriteSets()
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
+
 	result := []*NamespaceReadWriteSet{}
-	for _, readWriteSet := range t.payload.endorserTransaction().readWriteSets() {
+	for _, readWriteSet := range txReadWriteSets {
 		result = append(result, readWriteSet.namespaceReadWriteSets()...)
 	}
 
-	return result
+	return result, nil
 }
 
 func (t *Transaction) IsValid() bool {

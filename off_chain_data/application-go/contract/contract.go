@@ -6,6 +6,7 @@
 package contract
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
@@ -19,7 +20,7 @@ func NewAssetTransferBasic(contract *client.Contract) *AssetTransferBasic {
 	return &AssetTransferBasic{contract}
 }
 
-func (atb *AssetTransferBasic) CreateAsset(anAsset Asset) {
+func (atb *AssetTransferBasic) CreateAsset(anAsset Asset) error {
 	if _, err := atb.contract.Submit(
 		"CreateAsset",
 		client.WithArguments(
@@ -29,11 +30,12 @@ func (atb *AssetTransferBasic) CreateAsset(anAsset Asset) {
 			anAsset.Owner,
 			strconv.FormatUint(anAsset.AppraisedValue, 10),
 		)); err != nil {
-		panic(err)
+		return fmt.Errorf("in CreateAsset: %w", err)
 	}
+	return nil
 }
 
-func (atb *AssetTransferBasic) TransferAsset(id, newOwner string) string {
+func (atb *AssetTransferBasic) TransferAsset(id, newOwner string) (string, error) {
 	result, err := atb.contract.Submit(
 		"TransferAsset",
 		client.WithArguments(
@@ -42,27 +44,28 @@ func (atb *AssetTransferBasic) TransferAsset(id, newOwner string) string {
 		),
 	)
 	if err != nil {
-		panic(err)
+		return "", fmt.Errorf("in TransferAsset: %w", err)
 	}
 
-	return string(result)
+	return string(result), nil
 }
 
-func (atb *AssetTransferBasic) DeleteAsset(id string) {
+func (atb *AssetTransferBasic) DeleteAsset(id string) error {
 	if _, err := atb.contract.Submit(
 		"DeleteAsset",
 		client.WithArguments(
 			id,
 		),
 	); err != nil {
-		panic(err)
+		return fmt.Errorf("in DeleteAsset: %w", err)
 	}
+	return nil
 }
 
-func (atb *AssetTransferBasic) GetAllAssets() []byte {
+func (atb *AssetTransferBasic) GetAllAssets() ([]byte, error) {
 	result, err := atb.contract.Evaluate("GetAllAssets")
 	if err != nil {
-		panic(err)
+		return []byte{}, fmt.Errorf("in GetAllAssets: %w", err)
 	}
-	return result
+	return result, nil
 }

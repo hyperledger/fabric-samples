@@ -26,7 +26,10 @@ func getAllAssets(clientConnection *grpc.ClientConn) {
 
 	contract := gateway.GetNetwork(channelName).GetContract(chaincodeName)
 	smartContract := atb.NewAssetTransferBasic(contract)
-	assets := smartContract.GetAllAssets()
+	assets, err := smartContract.GetAllAssets()
+	if err != nil {
+		panic((err))
+	}
 
 	fmt.Println(formatJSON(assets))
 }
