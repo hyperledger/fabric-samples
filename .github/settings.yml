@@ -1,7 +1,7 @@
 repository:
   name: fabric-samples
   description: Samples for Hyperledger Fabric
-  homepage: https://wiki.hyperledger.org/display/fabric
+  homepage: https://lf-hyperledger.atlassian.net/wiki/spaces/fabric
   default_branch: main
   has_downloads: true
   has_issues: true
