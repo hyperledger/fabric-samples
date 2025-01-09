@@ -20,7 +20,7 @@ func getAllAssets(clientConnection *grpc.ClientConn) {
 	id, options := newConnectOptions(clientConnection)
 	gateway, err := client.Connect(id, options...)
 	if err != nil {
-		panic((err))
+		panic(err)
 	}
 	defer gateway.Close()
 
@@ -28,7 +28,12 @@ func getAllAssets(clientConnection *grpc.ClientConn) {
 	smartContract := atb.NewAssetTransferBasic(contract)
 	assets, err := smartContract.GetAllAssets()
 	if err != nil {
-		panic((err))
+		panic(err)
+	}
+
+	if len(assets) == 0 {
+		fmt.Println("no assets")
+		return
 	}
 
 	fmt.Println(formatJSON(assets))
