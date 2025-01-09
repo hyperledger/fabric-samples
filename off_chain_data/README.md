@@ -65,6 +65,10 @@ The Fabric test network is used to deploy and run this sample. Follow these step
    npm install
    npm start transact listen
 
+   # To run the Go sample application
+   cd application-go
+   go run . transact listen
+
    # To run the Java sample application
    cd application-java
    ./gradlew run --quiet --args='transact listen'
@@ -79,6 +83,10 @@ The Fabric test network is used to deploy and run this sample. Follow these step
    cd application-typescript
    npm --silent start getAllAssets
 
+   # To run the Go sample application
+   cd application-go
+   go run . getAllAssets
+
    # To run the Java sample application
    cd application-java
    ./gradlew run --quiet --args=getAllAssets
@@ -92,6 +100,12 @@ The Fabric test network is used to deploy and run this sample. Follow these step
    npm start transact
    SIMULATED_FAILURE_COUNT=5 npm start listen
    npm start listen
+
+   # To run the Go sample application
+   cd application-go
+   go run . transact
+   SIMULATED_FAILURE_COUNT=5 go run . listen
+   go run . listen
 
    # To run the Java sample application
    cd application-java
