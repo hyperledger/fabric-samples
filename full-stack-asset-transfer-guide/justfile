@@ -187,6 +187,7 @@ microfab: microfab-down
     export FABRIC_CFG_PATH=$CWDIR/config
     export CORE_PEER_CLIENT_CONNTIMEOUT=15s
     export CORE_PEER_DELIVERYCLIENT_CONNTIMEOUT=15s
+    export ORDERER_ENDPOINT=orderer-api.127-0-0-1.nip.io:8080
     EOF
 
     cat << EOF > $CFG/org2admin.env
@@ -196,6 +197,7 @@ microfab: microfab-down
     export FABRIC_CFG_PATH=$CWDIR/config
     export CORE_PEER_CLIENT_CONNTIMEOUT=15s
     export CORE_PEER_DELIVERYCLIENT_CONNTIMEOUT=15s
+    export ORDERER_ENDPOINT=orderer-api.127-0-0-1.nip.io:8080
     EOF
 
     echo
@@ -221,14 +223,15 @@ debugcc:
     export CORE_PEER_ADDRESS=org1peer-api.127-0-0-1.nip.io:8080
     export CORE_PEER_CLIENT_CONNTIMEOUT=15s
     export CORE_PEER_DELIVERYCLIENT_CONNTIMEOUT=15s
+    export ORDERER_ENDPOINT=orderer-api.127-0-0-1.nip.io:8080
 
     echo "CHAINCODE_ID=${CHAINCODE_ID}"
 
     set -x && peer lifecycle chaincode install asset-transfer.tgz &&     { set +x; } 2>/dev/null
     echo
-    set -x && peer lifecycle chaincode approveformyorg --channelID mychannel -o orderer-api.127-0-0-1.nip.io:8080 --name asset-transfer -v 0 --package-id $CHAINCODE_ID --sequence 1 --connTimeout 15s && { set +x; } 2>/dev/null
+    set -x && peer lifecycle chaincode approveformyorg --channelID mychannel -o $ORDERER_ENDPOINT --name asset-transfer -v 0 --package-id $CHAINCODE_ID --sequence 1 --connTimeout 15s && { set +x; } 2>/dev/null
     echo
-    set -x && peer lifecycle chaincode commit --channelID mychannel -o orderer-api.127-0-0-1.nip.io:8080 --name asset-transfer -v 0 --sequence 1  --connTimeout 15s && { set +x; } 2>/dev/null
+    set -x && peer lifecycle chaincode commit --channelID mychannel -o $ORDERER_ENDPOINT --name asset-transfer -v 0 --sequence 1  --connTimeout 15s && { set +x; } 2>/dev/null
     echo
     set -x && peer lifecycle chaincode querycommitted --channelID=mychannel && { set +x; } 2>/dev/null
     echo

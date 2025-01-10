@@ -192,8 +192,8 @@ export CHAINCODE_ID=$(peer lifecycle chaincode calculatepackageid asset-transfer
 Next, define the chaincode on the blockchain channel by approving it and committing it. If you have already deployed the chaincode using the `just` recipe above, then increment the `--sequence` number to `2`.
 
 ```bash
-peer lifecycle chaincode approveformyorg --channelID mychannel --name asset-transfer -v 0 --package-id $CHAINCODE_ID --sequence 2 --connTimeout 15s
-peer lifecycle chaincode commit --channelID mychannel --name asset-transfer -v 0 --sequence 2 --connTimeout 15s
+peer lifecycle chaincode approveformyorg --channelID mychannel -o $ORDERER_ENDPOINT --name asset-transfer -v 0 --package-id $CHAINCODE_ID --sequence 2 --connTimeout 15s
+peer lifecycle chaincode commit --channelID mychannel -o $ORDERER_ENDPOINT --name asset-transfer -v 0 --sequence 2 --connTimeout 15s
 ```
 
 ## Run the chaincode locally
