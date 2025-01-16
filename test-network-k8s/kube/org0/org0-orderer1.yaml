@@ -44,6 +44,7 @@ data:
   ORDERER_GENERAL_TLS_ROOTCAS: /var/hyperledger/fabric/config/tls/ca.crt
   ORDERER_GENERAL_TLS_PRIVATEKEY: /var/hyperledger/fabric/config/tls/tls.key
   ORDERER_GENERAL_BOOTSTRAPMETHOD: none
+  ORDERER_CHANNELPARTICIPATION_ENABLED: "true"
   ORDERER_ADMIN_TLS_ENABLED: "true"
   ORDERER_ADMIN_TLS_CERTIFICATE: /var/hyperledger/fabric/config/tls/tls.crt
   ORDERER_ADMIN_TLS_ROOTCAS: /var/hyperledger/fabric/config/tls/ca.crt
