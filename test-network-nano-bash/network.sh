@@ -63,7 +63,7 @@ networkStart() {
     ./org1ca.sh  > ./logs/org1ca.log 2>&1 &
     ./org2ca.sh  > ./logs/org2ca.log 2>&1 &
     echo "Waiting ${CLI_DELAY}s..."
-    sleep ${CLI_DELAY}      
+    sleep "${CLI_DELAY}"
   fi
 
   if [ -d "${PWD}"/channel-artifacts ] && [ -d "${PWD}"/crypto-config ]; then
@@ -74,7 +74,7 @@ networkStart() {
     INCLUDE_CA_PARAM=""
     if [ "${INCLUDE_CA}" = true ]; then
       INCLUDE_CA_PARAM="-ca"
-    fi 
+    fi
     ./generate_artifacts.sh "${ORDERER_TYPE}" "${INCLUDE_CA_PARAM}"
     CREATE_CHANNEL=true
   fi
@@ -90,7 +90,7 @@ networkStart() {
   fi
 
   echo "Waiting ${CLI_DELAY}s..."
-  sleep ${CLI_DELAY}
+  sleep "${CLI_DELAY}"
 
   echo "Starting peers..."
   ./peer1.sh > ./logs/peer1.log 2>&1 &
@@ -99,7 +99,7 @@ networkStart() {
   ./peer4.sh > ./logs/peer4.log 2>&1 &
 
   echo "Waiting ${CLI_DELAY}s..."
-  sleep ${CLI_DELAY}
+  sleep "${CLI_DELAY}"
 
   if [ "${CREATE_CHANNEL}" = "true" ]; then
     echo "Joining orderers to channel..."
@@ -117,7 +117,7 @@ networkStart() {
 
     echo "Joining channel (peer3)..."
     . ./peer3admin.sh && ./join_channel.sh
-    
+
     echo "Joining channel (peer4)..."
     . ./peer4admin.sh && ./join_channel.sh
   fi
