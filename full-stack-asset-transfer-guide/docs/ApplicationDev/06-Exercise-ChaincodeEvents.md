@@ -28,7 +28,7 @@ Let's implement checkpointing to ensure there are no duplicate or missed events.
 
 5. Implement checkpointing for the reading of chaincode events in [listen.ts](../../applications/trader-typescript/src/commands/listen.ts). Look at the [API documentation for Network](https://hyperledger.github.io/fabric-gateway/main/api/node/interfaces/Network.html) for ideas on how to proceed. Be sure to only checkpoint events *after* they are successfully processed!
 
-6. Ensure your changes are compiled, then run the **listen** command with the SIMULATED_FAILURE_COUNT environment variable set to simulate an application error during the processing of a chancode event:
+6. Ensure your changes are compiled, then run the **listen** command with the SIMULATED_FAILURE_COUNT environment variable set to simulate an application error during the processing of a chaincode event:
     ```bash
     SIMULATED_FAILURE_COUNT=3 npm start listen
     ```
