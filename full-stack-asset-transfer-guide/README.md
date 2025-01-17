@@ -87,12 +87,12 @@ We'll create a digital representation of these cards on the blockchain ledger. T
 
 ## Client Application Development
 
-- [Fabric Gateway](docs/ApplicationDev/01-FabricGateway.md)
-- **Exercise:** [Run the client application](docs/ApplicationDev/02-Exercise-RunApplication.md)
-- [Application overview](docs/ApplicationDev/03-ApplicationOverview.md)
-- **Exercise:** [Implement asset transfer](docs/ApplicationDev/04-Exercise-AssetTransfer.md)
-- [Chaincode events](docs/ApplicationDev/05-ChaincodeEvents.md)
-- **Exercise:** [Use chaincode events](docs/ApplicationDev/06-Exercise-ChaincodeEvents.md)
+- [Fabric Gateway](docs/ApplicationDev/01-FabricGateway.md) [Español](docs/ApplicationDev/01-FabricGateway-ES.md)
+- **Exercise:** [Run the client application](docs/ApplicationDev/02-Exercise-RunApplication.md) [Español](docs/ApplicationDev/02-Exercise-RunApplication-ES.md)
+- [Application overview](docs/ApplicationDev/03-ApplicationOverview.md) [Español](docs/ApplicationDev/03-ApplicationOverview-ES.md)
+- **Exercise:** [Implement asset transfer](docs/ApplicationDev/04-Exercise-AssetTransfer.md) [Español](docs/ApplicationDev/04-Exercise-AssetTransfer-ES.md)
+- [Chaincode events](docs/ApplicationDev/05-ChaincodeEvents.md) [Español](docs/ApplicationDev/05-ChaincodeEvents-ES.md)
+- **Exercise:** [Use chaincode events](docs/ApplicationDev/06-Exercise-ChaincodeEvents.md) [Español](docs/ApplicationDev/06-Exercise-ChaincodeEvents-ES.md)
 
 ## Cloud Native Fabric
 

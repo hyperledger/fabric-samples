@@ -15,6 +15,6 @@ The Gateway API allows a [Checkpointer](https://hyperledger.github.io/fabric-gat
 For convenience, the Gateway API provides two checkpointer implementations:
 
 1. [File checkpointer](https://hyperledger.github.io/fabric-gateway/main/api/node/functions/checkpointers.file.html) that persists its state to the file-system. This can be used to resume eventing, even after an application restart.
-1. [In-memory checkpointer](https://hyperledger.github.io/fabric-gateway/main/api/node/functions/checkpointers.inMemory.html) that stores its state only in-memory. This can be used to recover from transient failures, such as a network communication error, during a single application run.
+2. [In-memory checkpointer](https://hyperledger.github.io/fabric-gateway/main/api/node/functions/checkpointers.inMemory.html) that stores its state only in-memory. This can be used to recover from transient failures, such as a network communication error, during a single application run.
 
 Client applications can also use their own checkpointer implementations, which persist their state in suitable storage such as a database, provided they conform to the simple [Checkpoint](https://hyperledger.github.io/fabric-gateway/main/api/node/interfaces/Checkpoint.html) interface.

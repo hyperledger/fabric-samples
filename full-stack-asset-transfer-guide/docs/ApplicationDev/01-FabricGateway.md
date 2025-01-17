@@ -48,7 +48,7 @@ In order for the client application to operate effectively, it must make use of 
 
 ## Fabric Gateway client API
 
-The following diagram demonstrates for the transaction subsmit flow is executed for a client using the Fabric Gateway client API. Solid orange lines represent interactions between the client and a Gateway peer, which must cross the firewall at the boundary of the network deployment. Dashed green lines represent interactions between network nodes.
+The following diagram demonstrates how the transaction submit flow is executed for a client using the Fabric Gateway client API. Solid orange lines represent interactions between the client and a Gateway peer, which must cross the firewall at the boundary of the network deployment. Dashed green lines represent interactions between network nodes.
 
 Notice that the client only needs to interact directly with the Gateway peer. The Gateway peer operates as a client driving the transaction submit flow from within the network deployment on behalf of the client application.
 
