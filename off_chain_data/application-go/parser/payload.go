@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"offChainData/utils"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
@@ -10,30 +9,26 @@ import (
 )
 
 type payload struct {
-	commonPayload *common.Payload
-	statusCode    int32
+	commonPayload       *common.Payload
+	statusCode          int32
+	cachedChannelHeader *common.ChannelHeader
 }
 
 func parsePayload(commonPayload *common.Payload, statusCode int32) *payload {
-	return &payload{commonPayload, statusCode}
+	return &payload{commonPayload, statusCode, nil}
 }
 
 func (p *payload) channelHeader() (*common.ChannelHeader, error) {
-	return utils.Cache(func() (*common.ChannelHeader, error) {
-		funcName := "channelHeader"
+	if p.cachedChannelHeader != nil {
+		return p.cachedChannelHeader, nil
+	}
 
-		header, err := utils.AssertDefined(p.commonPayload.GetHeader(), "missing payload header")
-		if err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
-		}
+	p.cachedChannelHeader = &common.ChannelHeader{}
+	if err := proto.Unmarshal(p.commonPayload.GetHeader().GetChannelHeader(), p.cachedChannelHeader); err != nil {
+		return nil, fmt.Errorf("in channelHeader: %w", err)
+	}
 
-		result := &common.ChannelHeader{}
-		if err := proto.Unmarshal(header.GetChannelHeader(), result); err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
-		}
-
-		return result, nil
-	})()
+	return p.cachedChannelHeader, nil
 }
 
 func (p *payload) endorserTransaction() (*endorserTransaction, error) {

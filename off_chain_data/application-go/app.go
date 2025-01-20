@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var allCommands = map[string]func(clientConnection *grpc.ClientConn){
+var allCommands = map[string]func(*grpc.ClientConn){
 	"getAllAssets": getAllAssets,
 	"transact":     transact,
 	"listen":       listen,

@@ -65,7 +65,7 @@ func (atb *AssetTransferBasic) DeleteAsset(id string) error {
 func (atb *AssetTransferBasic) GetAllAssets() ([]byte, error) {
 	result, err := atb.contract.Evaluate("GetAllAssets")
 	if err != nil {
-		return []byte{}, fmt.Errorf("in GetAllAssets: %w", err)
+		return nil, fmt.Errorf("in GetAllAssets: %w", err)
 	}
 	return result, nil
 }

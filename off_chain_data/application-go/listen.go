@@ -3,13 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"offChainData/parser"
-	"offChainData/processor"
-	"offChainData/store"
-	"offChainData/utils"
+	"offchaindata/parser"
 	"os"
 	"os/signal"
-	"sync"
+	"slices"
+	"strings"
 	"syscall"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
@@ -27,7 +25,7 @@ func listen(clientConnection *grpc.ClientConn) {
 		fmt.Println("Gateway closed.")
 	}()
 
-	checkpointFile := utils.EnvOrDefault("CHECKPOINT_FILE", "checkpoint.json")
+	checkpointFile := envOrDefault("CHECKPOINT_FILE", "checkpoint.json")
 	checkpointer, err := client.NewFileCheckpointer(checkpointFile)
 	if err != nil {
 		panic(err)
@@ -39,8 +37,8 @@ func listen(clientConnection *grpc.ClientConn) {
 
 	fmt.Println("Start event listening from block", checkpointer.BlockNumber())
 	fmt.Println("Last processed transaction ID within block:", checkpointer.TransactionID())
-	if store.SimulatedFailureCount > 0 {
-		fmt.Printf("Simulating a write failure every %d transactions\n", store.SimulatedFailureCount)
+	if simulatedFailureCount > 0 {
+		fmt.Printf("Simulating a write failure every %d transactions\n", simulatedFailureCount)
 	}
 
 	ctx, close := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -62,32 +60,251 @@ func listen(clientConnection *grpc.ClientConn) {
 		panic(err)
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
-		for blockProto := range blocks {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				blockProcessor := processor.NewBlock(
-					parser.ParseBlock(blockProto),
-					checkpointer,
-					store.ApplyWritesToOffChainStore,
-					channelName,
-				)
-
-				if err := blockProcessor.Process(); err != nil {
-					fmt.Println("\033[31m[ERROR]\033[0m", err)
-					return
-				}
-			}
+	for blockProto := range blocks {
+		aBlockProcessor := blockProcessor{
+			parser.ParseBlock(blockProto),
+			checkpointer,
+			applyWritesToOffChainStore,
+			channelName,
 		}
-	}()
 
-	wg.Wait()
+		if err := aBlockProcessor.process(); err != nil {
+			fmt.Println("\033[31m[ERROR]\033[0m", err)
+			return
+		}
+	}
+
 	fmt.Println("\nShutting down listener gracefully...")
+}
+
+type blockProcessor struct {
+	parsedBlock  *parser.Block
+	checkpointer *client.FileCheckpointer
+	writeToStore writer
+	channelName  string
+}
+
+func (b *blockProcessor) process() error {
+	funcName := "Process"
+
+	fmt.Println("\nReceived block", b.parsedBlock.Number())
+
+	validTransactions, err := b.validTransactions()
+	if err != nil {
+		return fmt.Errorf("in %s: %w", funcName, err)
+	}
+
+	for _, validTransaction := range validTransactions {
+		aTransaction := transactionProcessor{
+			b.parsedBlock.Number(),
+			validTransaction,
+			// TODO use pointer to parent and get blockNumber, store and channelName from parent
+			b.writeToStore,
+			b.channelName,
+		}
+		if err := aTransaction.process(); err != nil {
+			return fmt.Errorf("in %s: %w", funcName, err)
+		}
+
+		channelHeader, err := validTransaction.ChannelHeader()
+		if err != nil {
+			return fmt.Errorf("in %s: %w", funcName, err)
+		}
+		transactionID := channelHeader.GetTxId()
+		if err := b.checkpointer.CheckpointTransaction(b.parsedBlock.Number(), transactionID); err != nil {
+			return fmt.Errorf("in %s: %w", funcName, err)
+		}
+	}
+
+	if err := b.checkpointer.CheckpointBlock(b.parsedBlock.Number()); err != nil {
+		return fmt.Errorf("in %s: %w", funcName, err)
+	}
+
+	return nil
+}
+
+func (b *blockProcessor) validTransactions() ([]*parser.Transaction, error) {
+	result := []*parser.Transaction{}
+	newTransactions, err := b.getNewTransactions()
+	if err != nil {
+		return nil, fmt.Errorf("in validTransactions: %w", err)
+	}
+
+	for _, transaction := range newTransactions {
+		if transaction.IsValid() {
+			result = append(result, transaction)
+		}
+	}
+	return result, nil
+}
+
+func (b *blockProcessor) getNewTransactions() ([]*parser.Transaction, error) {
+	funcName := "getNewTransactions"
+
+	transactions, err := b.parsedBlock.Transactions()
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
+
+	lastTransactionID := b.checkpointer.TransactionID()
+	if lastTransactionID == "" {
+		// No previously processed transactions within this block so all are new
+		return transactions, nil
+	}
+
+	// Ignore transactions up to the last processed transaction ID
+	lastProcessedIndex, err := b.findLastProcessedIndex()
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
+	return transactions[lastProcessedIndex+1:], nil
+}
+
+func (b *blockProcessor) findLastProcessedIndex() (int, error) {
+	funcName := "findLastProcessedIndex"
+
+	transactions, err := b.parsedBlock.Transactions()
+	if err != nil {
+		return 0, fmt.Errorf("in %s: %w", funcName, err)
+	}
+
+	blockTransactionIDs := []string{}
+	for _, transaction := range transactions {
+		channelHeader, err := transaction.ChannelHeader()
+		if err != nil {
+			return 0, fmt.Errorf("in %s: %w", funcName, err)
+		}
+		blockTransactionIDs = append(blockTransactionIDs, channelHeader.GetTxId())
+	}
+
+	lastTransactionID := b.checkpointer.TransactionID()
+	lastProcessedIndex := -1
+	for index, id := range blockTransactionIDs {
+		if id == lastTransactionID {
+			lastProcessedIndex = index
+		}
+	}
+
+	if lastProcessedIndex < 0 {
+		return lastProcessedIndex, newTxIDNotFoundError(
+			lastTransactionID,
+			b.parsedBlock.Number(),
+			blockTransactionIDs,
+		)
+	}
+
+	return lastProcessedIndex, nil
+}
+
+type transactionProcessor struct {
+	blockNumber  uint64
+	transaction  *parser.Transaction
+	writeToStore writer
+	channelName  string
+}
+
+func (t *transactionProcessor) process() error {
+	funcName := "process"
+
+	channelHeader, err := t.transaction.ChannelHeader()
+	if err != nil {
+		return fmt.Errorf("in %s: %w", funcName, err)
+	}
+	transactionID := channelHeader.GetTxId()
+
+	writes, err := t.writes()
+	if err != nil {
+		return fmt.Errorf("in %s: %w", funcName, err)
+	}
+
+	if len(writes) == 0 {
+		fmt.Println("Skipping read-only or system transaction", transactionID)
+		return nil
+	}
+
+	fmt.Println("Process transaction", transactionID)
+
+	if err := t.writeToStore(ledgerUpdate{
+		BlockNumber:   t.blockNumber,
+		TransactionID: transactionID,
+		Writes:        writes,
+	}); err != nil {
+		return fmt.Errorf("in %s: %w", funcName, err)
+	}
+
+	return nil
+}
+
+func (t *transactionProcessor) writes() ([]write, error) {
+	funcName := "writes"
+	// TODO this entire code should live in the parser and just return the kvWrite which
+	// we then map to write and return
+	channelHeader, err := t.transaction.ChannelHeader()
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
+	t.channelName = channelHeader.GetChannelId()
+
+	nsReadWriteSets, err := t.transaction.NamespaceReadWriteSets()
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
+
+	nonSystemCCReadWriteSets := []*parser.NamespaceReadWriteSet{}
+	for _, nsReadWriteSet := range nsReadWriteSets {
+		if !t.isSystemChaincode(nsReadWriteSet.Namespace()) {
+			nonSystemCCReadWriteSets = append(nonSystemCCReadWriteSets, nsReadWriteSet)
+		}
+	}
+
+	writes := []write{}
+	for _, readWriteSet := range nonSystemCCReadWriteSets {
+		namespace := readWriteSet.Namespace()
+
+		kvReadWriteSet, err := readWriteSet.ReadWriteSet()
+		if err != nil {
+			return nil, fmt.Errorf("in %s: %w", funcName, err)
+		}
+
+		for _, kvWrite := range kvReadWriteSet.GetWrites() {
+			writes = append(writes, write{
+				ChannelName: t.channelName,
+				Namespace:   namespace,
+				Key:         kvWrite.GetKey(),
+				IsDelete:    kvWrite.GetIsDelete(),
+				Value:       string(kvWrite.GetValue()), // Convert bytes to text, purely for readability in output
+			})
+		}
+	}
+
+	return writes, nil
+}
+
+func (t *transactionProcessor) isSystemChaincode(chaincodeName string) bool {
+	systemChaincodeNames := []string{
+		"_lifecycle",
+		"cscc",
+		"escc",
+		"lscc",
+		"qscc",
+		"vscc",
+	}
+	return slices.Contains(systemChaincodeNames, chaincodeName)
+}
+
+type txIDNotFoundError struct {
+	txID        string
+	blockNumber uint64
+	blockTxIDs  []string
+}
+
+func newTxIDNotFoundError(txID string, blockNumber uint64, blockTxIds []string) *txIDNotFoundError {
+	return &txIDNotFoundError{
+		txID, blockNumber, blockTxIds,
+	}
+}
+
+func (t *txIDNotFoundError) Error() string {
+	format := "checkpoint transaction ID %s not found in block %d containing transactions: %s"
+	return fmt.Sprintf(format, t.txID, t.blockNumber, strings.Join(t.blockTxIDs, ", "))
 }

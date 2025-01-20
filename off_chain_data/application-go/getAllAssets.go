@@ -10,7 +10,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	atb "offChainData/contract"
+	atb "offchaindata/contract"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"google.golang.org/grpc"

@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"offChainData/utils"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset/kvrwset"
@@ -10,11 +9,12 @@ import (
 )
 
 type NamespaceReadWriteSet struct {
-	nsReadWriteSet *rwset.NsReadWriteSet
+	nsReadWriteSet     *rwset.NsReadWriteSet
+	cachedReadWriteSet *kvrwset.KVRWSet
 }
 
 func parseNamespaceReadWriteSet(nsRwSet *rwset.NsReadWriteSet) *NamespaceReadWriteSet {
-	return &NamespaceReadWriteSet{nsRwSet}
+	return &NamespaceReadWriteSet{nsRwSet, nil}
 }
 
 func (p *NamespaceReadWriteSet) Namespace() string {
@@ -22,12 +22,14 @@ func (p *NamespaceReadWriteSet) Namespace() string {
 }
 
 func (p *NamespaceReadWriteSet) ReadWriteSet() (*kvrwset.KVRWSet, error) {
-	return utils.Cache(func() (*kvrwset.KVRWSet, error) {
-		result := kvrwset.KVRWSet{}
-		if err := proto.Unmarshal(p.nsReadWriteSet.GetRwset(), &result); err != nil {
-			return nil, fmt.Errorf("in ReadWriteSet: %w", err)
-		}
+	if p.cachedReadWriteSet != nil {
+		return p.cachedReadWriteSet, nil
+	}
 
-		return &result, nil
-	})()
+	p.cachedReadWriteSet = &kvrwset.KVRWSet{}
+	if err := proto.Unmarshal(p.nsReadWriteSet.GetRwset(), p.cachedReadWriteSet); err != nil {
+		return nil, fmt.Errorf("in ReadWriteSet: %w", err)
+	}
+
+	return p.cachedReadWriteSet, nil
 }

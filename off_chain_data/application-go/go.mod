@@ -1,4 +1,4 @@
-module offChainData
+module offchaindata
 
 go 1.22.0
 
