@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"offChainData/utils"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
@@ -10,43 +9,49 @@ import (
 )
 
 type endorserTransaction struct {
-	transaction *peer.Transaction
+	transaction         *peer.Transaction
+	cachedReadWriteSets []*readWriteSet
 }
 
 func parseEndorserTransaction(transaction *peer.Transaction) *endorserTransaction {
-	return &endorserTransaction{transaction}
+	return &endorserTransaction{transaction, nil}
 }
 
 func (p *endorserTransaction) readWriteSets() ([]*readWriteSet, error) {
-	return utils.Cache(func() ([]*readWriteSet, error) {
-		funcName := "readWriteSets"
-		chaincodeActionPayloads, err := p.unmarshalChaincodeActionPayloads()
-		if err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
-		}
+	funcName := "readWriteSets"
 
-		chaincodeEndorsedActions, err := p.extractChaincodeEndorsedActionsFrom(chaincodeActionPayloads)
-		if err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
-		}
+	if p.cachedReadWriteSets != nil {
+		return p.cachedReadWriteSets, nil
+	}
 
-		proposalResponsePayloads, err := p.unmarshalProposalResponsePayloadsFrom(chaincodeEndorsedActions)
-		if err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
-		}
+	chaincodeActionPayloads, err := p.unmarshalChaincodeActionPayloads()
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
 
-		chaincodeActions, err := p.unmarshalChaincodeActionsFrom(proposalResponsePayloads)
-		if err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
-		}
+	chaincodeEndorsedActions, err := p.extractChaincodeEndorsedActionsFrom(chaincodeActionPayloads)
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
 
-		txReadWriteSets, err := p.unmarshalTxReadWriteSetsFrom(chaincodeActions)
-		if err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
-		}
+	proposalResponsePayloads, err := p.unmarshalProposalResponsePayloadsFrom(chaincodeEndorsedActions)
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
 
-		return p.parseReadWriteSets(txReadWriteSets), nil
-	})()
+	chaincodeActions, err := p.unmarshalChaincodeActionsFrom(proposalResponsePayloads)
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
+
+	txReadWriteSets, err := p.unmarshalTxReadWriteSetsFrom(chaincodeActions)
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
+
+	p.cachedReadWriteSets = p.parseReadWriteSets(txReadWriteSets)
+
+	return p.cachedReadWriteSets, nil
 }
 
 func (p *endorserTransaction) unmarshalChaincodeActionPayloads() ([]*peer.ChaincodeActionPayload, error) {
@@ -65,18 +70,7 @@ func (p *endorserTransaction) unmarshalChaincodeActionPayloads() ([]*peer.Chainc
 func (*endorserTransaction) extractChaincodeEndorsedActionsFrom(chaincodeActionPayloads []*peer.ChaincodeActionPayload) ([]*peer.ChaincodeEndorsedAction, error) {
 	result := []*peer.ChaincodeEndorsedAction{}
 	for _, payload := range chaincodeActionPayloads {
-		chaincodeEndorsedAction, err := utils.AssertDefined(
-			payload.GetAction(),
-			"missing chaincode endorsed action",
-		)
-		if err != nil {
-			return nil, fmt.Errorf("in extractChaincodeEndorsedActionsFrom: %w", err)
-		}
-
-		result = append(
-			result,
-			chaincodeEndorsedAction,
-		)
+		result = append(result, payload.GetAction())
 	}
 	return result, nil
 }

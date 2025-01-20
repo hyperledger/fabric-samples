@@ -2,49 +2,48 @@ package parser
 
 import (
 	"fmt"
-	"offChainData/utils"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"google.golang.org/protobuf/proto"
 )
 
 type Block struct {
-	block        *common.Block
-	transactions []*Transaction
+	block              *common.Block
+	cachedTransactions []*Transaction
 }
 
 func ParseBlock(block *common.Block) *Block {
-	return &Block{block, []*Transaction{}}
+	return &Block{block, nil}
 }
 
-func (b *Block) Number() (uint64, error) {
-	header, err := utils.AssertDefined(b.block.GetHeader(), "missing block header")
-	if err != nil {
-		return 0, fmt.Errorf("in Number: %w", err)
-	}
-	return header.GetNumber(), nil
+func (b *Block) Number() uint64 {
+	return b.block.GetHeader().GetNumber()
 }
 
 func (b *Block) Transactions() ([]*Transaction, error) {
-	return utils.Cache(func() ([]*Transaction, error) {
-		funcName := "Transactions"
-		envelopes, err := b.unmarshalEnvelopesFromBlockData()
-		if err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
-		}
+	if b.cachedTransactions != nil {
+		return b.cachedTransactions, nil
+	}
 
-		commonPayloads, err := b.unmarshalPayloadsFrom(envelopes)
-		if err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
-		}
+	funcName := "Transactions"
+	envelopes, err := b.unmarshalEnvelopesFromBlockData()
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
 
-		payloads, err := b.parse(commonPayloads)
-		if err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
-		}
+	commonPayloads, err := b.unmarshalPayloadsFrom(envelopes)
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
 
-		return b.createTransactionsFrom(payloads), nil
-	})()
+	payloads, err := b.parse(commonPayloads)
+	if err != nil {
+		return nil, fmt.Errorf("in %s: %w", funcName, err)
+	}
+
+	b.cachedTransactions = b.createTransactionsFrom(payloads)
+
+	return b.cachedTransactions, nil
 }
 
 func (b *Block) unmarshalEnvelopesFromBlockData() ([]*common.Envelope, error) {
@@ -74,20 +73,11 @@ func (*Block) unmarshalPayloadsFrom(envelopes []*common.Envelope) ([]*common.Pay
 func (b *Block) parse(commonPayloads []*common.Payload) ([]*payload, error) {
 	funcName := "parse"
 
-	validationCodes, err := b.extractTransactionValidationCodes()
-	if err != nil {
-		return nil, fmt.Errorf("in %s: %w", funcName, err)
-	}
+	validationCodes := b.block.GetMetadata().GetMetadata()[common.BlockMetadataIndex_TRANSACTIONS_FILTER]
 
 	result := []*payload{}
 	for i, commonPayload := range commonPayloads {
-		statusCode, err := utils.AssertDefined(
-			validationCodes[i],
-			fmt.Sprint("missing validation code index", i),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
-		}
+		statusCode := validationCodes[i]
 
 		payload := parsePayload(commonPayload, int32(statusCode))
 		is, err := payload.isEndorserTransaction()
@@ -100,21 +90,6 @@ func (b *Block) parse(commonPayloads []*common.Payload) ([]*payload, error) {
 	}
 
 	return result, nil
-}
-
-func (b *Block) extractTransactionValidationCodes() ([]byte, error) {
-	metadata, err := utils.AssertDefined(
-		b.block.GetMetadata(),
-		"missing block metadata",
-	)
-	if err != nil {
-		return nil, fmt.Errorf("in extractTransactionValidationCodes: %w", err)
-	}
-
-	return utils.AssertDefined(
-		metadata.GetMetadata()[common.BlockMetadataIndex_TRANSACTIONS_FILTER],
-		"missing transaction validation code",
-	)
 }
 
 func (*Block) createTransactionsFrom(payloads []*payload) []*Transaction {

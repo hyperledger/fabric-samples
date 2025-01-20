@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	atb "offChainData/contract"
+	atb "offchaindata/contract"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset"
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset/kvrwset"
@@ -107,7 +107,13 @@ func Test_NamespaceReadWriteSetParsing(t *testing.T) {
 
 func nsReadWriteSetFake() (*rwset.NsReadWriteSet, string, atb.Asset) {
 	expectedNamespace := "basic"
-	expectedAsset := atb.NewAsset()
+	expectedAsset := atb.Asset{
+		ID:             "id-1",
+		Color:          "green",
+		Size:           8,
+		Owner:          "Alice",
+		AppraisedValue: 346,
+	}
 
 	result := &rwset.NsReadWriteSet{
 		Namespace: expectedNamespace,
