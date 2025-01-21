@@ -47,6 +47,7 @@ context ORG1_NS                       ${NS}
 context ORG2_NS                       ${NS}
 context DOMAIN                        localho.st
 context CHANNEL_NAME                  mychannel
+context ORDERER_TYPE                  raft                  # or bft for BFT Orderer (for Fabric v3.0+)
 context ORDERER_TIMEOUT               10s                   # see https://github.com/hyperledger/fabric/issues/3372
 context TEMP_DIR                      ${PWD}/build
 context CHAINCODE_BUILDER             ccaas                 # see https://github.com/hyperledgendary/fabric-builder-k8s/blob/main/docs/TEST_NETWORK_K8S.md
@@ -77,6 +78,7 @@ function print_help() {
   log "Network name       \t\t: ${NETWORK_NAME}"
   log "Ingress domain     \t\t: ${DOMAIN}"
   log "Channel name       \t\t: ${CHANNEL_NAME}"
+  log "Orderer type       \t\t: ${ORDERER_TYPE}"
   log
   log "--- Cluster Information"
   log "Cluster runtime      \t: ${CLUSTER_RUNTIME}"

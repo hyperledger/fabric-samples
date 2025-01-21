@@ -150,9 +150,12 @@ function create_channel_MSP() {
   create_channel_org_MSP org1 peer $ORG1_NS
   create_channel_org_MSP org2 peer $ORG2_NS
 
-  extract_orderer_tls_cert org0 orderer1
-  extract_orderer_tls_cert org0 orderer2
-  extract_orderer_tls_cert org0 orderer3
+  extract_orderer_cert org0 orderer1
+  extract_orderer_cert org0 orderer2
+  extract_orderer_cert org0 orderer3
+  if  [ "${ORDERER_TYPE}" == "bft" ]; then
+      extract_orderer_cert org0 orderer4
+  fi
 
   pop_fn
 }
@@ -185,13 +188,13 @@ function create_channel_org_MSP() {
   create_msp_config_yaml ${ca_name} ca-signcert.pem ${ORG_MSP_DIR}
 }
 
-# Extract an orderer's TLS signing certificate for inclusion in the channel config block
-function extract_orderer_tls_cert() {
+# Extract an orderer's signing certificate for inclusion in the channel config block
+function extract_orderer_cert() {
   local org=$1
   local orderer=$2
   local ns=$ORG0_NS
 
-  echo "Extracting TLS cert for $org $orderer"
+  echo "Extracting cert for $org $orderer"
 
   ORDERER_TLS_DIR=${TEMP_DIR}/channel-msp/ordererOrganizations/${org}/orderers/${org}-${orderer}/tls
   mkdir -p $ORDERER_TLS_DIR/signcerts
@@ -200,14 +203,33 @@ function extract_orderer_tls_cert() {
     | jq -r .data.\"tls.crt\" \
     | base64 -d \
     > ${ORDERER_TLS_DIR}/signcerts/tls-cert.pem
+
+  # For the orderer type is BFT, retrieve the enrollment certificate from the pod
+  POD_NAME=$(kubectl -n $ns get pods -l app=${org}-${orderer} -o jsonpath="{.items[0].metadata.name}")
+  # - Check if the pod exists before proceeding
+  if [ -z "$POD_NAME" ]; then
+    fatalln "Error: No Pod found with label app=${org}-${orderer} in namespace $ns"
+  fi
+  # - Copy the enrollment certificate from the pod to the local machine
+  kubectl -n $ns cp ${POD_NAME}:var/hyperledger/fabric/organizations/ordererOrganizations/${org}.example.com/orderers/${org}-${orderer}.${org}.example.com/msp/signcerts/cert.pem ${TEMP_DIR}/channel-msp/ordererOrganizations/${org}/orderers/${org}-${orderer}/cert.pem
 }
 
 function create_genesis_block() {
   push_fn "Creating channel genesis block"
+
+  # Define the default channel configtx and profile
+  local profile="TwoOrgsApplicationGenesis"
   cat ${PWD}/config/org0/configtx-template.yaml | envsubst > ${TEMP_DIR}/configtx.yaml
+
+  # Overwrite configtx and profile for bft orderer
+  if  [ "${ORDERER_TYPE}" == "bft" ]; then
+    cat ${PWD}/config/org0/bft/configtx-template.yaml | envsubst > ${TEMP_DIR}/configtx.yaml
+    profile="ChannelUsingBFT"
+  fi
+
   FABRIC_CFG_PATH=${TEMP_DIR} \
     configtxgen \
-      -profile      TwoOrgsApplicationGenesis \
+      -profile      $profile \
       -channelID    $CHANNEL_NAME \
       -outputBlock  ${TEMP_DIR}/genesis_block.pb
 
@@ -222,6 +244,9 @@ function join_channel_orderers() {
   join_channel_orderer org0 orderer1
   join_channel_orderer org0 orderer2
   join_channel_orderer org0 orderer3
+  if  [ "${ORDERER_TYPE}" == "bft" ]; then
+    join_channel_orderer org0 orderer4
+  fi
 
   # todo: readiness / liveiness equivalent for channel?  Needs a little bit to settle before peers can join.
   sleep 10

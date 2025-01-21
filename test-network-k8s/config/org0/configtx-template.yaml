@@ -169,7 +169,7 @@ Capabilities:
     # not able to participate in channels at v2.0 application capability.
     # Prior to enabling V2.0 application capabilities, ensure that all
     # peers on channel are at v2.0.0 or later.
-    V2_0: true
+    V2_5: true
 
 ################################################################################
 #
