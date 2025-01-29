@@ -4,6 +4,7 @@ set -euo pipefail
 
 CHAINCODE_LANGUAGE=${CHAINCODE_LANGUAGE:-go}
 CHAINCODE_PATH=${CHAINCODE_PATH:-../asset-transfer-basic}
+ORDERER_TYPE=${ORDERER_TYPE:-raft}
 
 function print() {
 	GREEN='\033[0;32m'
@@ -12,12 +13,25 @@ function print() {
 	echo -e "${GREEN}${1}${NC}"
 }
 
-function createNetwork() {
-  print "Creating 3 Org network"
+function createNetworkWithRaft() {
+  print "Creating 3 Org network with Raft Orderers"
   ./network.sh up createChannel -ca -s couchdb
   cd addOrg3
   ./addOrg3.sh up -ca -s couchdb
   cd ..
+}
+
+function createNetworkWithBFT() {
+  print "Creating 2 Org network with BFT Orderers"
+  ./network.sh up createChannel -bft
+}
+
+function createNetwork() {
+  if  [ "${ORDERER_TYPE}" == "bft" ]; then
+    createNetworkWithBFT
+  else
+    createNetworkWithRaft
+  fi
 }
 
 function deployChaincode() {
