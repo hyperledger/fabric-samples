@@ -12,6 +12,12 @@ export CLIENT_LANGUAGE=${CLIENT_LANGUAGE:-typescript}
 export CHAINCODE_LANGUAGE=${CHAINCODE_LANGUAGE:-java}
 export TEST_NETWORK_CHAINCODE_BUILDER=${CHAINCODE_BUILDER:-ccaas}
 
+# Fabric version
+export TEST_NETWORK_FABRIC_VERSION=${FABRIC_VERSION:-}
+
+# Orderer parameters
+export TEST_NETWORK_ORDERER_TYPE=${ORDERER_TYPE:-raft}
+
 # test-network-k8s parameters
 export TEST_TAG=$(git describe)
 export TEST_NETWORK_KIND_CLUSTER_NAME=${TEST_NETWORK_KIND_CLUSTER_NAME:-kind}
@@ -79,6 +85,7 @@ trap "quitterLaScene" EXIT
 
 createNetwork
 
+sleep 5
 print "Inserting and querying assets"
 ( ./network chaincode metadata $CHAINCODE_NAME \
   && ./network chaincode invoke $CHAINCODE_NAME '{"Args":["InitLedger"]}' \

@@ -68,3 +68,22 @@ jobs:
           CHAINCODE_NAME: basic
           CHAINCODE_LANGUAGE: java
           CHAINCODE_BUILDER: k8s
+
+  bft-orderer:
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
+    # This job requires Fabric v3.0 or later, which is only supported on 'main'.
+    # Ensure it does not run on 'release-2.5' or earlier versions.
+    if: ${{ github.ref == 'refs/heads/main' || github.event.pull_request.base.ref == 'main' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Test the network
+        working-directory: test-network-k8s
+        run: ../ci/scripts/run-k8s-test-network-basic.sh
+        env:
+          CLIENT_LANGUAGE: typescript
+          CHAINCODE_LANGUAGE: java
+          # Note: The default Fabric version for CI is currently the latest LTS (v2.5.x).
+          # To test BFT Orderers, Fabric v3.0 is explicitly specified here.
+          FABRIC_VERSION: '3.0'
+          ORDERER_TYPE: bft
