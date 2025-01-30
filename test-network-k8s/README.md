@@ -83,6 +83,7 @@ For Rancher: Preferences -> Kubernetes Settings -> Reset Kubernetes  OR ...
 - [Working with Channels](docs/CHANNELS.md)
 - [Working with Chaincode](docs/CHAINCODE.md)
 - [Working with Applications](docs/APPLICATIONS.md)
+- [Working with BFT Orderers](docs/BFT_ORDERERS.md)
 
 
 ### DNS Resolution on OSX

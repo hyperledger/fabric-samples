@@ -45,3 +45,4 @@ _Chaincode-as-a-Service_ running in a shared Kubernetes namespace.
 - [Working with Applications](APPLICATIONS.md)
 - [High Availability](HIGH_AVAILABILITY.md)
 - [Benchmarking the performance using Hyperledger Caliper](CALIPER.md)
+- [Working with BFT Orderers](BFT_ORDERERS.md)
