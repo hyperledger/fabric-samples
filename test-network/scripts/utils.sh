@@ -17,8 +17,8 @@ function printHelp() {
     println
     println "    Flags:"
     println "    Used with \033[0;32mnetwork.sh prereq\033[0m:"
-    println "    -i     FabricVersion (default: '2.5.9')"
-    println "    -cai   Fabric CA Version (default: '1.5.12')"
+    println "    -i     FabricVersion (default: '2.5.11')"
+    println "    -cai   Fabric CA Version (default: '1.5.14')"
     println  
   elif [ "$USAGE" == "up" ]; then
     println "Usage: "
@@ -159,8 +159,8 @@ function printHelp() {
     println
     println "    Flags:"
     println "    Used with \033[0;32mnetwork.sh prereq\033[0m"
-    println "    -i     FabricVersion (default: '2.5.9')"
-    println "    -cai   Fabric CA Version (default: '1.5.12')"
+    println "    -i     FabricVersion (default: '2.5.11')"
+    println "    -cai   Fabric CA Version (default: '1.5.14')"
     println
     println "    Used with \033[0;32mnetwork.sh up\033[0m, \033[0;32mnetwork.sh createChannel\033[0m:"
     println "    -ca - Use Certificate Authorities to generate network crypto material"
