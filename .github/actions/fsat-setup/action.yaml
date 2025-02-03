@@ -12,10 +12,10 @@ inputs:
     default: v0.25.3
   fabric-version:
     description: Version of Hyperledger Fabric
-    default: '2.5.7'
+    default: '2.5.11'
   ca-version:
     description: Version of Hyperledger Fabric CA
-    default: '1.5.10'
+    default: '1.5.14'
 
 runs:
   using: "composite"
