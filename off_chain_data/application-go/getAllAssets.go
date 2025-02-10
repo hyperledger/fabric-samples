@@ -1,13 +1,6 @@
-/*
- * Copyright 2024 IBM All Rights Reserved.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	atb "offchaindata/contract"
@@ -16,11 +9,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-func getAllAssets(clientConnection *grpc.ClientConn) {
+func getAllAssets(clientConnection grpc.ClientConnInterface) error {
 	id, options := newConnectOptions(clientConnection)
 	gateway, err := client.Connect(id, options...)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer gateway.Close()
 
@@ -28,21 +21,15 @@ func getAllAssets(clientConnection *grpc.ClientConn) {
 	smartContract := atb.NewAssetTransferBasic(contract)
 	assets, err := smartContract.GetAllAssets()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	if len(assets) == 0 {
-		fmt.Println("no assets")
-		return
+	assetsJSONformatted, err := json.MarshalIndent(assets, "", "  ")
+	if err != nil {
+		return err
 	}
 
-	fmt.Println(formatJSON(assets))
-}
+	fmt.Println(assetsJSONformatted)
 
-func formatJSON(data []byte) string {
-	var result bytes.Buffer
-	if err := json.Indent(&result, data, "", "  "); err != nil {
-		panic(fmt.Errorf("failed to parse JSON: %w", err))
-	}
-	return result.String()
+	return nil
 }

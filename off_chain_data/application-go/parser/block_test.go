@@ -10,7 +10,6 @@ import (
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset/kvrwset"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func Test_GetReadWriteSetsFromEndorserTransaction(t *testing.T) {
@@ -128,7 +127,7 @@ func nsReadWriteSetFake() (*rwset.NsReadWriteSet, string, atb.Asset) {
 	return result, expectedNamespace, expectedAsset
 }
 
-func protoMarshalOrPanic(v protoreflect.ProtoMessage) []byte {
+func protoMarshalOrPanic(v proto.Message) []byte {
 	result, err := proto.Marshal(v)
 	if err != nil {
 		panic(err)

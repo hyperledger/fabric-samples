@@ -1,9 +1,9 @@
 package main
 
 import (
-	"crypto/rand"
+	"context"
 	"fmt"
-	"math/big"
+	"math/rand/v2"
 	"sync"
 
 	atb "offchaindata/contract"
@@ -15,11 +15,11 @@ import (
 
 var owners = []string{"alice", "bob", "charlie"}
 
-func transact(clientConnection *grpc.ClientConn) {
+func transact(clientConnection grpc.ClientConnInterface) error {
 	id, options := newConnectOptions(clientConnection)
 	gateway, err := client.Connect(id, options...)
 	if err != nil {
-		panic((err))
+		return err
 	}
 	defer func() {
 		gateway.Close()
@@ -30,7 +30,11 @@ func transact(clientConnection *grpc.ClientConn) {
 
 	smartContract := atb.NewAssetTransferBasic(contract)
 	app := newTransactApp(smartContract)
-	app.run()
+	if err := app.run(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type transactApp struct {
@@ -42,90 +46,94 @@ func newTransactApp(smartContract *atb.AssetTransferBasic) *transactApp {
 	return &transactApp{smartContract, 10}
 }
 
-func (t *transactApp) run() {
+func (t *transactApp) run() error {
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
+
 	var wg sync.WaitGroup
 
-	for i := 0; i < t.batchSize; i++ {
+	for range t.batchSize {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 
-			if err := t.transact(); err != nil {
-				fmt.Println("\033[31m[ERROR]\033[0m", err)
+			select {
+			case <-ctx.Done():
 				return
+			default:
+				if err := t.transact(); err != nil {
+					cancel(err)
+					return
+				}
 			}
 		}()
 	}
 
 	wg.Wait()
+
+	if err := context.Cause(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (t *transactApp) transact() error {
-	funcName := "transact"
-
-	anAsset := newAsset()
-
-	err := t.smartContract.CreateAsset(anAsset)
+	anAsset, err := newAsset()
 	if err != nil {
-		return fmt.Errorf("in %s: %w", funcName, err)
+		return err
+	}
+
+	if err := t.smartContract.CreateAsset(anAsset); err != nil {
+		return err
 	}
 	fmt.Println("Created asset", anAsset.ID)
 
 	// Transfer randomly 1 in 2 assets to a new owner.
-	if randomInt(2) == 0 {
+	if rand.N(2) == 0 {
 		newOwner := differentElement(owners, anAsset.Owner)
 		oldOwner, err := t.smartContract.TransferAsset(anAsset.ID, newOwner)
 		if err != nil {
-			return fmt.Errorf("in %s: %w", funcName, err)
+			return err
 		}
 		fmt.Printf("Transferred asset %s from %s to %s\n", anAsset.ID, oldOwner, newOwner)
 	}
 
 	// Delete randomly 1 in 4 created assets.
-	if randomInt(4) == 0 {
-		err := t.smartContract.DeleteAsset(anAsset.ID)
-		if err != nil {
-			return fmt.Errorf("in %s: %w", funcName, err)
+	if rand.N(4) == 0 {
+		if err := t.smartContract.DeleteAsset(anAsset.ID); err != nil {
+			return err
 		}
 		fmt.Println("Deleted asset", anAsset.ID)
 	}
+
 	return nil
 }
 
-func newAsset() atb.Asset {
+func newAsset() (atb.Asset, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		panic(err)
+		return atb.Asset{}, err
 	}
 
 	return atb.Asset{
 		ID:             id.String(),
 		Color:          randomElement([]string{"red", "green", "blue"}),
-		Size:           uint64(randomInt(10) + 1),
+		Size:           uint64(rand.N(10) + 1),
 		Owner:          randomElement(owners),
-		AppraisedValue: uint64(randomInt(1000) + 1),
-	}
+		AppraisedValue: uint64(rand.N(1000) + 1),
+	}, nil
 }
 
 // Pick a random element from an array.
 func randomElement(values []string) string {
-	result := values[randomInt(len(values))]
+	result := values[rand.N(len(values))]
 	return result
-}
-
-// Generate a random integer in the range 0 to max - 1.
-func randomInt(max int) int {
-	result, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
-	if err != nil {
-		panic(err)
-	}
-
-	return int(result.Int64())
 }
 
 // Pick a random element from an array, excluding the current value.
 func differentElement(values []string, currentValue string) string {
-	candidateValues := []string{}
+	var candidateValues []string
 	for _, v := range values {
 		if v != currentValue {
 			candidateValues = append(candidateValues, v)

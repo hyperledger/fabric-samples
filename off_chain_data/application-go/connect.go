@@ -1,9 +1,3 @@
-/*
- * Copyright 2024 IBM All Rights Reserved.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 package main
 
 import (
@@ -69,7 +63,7 @@ func newGrpcConnection() *grpc.ClientConn {
 	return connection
 }
 
-func newConnectOptions(clientConnection *grpc.ClientConn) (identity.Identity, []client.ConnectOption) {
+func newConnectOptions(clientConnection grpc.ClientConnInterface) (identity.Identity, []client.ConnectOption) {
 	return newIdentity(), []client.ConnectOption{
 		client.WithSign(newSign()),
 		client.WithHash(hash.SHA256),
