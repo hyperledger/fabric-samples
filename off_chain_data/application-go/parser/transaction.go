@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"fmt"
-
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 )
 
@@ -19,16 +17,14 @@ func (t *Transaction) ChannelHeader() (*common.ChannelHeader, error) {
 }
 
 func (t *Transaction) NamespaceReadWriteSets() ([]*NamespaceReadWriteSet, error) {
-	funcName := "NamespaceReadWriteSets"
-
 	endorserTransaction, err := t.payload.endorserTransaction()
 	if err != nil {
-		return nil, fmt.Errorf("in %s: %w", funcName, err)
+		return nil, err
 	}
 
 	txReadWriteSets, err := endorserTransaction.readWriteSets()
 	if err != nil {
-		return nil, fmt.Errorf("in %s: %w", funcName, err)
+		return nil, err
 	}
 
 	result := []*NamespaceReadWriteSet{}

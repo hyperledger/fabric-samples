@@ -14,11 +14,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-func listen(clientConnection *grpc.ClientConn) {
+func listen(clientConnection grpc.ClientConnInterface) error {
 	id, options := newConnectOptions(clientConnection)
 	gateway, err := client.Connect(id, options...)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer func() {
 		gateway.Close()
@@ -28,7 +28,7 @@ func listen(clientConnection *grpc.ClientConn) {
 	checkpointFile := envOrDefault("CHECKPOINT_FILE", "checkpoint.json")
 	checkpointer, err := client.NewFileCheckpointer(checkpointFile)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer func() {
 		checkpointer.Close()
@@ -57,7 +57,7 @@ func listen(clientConnection *grpc.ClientConn) {
 		client.WithCheckpoint(checkpointer),
 	)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	for blockProto := range blocks {
@@ -69,12 +69,12 @@ func listen(clientConnection *grpc.ClientConn) {
 		}
 
 		if err := aBlockProcessor.process(); err != nil {
-			fmt.Println("\033[31m[ERROR]\033[0m", err)
-			return
+			return err
 		}
 	}
 
 	fmt.Println("\nShutting down listener gracefully...")
+	return nil
 }
 
 type blockProcessor struct {
@@ -85,39 +85,37 @@ type blockProcessor struct {
 }
 
 func (b *blockProcessor) process() error {
-	funcName := "Process"
-
 	fmt.Println("\nReceived block", b.parsedBlock.Number())
 
 	validTransactions, err := b.validTransactions()
 	if err != nil {
-		return fmt.Errorf("in %s: %w", funcName, err)
+		return err
 	}
 
 	for _, validTransaction := range validTransactions {
-		aTransaction := transactionProcessor{
+		txProcessor := transactionProcessor{
 			b.parsedBlock.Number(),
 			validTransaction,
-			// TODO use pointer to parent and get blockNumber, store and channelName from parent
+			// TODO use reference to parent and get blockNumber, store and channelName from parent
 			b.writeToStore,
 			b.channelName,
 		}
-		if err := aTransaction.process(); err != nil {
-			return fmt.Errorf("in %s: %w", funcName, err)
+		if err := txProcessor.process(); err != nil {
+			return err
 		}
 
 		channelHeader, err := validTransaction.ChannelHeader()
 		if err != nil {
-			return fmt.Errorf("in %s: %w", funcName, err)
+			return err
 		}
 		transactionID := channelHeader.GetTxId()
 		if err := b.checkpointer.CheckpointTransaction(b.parsedBlock.Number(), transactionID); err != nil {
-			return fmt.Errorf("in %s: %w", funcName, err)
+			return err
 		}
 	}
 
 	if err := b.checkpointer.CheckpointBlock(b.parsedBlock.Number()); err != nil {
-		return fmt.Errorf("in %s: %w", funcName, err)
+		return err
 	}
 
 	return nil
@@ -127,7 +125,7 @@ func (b *blockProcessor) validTransactions() ([]*parser.Transaction, error) {
 	result := []*parser.Transaction{}
 	newTransactions, err := b.getNewTransactions()
 	if err != nil {
-		return nil, fmt.Errorf("in validTransactions: %w", err)
+		return nil, err
 	}
 
 	for _, transaction := range newTransactions {
@@ -139,11 +137,9 @@ func (b *blockProcessor) validTransactions() ([]*parser.Transaction, error) {
 }
 
 func (b *blockProcessor) getNewTransactions() ([]*parser.Transaction, error) {
-	funcName := "getNewTransactions"
-
 	transactions, err := b.parsedBlock.Transactions()
 	if err != nil {
-		return nil, fmt.Errorf("in %s: %w", funcName, err)
+		return nil, err
 	}
 
 	lastTransactionID := b.checkpointer.TransactionID()
@@ -155,24 +151,22 @@ func (b *blockProcessor) getNewTransactions() ([]*parser.Transaction, error) {
 	// Ignore transactions up to the last processed transaction ID
 	lastProcessedIndex, err := b.findLastProcessedIndex()
 	if err != nil {
-		return nil, fmt.Errorf("in %s: %w", funcName, err)
+		return nil, err
 	}
 	return transactions[lastProcessedIndex+1:], nil
 }
 
 func (b *blockProcessor) findLastProcessedIndex() (int, error) {
-	funcName := "findLastProcessedIndex"
-
 	transactions, err := b.parsedBlock.Transactions()
 	if err != nil {
-		return 0, fmt.Errorf("in %s: %w", funcName, err)
+		return 0, err
 	}
 
 	blockTransactionIDs := []string{}
 	for _, transaction := range transactions {
 		channelHeader, err := transaction.ChannelHeader()
 		if err != nil {
-			return 0, fmt.Errorf("in %s: %w", funcName, err)
+			return 0, err
 		}
 		blockTransactionIDs = append(blockTransactionIDs, channelHeader.GetTxId())
 	}
@@ -204,17 +198,15 @@ type transactionProcessor struct {
 }
 
 func (t *transactionProcessor) process() error {
-	funcName := "process"
-
 	channelHeader, err := t.transaction.ChannelHeader()
 	if err != nil {
-		return fmt.Errorf("in %s: %w", funcName, err)
+		return err
 	}
 	transactionID := channelHeader.GetTxId()
 
 	writes, err := t.writes()
 	if err != nil {
-		return fmt.Errorf("in %s: %w", funcName, err)
+		return err
 	}
 
 	if len(writes) == 0 {
@@ -229,25 +221,24 @@ func (t *transactionProcessor) process() error {
 		TransactionID: transactionID,
 		Writes:        writes,
 	}); err != nil {
-		return fmt.Errorf("in %s: %w", funcName, err)
+		return err
 	}
 
 	return nil
 }
 
 func (t *transactionProcessor) writes() ([]write, error) {
-	funcName := "writes"
 	// TODO this entire code should live in the parser and just return the kvWrite which
 	// we then map to write and return
 	channelHeader, err := t.transaction.ChannelHeader()
 	if err != nil {
-		return nil, fmt.Errorf("in %s: %w", funcName, err)
+		return nil, err
 	}
 	t.channelName = channelHeader.GetChannelId()
 
 	nsReadWriteSets, err := t.transaction.NamespaceReadWriteSets()
 	if err != nil {
-		return nil, fmt.Errorf("in %s: %w", funcName, err)
+		return nil, err
 	}
 
 	nonSystemCCReadWriteSets := []*parser.NamespaceReadWriteSet{}
@@ -263,7 +254,7 @@ func (t *transactionProcessor) writes() ([]write, error) {
 
 		kvReadWriteSet, err := readWriteSet.ReadWriteSet()
 		if err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
+			return nil, err
 		}
 
 		for _, kvWrite := range kvReadWriteSet.GetWrites() {

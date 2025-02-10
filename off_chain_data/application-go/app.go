@@ -1,9 +1,3 @@
-/*
- * Copyright 2024 IBM All Rights Reserved.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 package main
 
 import (
@@ -15,7 +9,9 @@ import (
 	"google.golang.org/grpc"
 )
 
-var allCommands = map[string]func(*grpc.ClientConn){
+type command func(grpc.ClientConnInterface) error
+
+var allCommands = map[string]command{
 	"getAllAssets": getAllAssets,
 	"transact":     transact,
 	"listen":       listen,
@@ -41,7 +37,10 @@ func main() {
 
 	for _, name := range commands {
 		command := allCommands[name]
-		command(client)
+
+		if err := command(client); err != nil {
+			panic(err)
+		}
 	}
 }
 

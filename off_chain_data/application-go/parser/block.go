@@ -1,19 +1,21 @@
 package parser
 
 import (
-	"fmt"
+	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"google.golang.org/protobuf/proto"
 )
 
 type Block struct {
-	block              *common.Block
-	cachedTransactions []*Transaction
+	block        *common.Block
+	transactions func() ([]*Transaction, error)
 }
 
 func ParseBlock(block *common.Block) *Block {
-	return &Block{block, nil}
+	result := &Block{block, nil}
+	result.transactions = sync.OnceValues(result.unmarshalTransactions)
+	return result
 }
 
 func (b *Block) Number() uint64 {
@@ -21,37 +23,34 @@ func (b *Block) Number() uint64 {
 }
 
 func (b *Block) Transactions() ([]*Transaction, error) {
-	if b.cachedTransactions != nil {
-		return b.cachedTransactions, nil
-	}
+	return b.transactions()
+}
 
-	funcName := "Transactions"
-	envelopes, err := b.unmarshalEnvelopesFromBlockData()
+func (b *Block) unmarshalTransactions() ([]*Transaction, error) {
+	envelopes, err := b.unmarshalEnvelopes()
 	if err != nil {
-		return nil, fmt.Errorf("in %s: %w", funcName, err)
+		return nil, err
 	}
 
 	commonPayloads, err := b.unmarshalPayloadsFrom(envelopes)
 	if err != nil {
-		return nil, fmt.Errorf("in %s: %w", funcName, err)
+		return nil, err
 	}
 
 	payloads, err := b.parse(commonPayloads)
 	if err != nil {
-		return nil, fmt.Errorf("in %s: %w", funcName, err)
+		return nil, err
 	}
 
-	b.cachedTransactions = b.createTransactionsFrom(payloads)
-
-	return b.cachedTransactions, nil
+	return b.createTransactionsFrom(payloads), nil
 }
 
-func (b *Block) unmarshalEnvelopesFromBlockData() ([]*common.Envelope, error) {
+func (b *Block) unmarshalEnvelopes() ([]*common.Envelope, error) {
 	result := []*common.Envelope{}
 	for _, blockData := range b.block.GetData().GetData() {
 		envelope := &common.Envelope{}
 		if err := proto.Unmarshal(blockData, envelope); err != nil {
-			return nil, fmt.Errorf("in unmarshalEnvelopesFromBlockData: %w", err)
+			return nil, err
 		}
 		result = append(result, envelope)
 	}
@@ -63,7 +62,7 @@ func (*Block) unmarshalPayloadsFrom(envelopes []*common.Envelope) ([]*common.Pay
 	for _, envelope := range envelopes {
 		commonPayload := &common.Payload{}
 		if err := proto.Unmarshal(envelope.GetPayload(), commonPayload); err != nil {
-			return nil, fmt.Errorf("in unmarshalPayloadsFrom: %w", err)
+			return nil, err
 		}
 		result = append(result, commonPayload)
 	}
@@ -71,8 +70,6 @@ func (*Block) unmarshalPayloadsFrom(envelopes []*common.Envelope) ([]*common.Pay
 }
 
 func (b *Block) parse(commonPayloads []*common.Payload) ([]*payload, error) {
-	funcName := "parse"
-
 	validationCodes := b.block.GetMetadata().GetMetadata()[common.BlockMetadataIndex_TRANSACTIONS_FILTER]
 
 	result := []*payload{}
@@ -82,7 +79,7 @@ func (b *Block) parse(commonPayloads []*common.Payload) ([]*payload, error) {
 		payload := parsePayload(commonPayload, int32(statusCode))
 		is, err := payload.isEndorserTransaction()
 		if err != nil {
-			return nil, fmt.Errorf("in %s: %w", funcName, err)
+			return nil, err
 		}
 		if is {
 			result = append(result, payload)
