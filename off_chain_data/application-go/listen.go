@@ -104,11 +104,7 @@ func (b *blockProcessor) process() error {
 			return err
 		}
 
-		channelHeader, err := validTransaction.ChannelHeader()
-		if err != nil {
-			return err
-		}
-		transactionID := channelHeader.GetTxId()
+		transactionID := validTransaction.ChannelHeader().GetTxId()
 		if err := b.checkpointer.CheckpointTransaction(b.parsedBlock.Number(), transactionID); err != nil {
 			return err
 		}
@@ -164,11 +160,7 @@ func (b *blockProcessor) findLastProcessedIndex() (int, error) {
 
 	blockTransactionIDs := []string{}
 	for _, transaction := range transactions {
-		channelHeader, err := transaction.ChannelHeader()
-		if err != nil {
-			return 0, err
-		}
-		blockTransactionIDs = append(blockTransactionIDs, channelHeader.GetTxId())
+		blockTransactionIDs = append(blockTransactionIDs, transaction.ChannelHeader().GetTxId())
 	}
 
 	lastTransactionID := b.checkpointer.TransactionID()
@@ -180,11 +172,13 @@ func (b *blockProcessor) findLastProcessedIndex() (int, error) {
 	}
 
 	if lastProcessedIndex < 0 {
-		return lastProcessedIndex, newTxIDNotFoundError(
+		err = fmt.Errorf(
+			"checkpoint transaction ID %s not found in block %d containing transactions: %s",
 			lastTransactionID,
 			b.parsedBlock.Number(),
-			blockTransactionIDs,
+			strings.Join(blockTransactionIDs, ", "),
 		)
+		return lastProcessedIndex, err
 	}
 
 	return lastProcessedIndex, nil
@@ -198,11 +192,7 @@ type transactionProcessor struct {
 }
 
 func (t *transactionProcessor) process() error {
-	channelHeader, err := t.transaction.ChannelHeader()
-	if err != nil {
-		return err
-	}
-	transactionID := channelHeader.GetTxId()
+	transactionID := t.transaction.ChannelHeader().GetTxId()
 
 	writes, err := t.writes()
 	if err != nil {
@@ -230,11 +220,7 @@ func (t *transactionProcessor) process() error {
 func (t *transactionProcessor) writes() ([]write, error) {
 	// TODO this entire code should live in the parser and just return the kvWrite which
 	// we then map to write and return
-	channelHeader, err := t.transaction.ChannelHeader()
-	if err != nil {
-		return nil, err
-	}
-	t.channelName = channelHeader.GetChannelId()
+	t.channelName = t.transaction.ChannelHeader().GetChannelId()
 
 	nsReadWriteSets, err := t.transaction.NamespaceReadWriteSets()
 	if err != nil {
@@ -281,21 +267,4 @@ func (t *transactionProcessor) isSystemChaincode(chaincodeName string) bool {
 		"vscc",
 	}
 	return slices.Contains(systemChaincodeNames, chaincodeName)
-}
-
-type txIDNotFoundError struct {
-	txID        string
-	blockNumber uint64
-	blockTxIDs  []string
-}
-
-func newTxIDNotFoundError(txID string, blockNumber uint64, blockTxIds []string) *txIDNotFoundError {
-	return &txIDNotFoundError{
-		txID, blockNumber, blockTxIds,
-	}
-}
-
-func (t *txIDNotFoundError) Error() string {
-	format := "checkpoint transaction ID %s not found in block %d containing transactions: %s"
-	return fmt.Sprintf(format, t.txID, t.blockNumber, strings.Join(t.blockTxIDs, ", "))
 }

@@ -12,8 +12,8 @@ func newTransaction(payload *payload) *Transaction {
 	return &Transaction{payload}
 }
 
-func (t *Transaction) ChannelHeader() (*common.ChannelHeader, error) {
-	return t.payload.channelHeader()
+func (t *Transaction) ChannelHeader() *common.ChannelHeader {
+	return t.payload.channelHeader
 }
 
 func (t *Transaction) NamespaceReadWriteSets() ([]*NamespaceReadWriteSet, error) {

@@ -24,12 +24,11 @@ func getAllAssets(clientConnection grpc.ClientConnInterface) error {
 		return err
 	}
 
-	assetsJSONformatted, err := json.MarshalIndent(assets, "", "  ")
+	formatted, err := json.MarshalIndent(assets, "", "  ")
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(assetsJSONformatted)
+	fmt.Println(string(formatted))
 
 	return nil
 }

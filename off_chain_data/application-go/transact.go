@@ -127,8 +127,7 @@ func newAsset() (atb.Asset, error) {
 
 // Pick a random element from an array.
 func randomElement(values []string) string {
-	result := values[rand.N(len(values))]
-	return result
+	return values[rand.N(len(values))]
 }
 
 // Pick a random element from an array, excluding the current value.

@@ -64,7 +64,7 @@ func (atb *AssetTransferBasic) GetAllAssets() ([]Asset, error) {
 	}
 
 	if len(assetsRaw) == 0 {
-		return []Asset{}, nil
+		return nil, nil
 	}
 
 	var assets []Asset

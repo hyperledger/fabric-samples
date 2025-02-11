@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
@@ -12,35 +11,28 @@ import (
 type payload struct {
 	commonPayload *common.Payload
 	statusCode    int32
-	channelHeader func() (*common.ChannelHeader, error)
+	channelHeader *common.ChannelHeader
 }
 
-func parsePayload(commonPayload *common.Payload, statusCode int32) *payload {
-	result := &payload{commonPayload, statusCode, nil}
-	result.channelHeader = sync.OnceValues(result.unmarshalChannelHeader)
-	return result
-}
-
-func (p *payload) unmarshalChannelHeader() (*common.ChannelHeader, error) {
-	result := &common.ChannelHeader{}
-	if err := proto.Unmarshal(p.commonPayload.GetHeader().GetChannelHeader(), result); err != nil {
+func parsePayload(commonPayload *common.Payload, statusCode int32) (*payload, error) {
+	channelHeader, err := unmarshalChannelHeaderFrom(commonPayload)
+	if err != nil {
 		return nil, err
 	}
+	return &payload{commonPayload, statusCode, channelHeader}, nil
+}
 
+func unmarshalChannelHeaderFrom(commonPayload *common.Payload) (*common.ChannelHeader, error) {
+	result := &common.ChannelHeader{}
+	if err := proto.Unmarshal(commonPayload.GetHeader().GetChannelHeader(), result); err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
 func (p *payload) endorserTransaction() (*endorserTransaction, error) {
-	is, err := p.isEndorserTransaction()
-	if err != nil {
-		return nil, err
-	}
-	if !is {
-		channelHeader, err := p.channelHeader()
-		if err != nil {
-			return nil, err
-		}
-		return nil, fmt.Errorf("unexpected payload type: %d", channelHeader.GetType())
+	if !p.isEndorserTransaction() {
+		return nil, fmt.Errorf("unexpected payload type: %d", p.channelHeader.GetType())
 	}
 
 	result := &peer.Transaction{}
@@ -51,13 +43,8 @@ func (p *payload) endorserTransaction() (*endorserTransaction, error) {
 	return parseEndorserTransaction(result), nil
 }
 
-func (p *payload) isEndorserTransaction() (bool, error) {
-	channelHeader, err := p.channelHeader()
-	if err != nil {
-		return false, err
-	}
-
-	return channelHeader.GetType() == int32(common.HeaderType_ENDORSER_TRANSACTION), nil
+func (p *payload) isEndorserTransaction() bool {
+	return p.channelHeader.GetType() == int32(common.HeaderType_ENDORSER_TRANSACTION)
 }
 
 func (p *payload) isValid() bool {

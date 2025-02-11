@@ -88,7 +88,7 @@ func Test_ReadWriteSetWrapping(t *testing.T) {
 
 	parsedRwSet := parseReadWriteSet(txReadWriteSetFake)
 	if len(parsedRwSet.namespaceReadWriteSets()) != 1 {
-		t.Fatalf("Expected 1 NamespaceReadWriteSet, got %d", len(parsedRwSet.namespaceReadWriteSets()))
+		t.Fatal("expected 1 NamespaceReadWriteSet, got", len(parsedRwSet.namespaceReadWriteSets()))
 	}
 }
 

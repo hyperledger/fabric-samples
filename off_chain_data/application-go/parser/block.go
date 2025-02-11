@@ -76,12 +76,12 @@ func (b *Block) parse(commonPayloads []*common.Payload) ([]*payload, error) {
 	for i, commonPayload := range commonPayloads {
 		statusCode := validationCodes[i]
 
-		payload := parsePayload(commonPayload, int32(statusCode))
-		is, err := payload.isEndorserTransaction()
+		payload, err := parsePayload(commonPayload, int32(statusCode))
 		if err != nil {
 			return nil, err
 		}
-		if is {
+
+		if payload.isEndorserTransaction() {
 			result = append(result, payload)
 		}
 	}
