@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-samples/token-sdk/e2e
 
-go 1.22.0
+go 1.23.0
 
 require (
 	github.com/deepmap/oapi-codegen v1.16.3

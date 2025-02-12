@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-samples/token-utxo/chaincode-go
 
-go 1.22.0
+go 1.23.0
 
 require github.com/hyperledger/fabric-contract-api-go/v2 v2.2.0
 

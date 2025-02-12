@@ -1,4 +1,4 @@
-FROM golang:1.20 as builder
+FROM golang:1.23 as builder
 RUN git clone https://github.com/hyperledger-labs/fabric-token-sdk.git
 WORKDIR fabric-token-sdk 
 
@@ -7,7 +7,7 @@ RUN git checkout v0.3.0 && go mod download
 RUN CGO_ENABLED=1 go build -buildvcs=false -o /tcc token/services/network/fabric/tcc/main/main.go && chmod +x /tcc
 
 # Final image
-FROM golang:1.20
+FROM golang:1.23
 COPY --from=builder /tcc .
 EXPOSE 9999
 
