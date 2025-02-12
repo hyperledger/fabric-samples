@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-samples/high-throughput/chaincode
 
-go 1.22.0
+go 1.23.0
 
 require (
 	github.com/hyperledger/fabric-chaincode-go v0.0.0-20230228194215-b84622ba6a7a

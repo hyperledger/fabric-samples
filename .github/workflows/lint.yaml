@@ -7,16 +7,16 @@ run-name: ${{ github.actor }} is linting fabric-samples 🎉
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "release-2.5" ]
+    branches: ["main", "release-2.5"]
   pull_request:
-    branches: [ "main", "release-2.5" ]
+    branches: ["main", "release-2.5"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  GO_VER: '1.22'
+  GO_VER: "1.23"
   NODE_VER: 18.x
   JAVA_VER: 11.x
 

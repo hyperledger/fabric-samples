@@ -1,6 +1,6 @@
 module github.com/hyperledger/fabric-samples/hardware-security-module/application-go
 
-go 1.22.0
+go 1.23.0
 
 require (
 	github.com/hyperledger/fabric-gateway v1.7.0

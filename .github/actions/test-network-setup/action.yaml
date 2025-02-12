@@ -3,7 +3,7 @@ description: Set up the Test Network Runtime
 inputs:
   go-version:
     description: Version of go
-    default: '1.22'
+    default: '1.23'
   node-version:
     description: Version of node
     default: 18.x

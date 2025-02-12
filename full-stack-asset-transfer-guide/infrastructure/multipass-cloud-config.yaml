@@ -34,7 +34,7 @@ write_files:
     fi
 
     if [ ${HLF_VERSION:0:4} = '2.5.'  -o ${HLF_VERSION:0:4} = '2.4.']; then
-      export GO_VERSION=1.18.10
+      export GO_VERSION=1.23.6
     elif [ ${HLF_VERSION:0:4} = '2.2.' -o ${HLF_VERSION:0:4} = '2.3.' ]; then
       export GO_VERSION=1.14.11
     elif [ ${HLF_VERSION:0:4} = '2.0.' -o ${HLF_VERSION:0:4} = '2.1.' ]; then
