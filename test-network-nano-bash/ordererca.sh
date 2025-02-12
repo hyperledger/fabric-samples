@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-export PATH="${PWD}"/../../fabric/build/bin:"${PWD}"/../bin:"${PATH}"
+export PATH="${PWD}"/../../fabric-ca/bin:"${PWD}"/../bin:"${PATH}"
 export FABRIC_CFG_PATH="${PWD}"/../config
 
 #Configure the CA_NAME, CA_PORT, OPERATIONS_PORT and CSR_HOSTS for the CA
