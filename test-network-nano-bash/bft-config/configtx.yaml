@@ -287,28 +287,28 @@ Profiles:
           Host: 127.0.0.1
           Port: 6050
           MSPID: OrdererMSP
-          Identity: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/signcerts/orderer.example.com-cert.pem
+          Identity: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/signcerts/cert.pem
           ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
           ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
         - ID: 2
           Host: 127.0.0.1
           Port: 6051
           MSPID: OrdererMSP
-          Identity: ../crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/msp/signcerts/orderer2.example.com-cert.pem
+          Identity: ../crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/msp/signcerts/cert.pem
           ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
           ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
         - ID: 3
           Host: 127.0.0.1
           Port: 6052
           MSPID: OrdererMSP
-          Identity: ../crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/msp/signcerts/orderer3.example.com-cert.pem
+          Identity: ../crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/msp/signcerts/cert.pem
           ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
           ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
         - ID: 4
           Host: 127.0.0.1
           Port: 6053
           MSPID: OrdererMSP
-          Identity: ../crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/msp/signcerts/orderer4.example.com-cert.pem
+          Identity: ../crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/msp/signcerts/cert.pem
           ClientTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
           ServerTLSCert: ../crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
     Application:
