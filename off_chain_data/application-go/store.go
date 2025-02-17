@@ -14,7 +14,7 @@ var simulatedFailureCount = getSimulatedFailureCount()
 var transactionCount uint = 0 // Used only to simulate failures
 
 // Apply writes for a given transaction to off-chain data store, ideally in a single operation for fault tolerance.
-type writer = func(data ledgerUpdate) error
+type writer = func(ledgerUpdate) error
 
 // Ledger update made by a specific transaction.
 type ledgerUpdate struct {
@@ -71,10 +71,12 @@ func applyWritesToOffChainStore(data ledgerUpdate) error {
 	return nil
 }
 
+var errExpected = errors.New("expected error: simulated write failure")
+
 func simulateFailureIfRequired() error {
 	if simulatedFailureCount > 0 && transactionCount >= simulatedFailureCount {
 		transactionCount = 0
-		return errors.New("expected error: simulated write failure")
+		return errExpected
 	}
 
 	transactionCount += 1

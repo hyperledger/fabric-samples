@@ -39,6 +39,11 @@ func main() {
 		command := allCommands[name]
 
 		if err := command(client); err != nil {
+			if errors.Is(err, errExpected) {
+				fmt.Println(err)
+				return
+			}
+
 			panic(err)
 		}
 	}
