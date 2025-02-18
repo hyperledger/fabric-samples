@@ -8,6 +8,7 @@
 organizations/fabric-ca/ordererOrg/*
 organizations/fabric-ca/org1/*
 organizations/fabric-ca/org2/*
+addOrg3/fabric-ca/org3/*
 organizations/ordererOrganizations/*
 organizations/peerOrganizations/*
 system-genesis-block/*

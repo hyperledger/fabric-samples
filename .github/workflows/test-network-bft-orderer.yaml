@@ -25,6 +25,9 @@ jobs:
           - javascript
           - typescript
           - java
+        crypto:
+          - cryptogen
+          - ca
 
     steps:
       - name: Checkout
@@ -43,3 +46,4 @@ jobs:
         env:
           CHAINCODE_LANGUAGE: ${{ matrix.chaincode-language }}
           ORDERER_TYPE: bft
+          CRYPTO: ${{ matrix.crypto }}
