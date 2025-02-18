@@ -46,8 +46,8 @@ else
   mkdir -p "${PWD}"/logs
 
   # execute the script to configure the default set of enrollments
-  echo "Generating MSP certificates using the Fabric CAs"
-  ./ca/createEnrollments.sh > ./logs/createEnrollments.log 2>&1 
+  echo "Generating MSP certificates using the Fabric CAs, see results in ./logs/createEnrollments.log"
+  ./ca/createEnrollments.sh > ./logs/createEnrollments.log 2>&1
 
 fi
 
