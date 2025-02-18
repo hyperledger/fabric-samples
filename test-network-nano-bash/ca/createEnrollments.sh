@@ -116,3 +116,12 @@ createMSP "org1ca" "org1" "${org1_dir}"
 
 # Create the MSP for Org2
 createMSP "org2ca" "org2" "${org2_dir}"
+
+######################################################################################
+#  Generate CCP files for Org1 and Org2
+######################################################################################
+
+# Generate CCP files for Org1 and Org2"
+echo "Generating CCP files for Org1 and Org2"
+./ca/ccp-generate.sh
+echo "Generated CCP files for Org1 and Org2"
