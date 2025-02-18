@@ -21,6 +21,10 @@ createEnrollment() {
 
   # Enroll the identity
   fabric-ca-client enroll -d -u https://${username}:${password}@localhost:${port} --caname ca --mspdir "${component_dir}/msp" --tls.certfiles $tlscert
+  if [ $? -ne 0 ]; then
+    echo "fabric-ca-client admin enroll failed, make sure CA service is available. Exiting..."
+    exit 1
+  fi
 
   # Rename private key to mimic cryptogen
   find ${component_dir} -type f -name '*_sk'  | sed -e 'p;s/\(.*\)\/\(.*\)$/\1\/priv_sk/' | xargs -n2 mv -v
@@ -80,9 +84,17 @@ registerAndEnroll() {
 
   # Register the username
   fabric-ca-client register -d -u https://localhost:${port} --id.name ${username} --id.secret ${password} --id.type ${type} --id.attrs "${attrs}" --caname ca --tls.certfiles $tlscert --mspdir "${org_dir}/ca/msp"
+  if [ $? -ne 0 ]; then
+    echo "fabric-ca-client register failed, make sure CA service is available. Exiting..."
+    exit 1
+  fi
 
   # Enroll the identity
   fabric-ca-client enroll -d -u https://${username}:${password}@localhost:${port} --caname ca --mspdir "${component_dir}/msp" --tls.certfiles $tlscert
+  if [ $? -ne 0 ]; then
+    echo "fabric-ca-client enroll failed, make sure CA service is available. Exiting..."
+    exit 1
+  fi
 
   # Rename private key to mimic cryptogen
   find ${component_dir} -type f -name '*_sk'  | sed -e 'p;s/\(.*\)\/\(.*\)$/\1\/priv_sk/' | xargs -n2 mv -v
@@ -98,7 +110,11 @@ registerAndEnroll() {
 
     # Enroll the TLS cert
     fabric-ca-client enroll -d -u https://${username}:${password}@localhost:${port} --caname tlsca --mspdir "${component_dir}/tls" --tls.certfiles $tlscert --csr.hosts 'localhost,127.0.0.1'
-    
+    if [ $? -ne 0 ]; then
+      echo "fabric-ca-client TLS enroll failed, make sure CA service is available. Exiting..."
+      exit 1
+    fi
+
     # Rename private key to mimic cryptogen
     find ${component_dir} -type f -name '*_sk'  | sed -e 'p;s/\(.*\)\/\(.*\)$/\1\/priv_sk/' | xargs -n2 mv -v
 
