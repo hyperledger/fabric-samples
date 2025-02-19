@@ -67,7 +67,7 @@ func (atb *AssetTransferBasic) GetAllAssets() ([]Asset, error) {
 		return nil, nil
 	}
 
-	var assets []Asset
+	assets := []Asset{}
 	if err := json.Unmarshal(assetsRaw, &assets); err != nil {
 		return nil, err
 	}

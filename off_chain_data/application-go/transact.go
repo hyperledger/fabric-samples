@@ -132,7 +132,7 @@ func randomElement(values []string) string {
 
 // Pick a random element from an array, excluding the current value.
 func differentElement(values []string, currentValue string) string {
-	var candidateValues []string
+	candidateValues := []string{}
 	for _, v := range values {
 		if v != currentValue {
 			candidateValues = append(candidateValues, v)

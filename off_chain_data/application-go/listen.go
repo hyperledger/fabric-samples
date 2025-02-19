@@ -11,6 +11,7 @@ import (
 	"syscall"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
+	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/rwset/kvrwset"
 	"google.golang.org/grpc"
 )
 
@@ -65,7 +66,6 @@ func listen(clientConnection grpc.ClientConnInterface) error {
 			parser.ParseBlock(blockProto),
 			checkpointer,
 			applyWritesToOffChainStore,
-			channelName,
 		}
 
 		if err := aBlockProcessor.process(); err != nil {
@@ -81,7 +81,6 @@ type blockProcessor struct {
 	parsedBlock  *parser.Block
 	checkpointer *client.FileCheckpointer
 	writeToStore writer
-	channelName  string
 }
 
 func (b *blockProcessor) process() error {
@@ -96,9 +95,7 @@ func (b *blockProcessor) process() error {
 		txProcessor := transactionProcessor{
 			b.parsedBlock.Number(),
 			validTransaction,
-			// TODO use reference to parent and get blockNumber, store and channelName from parent
 			b.writeToStore,
-			b.channelName,
 		}
 		if err := txProcessor.process(); err != nil {
 			return err
@@ -118,12 +115,12 @@ func (b *blockProcessor) process() error {
 }
 
 func (b *blockProcessor) validTransactions() ([]*parser.Transaction, error) {
-	result := []*parser.Transaction{}
 	newTransactions, err := b.getNewTransactions()
 	if err != nil {
 		return nil, err
 	}
 
+	result := []*parser.Transaction{}
 	for _, transaction := range newTransactions {
 		if transaction.IsValid() {
 			result = append(result, transaction)
@@ -188,7 +185,6 @@ type transactionProcessor struct {
 	blockNumber  uint64
 	transaction  *parser.Transaction
 	writeToStore writer
-	channelName  string
 }
 
 func (t *transactionProcessor) process() error {
@@ -218,43 +214,33 @@ func (t *transactionProcessor) process() error {
 }
 
 func (t *transactionProcessor) writes() ([]write, error) {
-	// TODO this entire code should live in the parser and just return the kvWrite which
-	// we then map to write and return
-	t.channelName = t.transaction.ChannelHeader().GetChannelId()
+	nsReadWriteSets, err := t.nonSystemCCReadWriteSets()
+	if err != nil {
+		return nil, err
+	}
 
+	result := []write{}
+	for _, nsReadWriteSet := range nsReadWriteSets {
+		kvReadWriteSet, err := nsReadWriteSet.ReadWriteSet()
+		if err != nil {
+			return nil, err
+		}
+
+		result = t.newWrites(kvReadWriteSet, nsReadWriteSet.Namespace())
+	}
+
+	return result, nil
+}
+
+func (t *transactionProcessor) nonSystemCCReadWriteSets() ([]*parser.NamespaceReadWriteSet, error) {
 	nsReadWriteSets, err := t.transaction.NamespaceReadWriteSets()
 	if err != nil {
 		return nil, err
 	}
 
-	nonSystemCCReadWriteSets := []*parser.NamespaceReadWriteSet{}
-	for _, nsReadWriteSet := range nsReadWriteSets {
-		if !t.isSystemChaincode(nsReadWriteSet.Namespace()) {
-			nonSystemCCReadWriteSets = append(nonSystemCCReadWriteSets, nsReadWriteSet)
-		}
-	}
-
-	writes := []write{}
-	for _, readWriteSet := range nonSystemCCReadWriteSets {
-		namespace := readWriteSet.Namespace()
-
-		kvReadWriteSet, err := readWriteSet.ReadWriteSet()
-		if err != nil {
-			return nil, err
-		}
-
-		for _, kvWrite := range kvReadWriteSet.GetWrites() {
-			writes = append(writes, write{
-				ChannelName: t.channelName,
-				Namespace:   namespace,
-				Key:         kvWrite.GetKey(),
-				IsDelete:    kvWrite.GetIsDelete(),
-				Value:       string(kvWrite.GetValue()), // Convert bytes to text, purely for readability in output
-			})
-		}
-	}
-
-	return writes, nil
+	return slices.DeleteFunc(nsReadWriteSets, func(nsReadWriteSet *parser.NamespaceReadWriteSet) bool {
+		return t.isSystemChaincode(nsReadWriteSet.Namespace())
+	}), nil
 }
 
 func (t *transactionProcessor) isSystemChaincode(chaincodeName string) bool {
@@ -267,4 +253,19 @@ func (t *transactionProcessor) isSystemChaincode(chaincodeName string) bool {
 		"vscc",
 	}
 	return slices.Contains(systemChaincodeNames, chaincodeName)
+}
+
+func (t *transactionProcessor) newWrites(kvReadWriteSet *kvrwset.KVRWSet, namespace string) []write {
+	result := []write{}
+	for _, kvWrite := range kvReadWriteSet.GetWrites() {
+		result = append(result, write{
+			ChannelName: t.transaction.ChannelHeader().GetChannelId(),
+			Namespace:   namespace,
+			Key:         kvWrite.GetKey(),
+			IsDelete:    kvWrite.GetIsDelete(),
+			Value:       string(kvWrite.GetValue()), // Convert bytes to text, purely for readability in output
+		})
+	}
+
+	return result
 }
