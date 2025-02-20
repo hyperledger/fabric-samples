@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"slices"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -35,12 +36,15 @@ func listen(clientConnection grpc.ClientConnInterface) error {
 		checkpointer.Close()
 		fmt.Println("Checkpointer closed.")
 	}()
-
 	fmt.Println("Start event listening from block", checkpointer.BlockNumber())
 	fmt.Println("Last processed transaction ID within block:", checkpointer.TransactionID())
+
+	simulatedFailureCount := initSimulatedFailureCount()
 	if simulatedFailureCount > 0 {
 		fmt.Printf("Simulating a write failure every %d transactions\n", simulatedFailureCount)
 	}
+	storeFile := envOrDefault("STORE_FILE", "store.log")
+	offChainStore := newOffChainStore(storeFile, simulatedFailureCount)
 
 	ctx, close := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer func() {
@@ -65,7 +69,7 @@ func listen(clientConnection grpc.ClientConnInterface) error {
 		aBlockProcessor := blockProcessor{
 			parser.ParseBlock(blockProto),
 			checkpointer,
-			applyWritesToOffChainStore,
+			offChainStore,
 		}
 
 		if err := aBlockProcessor.process(); err != nil {
@@ -77,10 +81,46 @@ func listen(clientConnection grpc.ClientConnInterface) error {
 	return nil
 }
 
+func initSimulatedFailureCount() uint {
+	valueAsString := envOrDefault("SIMULATED_FAILURE_COUNT", "0")
+	result, err := strconv.ParseUint(valueAsString, 10, 0)
+	if err != nil {
+		panic(fmt.Errorf("invalid SIMULATED_FAILURE_COUNT value: %s", valueAsString))
+	}
+
+	return uint(result)
+}
+
+// Apply writes for a given transaction to off-chain data store, ideally in a single operation for fault tolerance.
+type store interface {
+	write(ledgerUpdate) error
+}
+
+// Ledger update made by a specific transaction.
+type ledgerUpdate struct {
+	BlockNumber   uint64
+	TransactionID string
+	Writes        []write
+}
+
+// Description of a ledger Write that can be applied to an off-chain data store.
+type write struct {
+	// Channel whose ledger is being updated.
+	ChannelName string `json:"channelName"`
+	// Namespace within the ledger.
+	Namespace string `json:"namespace"`
+	// Key name within the ledger namespace.
+	Key string `json:"key"`
+	// Whether the key and associated value are being deleted.
+	IsDelete bool `json:"isDelete"`
+	// If `isDelete` is false, the Value written to the key; otherwise ignored.
+	Value string `json:"value"`
+}
+
 type blockProcessor struct {
 	parsedBlock  *parser.Block
 	checkpointer *client.FileCheckpointer
-	writeToStore writer
+	store        store
 }
 
 func (b *blockProcessor) process() error {
@@ -95,7 +135,7 @@ func (b *blockProcessor) process() error {
 		txProcessor := transactionProcessor{
 			b.parsedBlock.Number(),
 			validTransaction,
-			b.writeToStore,
+			b.store,
 		}
 		if err := txProcessor.process(); err != nil {
 			return err
@@ -182,9 +222,9 @@ func (b *blockProcessor) findLastProcessedIndex() (int, error) {
 }
 
 type transactionProcessor struct {
-	blockNumber  uint64
-	transaction  *parser.Transaction
-	writeToStore writer
+	blockNumber uint64
+	transaction *parser.Transaction
+	store       store
 }
 
 func (t *transactionProcessor) process() error {
@@ -201,8 +241,7 @@ func (t *transactionProcessor) process() error {
 	}
 
 	fmt.Println("Process transaction", transactionID)
-
-	if err := t.writeToStore(ledgerUpdate{
+	if err := t.store.write(ledgerUpdate{
 		BlockNumber:   t.blockNumber,
 		TransactionID: transactionID,
 		Writes:        writes,
