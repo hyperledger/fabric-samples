@@ -224,6 +224,8 @@ function createOrgs() {
     infoln "Generating certificates using Fabric CA"
     ${CONTAINER_CLI_COMPOSE} -f compose/$COMPOSE_FILE_CA -f compose/$CONTAINER_CLI/${CONTAINER_CLI}-$COMPOSE_FILE_CA up -d 2>&1
 
+    # Allow CAs to initialize and then make register and enroll requests
+    sleep 3
     . organizations/fabric-ca/registerEnroll.sh
 
     while :
