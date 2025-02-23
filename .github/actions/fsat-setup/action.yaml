@@ -6,16 +6,16 @@ inputs:
     default: 18.x
   just-version:
     description: Just Version
-    default: '1.24.0'
+    default: "1.24.0"
   k9s-version:
     description: k9s Version
     default: v0.25.3
   fabric-version:
     description: Version of Hyperledger Fabric
-    default: '2.5.11'
+    default: "2.5.11"
   ca-version:
     description: Version of Hyperledger Fabric CA
-    default: '1.5.14'
+    default: "1.5.15"
 
 runs:
   using: "composite"
@@ -23,8 +23,8 @@ runs:
     - uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
-        cache: 'npm'
-        cache-dependency-path: '**/package-lock.json'
+        cache: "npm"
+        cache-dependency-path: "**/package-lock.json"
 
     - name: Install k9s
       shell: bash
