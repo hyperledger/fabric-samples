@@ -3,7 +3,7 @@ description: Set up the Test Network Runtime
 inputs:
   go-version:
     description: Version of go
-    default: '1.23'
+    default: "1.23"
   node-version:
     description: Version of node
     default: 18.x
@@ -15,7 +15,7 @@ inputs:
     default: 2.5.11
   ca-version:
     description: Version of Hyperledger Fabric CA
-    default: 1.5.14
+    default: 1.5.15
 
 runs:
   using: "composite"
@@ -23,13 +23,13 @@ runs:
     - uses: actions/setup-go@v5
       with:
         go-version: ${{ inputs.go-version }}
-        cache-dependency-path: '**/go.sum'
+        cache-dependency-path: "**/go.sum"
 
     - uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
-        cache: 'npm'
-        cache-dependency-path: '**/package-lock.json'
+        cache: "npm"
+        cache-dependency-path: "**/package-lock.json"
 
     - uses: actions/setup-java@v4
       with:
@@ -49,6 +49,14 @@ runs:
       run: |
         curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh \
           | bash -s -- docker --fabric-version ${{ inputs.fabric-version }} --ca-version ${{ inputs.ca-version }}
+
+    - name: Pull chaincode container images
+      shell: bash
+      run: |
+        docker pull ghcr.io/hyperledger/fabric-nodeenv:2.5
+        docker tag ghcr.io/hyperledger/fabric-nodeenv:2.5 hyperledger/fabric-nodeenv:2.5
+        docker pull ghcr.io/hyperledger/fabric-javaenv:2.5
+        docker tag ghcr.io/hyperledger/fabric-javaenv:2.5 hyperledger/fabric-javaenv:2.5
 
     - name: Install retry CLI
       shell: bash
