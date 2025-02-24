@@ -79,9 +79,9 @@ class AssetTransfer extends Contract {
         const asset = {
             ID: id,
             Color: color,
-            Size: size,
+            Size: Number(size),
             Owner: owner,
-            AppraisedValue: appraisedValue,
+            AppraisedValue: Number(appraisedValue),
         };
         // we insert data in alphabetic order using 'json-stringify-deterministic' and 'sort-keys-recursive'
         await ctx.stub.putState(id, Buffer.from(stringify(sortKeysRecursive(asset))));
