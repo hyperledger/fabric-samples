@@ -27,14 +27,9 @@ func transact(clientConnection grpc.ClientConnInterface) error {
 	}()
 
 	contract := gateway.GetNetwork(channelName).GetContract(chaincodeName)
-
 	smartContract := atb.NewAssetTransferBasic(contract)
 	app := newTransactApp(smartContract)
-	if err := app.run(); err != nil {
-		return err
-	}
-
-	return nil
+	return app.run()
 }
 
 type transactApp struct {
@@ -71,11 +66,7 @@ func (t *transactApp) run() error {
 
 	wg.Wait()
 
-	if err := context.Cause(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	return context.Cause(ctx)
 }
 
 func (t *transactApp) transact() error {

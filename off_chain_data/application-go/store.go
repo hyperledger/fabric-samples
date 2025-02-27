@@ -10,13 +10,12 @@ import (
 var errExpected = errors.New("expected error: simulated write failure")
 
 type offChainStore struct {
-	writes, path                            string
+	path                                    string
 	simulatedFailureCount, transactionCount uint
 }
 
 func newOffChainStore(path string, simulatedFailureCount uint) *offChainStore {
 	return &offChainStore{
-		"",
 		path,
 		uint(simulatedFailureCount),
 		0,
@@ -30,17 +29,12 @@ func (ocs *offChainStore) write(data ledgerUpdate) error {
 		return err
 	}
 
-	ocs.clearLastWrites()
-
-	if err := ocs.marshal(data.Writes); err != nil {
+	writes, err := ocs.marshal(data.Writes)
+	if err != nil {
 		return err
 	}
 
-	if err := ocs.persist(); err != nil {
-		return err
-	}
-
-	return nil
+	return ocs.persist(writes)
 }
 
 func (ocs *offChainStore) simulateFailureIfRequired() error {
@@ -54,30 +48,27 @@ func (ocs *offChainStore) simulateFailureIfRequired() error {
 	return nil
 }
 
-func (ocs *offChainStore) clearLastWrites() {
-	ocs.writes = ""
-}
-
-func (ocs *offChainStore) marshal(writes []write) error {
+func (ocs *offChainStore) marshal(writes []write) (string, error) {
+	var marshaledWrites string
 	for _, write := range writes {
 		marshaled, err := json.Marshal(write)
 		if err != nil {
-			return err
+			return "", err
 		}
 
-		ocs.writes += string(marshaled) + "\n"
+		marshaledWrites += string(marshaled) + "\n"
 	}
 
-	return nil
+	return marshaledWrites, nil
 }
 
-func (ocs *offChainStore) persist() error {
+func (ocs *offChainStore) persist(marshaledWrites string) error {
 	f, err := os.OpenFile(ocs.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 
-	if _, writeErr := f.Write([]byte(ocs.writes)); writeErr != nil {
+	if _, writeErr := f.Write([]byte(marshaledWrites)); writeErr != nil {
 		if closeErr := f.Close(); closeErr != nil {
 			return fmt.Errorf("write error: %v, close error: %v", writeErr, closeErr)
 		}
@@ -85,9 +76,5 @@ func (ocs *offChainStore) persist() error {
 		return writeErr
 	}
 
-	if err := f.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return f.Close()
 }

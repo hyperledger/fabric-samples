@@ -46,7 +46,7 @@ func (b *Block) unmarshalTransactions() ([]*Transaction, error) {
 }
 
 func (b *Block) unmarshalEnvelopes() ([]*common.Envelope, error) {
-	result := []*common.Envelope{}
+	var result []*common.Envelope
 	for _, blockData := range b.block.GetData().GetData() {
 		envelope := &common.Envelope{}
 		if err := proto.Unmarshal(blockData, envelope); err != nil {
@@ -58,7 +58,7 @@ func (b *Block) unmarshalEnvelopes() ([]*common.Envelope, error) {
 }
 
 func (*Block) unmarshalPayloadsFrom(envelopes []*common.Envelope) ([]*common.Payload, error) {
-	result := []*common.Payload{}
+	var result []*common.Payload
 	for _, envelope := range envelopes {
 		commonPayload := &common.Payload{}
 		if err := proto.Unmarshal(envelope.GetPayload(), commonPayload); err != nil {
@@ -72,7 +72,7 @@ func (*Block) unmarshalPayloadsFrom(envelopes []*common.Envelope) ([]*common.Pay
 func (b *Block) parse(commonPayloads []*common.Payload) ([]*payload, error) {
 	validationCodes := b.block.GetMetadata().GetMetadata()[common.BlockMetadataIndex_TRANSACTIONS_FILTER]
 
-	result := []*payload{}
+	var result []*payload
 	for i, commonPayload := range commonPayloads {
 		statusCode := validationCodes[i]
 
@@ -90,7 +90,7 @@ func (b *Block) parse(commonPayloads []*common.Payload) ([]*payload, error) {
 }
 
 func (*Block) createTransactionsFrom(payloads []*payload) []*Transaction {
-	result := []*Transaction{}
+	var result []*Transaction
 	for _, payload := range payloads {
 		result = append(result, newTransaction(payload))
 	}

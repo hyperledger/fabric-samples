@@ -27,11 +27,10 @@ func (t *Transaction) NamespaceReadWriteSets() ([]*NamespaceReadWriteSet, error)
 		return nil, err
 	}
 
-	result := []*NamespaceReadWriteSet{}
+	var result []*NamespaceReadWriteSet
 	for _, readWriteSet := range txReadWriteSets {
 		result = append(result, readWriteSet.namespaceReadWriteSets()...)
 	}
-
 	return result, nil
 }
 

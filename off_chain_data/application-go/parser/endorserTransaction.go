@@ -25,12 +25,7 @@ func (p *endorserTransaction) unmarshalReadWriteSets() ([]*readWriteSet, error) 
 		return nil, err
 	}
 
-	chaincodeEndorsedActions, err := p.extractChaincodeEndorsedActionsFrom(chaincodeActionPayloads)
-	if err != nil {
-		return nil, err
-	}
-
-	proposalResponsePayloads, err := p.unmarshalProposalResponsePayloadsFrom(chaincodeEndorsedActions)
+	proposalResponsePayloads, err := p.unmarshalProposalResponsePayloadsFrom(chaincodeActionPayloads)
 	if err != nil {
 		return nil, err
 	}
@@ -49,31 +44,22 @@ func (p *endorserTransaction) unmarshalReadWriteSets() ([]*readWriteSet, error) 
 }
 
 func (p *endorserTransaction) unmarshalChaincodeActionPayloads() ([]*peer.ChaincodeActionPayload, error) {
-	result := []*peer.ChaincodeActionPayload{}
+	var result []*peer.ChaincodeActionPayload
 	for _, transactionAction := range p.transaction.GetActions() {
 		chaincodeActionPayload := &peer.ChaincodeActionPayload{}
 		if err := proto.Unmarshal(transactionAction.GetPayload(), chaincodeActionPayload); err != nil {
 			return nil, err
 		}
-
 		result = append(result, chaincodeActionPayload)
 	}
 	return result, nil
 }
 
-func (*endorserTransaction) extractChaincodeEndorsedActionsFrom(chaincodeActionPayloads []*peer.ChaincodeActionPayload) ([]*peer.ChaincodeEndorsedAction, error) {
-	result := []*peer.ChaincodeEndorsedAction{}
-	for _, payload := range chaincodeActionPayloads {
-		result = append(result, payload.GetAction())
-	}
-	return result, nil
-}
-
-func (*endorserTransaction) unmarshalProposalResponsePayloadsFrom(chaincodeEndorsedActions []*peer.ChaincodeEndorsedAction) ([]*peer.ProposalResponsePayload, error) {
-	result := []*peer.ProposalResponsePayload{}
-	for _, endorsedAction := range chaincodeEndorsedActions {
+func (*endorserTransaction) unmarshalProposalResponsePayloadsFrom(chaincodeActionPayloads []*peer.ChaincodeActionPayload) ([]*peer.ProposalResponsePayload, error) {
+	var result []*peer.ProposalResponsePayload
+	for _, chaincodeActionPayload := range chaincodeActionPayloads {
 		proposalResponsePayload := &peer.ProposalResponsePayload{}
-		if err := proto.Unmarshal(endorsedAction.GetProposalResponsePayload(), proposalResponsePayload); err != nil {
+		if err := proto.Unmarshal(chaincodeActionPayload.GetAction().GetProposalResponsePayload(), proposalResponsePayload); err != nil {
 			return nil, err
 		}
 		result = append(result, proposalResponsePayload)
@@ -82,7 +68,7 @@ func (*endorserTransaction) unmarshalProposalResponsePayloadsFrom(chaincodeEndor
 }
 
 func (*endorserTransaction) unmarshalChaincodeActionsFrom(proposalResponsePayloads []*peer.ProposalResponsePayload) ([]*peer.ChaincodeAction, error) {
-	result := []*peer.ChaincodeAction{}
+	var result []*peer.ChaincodeAction
 	for _, proposalResponsePayload := range proposalResponsePayloads {
 		chaincodeAction := &peer.ChaincodeAction{}
 		if err := proto.Unmarshal(proposalResponsePayload.GetExtension(), chaincodeAction); err != nil {
@@ -94,7 +80,7 @@ func (*endorserTransaction) unmarshalChaincodeActionsFrom(proposalResponsePayloa
 }
 
 func (*endorserTransaction) unmarshalTxReadWriteSetsFrom(chaincodeActions []*peer.ChaincodeAction) ([]*rwset.TxReadWriteSet, error) {
-	result := []*rwset.TxReadWriteSet{}
+	var result []*rwset.TxReadWriteSet
 	for _, chaincodeAction := range chaincodeActions {
 		txReadWriteSet := &rwset.TxReadWriteSet{}
 		if err := proto.Unmarshal(chaincodeAction.GetResults(), txReadWriteSet); err != nil {
@@ -106,7 +92,7 @@ func (*endorserTransaction) unmarshalTxReadWriteSetsFrom(chaincodeActions []*pee
 }
 
 func (*endorserTransaction) parseReadWriteSets(txReadWriteSets []*rwset.TxReadWriteSet) []*readWriteSet {
-	result := []*readWriteSet{}
+	var result []*readWriteSet
 	for _, txReadWriteSet := range txReadWriteSets {
 		parsedReadWriteSet := parseReadWriteSet(txReadWriteSet)
 		result = append(result, parsedReadWriteSet)
