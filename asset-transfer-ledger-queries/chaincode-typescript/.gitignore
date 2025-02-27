@@ -1,0 +1,11 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Dependency directories
+node_modules/
+package-lock.json
+
+# Compiled TypeScript files
+dist
+
