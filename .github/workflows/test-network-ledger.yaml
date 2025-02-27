@@ -23,6 +23,7 @@ jobs:
         chaincode-language:
           - go
           - javascript
+          - typescript
         chaincode-name:
           - ledger
     steps:

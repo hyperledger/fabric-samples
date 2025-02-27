@@ -1,0 +1,27 @@
+{
+    "name": "asset-transfer-ledger-queries",
+    "version": "0.0.1",
+    "description": "Hyperledger Fabric Asset Transfer Chaincode written in TypeScript",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc",
+        "lint": "eslint src",
+        "start": "fabric-chaincode-node start"
+    },
+    "author": "Hyperledger",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "fabric-contract-api": "~2.5",
+        "fabric-shim": "~2.5",
+        "json-stringify-deterministic": "^1.0.0",
+        "sort-keys-recursive": "^2.1.0"
+    },
+    "devDependencies": {
+        "@types/node": "^18.19.33",
+        "@eslint/js": "^9.3.0",
+        "@tsconfig/node18": "^18.2.4",
+        "eslint": "^8.57.0",
+        "typescript": "~5.4.5",
+        "typescript-eslint": "^7.11.0"
+    }
+}
