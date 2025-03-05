@@ -224,7 +224,7 @@ function installPrereqs() {
   fi 
 
   cd ..
-  ./install-fabric.sh ${IMAGE_PARAMETER} ${CA_IMAGE_PARAMETER} docker binary
+  bash ./install-fabric.sh ${IMAGE_PARAMETER} ${CA_IMAGE_PARAMETER} docker binary
 
 }
 
