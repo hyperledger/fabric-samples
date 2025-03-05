@@ -67,7 +67,7 @@ export function assertDefined<T>(value: T | null | undefined, message: string): 
  */
 export function cache<T>(f: () => T): () => T {
     let value: T | undefined;
-    return () => {
+    return (): T => {
         if (value === undefined) {
             value = f();
         }

@@ -19,16 +19,19 @@ The client application provides several "commands" that can be invoked using the
 - **getAllAssets**: Retrieve the current details of all assets recorded on the ledger. See:
   - TypeScript: [application-typescript/src/getAllAssets.ts](application-typescript/src/getAllAssets.ts)
   - Java: [application-java/app/src/main/java/GetAllAssets.java](application-java/app/src/main/java/GetAllAssets.java)
+  - Go: [application-go/getAllAssets.go](application-go/getAllAssets.go)
 - **listen**: Listen for block events, and use them to replicate ledger updates in an off-chain data store. See:
   - TypeScript: [application-typescript/src/listen.ts](application-typescript/src/listen.ts)
   - Java: [application-java/app/src/main/java/Listen.java](application-java/app/src/main/java/Listen.java)
+  - Go: [application-go/listen.go](application-go/listen.go)
 - **transact**: Submit a set of transactions to create, modify and delete assets. See:
   - TypeScript: [application-typescript/src/transact.ts](application-typescript/src/transact.ts)
   - Java: [application-java/app/src/main/java/Transact.java](application-java/app/src/main/java/Transact.java)
+  - Go: [application-go/transact.go](application-go/transact.go)
 
 To keep the sample code concise, the **listen** command writes ledger updates to an output file named `store.log` in the current working directory (which for the Java sample is the `application-java/app` directory). A real implementation could write ledger updates directly to an off-chain data store of choice. You can inspect the information captured in this file as you run the sample.
 
-Note that the **listen** command is is restartable and will resume event listening after the last successfully processed block / transaction. This is achieved using a checkpointer to persist the current listening position. Checkpoint state is persisted to a file named `checkpoint.json` in the current working directory. If no checkpoint state is present, event listening begins from the start of the ledger (block number zero).
+Note that the **listen** command is restartable and will resume event listening after the last successfully processed block / transaction. This is achieved using a checkpointer to persist the current listening position. Checkpoint state is persisted to a file named `checkpoint.json` in the current working directory. If no checkpoint state is present, event listening begins from the start of the ledger (block number zero).
 
 ### Smart Contract
 
@@ -65,6 +68,10 @@ The Fabric test network is used to deploy and run this sample. Follow these step
    npm install
    npm start transact listen
 
+   # To run the Go sample application
+   cd application-go
+   go run . transact listen
+
    # To run the Java sample application
    cd application-java
    ./gradlew run --quiet --args='transact listen'
@@ -79,6 +86,10 @@ The Fabric test network is used to deploy and run this sample. Follow these step
    cd application-typescript
    npm --silent start getAllAssets
 
+   # To run the Go sample application
+   cd application-go
+   go run . getAllAssets
+
    # To run the Java sample application
    cd application-java
    ./gradlew run --quiet --args=getAllAssets
@@ -92,6 +103,12 @@ The Fabric test network is used to deploy and run this sample. Follow these step
    npm start transact
    SIMULATED_FAILURE_COUNT=5 npm start listen
    npm start listen
+
+   # To run the Go sample application
+   cd application-go
+   go run . transact
+   SIMULATED_FAILURE_COUNT=5 go run . listen
+   go run . listen
 
    # To run the Java sample application
    cd application-java
