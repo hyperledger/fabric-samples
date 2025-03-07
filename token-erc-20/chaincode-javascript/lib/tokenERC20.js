@@ -27,7 +27,7 @@ class TokenERC20Contract extends Contract {
      * As a work around, we use `TokenName` as an alternative function name.
      *
      * @param {Context} ctx the transaction context
-     * @returns {String} Returns the name of the token
+     * @returns {Promise<String>} Returns the name of the token
     */
     async TokenName(ctx) {
 
@@ -43,7 +43,7 @@ class TokenERC20Contract extends Contract {
      * Return the symbol of the token. E.g. “HIX”.
      *
      * @param {Context} ctx the transaction context
-     * @returns {String} Returns the symbol of the token
+     * @returns {Promise<String>} Returns the symbol of the token
     */
     async Symbol(ctx) {
 
@@ -51,6 +51,7 @@ class TokenERC20Contract extends Contract {
         await this.CheckInitialized(ctx);
 
         const symbolBytes = await ctx.stub.getState(symbolKey);
+
         return symbolBytes.toString();
     }
 
@@ -59,7 +60,7 @@ class TokenERC20Contract extends Contract {
      * e.g. 8, means to divide the token amount by 100000000 to get its user representation.
      *
      * @param {Context} ctx the transaction context
-     * @returns {Number} Returns the number of decimals
+     * @returns {Promise<Number>} Returns the number of decimals
     */
     async Decimals(ctx) {
 
@@ -68,6 +69,7 @@ class TokenERC20Contract extends Contract {
 
         const decimalsBytes = await ctx.stub.getState(decimalsKey);
         const decimals = parseInt(decimalsBytes.toString());
+
         return decimals;
     }
 
@@ -75,7 +77,7 @@ class TokenERC20Contract extends Contract {
      * Return the total token supply.
      *
      * @param {Context} ctx the transaction context
-     * @returns {Number} Returns the total token supply
+     * @returns {Promise<Number>} Returns the total token supply
     */
     async TotalSupply(ctx) {
 
@@ -84,6 +86,7 @@ class TokenERC20Contract extends Contract {
 
         const totalSupplyBytes = await ctx.stub.getState(totalSupplyKey);
         const totalSupply = parseInt(totalSupplyBytes.toString());
+
         return totalSupply;
     }
 
@@ -92,7 +95,7 @@ class TokenERC20Contract extends Contract {
      *
      * @param {Context} ctx the transaction context
      * @param {String} owner The owner from which the balance will be retrieved
-     * @returns {Number} Returns the account balance
+     * @returns {Promise<Number>} Returns the account balance
      */
     async BalanceOf(ctx, owner) {
 
@@ -100,12 +103,8 @@ class TokenERC20Contract extends Contract {
         await this.CheckInitialized(ctx);
 
         const balanceKey = ctx.stub.createCompositeKey(balancePrefix, [owner]);
-
         const balanceBytes = await ctx.stub.getState(balanceKey);
-        if (!balanceBytes || balanceBytes.length === 0) {
-            throw new Error(`the account ${owner} does not exist`);
-        }
-        const balance = parseInt(balanceBytes.toString());
+        const balance = this.isEmpty(balanceBytes) ? 0 : parseInt(balanceBytes.toString());
 
         return balance;
     }
@@ -116,25 +115,18 @@ class TokenERC20Contract extends Contract {
      *
      * @param {Context} ctx the transaction context
      * @param {String} to The recipient
-     * @param {Integer} value The amount of token to be transferred
-     * @returns {Boolean} Return whether the transfer was successful or not
+     * @param {Number} value The amount of token to be transferred
+     * @returns {Promise<Boolean>} Return whether the transfer was successful or not
      */
     async Transfer(ctx, to, value) {
 
         // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
-        const from = ctx.clientIdentity.getID();
+        const from = this.ClientAccountID(ctx);
+        await this._transfer(ctx, from, to, value);
 
-        const transferResp = await this._transfer(ctx, from, to, value);
-        if (!transferResp) {
-            throw new Error('Failed to transfer');
-        }
-
-        // Emit the Transfer event
-        const transferEvent = { from, to, value: parseInt(value) };
-        ctx.stub.setEvent('Transfer', Buffer.from(JSON.stringify(transferEvent)));
-
+        console.log('transfer ended successfully');
         return true;
     }
 
@@ -144,103 +136,42 @@ class TokenERC20Contract extends Contract {
     * @param {Context} ctx the transaction context
     * @param {String} from The sender
     * @param {String} to The recipient
-    * @param {Integer} value The amount of token to be transferred
-    * @returns {Boolean} Return whether the transfer was successful or not
+    * @param {Number} value The amount of token to be transferred
+    * @returns {Promise<Boolean>} Return whether the transfer was successful or not
     */
     async TransferFrom(ctx, from, to, value) {
 
         // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
-        const spender = ctx.clientIdentity.getID();
-
-        // Retrieve the allowance of the spender
-        const allowanceKey = ctx.stub.createCompositeKey(allowancePrefix, [from, spender]);
-        const currentAllowanceBytes = await ctx.stub.getState(allowanceKey);
-
-        if (!currentAllowanceBytes || currentAllowanceBytes.length === 0) {
-            throw new Error(`spender ${spender} has no allowance from ${from}`);
-        }
-
-        const currentAllowance = parseInt(currentAllowanceBytes.toString());
-
-        // Convert value from string to int
-        const valueInt = parseInt(value);
-
-        // Check if the transferred value is less than the allowance
-        if (currentAllowance < valueInt) {
-            throw new Error('The spender does not have enough allowance to spend.');
-        }
-
-        const transferResp = await this._transfer(ctx, from, to, value);
-        if (!transferResp) {
-            throw new Error('Failed to transfer');
-        }
-
-        // Decrease the allowance
-        const updatedAllowance = this.sub(currentAllowance, valueInt);
-        await ctx.stub.putState(allowanceKey, Buffer.from(updatedAllowance.toString()));
-        console.log(`spender ${spender} allowance updated from ${currentAllowance} to ${updatedAllowance}`);
-
-        // Emit the Transfer event
-        const transferEvent = { from, to, value: valueInt };
-        ctx.stub.setEvent('Transfer', Buffer.from(JSON.stringify(transferEvent)));
+        const spender = this.ClientAccountID(ctx);
+        await this._spendAllowance(ctx, from, spender, value);
+        await this._transfer(ctx, from, to, value);
 
         console.log('transferFrom ended successfully');
         return true;
     }
 
+    /**
+     * Moves a `value` amount of tokens from `from` to `to`.
+     *
+     * @param {Context} ctx the transaction context
+     * @param {String} from The sender
+     * @param {String} to The recipient
+     * @param {Promise<Number>} value The amount of token to be transferred
+     */
     async _transfer(ctx, from, to, value) {
-
         if (from === to) {
             throw new Error('cannot transfer to and from same client account');
         }
-
-        // Convert value from string to int
-        const valueInt = parseInt(value);
-
-        if (valueInt < 0) { // transfer of 0 is allowed in ERC20, so just validate against negative amounts
-            throw new Error('transfer amount cannot be negative');
+        if (this.isEmpty(from)) {
+            throw new Error('invalid sender');
+        }
+        if (this.isEmpty(to)) {
+            throw new Error('invalid receiver');
         }
 
-        // Retrieve the current balance of the sender
-        const fromBalanceKey = ctx.stub.createCompositeKey(balancePrefix, [from]);
-        const fromCurrentBalanceBytes = await ctx.stub.getState(fromBalanceKey);
-
-        if (!fromCurrentBalanceBytes || fromCurrentBalanceBytes.length === 0) {
-            throw new Error(`client account ${from} has no balance`);
-        }
-
-        const fromCurrentBalance = parseInt(fromCurrentBalanceBytes.toString());
-
-        // Check if the sender has enough tokens to spend.
-        if (fromCurrentBalance < valueInt) {
-            throw new Error(`client account ${from} has insufficient funds.`);
-        }
-
-        // Retrieve the current balance of the recepient
-        const toBalanceKey = ctx.stub.createCompositeKey(balancePrefix, [to]);
-        const toCurrentBalanceBytes = await ctx.stub.getState(toBalanceKey);
-
-        let toCurrentBalance;
-        // If recipient current balance doesn't yet exist, we'll create it with a current balance of 0
-        if (!toCurrentBalanceBytes || toCurrentBalanceBytes.length === 0) {
-            toCurrentBalance = 0;
-        } else {
-            toCurrentBalance = parseInt(toCurrentBalanceBytes.toString());
-        }
-
-        // Update the balance
-        const fromUpdatedBalance = this.sub(fromCurrentBalance, valueInt);
-        const toUpdatedBalance = this.add(toCurrentBalance, valueInt);
-
-        await ctx.stub.putState(fromBalanceKey, Buffer.from(fromUpdatedBalance.toString()));
-        await ctx.stub.putState(toBalanceKey, Buffer.from(toUpdatedBalance.toString()));
-
-        console.log(`client ${from} balance updated from ${fromCurrentBalance} to ${fromUpdatedBalance}`);
-        console.log(`recipient ${to} balance updated from ${toCurrentBalance} to ${toUpdatedBalance}`);
-
-        return true;
+        await this._update(ctx, from, to, value);
     }
 
     /**
@@ -248,26 +179,18 @@ class TokenERC20Contract extends Contract {
      *
      * @param {Context} ctx the transaction context
      * @param {String} spender The spender
-     * @param {Integer} value The amount of tokens to be approved for transfer
-     * @returns {Boolean} Return whether the approval was successful or not
+     * @param {Number} value The amount of tokens to be approved for transfer
+     * @returns {Promise<Boolean>} Return whether the approval was successful or not
      */
     async Approve(ctx, spender, value) {
 
         // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
-        const owner = ctx.clientIdentity.getID();
-
-        const allowanceKey = ctx.stub.createCompositeKey(allowancePrefix, [owner, spender]);
-
-        let valueInt = parseInt(value);
-        await ctx.stub.putState(allowanceKey, Buffer.from(valueInt.toString()));
-
-        // Emit the Approval event
-        const approvalEvent = { owner, spender, value: valueInt };
-        ctx.stub.setEvent('Approval', Buffer.from(JSON.stringify(approvalEvent)));
-
+        const owner = this.ClientAccountID(ctx);
+        await this._approve(ctx, owner, spender, value);
         console.log('approve ended successfully');
+
         return true;
     }
 
@@ -277,7 +200,7 @@ class TokenERC20Contract extends Contract {
      * @param {Context} ctx the transaction context
      * @param {String} owner The owner of tokens
      * @param {String} spender The spender who are able to transfer the tokens
-     * @returns {Number} Return the amount of remaining tokens allowed to spent
+     * @returns {Promise<Number>} Return the amount of remaining tokens allowed to spent
      */
     async Allowance(ctx, owner, spender) {
 
@@ -287,11 +210,8 @@ class TokenERC20Contract extends Contract {
         const allowanceKey = ctx.stub.createCompositeKey(allowancePrefix, [owner, spender]);
 
         const allowanceBytes = await ctx.stub.getState(allowanceKey);
-        if (!allowanceBytes || allowanceBytes.length === 0) {
-            throw new Error(`spender ${spender} has no allowance from ${owner}`);
-        }
+        const allowance = this.isEmpty(allowanceBytes) ? 0 : parseInt(allowanceBytes.toString());
 
-        const allowance = parseInt(allowanceBytes.toString());
         return allowance;
     }
 
@@ -307,21 +227,19 @@ class TokenERC20Contract extends Contract {
      * @param {String} totalSupply The totalSupply of the token
      */
     async Initialize(ctx, name, symbol, decimals) {
-        // Check minter authorization - this sample assumes Org1 is the central banker with privilege to set Options for these tokens
-        const clientMSPID = ctx.clientIdentity.getMSPID();
-        if (clientMSPID !== 'Org1MSP') {
-            throw new Error('client is not authorized to initialize contract');
-        }
+        // Check client authorization
+        this.CheckAuthorization(ctx);
 
         // Check contract options are not already set, client is not authorized to change them once intitialized
         const nameBytes = await ctx.stub.getState(nameKey);
-        if (nameBytes && nameBytes.length > 0) {
+        if (!this.isEmpty(nameBytes)) {
             throw new Error('contract options are already set, client is not authorized to change them');
         }
 
         await ctx.stub.putState(nameKey, Buffer.from(name));
         await ctx.stub.putState(symbolKey, Buffer.from(symbol));
         await ctx.stub.putState(decimalsKey, Buffer.from(decimals));
+        await ctx.stub.putState(totalSupplyKey, Buffer.from('0'));
 
         console.log(`name: ${name}, symbol: ${symbol}, decimals: ${decimals}`);
         return true;
@@ -331,108 +249,41 @@ class TokenERC20Contract extends Contract {
      * Mint creates new tokens and adds them to minter's account balance
      *
      * @param {Context} ctx the transaction context
-     * @param {Integer} amount amount of tokens to be minted
-     * @returns {Object} The balance
+     * @param {Number} amount amount of tokens to be minted
+     * @returns {Promise<Boolean>} Return whether the mint was successful or not
      */
     async Mint(ctx, amount) {
 
         // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
-        // Check minter authorization - this sample assumes Org1 is the central banker with privilege to mint new tokens
-        const clientMSPID = ctx.clientIdentity.getMSPID();
-        if (clientMSPID !== 'Org1MSP') {
-            throw new Error('client is not authorized to mint new tokens');
-        }
+        // Check minter authorization
+        this.CheckAuthorization(ctx);
 
-        // Get ID of submitting client identity
-        const minter = ctx.clientIdentity.getID();
+        const minter = this.ClientAccountID(ctx);
+        await this._update(ctx, '', minter, amount);
 
-        const amountInt = parseInt(amount);
-        if (amountInt <= 0) {
-            throw new Error('mint amount must be a positive integer');
-        }
-
-        const balanceKey = ctx.stub.createCompositeKey(balancePrefix, [minter]);
-
-        const currentBalanceBytes = await ctx.stub.getState(balanceKey);
-        // If minter current balance doesn't yet exist, we'll create it with a current balance of 0
-        let currentBalance;
-        if (!currentBalanceBytes || currentBalanceBytes.length === 0) {
-            currentBalance = 0;
-        } else {
-            currentBalance = parseInt(currentBalanceBytes.toString());
-        }
-        const updatedBalance = this.add(currentBalance, amountInt);
-
-        await ctx.stub.putState(balanceKey, Buffer.from(updatedBalance.toString()));
-
-        // Increase totalSupply
-        const totalSupplyBytes = await ctx.stub.getState(totalSupplyKey);
-        let totalSupply;
-        if (!totalSupplyBytes || totalSupplyBytes.length === 0) {
-            console.log('Initialize the tokenSupply');
-            totalSupply = 0;
-        } else {
-            totalSupply = parseInt(totalSupplyBytes.toString());
-        }
-        totalSupply = this.add(totalSupply, amountInt);
-        await ctx.stub.putState(totalSupplyKey, Buffer.from(totalSupply.toString()));
-
-        // Emit the Transfer event
-        const transferEvent = { from: '0x0', to: minter, value: amountInt };
-        ctx.stub.setEvent('Transfer', Buffer.from(JSON.stringify(transferEvent)));
-
-        console.log(`minter account ${minter} balance updated from ${currentBalance} to ${updatedBalance}`);
         return true;
     }
 
     /**
-     * Burn redeem tokens from minter's account balance
+     * Burn redeem tokens from burner's account balance
      *
      * @param {Context} ctx the transaction context
-     * @param {Integer} amount amount of tokens to be burned
-     * @returns {Object} The balance
+     * @param {Number} amount amount of tokens to be burned
+     * @returns {Promise<Boolean>} Return whether the burn was successful or not
      */
     async Burn(ctx, amount) {
 
         // Check contract options are already set first to execute the function
         await this.CheckInitialized(ctx);
 
-        // Check minter authorization - this sample assumes Org1 is the central banker with privilege to burn tokens
-        const clientMSPID = ctx.clientIdentity.getMSPID();
-        if (clientMSPID !== 'Org1MSP') {
-            throw new Error('client is not authorized to mint new tokens');
-        }
+        // Check burner authorization
+        this.CheckAuthorization(ctx);
 
-        const minter = ctx.clientIdentity.getID();
+        const burner = this.ClientAccountID(ctx);
+        await this._update(ctx, burner, '', amount);
 
-        const amountInt = parseInt(amount);
-
-        const balanceKey = ctx.stub.createCompositeKey(balancePrefix, [minter]);
-
-        const currentBalanceBytes = await ctx.stub.getState(balanceKey);
-        if (!currentBalanceBytes || currentBalanceBytes.length === 0) {
-            throw new Error('The balance does not exist');
-        }
-        const currentBalance = parseInt(currentBalanceBytes.toString());
-        const updatedBalance = this.sub(currentBalance, amountInt);
-
-        await ctx.stub.putState(balanceKey, Buffer.from(updatedBalance.toString()));
-
-        // Decrease totalSupply
-        const totalSupplyBytes = await ctx.stub.getState(totalSupplyKey);
-        if (!totalSupplyBytes || totalSupplyBytes.length === 0) {
-            throw new Error('totalSupply does not exist.');
-        }
-        const totalSupply = this.sub(parseInt(totalSupplyBytes.toString()), amountInt);
-        await ctx.stub.putState(totalSupplyKey, Buffer.from(totalSupply.toString()));
-
-        // Emit the Transfer event
-        const transferEvent = { from: minter, to: '0x0', value: amountInt };
-        ctx.stub.setEvent('Transfer', Buffer.from(JSON.stringify(transferEvent)));
-
-        console.log(`minter account ${minter} balance updated from ${currentBalance} to ${updatedBalance}`);
         return true;
     }
 
@@ -440,7 +291,7 @@ class TokenERC20Contract extends Contract {
      * ClientAccountBalance returns the balance of the requesting client's account.
      *
      * @param {Context} ctx the transaction context
-     * @returns {Number} Returns the account balance
+     * @returns {Promise<Number>} Returns the account balance
      */
     async ClientAccountBalance(ctx) {
 
@@ -448,37 +299,182 @@ class TokenERC20Contract extends Contract {
         await this.CheckInitialized(ctx);
 
         // Get ID of submitting client identity
-        const clientAccountID = ctx.clientIdentity.getID();
+        const clientAccountID = this.ClientAccountID(ctx);
 
-        const balanceKey = ctx.stub.createCompositeKey(balancePrefix, [clientAccountID]);
-        const balanceBytes = await ctx.stub.getState(balanceKey);
-        if (!balanceBytes || balanceBytes.length === 0) {
-            throw new Error(`the account ${clientAccountID} does not exist`);
-        }
-        const balance = parseInt(balanceBytes.toString());
-
-        return balance;
+        return await this.BalanceOf(ctx, clientAccountID);
     }
 
-    // ClientAccountID returns the id of the requesting client's account.
-    // In this implementation, the client account ID is the clientId itself.
-    // Users can use this function to get their own account id, which they can then give to others as the payment address
-    async ClientAccountID(ctx) {
-
-        // Check contract options are already set first to execute the function
-        await this.CheckInitialized(ctx);
+    /**
+     * ClientAccountID returns the id of the requesting client's account.
+     * In this implementation, the client account ID is the clientId itself.
+     * Users can use this function to get their own account id, which they can then give to others as the payment address
+     *
+     * @param {Context} ctx the transaction context
+     * @returns {String} Returns the account id
+     */
+    ClientAccountID(ctx) {
 
         // Get ID of submitting client identity
         const clientAccountID = ctx.clientIdentity.getID();
         return clientAccountID;
     }
 
-    // Checks that contract options have been already initialized
-    async CheckInitialized(ctx){
+    /**
+     * ClientAccountMSPID returns the MSP id of the requesting client's account.
+     * In this implementation, the client account MSP ID is the clientMspId itself.
+     *
+     * @param {Context} ctx the transaction context
+     * @returns {String} Returns the account MSP id
+     */
+    ClientAccountMSPID(ctx) {
+
+        // Get ID of submitting client identity
+        const clientAccountMSPID = ctx.clientIdentity.getMSPID();
+        return clientAccountMSPID;
+    }
+
+    /**
+     * Checks that contract options have been already initialized
+     *
+     * @param {Context} ctx the transaction context
+     */
+    async CheckInitialized(ctx) {
         const nameBytes = await ctx.stub.getState(nameKey);
-        if (!nameBytes || nameBytes.length === 0) {
+        if (this.isEmpty(nameBytes)) {
             throw new Error('contract options need to be set before calling any function, call Initialize() to initialize contract');
         }
+    }
+
+    /**
+     * Check client authorization - this sample assumes Org1 is the central banker with privilege to burn tokens
+     *
+     * @param {Context} ctx the transaction context
+     */
+    CheckAuthorization(ctx) {
+        const clientMSPID = this.ClientAccountMSPID(ctx);
+        if (clientMSPID !== 'Org1MSP') {
+            throw new Error('client is not authorized');
+        }
+    }
+
+    /**
+     * Transfers a `value` amount of tokens from `from` to `to`, or alternatively mints (or burns) if `from`
+     * (or `to`) is the zero address. All customizations to transfers, mints, and burns should be done by overriding
+     * this function.
+     *
+     * @param {Context} ctx the transaction context
+     * @param {String} from The sender
+     * @param {String} to The recipient
+     * @param {Number} value The amount of token to be transferred
+     */
+    async _update(ctx, from, to, value) {
+
+        // Convert value from string to int
+        const valueInt = parseInt(value);
+
+        if (valueInt < 0) { // transfer of 0 is allowed in ERC20, so just validate against negative amounts
+            throw new Error('transfer amount cannot be negative');
+        }
+
+        let totalSupply = await this.TotalSupply(ctx);
+        if (this.isEmpty(from)) {
+            // Overflow check required: The rest of the code assumes that totalSupply never overflows
+            totalSupply = this.add(totalSupply, valueInt);
+        } else {
+            // Retrieve the current balance of the sender
+            const fromCurrentBalance = await this.BalanceOf(ctx, from);
+            // Check if the sender has enough tokens to spend.
+            if (fromCurrentBalance < valueInt) {
+                throw new Error(`client account ${from} has insufficient funds.`);
+            }
+            // Overflow not possible: valueInt <= fromCurrentBalance <= totalSupply.
+            const fromBalanceKey = ctx.stub.createCompositeKey(balancePrefix, [from]);
+            const fromUpdatedBalance = fromCurrentBalance - valueInt;
+            await ctx.stub.putState(fromBalanceKey, Buffer.from(fromUpdatedBalance.toString()));
+            console.log(`client ${from} balance updated from ${fromCurrentBalance} to ${fromUpdatedBalance}`);
+        }
+        if (this.isEmpty(to)) {
+            // Overflow not possible: valueInt <= totalSupply.
+            totalSupply -= valueInt;
+        } else {
+            // Overflow not possible: toCurrentBalance + valueInt is at most totalSupply
+            const toCurrentBalance = await this.BalanceOf(ctx, to);
+            const toBalanceKey = ctx.stub.createCompositeKey(balancePrefix, [to]);
+            const toUpdatedBalance = toCurrentBalance + valueInt;
+            await ctx.stub.putState(toBalanceKey, Buffer.from(toUpdatedBalance.toString()));
+            console.log(`recipient ${to} balance updated from ${toCurrentBalance} to ${toUpdatedBalance}`);
+        }
+
+        await ctx.stub.putState(totalSupplyKey, Buffer.from(totalSupply.toString()));
+
+        // Emit the Transfer event
+        const transferEvent = { from, to, value: valueInt };
+        ctx.stub.setEvent('Transfer', Buffer.from(JSON.stringify(transferEvent)));
+    }
+
+    /**
+     * @param {Context} ctx the transaction context
+     * @param {String} owner The owner of tokens
+     * @param {String} spender The spender
+     * @param {Number} value The amount of token to be transferred
+     */
+    async _approve(ctx, owner, spender, value) {
+        await this._approveEvent(ctx, owner, spender, value, true);
+    }
+
+    /**
+     * @param {Context} ctx the transaction context
+     * @param {String} owner The owner of tokens
+     * @param {String} spender The spender
+     * @param {Number} value The amount of token to be transferred
+     * @param {Boolean} emitEvent Whether to emit event
+     */
+    async _approveEvent(ctx, owner, spender, value, emitEvent) {
+        if (this.isEmpty(owner)) {
+            throw new Error('invalid approver');
+        }
+        if (this.isEmpty(spender)) {
+            throw new Error('invalid spender');
+        }
+
+        const allowanceKey = ctx.stub.createCompositeKey(allowancePrefix, [owner, spender]);
+        await ctx.stub.putState(allowanceKey, Buffer.from(value.toString()));
+
+        // Emit the Approval event
+        if (emitEvent) {
+            const valueInt = parseInt(value);
+            const approvalEvent = { owner, spender, value: valueInt };
+            ctx.stub.setEvent('Approval', Buffer.from(JSON.stringify(approvalEvent)));
+        }
+    }
+
+    /**
+     * @param {Context} ctx the transaction context
+     * @param {String} owner The owner of tokens
+     * @param {String} spender The spender
+     * @param {Number} value The amount of token to be transferred
+     */
+    async _spendAllowance(ctx, owner, spender, value) {
+
+        // Retrieve the allowance of the spender
+        const currentAllowance = await this.Allowance(ctx, owner, spender);
+
+        // Convert value from string to int
+        const valueInt = parseInt(value);
+
+        // Check if the transferred value is less than the allowance
+        if (currentAllowance < valueInt) {
+            throw new Error('The spender does not have enough allowance to spend.');
+        }
+        // Decrease the allowance
+        const updatedAllowance = currentAllowance - valueInt;
+        await this._approveEvent(ctx, owner, spender, updatedAllowance, false);
+        console.log(`spender ${spender} allowance updated from ${currentAllowance} to ${updatedAllowance}`);
+    }
+
+    // Return whether the value is empty or not
+    isEmpty(value) {
+        return (!value || value.length === 0);
     }
 
     // add two number checking for overflow
