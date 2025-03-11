@@ -224,7 +224,6 @@ class TokenERC20Contract extends Contract {
      * @param {String} name The name of the token
      * @param {String} symbol The symbol of the token
      * @param {String} decimals The decimals of the token
-     * @param {String} totalSupply The totalSupply of the token
      */
     async Initialize(ctx, name, symbol, decimals) {
         // Check client authorization
