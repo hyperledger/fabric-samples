@@ -33,8 +33,8 @@ function context() {
   export ${name}="${!override_name:-${default_value}}"
 }
 
-context FABRIC_VERSION            2.5.11
-context FABRIC_CA_VERSION         1.5.14
+context FABRIC_VERSION            2.5.12
+context FABRIC_CA_VERSION         1.5.15
 
 context CLUSTER_RUNTIME           kind                  # or k3s for Rancher
 context CONTAINER_CLI             docker                # or nerdctl for containerd
