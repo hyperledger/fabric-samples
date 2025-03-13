@@ -14,10 +14,9 @@ printHelp() {
     echo "  Starts the test network"
     echo
     echo "    Flags:"
-    echo "    -d <delay>         - CLI delays for a certain number of seconds (defaults to 3)"
     echo "    -o <orderer_type>  - Specify the orderer type. BFT or etcdraft. (defaults to etcdraft)"
     echo "    -ca                - Use CAs instead of cryptogen.  (defaults to cryptogen)"
-    echo "    -h - Print this message"
+    echo "    -h                 - Print this message"
   elif [ "$USAGE" = "clean" ]; then
     echo "Usage: "
     echo "  network.sh clean [Flags]"
@@ -49,8 +48,6 @@ networkStop() {
 }
 
 networkStart() {
-  : "${CLI_DELAY:=5}"
-
   # shellcheck disable=SC2064
   trap networkStop 0 1 2 3 15
 
@@ -62,8 +59,9 @@ networkStart() {
     ./ordererca.sh  > ./logs/ordererca.log 2>&1 &
     ./org1ca.sh  > ./logs/org1ca.log 2>&1 &
     ./org2ca.sh  > ./logs/org2ca.log 2>&1 &
-    echo "Waiting ${CLI_DELAY}s..."
-    sleep "${CLI_DELAY}"
+
+    echo 'Waiting for CAs to start...'
+    waitForHealthzOK 9843 9844 9845
   fi
 
   if [ -d "${PWD}"/channel-artifacts ] && [ -d "${PWD}"/crypto-config ]; then
@@ -84,13 +82,17 @@ networkStart() {
   ./orderer2.sh "${ORDERER_TYPE}" > ./logs/orderer2.log 2>&1 &
   ./orderer3.sh "${ORDERER_TYPE}" > ./logs/orderer3.log 2>&1 &
 
+  ORDERER_HEALTHZ_PORTS="8443 8444 8445"
+
   #start one additional orderer for BFT consensus
   if [ "$ORDERER_TYPE" = "BFT" ]; then
     ./orderer4.sh "${ORDERER_TYPE}" > ./logs/orderer4.log 2>&1 &
+    ORDERER_HEALTHZ_PORTS="${ORDERER_HEALTHZ_PORTS} 8450"
   fi
 
-  echo "Waiting ${CLI_DELAY}s..."
-  sleep "${CLI_DELAY}"
+  echo 'Waiting for orderers to start...'
+  # shellcheck disable=SC2086
+  waitForHealthzOK ${ORDERER_HEALTHZ_PORTS}
 
   echo "Starting peers..."
   ./peer1.sh > ./logs/peer1.log 2>&1 &
@@ -98,8 +100,8 @@ networkStart() {
   ./peer3.sh > ./logs/peer3.log 2>&1 &
   ./peer4.sh > ./logs/peer4.log 2>&1 &
 
-  echo "Waiting ${CLI_DELAY}s..."
-  sleep "${CLI_DELAY}"
+  echo 'Waiting for peers to start...'
+  waitForHealthzOK 8446 8447 8448 8449
 
   if [ "${CREATE_CHANNEL}" = "true" ]; then
     echo "Joining orderers to channel..."
@@ -126,6 +128,25 @@ networkStart() {
   wait
 }
 
+waitForHealthzOK() {
+  while [ $# -ge 1 ]; do
+    HEALTHZ_STATUS=
+    HEALTHZ_PORT="$1"
+    shift
+
+    while [ "${HEALTHZ_STATUS}" != 'OK' ]; do
+      # Sleep before a retry
+      if [ "${HEALTHZ_STATUS}" ]; then
+        [ "${HEALTHZ_STATUS}" != 'OFFLINE' ] && echo "Healthz port ${HEALTHZ_PORT}: ${HEALTHZ_RESPONSE}"
+        sleep 0.5
+      fi
+
+      HEALTHZ_RESPONSE=$(curl --silent "http://127.0.0.1:${HEALTHZ_PORT}/healthz" || echo '{"status":"OFFLINE"}')
+      HEALTHZ_STATUS=$(echo "${HEALTHZ_RESPONSE}" | jq --raw-output '.status')
+    done
+  done
+}
+
 networkClean() {
   echo "Removing directories: channel-artifacts crypto-config data logs"
   rm -r "${PWD}"/channel-artifacts || true
@@ -142,7 +163,7 @@ if [ $# -lt 1 ] ; then
   printHelp
   exit 0
 else
-  MODE=$1
+  MODE="$1"
   shift
 fi
 
@@ -153,13 +174,19 @@ INCLUDE_CA=false
 while [ $# -ge 1 ] ; do
   key="$1"
   case $key in
-  -d )
-    CLI_DELAY="$2"
-    shift
-    ;;
   -o )
-    ORDERER_TYPE="$2"
+    ORDERER_TYPE="$(echo "$2" | tr '[:upper:]' '[:lower:]')"
     shift
+
+    if [ "${ORDERER_TYPE}" = bft ]; then
+      ORDERER_TYPE=BFT
+    fi
+
+    if [ "${ORDERER_TYPE}" != etcdraft ] && [ "${ORDERER_TYPE}" != BFT ]; then
+      echo "Unsupported orderer type: ${ORDERER_TYPE}" >&2
+      printHelp "$MODE"
+      exit 1
+    fi
     ;;
   -ca )
     INCLUDE_CA=true
@@ -175,7 +202,16 @@ while [ $# -ge 1 ] ; do
     ;;
   esac
   shift
-done
+done  
+
+# Ensure peers are configured with the correct docker socket location, otherwise
+# health checks will fail.
+export CORE_VM_ENDPOINT
+if [ -z "${DOCKER_HOST:-}" ]; then
+  CORE_VM_ENDPOINT="$(docker context inspect --format '{{.Endpoints.docker.Host}}')"
+else
+  CORE_VM_ENDPOINT="${DOCKER_HOST}"
+fi
 
 if [ "$MODE" = "start" ]; then
   networkStart
