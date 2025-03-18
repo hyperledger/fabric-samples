@@ -37,7 +37,7 @@ context CONTAINER_NAMESPACE           ""                    # or "--namespace k8
 
 context FABRIC_CONTAINER_REGISTRY     hyperledger
 context FABRIC_PEER_IMAGE             ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:${FABRIC_VERSION}
-context COUCHDB_VERSION               3.3.3
+context COUCHDB_VERSION               3.4.2
 context NETWORK_NAME                  test-network
 context CLUSTER_NAME                  kind
 context KUBE_NAMESPACE                ${NETWORK_NAME}

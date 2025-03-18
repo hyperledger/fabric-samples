@@ -88,7 +88,7 @@ context INIT_IMAGE_LABEL          latest
 context GRPCWEB_IMAGE             ghcr.io/hyperledger-labs/grpc-web
 context GRPCWEB_IMAGE_LABEL       latest
 context COUCHDB_IMAGE             couchdb
-context COUCHDB_IMAGE_LABEL       3.3.3
+context COUCHDB_IMAGE_LABEL       3.4.2
 context CONSOLE_IMAGE             ghcr.io/hyperledger-labs/fabric-console
 context CONSOLE_IMAGE_LABEL       latest
 context DEPLOYER_IMAGE            ghcr.io/ibm-blockchain/fabric-deployer
