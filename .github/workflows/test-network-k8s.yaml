@@ -84,6 +84,6 @@ jobs:
           CLIENT_LANGUAGE: typescript
           CHAINCODE_LANGUAGE: java
           # Note: The default Fabric version for CI is currently the latest LTS (v2.5.x).
-          # To test BFT Orderers, Fabric v3.0 is explicitly specified here.
-          FABRIC_VERSION: '3.0'
+          # To test BFT Orderers, Fabric v3.x is explicitly specified here.
+          FABRIC_VERSION: '3.1'
           ORDERER_TYPE: bft
