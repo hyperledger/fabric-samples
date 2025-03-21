@@ -5,6 +5,7 @@ metadata:
   name: hlf-console
 spec:
   arch:
+    # amd64 (x86, Intel/ AMD) or arm64 (ARM, Apple silicon)
     - amd64
   license:
     accept: true

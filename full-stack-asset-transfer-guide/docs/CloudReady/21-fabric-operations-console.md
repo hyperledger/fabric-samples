@@ -28,6 +28,14 @@ kubectl apply -k https://github.com/hyperledger-labs/fabric-operator.git/config/
 
 ```
 
+- Open the file located at `infrastructure/sample-network/config/console/hlf-operations-console.yaml` and adjust the `arch` field according to your machine's architecture.
+
+```yaml
+spec:
+  arch:
+    - amd64
+```
+
 - Install the Fabric operator and console in the target namespace: 
 ```shell
 
