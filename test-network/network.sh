@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright IBM Corp All Rights Reserved
 #
@@ -265,7 +265,7 @@ function createOrgs() {
   fi
 
   infoln "Generating CCP files for Org1 and Org2"
-  bash ./organizations/ccp-generate.sh
+  ./organizations/ccp-generate.sh
 }
 
 # Once you create the organization crypto material, you need to create the
@@ -348,13 +348,13 @@ function createChannel() {
 
   # now run the script that creates a channel. This script uses configtxgen once
   # to create the channel creation transaction and the anchor peer updates.
-  bash scripts/createChannel.sh $CHANNEL_NAME $CLI_DELAY $MAX_RETRY $VERBOSE $bft_true
+  scripts/createChannel.sh $CHANNEL_NAME $CLI_DELAY $MAX_RETRY $VERBOSE $bft_true
 }
 
 
 ## Call the script to deploy a chaincode to the channel
 function deployCC() {
-  bash scripts/deployCC.sh $CHANNEL_NAME $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION $CC_SEQUENCE $CC_INIT_FCN $CC_END_POLICY $CC_COLL_CONFIG $CLI_DELAY $MAX_RETRY $VERBOSE
+  scripts/deployCC.sh $CHANNEL_NAME $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION $CC_SEQUENCE $CC_INIT_FCN $CC_END_POLICY $CC_COLL_CONFIG $CLI_DELAY $MAX_RETRY $VERBOSE
 
   if [ $? -ne 0 ]; then
     fatalln "Deploying chaincode failed"

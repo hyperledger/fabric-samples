@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 C_RESET='\033[0m'
 C_RED='\033[0;31m'
@@ -210,6 +210,7 @@ function installPrereqs() {
   FILE=../install-fabric.sh     
   if [ ! -f $FILE ]; then
     curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh && chmod +x install-fabric.sh
+    sed -i '1s|.*|#!/usr/bin/env bash|' install-fabric.sh
     cp install-fabric.sh ..
   fi
   
@@ -224,7 +225,7 @@ function installPrereqs() {
   fi 
 
   cd ..
-  bash ./install-fabric.sh ${IMAGE_PARAMETER} ${CA_IMAGE_PARAMETER} docker binary
+  ./install-fabric.sh ${IMAGE_PARAMETER} ${CA_IMAGE_PARAMETER} docker binary
 
 }
 

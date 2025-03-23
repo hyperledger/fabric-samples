@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Copyright 2023 Aditya Joshi, All rights reserved
 
 function peer_cert() {

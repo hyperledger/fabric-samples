@@ -50,7 +50,7 @@ cluster_type    := env_var_or_default("WORKSHOP_CLUSTER_TYPE",       "k8s")
 
 # Start a local KIND cluster with nginx, localhost:5000 registry, and *.localho.st alias in kube DNS
 kind: unkind
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -e -o pipefail
 
     infrastructure/kind_with_nginx.sh {{cluster_name}}
@@ -62,7 +62,7 @@ kind: unkind
 
 # Shut down the KIND cluster
 unkind:
-    #!/bin/bash
+    #!/usr/bin/env bash
     kind delete cluster --name {{cluster_name}}
 
     if docker inspect kind-registry &>/dev/null; then
@@ -73,7 +73,7 @@ unkind:
 
 # Bring up the nginx ingress controller on the target k8s cluster
 nginx:
-    #!/bin/bash
+    #!/usr/bin/env bash
     kubectl apply -k https://github.com/hyperledger-labs/fabric-operator.git/config/ingress/{{ cluster_runtime }}
 
     sleep 20
@@ -130,7 +130,7 @@ test-console:
 
 # Shut down the microfab (uf) instance
 microfab-down:
-    #!/bin/bash
+    #!/usr/bin/env bash
 
     if docker inspect microfab &>/dev/null; then
         echo "Removing existing microfab container:"
@@ -140,7 +140,7 @@ microfab-down:
 
 # Start a micro fab instance and create configuration in _cfg/uf
 microfab: microfab-down
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -e -o pipefail
 
     export CFG=$CWDIR/_cfg/uf
@@ -207,7 +207,7 @@ microfab: microfab-down
 
 # Creates a chaincode package and install/approve/commit
 debugcc:
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -e -o pipefail
 
     export CFG=$CWDIR/_cfg/uf
@@ -297,7 +297,7 @@ ansible-doit: ansible-review-config ansible-operator ansible-console ansible-net
 
 # Review the Ansible Blockchain Collection configuration in _cfg/
 ansible-review-config:
-    #!/bin/bash
+    #!/usr/bin/env bash
     mkdir -p ${CWDIR}/_cfg
     rm -rf ${CWDIR}/_cfg/*  || true
 
@@ -333,7 +333,7 @@ ansible-review-config:
 
 # Start the Kubernetes fabric-operator with the Ansible Blockchain Collection
 ansible-ingress:
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -ex -o pipefail
 
     export EXTRAS=""
@@ -355,7 +355,7 @@ ansible-ingress:
 
 # Start the Kubernetes fabric-operator with the Ansible Blockchain Collection
 ansible-operator:
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -ex -o pipefail
 
     export EXTRAS=""
@@ -374,7 +374,7 @@ ansible-operator:
 
 # Start the Fabric Operations Console with the Ansible Blockchain Collection
 ansible-console:
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -ex -o pipefail
 
     export EXTRAS=""
@@ -392,7 +392,7 @@ ansible-console:
             ansible-playbook /playbooks/02-console-install.yml
 
 ansible-auth:
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -ex -o pipefail
 
     AUTH=$(curl -X POST https://{{namespace}}-hlf-console-console.{{ingress_domain}}:443/ak/api/v2/permissions/keys -u admin:password -k -H 'Content-Type: application/json' -d '{"roles": ["writer", "manager"],"description": "newkey"}')
@@ -411,7 +411,7 @@ ansible-auth:
 
 # Build a sample Fabric network with the Ansible Blockchain Collection
 ansible-network: ansible-auth
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -ex -o pipefail
 
     export EXTRAS=""
@@ -432,7 +432,7 @@ ansible-network: ansible-auth
 
 # Bring down the sample network created with the Ansible Blockchain Collection
 ansible-network-down:
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -ex -o pipefail
 
     kubectl delete namespace {{ namespace }} --ignore-not-found
@@ -440,7 +440,7 @@ ansible-network-down:
 
 # Build a chaincode package with Ansible Blockchain Collection
 ansible-build-chaincode:
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -ex -o pipefail
     pushd ${CWDIR}/contracts/asset-transfer-typescript
 
@@ -461,7 +461,7 @@ ansible-build-chaincode:
 
 # Deploy a chaincode package with the Ansible Blockchain Collection
 ansible-deploy-chaincode:
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -ex -o pipefail
 
     export EXTRAS=""
@@ -502,7 +502,7 @@ ansible-deploy-chaincode:
 
 # Creates a new identity for an application to use
 ansible-ready-application:
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -ex -o pipefail
 
     export EXTRAS=""
