@@ -210,7 +210,6 @@ function installPrereqs() {
   FILE=../install-fabric.sh     
   if [ ! -f $FILE ]; then
     curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh && chmod +x install-fabric.sh
-    sed -i '1s|.*|#!/usr/bin/env bash|' install-fabric.sh
     cp install-fabric.sh ..
   fi
   
