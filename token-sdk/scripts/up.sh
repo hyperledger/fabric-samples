@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This script generates crypto, starts Fabric, deploys the chaincode and starts the token nodes.
 
