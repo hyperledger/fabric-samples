@@ -1,11 +1,11 @@
 
-# Required:
+Required:
 Docker
 GO lang
 Node 16
 
 
-# Network Startup
+#Network Startup
 
 cd test-network
 
@@ -14,7 +14,8 @@ cd test-network
 ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-typescript/ -ccl typescript
 
 
-# Backend Startup
+
+#Backend Startup
 
 cd asset-transfer-basic/rest-api-typescript
 

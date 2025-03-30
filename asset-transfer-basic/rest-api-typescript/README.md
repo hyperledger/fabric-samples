@@ -113,7 +113,7 @@ npm run build
 Create a `.env` file to configure the server for the test network (make sure TEST_NETWORK_HOME is set to the fully qualified `test-network` directory)
 
 ```shell
-TEST_NETWORK_HOME=$HOME/fabric-samples/test-network npm run generateEnv
+TEST_NETWORK_HOME=/home/calvin/go/src/github.com/delete_me0/sandbx/fabric-samples/test-network npm run generateEnv
 ```
 
 **Note:** see [src/config.ts](src/config.ts) for details of configuring the sample

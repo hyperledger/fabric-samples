@@ -1,7 +1,0 @@
-.idea/
-network.log
-network-debug.log 
-build/
-.env
-bin/
-*.tgz

@@ -27,6 +27,7 @@ import { AssetNotFoundError } from './errors';
 import { evatuateTransaction } from './fabric';
 import { addSubmitTransactionJob } from './jobs';
 import { logger } from './logger';
+import { createHash } from 'crypto';
 
 const { ACCEPTED, BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } =
     StatusCodes;
@@ -54,15 +55,11 @@ assetsRouter.get('/', async (req: Request, res: Response) => {
         });
     }
 });
-
 assetsRouter.post(
-    '/',
+    '/student',
     body().isObject().withMessage('body must contain an asset object'),
-    body('ID', 'must be a string').notEmpty(),
-    body('Color', 'must be a string').notEmpty(),
-    body('Size', 'must be a number').isNumeric(),
-    body('Owner', 'must be a string').notEmpty(),
-    body('AppraisedValue', 'must be a number').isNumeric(),
+    body('RollNo', 'must be a string').notEmpty(),
+    body('Name', 'must be a string').notEmpty(),
     async (req: Request, res: Response) => {
         logger.debug(req.body, 'Create asset request received');
 
@@ -78,19 +75,16 @@ assetsRouter.post(
         }
 
         const mspId = req.user as string;
-        const assetId = req.body.ID;
+        const rollNo = req.body.RollNo;
 
         try {
             const submitQueue = req.app.locals.jobq as Queue;
             const jobId = await addSubmitTransactionJob(
                 submitQueue,
                 mspId,
-                'CreateAsset',
-                assetId,
-                req.body.Color,
-                req.body.Size,
-                req.body.Owner,
-                req.body.AppraisedValue
+                'CreateStudentData',
+                rollNo,
+                req.body.Name
             );
 
             return res.status(ACCEPTED).json({
@@ -102,7 +96,7 @@ assetsRouter.post(
             logger.error(
                 { err },
                 'Error processing create asset request for asset ID %s',
-                assetId
+                rollNo
             );
 
             return res.status(INTERNAL_SERVER_ERROR).json({
@@ -112,50 +106,6 @@ assetsRouter.post(
         }
     }
 );
-
-assetsRouter.options('/:assetId', async (req: Request, res: Response) => {
-    const assetId = req.params.assetId;
-    logger.debug('Asset options request received for asset ID %s', assetId);
-
-    try {
-        const mspId = req.user as string;
-        const contract = req.app.locals[mspId]?.assetContract as Contract;
-
-        const data = await evatuateTransaction(
-            contract,
-            'AssetExists',
-            assetId
-        );
-        const exists = data.toString() === 'true';
-
-        if (exists) {
-            return res
-                .status(OK)
-                .set({
-                    Allow: 'DELETE,GET,OPTIONS,PATCH,PUT',
-                })
-                .json({
-                    status: getReasonPhrase(OK),
-                    timestamp: new Date().toISOString(),
-                });
-        } else {
-            return res.status(NOT_FOUND).json({
-                status: getReasonPhrase(NOT_FOUND),
-                timestamp: new Date().toISOString(),
-            });
-        }
-    } catch (err) {
-        logger.error(
-            { err },
-            'Error processing asset options request for asset ID %s',
-            assetId
-        );
-        return res.status(INTERNAL_SERVER_ERROR).json({
-            status: getReasonPhrase(INTERNAL_SERVER_ERROR),
-            timestamp: new Date().toISOString(),
-        });
-    }
-});
 
 assetsRouter.get('/:assetId', async (req: Request, res: Response) => {
     const assetId = req.params.assetId;
@@ -190,134 +140,6 @@ assetsRouter.get('/:assetId', async (req: Request, res: Response) => {
     }
 });
 
-assetsRouter.put(
-    '/:assetId',
-    body().isObject().withMessage('body must contain an asset object'),
-    body('ID', 'must be a string').notEmpty(),
-    body('Color', 'must be a string').notEmpty(),
-    body('Size', 'must be a number').isNumeric(),
-    body('Owner', 'must be a string').notEmpty(),
-    body('AppraisedValue', 'must be a number').isNumeric(),
-    async (req: Request, res: Response) => {
-        logger.debug(req.body, 'Update asset request received');
-
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(BAD_REQUEST).json({
-                status: getReasonPhrase(BAD_REQUEST),
-                reason: 'VALIDATION_ERROR',
-                message: 'Invalid request body',
-                timestamp: new Date().toISOString(),
-                errors: errors.array(),
-            });
-        }
-
-        if (req.params.assetId != req.body.ID) {
-            return res.status(BAD_REQUEST).json({
-                status: getReasonPhrase(BAD_REQUEST),
-                reason: 'ASSET_ID_MISMATCH',
-                message: 'Asset IDs must match',
-                timestamp: new Date().toISOString(),
-            });
-        }
-
-        const mspId = req.user as string;
-        const assetId = req.params.assetId;
-
-        try {
-            const submitQueue = req.app.locals.jobq as Queue;
-            const jobId = await addSubmitTransactionJob(
-                submitQueue,
-                mspId,
-                'UpdateAsset',
-                assetId,
-                req.body.color,
-                req.body.size,
-                req.body.owner,
-                req.body.appraisedValue
-            );
-
-            return res.status(ACCEPTED).json({
-                status: getReasonPhrase(ACCEPTED),
-                jobId: jobId,
-                timestamp: new Date().toISOString(),
-            });
-        } catch (err) {
-            logger.error(
-                { err },
-                'Error processing update asset request for asset ID %s',
-                assetId
-            );
-
-            return res.status(INTERNAL_SERVER_ERROR).json({
-                status: getReasonPhrase(INTERNAL_SERVER_ERROR),
-                timestamp: new Date().toISOString(),
-            });
-        }
-    }
-);
-
-assetsRouter.patch(
-    '/:assetId',
-    body()
-        .isArray({
-            min: 1,
-            max: 1,
-        })
-        .withMessage(
-            'body must contain an array with a single patch operation'
-        ),
-    body('*.op', "operation must be 'replace'").equals('replace'),
-    body('*.path', "path must be '/Owner'").equals('/Owner'),
-    body('*.value', 'must be a string').isString(),
-    async (req: Request, res: Response) => {
-        logger.debug(req.body, 'Transfer asset request received');
-
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(BAD_REQUEST).json({
-                status: getReasonPhrase(BAD_REQUEST),
-                reason: 'VALIDATION_ERROR',
-                message: 'Invalid request body',
-                timestamp: new Date().toISOString(),
-                errors: errors.array(),
-            });
-        }
-
-        const mspId = req.user as string;
-        const assetId = req.params.assetId;
-        const newOwner = req.body[0].value;
-
-        try {
-            const submitQueue = req.app.locals.jobq as Queue;
-            const jobId = await addSubmitTransactionJob(
-                submitQueue,
-                mspId,
-                'TransferAsset',
-                assetId,
-                newOwner
-            );
-
-            return res.status(ACCEPTED).json({
-                status: getReasonPhrase(ACCEPTED),
-                jobId: jobId,
-                timestamp: new Date().toISOString(),
-            });
-        } catch (err) {
-            logger.error(
-                { err },
-                'Error processing update asset request for asset ID %s',
-                req.params.assetId
-            );
-
-            return res.status(INTERNAL_SERVER_ERROR).json({
-                status: getReasonPhrase(INTERNAL_SERVER_ERROR),
-                timestamp: new Date().toISOString(),
-            });
-        }
-    }
-);
-
 assetsRouter.delete('/:assetId', async (req: Request, res: Response) => {
     logger.debug(req.body, 'Delete asset request received');
 
@@ -351,3 +173,344 @@ assetsRouter.delete('/:assetId', async (req: Request, res: Response) => {
         });
     }
 });
+
+assetsRouter.post(
+    '/dept',
+    body().isObject().withMessage('body must contain an asset object'),
+    body('DeptName', 'must be a string').notEmpty(),
+    body('Year', 'must be a number').isNumeric(),
+    async (req: Request, res: Response) => {
+        logger.debug(req.body, 'Create asset request received');
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(BAD_REQUEST).json({
+                status: getReasonPhrase(BAD_REQUEST),
+                reason: 'VALIDATION_ERROR',
+                message: 'Invalid request body',
+                timestamp: new Date().toISOString(),
+                errors: errors.array(),
+            });
+        }
+
+        const mspId = req.user as string;
+        const assetId = req.body.DeptName;
+
+        try {
+            const submitQueue = req.app.locals.jobq as Queue;
+            const jobId = await addSubmitTransactionJob(
+                submitQueue,
+                mspId,
+                'CreateDept',
+                assetId,
+                req.body.Year
+            );
+
+            return res.status(ACCEPTED).json({
+                status: getReasonPhrase(ACCEPTED),
+                jobId: jobId,
+                timestamp: new Date().toISOString(),
+            });
+        } catch (err) {
+            logger.error(
+                { err },
+                'Error processing create asset request for asset ID %s',
+                assetId
+            );
+
+            return res.status(INTERNAL_SERVER_ERROR).json({
+                status: getReasonPhrase(INTERNAL_SERVER_ERROR),
+                timestamp: new Date().toISOString(),
+            });
+        }
+    }
+);
+
+assetsRouter.post(
+    '/sub',
+    body().isObject().withMessage('body must contain an asset object'),
+    body('DeptID', 'must be a string').notEmpty(),
+    body('Subject', 'must be a string').notEmpty(),
+    async (req: Request, res: Response) => {
+        logger.debug(req.body, 'Create asset request received');
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(BAD_REQUEST).json({
+                status: getReasonPhrase(BAD_REQUEST),
+                reason: 'VALIDATION_ERROR',
+                message: 'Invalid request body',
+                timestamp: new Date().toISOString(),
+                errors: errors.array(),
+            });
+        }
+
+        const mspId = req.user as string;
+        const assetId = req.body.DeptID;
+
+        try {
+            const submitQueue = req.app.locals.jobq as Queue;
+            const jobId = await addSubmitTransactionJob(
+                submitQueue,
+                mspId,
+                'deptAddSubject',
+                assetId,
+                req.body.Subject
+            );
+
+            return res.status(ACCEPTED).json({
+                status: getReasonPhrase(ACCEPTED),
+                jobId: jobId,
+                timestamp: new Date().toISOString(),
+            });
+        } catch (err) {
+            logger.error(
+                { err },
+                'Error processing create asset request for asset ID %s',
+                assetId
+            );
+
+            return res.status(INTERNAL_SERVER_ERROR).json({
+                status: getReasonPhrase(INTERNAL_SERVER_ERROR),
+                timestamp: new Date().toISOString(),
+            });
+        }
+    }
+);
+
+assetsRouter.post(
+    '/addstu',
+    body().isObject().withMessage('body must contain an asset object'),
+    body('DeptID', 'must be a string').notEmpty(),
+    body('RollNo', 'must be a string').notEmpty(),
+    async (req: Request, res: Response) => {
+        logger.debug(req.body, 'Create asset request received');
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(BAD_REQUEST).json({
+                status: getReasonPhrase(BAD_REQUEST),
+                reason: 'VALIDATION_ERROR',
+                message: 'Invalid request body',
+                timestamp: new Date().toISOString(),
+                errors: errors.array(),
+            });
+        }
+
+        const mspId = req.user as string;
+        const assetId = req.body.DeptID;
+
+        try {
+            const submitQueue = req.app.locals.jobq as Queue;
+            const jobId = await addSubmitTransactionJob(
+                submitQueue,
+                mspId,
+                'deptAddStudent',
+                assetId,
+                req.body.RollNo
+            );
+
+            return res.status(ACCEPTED).json({
+                status: getReasonPhrase(ACCEPTED),
+                jobId: jobId,
+                timestamp: new Date().toISOString(),
+            });
+        } catch (err) {
+            logger.error(
+                { err },
+                'Error processing create asset request for asset ID %s',
+                assetId
+            );
+
+            return res.status(INTERNAL_SERVER_ERROR).json({
+                status: getReasonPhrase(INTERNAL_SERVER_ERROR),
+                timestamp: new Date().toISOString(),
+            });
+        }
+    }
+);
+
+assetsRouter.post(
+    '/stuaddsub',
+    body().isObject().withMessage('body must contain an asset object'),
+    body('RollNo', 'must be a string').notEmpty(),
+    body('Subject', 'must be a string').notEmpty(),
+    body('Mark', 'must be a number').isNumeric(),
+    async (req: Request, res: Response) => {
+        logger.debug(req.body, 'Create asset request received');
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(BAD_REQUEST).json({
+                status: getReasonPhrase(BAD_REQUEST),
+                reason: 'VALIDATION_ERROR',
+                message: 'Invalid request body',
+                timestamp: new Date().toISOString(),
+                errors: errors.array(),
+            });
+        }
+
+        const mspId = req.user as string;
+        const assetId = req.body.RollNo;
+
+        try {
+            const submitQueue = req.app.locals.jobq as Queue;
+            const jobId = await addSubmitTransactionJob(
+                submitQueue,
+                mspId,
+                'addStudentMark',
+                assetId,
+                req.body.Subject,
+                req.body.Mark
+            );
+
+            return res.status(ACCEPTED).json({
+                status: getReasonPhrase(ACCEPTED),
+                jobId: jobId,
+                timestamp: new Date().toISOString(),
+            });
+        } catch (err) {
+            logger.error(
+                { err },
+                'Error processing create asset request for asset ID %s',
+                assetId
+            );
+
+            return res.status(INTERNAL_SERVER_ERROR).json({
+                status: getReasonPhrase(INTERNAL_SERVER_ERROR),
+                timestamp: new Date().toISOString(),
+            });
+        }
+    }
+);
+
+assetsRouter.get('/student/:assetId', async (req: Request, res: Response) => {
+    const rollNo = req.params.assetId;
+    logger.debug('Read asset request received for asset ID %s', rollNo);
+
+    try {
+        const mspId = req.user as string;
+        const contract = req.app.locals[mspId]?.assetContract as Contract;
+
+        const data = await evatuateTransaction(contract, 'getStudent', rollNo);
+        const asset = JSON.parse(data.toString());
+
+        return res.status(OK).json(asset);
+    } catch (err) {
+        logger.error(
+            { err },
+            'Error processing read asset request for asset ID %s',
+            rollNo
+        );
+
+        if (err instanceof AssetNotFoundError) {
+            return res.status(NOT_FOUND).json({
+                status: getReasonPhrase(NOT_FOUND),
+                timestamp: new Date().toISOString(),
+            });
+        }
+
+        return res.status(INTERNAL_SERVER_ERROR).json({
+            status: getReasonPhrase(INTERNAL_SERVER_ERROR),
+            timestamp: new Date().toISOString(),
+        });
+    }
+});
+
+assetsRouter.post(
+    '/certificate',
+    body().isObject().withMessage('body must contain an asset object'),
+    body('Name', 'must be a string').notEmpty(),
+    body('Event', 'must be a string').notEmpty(),
+    body('Links', 'must be a string').notEmpty(),
+    async (req: Request, res: Response) => {
+        logger.debug(req.body, 'Create asset request received');
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(BAD_REQUEST).json({
+                status: getReasonPhrase(BAD_REQUEST),
+                reason: 'VALIDATION_ERROR',
+                message: 'Invalid request body',
+                timestamp: new Date().toISOString(),
+                errors: errors.array(),
+            });
+        }
+
+        const mspId = req.user as string;
+
+        try {
+            const submitQueue = req.app.locals.jobq as Queue;
+            const jobId = await addSubmitTransactionJob(
+                submitQueue,
+                mspId,
+                'addCertificate',
+                req.body.Name,
+                req.body.Event,
+                req.body.Links
+            );
+
+            const hash = createHash('sha256');
+
+            hash.update(req.body.Name + req.body.Event + req.body.Links);
+
+            const hashStr: string = hash.digest('hex');
+
+            return res.status(ACCEPTED).json({
+                certificate_hash: hashStr,
+                job_id: jobId,
+            });
+        } catch (err) {
+            logger.error(
+                { err },
+                'Error processing create asset request for asset ID %s',
+                req.body.Name
+            );
+
+            return res.status(INTERNAL_SERVER_ERROR).json({
+                status: getReasonPhrase(INTERNAL_SERVER_ERROR),
+                timestamp: new Date().toISOString(),
+            });
+        }
+    }
+);
+
+assetsRouter.get(
+    '/certificate',
+    body().isObject().withMessage('body must contain an asset object'),
+    body('Hash', 'must be a string').notEmpty(),
+    async (req: Request, res: Response) => {
+        const hashStr = req.body.Hash;
+        logger.debug('Read asset request received for asset ID %s', hashStr);
+
+        try {
+            const mspId = req.user as string;
+            const contract = req.app.locals[mspId]?.assetContract as Contract;
+
+            const data = await evatuateTransaction(
+                contract,
+                'validateCertificate',
+                hashStr
+            );
+            const asset = JSON.parse(data.toString());
+
+            return res.status(OK).json(asset);
+        } catch (err) {
+            logger.error(
+                { err },
+                'Error processing read asset request for asset ID %s',
+                hashStr
+            );
+
+            if (err instanceof AssetNotFoundError) {
+                return res.status(NOT_FOUND).json({
+                    status: getReasonPhrase(NOT_FOUND),
+                    timestamp: new Date().toISOString(),
+                });
+            }
+
+            return res.status(INTERNAL_SERVER_ERROR).json({
+                status: getReasonPhrase(INTERNAL_SERVER_ERROR),
+                timestamp: new Date().toISOString(),
+            });
+        }
+    }
+);

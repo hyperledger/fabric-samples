@@ -54,12 +54,15 @@ export const createServer = async (): Promise<Application> => {
     }
 
     if (process.env.NODE_ENV === 'test') {
+        app.use(cors());
         // TBC
     }
 
     if (process.env.NODE_ENV === 'production') {
+        app.use(cors());
         app.use(helmet());
     }
+    app.use(cors());
 
     app.use('/', healthRouter);
     app.use('/api/assets', authenticateApiKey, assetsRouter);
