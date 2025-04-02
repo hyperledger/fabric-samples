@@ -73,8 +73,11 @@ public class RecetaService {
                 .commitStatusOptions(options -> options.withDeadlineAfter(1, TimeUnit.MINUTES));
 
         try (var gateway = builder.connect()) {
+            System.out.println("LLEGO ACA 2");
             this.setContract(gateway);
+            System.out.println("LLEGO ACA 3");
             this.initLedger();
+            System.out.println("LLEGO ACA 4");
         } /*finally {
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
         }*/
