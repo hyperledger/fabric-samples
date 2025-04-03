@@ -256,3 +256,27 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 
 	return assets, nil
 }
+
+// GetMultipleAssets devuelve múltiples activos basados en sus IDs
+func (s *SmartContract) GetMultipleAssets(ctx contractapi.TransactionContextInterface, assetIDs []string) ([]*Receta, error) {
+    var recetas []*Receta
+    
+    for _, id := range assetIDs {
+        assetJSON, err := ctx.GetStub().GetState(id)
+        if err != nil {
+            return nil, fmt.Errorf("failed to read from world state: %v", err)
+        }
+        if assetJSON == nil {
+            continue // o puedes devolver error si prefieres
+        }
+        
+        var receta Receta
+        err = json.Unmarshal(assetJSON, &receta)
+        if err != nil {
+            return nil, err
+        }
+        recetas = append(recetas, &receta)
+    }
+    
+    return recetas, nil
+}

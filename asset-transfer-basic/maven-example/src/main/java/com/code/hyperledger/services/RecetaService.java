@@ -161,4 +161,28 @@ public class RecetaService {
         System.out.println("mapper:" + receta.getDniPaciente());
         return receta;
     }
+
+    public List<Receta> obtenerTodosLosAssets() throws GatewayException, IOException {
+        System.out.println("\n--> Evaluate Transaction: GetAllAssets");
+        
+        var evaluateResult = contract.evaluateTransaction("GetAllAssets");
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        // Leer como array de Recetas
+        List<Receta> recetas = objectMapper.readValue(evaluateResult, 
+            objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
+        
+        return recetas;
+    }
+
+    public List<Receta> obtenerRecetasPorIds(List<String> assetIds) throws GatewayException, IOException {
+        System.out.println("\n--> Evaluate Transaction: GetMultipleAssets");
+        
+        ObjectMapper objectMapper = new ObjectMapper();
+        String idsJson = objectMapper.writeValueAsString(assetIds);
+        
+        var evaluateResult = contract.evaluateTransaction("GetMultipleAssets", idsJson);
+        return objectMapper.readValue(evaluateResult, 
+            objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
+    }
 }

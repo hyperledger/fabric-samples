@@ -79,5 +79,45 @@ public class RecetaController {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
         }
-    }    
+    }
+
+    @PostMapping("/todas")
+    public ResponseEntity<List<RecetaDto>> obtenerRecetasPorIds(@RequestBody Map<String, List<String>> requestBody) {
+        try {
+            List<String> ids = requestBody.get("ids");
+            if (ids == null || ids.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            
+            System.out.println("IDs solicitados: " + ids);
+            List<Receta> recetas = recetaService.obtenerRecetasPorIds(ids);
+            List<RecetaDto> recetasDto = new ArrayList<>();
+            
+            for (Receta receta : recetas) {
+                RecetaDto recetaDto = new RecetaDto();
+                recetaDto.setOwner(receta.getOwner());
+                recetaDto.setPrescripcionAnteriorId(receta.getPrescripcionAnteriorId());
+                recetaDto.setStatus(receta.getStatus());
+                recetaDto.setStatusChange(receta.getStatusChange());
+                recetaDto.setPrioridad(receta.getPrioridad());
+                recetaDto.setMedicacion(receta.getMedicacion());
+                recetaDto.setRazon(receta.getRazon());
+                recetaDto.setNotas(receta.getNotas());
+                recetaDto.setPeriodoDeTratamiento(receta.getPeriodoDeTratamiento());
+                recetaDto.setInstruccionesTratamiento(receta.getInstruccionesTratamiento());
+                recetaDto.setPeriodoDeValidez(receta.getPeriodoDeValidez());
+                recetaDto.setDniPaciente(receta.getDniPaciente());
+                recetaDto.setFechaDeAutorizacion(receta.getFechaDeAutorizacion());
+                recetaDto.setCantidad(receta.getCantidad());
+                recetaDto.setExpectedSupplyDuration(receta.getExpectedSupplyDuration());
+                
+                recetasDto.add(recetaDto);
+            }
+            
+            return new ResponseEntity<>(recetasDto, HttpStatus.OK);
+        } catch (IOException | GatewayException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
