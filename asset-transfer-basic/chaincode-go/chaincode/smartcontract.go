@@ -105,21 +105,44 @@ func (s *SmartContract) CreateReceta(ctx contractapi.TransactionContextInterface
 	return ctx.GetStub().PutState(receta.ID, recetaJSON)
 }
 
-func (s *SmartContract) UpdateReceta(ctx contractapi.TransactionContextInterface, receta Receta) error {
-	exists, err := s.RecetaExists(ctx, receta.ID)
+func (s *SmartContract) EntregarReceta(ctx contractapi.TransactionContextInterface, recetaID string) error {
+	exists, err := s.RecetaExists(ctx, recetaID)
 	if err != nil {
 		return err
 	}
 	if !exists {
-		return fmt.Errorf("la receta %s no existe", receta.ID)
+		return fmt.Errorf("la receta %s no existe", recetaID)
 	}
 
-	recetaJSON, err := json.Marshal(receta)
+	// Obtener la receta actual
+	recetaActualJSON, err := ctx.GetStub().GetState(recetaID)
 	if err != nil {
-		return err
+		return fmt.Errorf("error al obtener la receta actual: %v", err)
+	}
+	if recetaActualJSON == nil {
+		return fmt.Errorf("la receta %s no fue encontrada en el ledger", recetaID)
 	}
 
-	return ctx.GetStub().PutState(receta.ID, recetaJSON)
+	var recetaActual Receta
+	if err := json.Unmarshal(recetaActualJSON, &recetaActual); err != nil {
+		return fmt.Errorf("error al parsear la receta actual: %v", err)
+	}
+
+	// Validar que el estado actual sea ACTIVO
+	if recetaActual.Status != "ACTIVO" {
+		return fmt.Errorf("solo se puede entregar la receta si está en estado 'ACTIVO'")
+	}
+
+	// Cambiar el estado a ENTREGADO
+	recetaActual.Status = "ENTREGADO"
+
+	// Guardar la receta modificada
+	updatedRecetaJSON, err := json.Marshal(recetaActual)
+	if err != nil {
+		return fmt.Errorf("error al serializar la receta modificada: %v", err)
+	}
+
+	return ctx.GetStub().PutState(recetaID, updatedRecetaJSON)
 }
 
 func (s *SmartContract) ReadReceta(ctx contractapi.TransactionContextInterface, id string) (*Receta, error) {

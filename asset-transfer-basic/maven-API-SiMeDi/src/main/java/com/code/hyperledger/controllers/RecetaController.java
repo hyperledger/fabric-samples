@@ -83,6 +83,25 @@ public class RecetaController {
         }
     }
 
+    @PutMapping("/entregar")
+    public ResponseEntity<Void> entregarReceta(@RequestBody Map<String, String> requestBody) {
+        try {
+            String id = requestBody.get("id");
+
+            if (id == null || id.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            System.out.println("\n--> Submit Transaction: EntregarReceta");
+
+            recetaService.entregarReceta(id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (EndorseException | SubmitException | CommitStatusException | CommitException | IOException | GatewayException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     private RecetaDto mapToDto(Receta receta) {
         RecetaDto dto = new RecetaDto();
         dto.setIdentifier(receta.getIdentifier());

@@ -17,7 +17,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Identity;
 import java.security.InvalidKeyException;
+import java.security.Signer;
 import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +31,8 @@ public class RecetaService {
     private static final String CHANNEL_NAME = System.getenv().getOrDefault("CHANNEL_NAME", "mychannel");
     private static final String CHAINCODE_NAME = System.getenv().getOrDefault("CHAINCODE_NAME", "basic");
 
-    private static final Path CRYPTO_PATH = Paths.get("../../test-network/organizations/peerOrganizations/org1.example.com");
+    private static final Path CRYPTO_PATH = Paths
+            .get("../../test-network/organizations/peerOrganizations/org1.example.com");
     private static final Path CERT_DIR_PATH = CRYPTO_PATH.resolve("users/User1@org1.example.com/msp/signcerts");
     private static final Path KEY_DIR_PATH = CRYPTO_PATH.resolve("users/User1@org1.example.com/msp/keystore");
     private static final Path TLS_CERT_PATH = CRYPTO_PATH.resolve("peers/peer0.org1.example.com/tls/ca.crt");
@@ -98,7 +101,8 @@ public class RecetaService {
         contract.submitTransaction("InitLedger");
     }
 
-    public void cargarReceta(Receta receta) throws CommitStatusException, EndorseException, CommitException, SubmitException {
+    public void cargarReceta(Receta receta)
+            throws CommitStatusException, EndorseException, CommitException, SubmitException {
         contract.submitTransaction(
                 "CreateReceta",
                 receta.getId(),
@@ -116,8 +120,7 @@ public class RecetaService {
                 receta.getDniPaciente(),
                 receta.getFechaDeAutorizacion(),
                 Integer.toString(receta.getCantidad()),
-                receta.getExpectedSupplyDuration()
-        );
+                receta.getExpectedSupplyDuration());
     }
 
     public Receta obtenerReceta(String recetaId) throws GatewayException, IOException {
@@ -140,7 +143,13 @@ public class RecetaService {
         return objectMapper.readValue(evaluateResult,
                 objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
     }
+
 }
+
+    public void entregarReceta(String recetaId)
+            throws CommitStatusException, EndorseException, CommitException, SubmitException {
+        contract.submitTransaction("EntregarReceta", recetaId);
+    }
 
 public List<Receta> obtenerRecetasPorDniYEstado(String dni, String estado) throws GatewayException, IOException {
     if (dni == null || dni.isBlank() || estado == null || estado.isBlank()) {
@@ -152,4 +161,3 @@ public List<Receta> obtenerRecetasPorDniYEstado(String dni, String estado) throw
     return objectMapper.readValue(evaluateResult,
             objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
 }
-
