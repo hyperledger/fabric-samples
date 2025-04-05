@@ -7,15 +7,11 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
-// SmartContract provides functions for managing an Asset
 type SmartContract struct {
 	contractapi.Contract
 }
 
-// Asset describes basic details of what makes up a simple asset
-// Insert struct field in alphabetic order => to achieve determinism across languages
-// golang keeps the order when marshal to json but doesn't order automatically
-type Asset struct {
+type Receta struct {
 	ID                       string `json:"id"`
 	Owner                    string `json:"owner"`
 	PrescripcionAnteriorId   string `json:"prescripcionAnteriorId"`
@@ -34,41 +30,39 @@ type Asset struct {
 	ExpectedSupplyDuration   string `json:"expectedSupplyDuration"`
 }
 
-// InitLedger adds a base set of assets to the ledger
-// InitLedger adds a base set of assets to the ledger
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
-	assets := []Asset{
+	recetas := []Receta{
 		{
-			ID:                       "asset1",
+			ID:                       "receta1",
 			Owner:                    "Tomoko",
 			PrescripcionAnteriorId:   "presc123",
 			Status:                   "active",
 			StatusChange:             "2024-01-15T10:00:00Z",
 			Prioridad:                "high",
-			Medicacion:               "medication1",
-			Razon:                    "reason1",
-			Notas:                    "some notes",
-			PeriodoDeTratamiento:     "30 days",
-			InstruccionesTratamiento: "take daily",
-			PeriodoDeValidez:         "1 year",
+			Medicacion:               "medicacion1",
+			Razon:                    "razon1",
+			Notas:                    "algunas notas",
+			PeriodoDeTratamiento:     "30 dias",
+			InstruccionesTratamiento: "una por dia",
+			PeriodoDeValidez:         "1 anio",
 			DniPaciente:              "12345678",
 			FechaDeAutorizacion:      "2024-01-01T09:00:00Z",
 			Cantidad:                 "5",
 			ExpectedSupplyDuration:   "2024-02-01T09:00:00Z",
 		},
 		{
-			ID:                       "asset2",
+			ID:                       "receta2",
 			Owner:                    "Alice",
 			PrescripcionAnteriorId:   "presc456",
 			Status:                   "completed",
 			StatusChange:             "2024-02-20T11:00:00Z",
 			Prioridad:                "medium",
-			Medicacion:               "medication2",
-			Razon:                    "reason2",
-			Notas:                    "other notes",
-			PeriodoDeTratamiento:     "60 days",
-			InstruccionesTratamiento: "take twice daily",
-			PeriodoDeValidez:         "2 years",
+			Medicacion:               "medicacion2",
+			Razon:                    "razon2",
+			Notas:                    "otras notas",
+			PeriodoDeTratamiento:     "60 dias",
+			InstruccionesTratamiento: "dos por dia",
+			PeriodoDeValidez:         "2 anios",
 			DniPaciente:              "87654321",
 			FechaDeAutorizacion:      "2024-01-10T10:00:00Z",
 			Cantidad:                 "10",
@@ -76,152 +70,108 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 		},
 	}
 
-	for _, asset := range assets {
-		assetJSON, err := json.Marshal(asset)
+	for _, receta := range recetas {
+		recetaJSON, err := json.Marshal(receta)
 		if err != nil {
 			return err
 		}
 
-		err = ctx.GetStub().PutState(asset.ID, assetJSON)
+		err = ctx.GetStub().PutState(receta.ID, recetaJSON)
 		if err != nil {
-			return fmt.Errorf("failed to put to world state. %v", err)
+			return fmt.Errorf("error al guardar receta en el ledger: %v", err)
 		}
 	}
 
 	return nil
 }
 
-// CreateAsset issues a new asset to the world state with given details.
-func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface, id string, owner string, prescripcionAnteriorId string, status string, statusChange string, prioridad string, medicacion string, razon string, notas string, periodoDeTratamiento string, instruccionesTratamiento string, periodoDeValidez string, dniPaciente string, fechaDeAutorizacion string, cantidad string, expectedSupplyDuration string) error {
-	exists, err := s.AssetExists(ctx, id)
+func (s *SmartContract) CreateReceta(ctx contractapi.TransactionContextInterface, receta Receta) error {
+	exists, err := s.RecetaExists(ctx, receta.ID)
 	if err != nil {
 		return err
 	}
 	if exists {
-		return fmt.Errorf("the asset %s already exists", id)
+		return fmt.Errorf("la receta %s ya existe", receta.ID)
 	}
 
-	asset := Asset{
-		ID:                       id,
-		Owner:                    owner,
-		PrescripcionAnteriorId:   prescripcionAnteriorId,
-		Status:                   status,
-		StatusChange:             statusChange,
-		Prioridad:                prioridad,
-		Medicacion:               medicacion,
-		Razon:                    razon,
-		Notas:                    notas,
-		PeriodoDeTratamiento:     periodoDeTratamiento,
-		InstruccionesTratamiento: instruccionesTratamiento,
-		PeriodoDeValidez:         periodoDeValidez,
-		DniPaciente:              dniPaciente,
-		FechaDeAutorizacion:      fechaDeAutorizacion,
-		Cantidad:                 cantidad,
-		ExpectedSupplyDuration:   expectedSupplyDuration,
-	}
-	assetJSON, err := json.Marshal(asset)
+	recetaJSON, err := json.Marshal(receta)
 	if err != nil {
 		return err
 	}
 
-	return ctx.GetStub().PutState(id, assetJSON)
+	return ctx.GetStub().PutState(receta.ID, recetaJSON)
 }
 
-// UpdateAsset updates an existing asset in the world state with provided parameters.
-func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface, id string, owner string, prescripcionAnteriorId string, status string, statusChange string, prioridad string, medicacion string, razon string, notas string, periodoDeTratamiento string, instruccionesTratamiento string, periodoDeValidez string, dniPaciente string, fechaDeAutorizacion string, cantidad string, expectedSupplyDuration string) error {
-	exists, err := s.AssetExists(ctx, id)
+func (s *SmartContract) UpdateReceta(ctx contractapi.TransactionContextInterface, receta Receta) error {
+	exists, err := s.RecetaExists(ctx, receta.ID)
 	if err != nil {
 		return err
 	}
 	if !exists {
-		return fmt.Errorf("the asset %s does not exist", id)
+		return fmt.Errorf("la receta %s no existe", receta.ID)
 	}
 
-	// overwriting original asset with new asset
-	asset := Asset{
-		ID:                       id,
-		Owner:                    owner,
-		PrescripcionAnteriorId:   prescripcionAnteriorId,
-		Status:                   status,
-		StatusChange:             statusChange,
-		Prioridad:                prioridad,
-		Medicacion:               medicacion,
-		Razon:                    razon,
-		Notas:                    notas,
-		PeriodoDeTratamiento:     periodoDeTratamiento,
-		InstruccionesTratamiento: instruccionesTratamiento,
-		PeriodoDeValidez:         periodoDeValidez,
-		DniPaciente:              dniPaciente,
-		FechaDeAutorizacion:      fechaDeAutorizacion,
-		Cantidad:                 cantidad,
-		ExpectedSupplyDuration:   expectedSupplyDuration,
-	}
-	assetJSON, err := json.Marshal(asset)
+	recetaJSON, err := json.Marshal(receta)
 	if err != nil {
 		return err
 	}
 
-	return ctx.GetStub().PutState(id, assetJSON)
+	return ctx.GetStub().PutState(receta.ID, recetaJSON)
 }
 
-// ReadAsset returns the asset stored in the world state with given id.
-func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, id string) (*Asset, error) {
-	assetJSON, err := ctx.GetStub().GetState(id)
+func (s *SmartContract) ReadReceta(ctx contractapi.TransactionContextInterface, id string) (*Receta, error) {
+	recetaJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read from world state: %v", err)
+		return nil, fmt.Errorf("error al leer del ledger: %v", err)
 	}
-	if assetJSON == nil {
-		return nil, fmt.Errorf("the asset %s does not exist", id)
+	if recetaJSON == nil {
+		return nil, fmt.Errorf("la receta %s no existe", id)
 	}
 
-	var asset Asset
-	err = json.Unmarshal(assetJSON, &asset)
+	var receta Receta
+	err = json.Unmarshal(recetaJSON, &receta)
 	if err != nil {
 		return nil, err
 	}
 
-	return &asset, nil
+	return &receta, nil
 }
 
-// DeleteAsset deletes an given asset from the world state.
-func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface, id string) error {
-	exists, err := s.AssetExists(ctx, id)
+func (s *SmartContract) DeleteReceta(ctx contractapi.TransactionContextInterface, id string) error {
+	exists, err := s.RecetaExists(ctx, id)
 	if err != nil {
 		return err
 	}
 	if !exists {
-		return fmt.Errorf("the asset %s does not exist", id)
+		return fmt.Errorf("la receta %s no existe", id)
 	}
 
 	return ctx.GetStub().DelState(id)
 }
 
-// AssetExists returns true when asset with given ID exists in world state
-func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
-	assetJSON, err := ctx.GetStub().GetState(id)
+func (s *SmartContract) RecetaExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
+	recetaJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
-		return false, fmt.Errorf("failed to read from world state: %v", err)
+		return false, fmt.Errorf("error al acceder al ledger: %v", err)
 	}
-
-	return assetJSON != nil, nil
+	return recetaJSON != nil, nil
 }
 
-// TransferAsset updates the owner field of asset with given id in world state, and returns the old owner.
-func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, id string, newOwner string) (string, error) {
-	asset, err := s.ReadAsset(ctx, id)
+func (s *SmartContract) TransferirReceta(ctx contractapi.TransactionContextInterface, id string, nuevoOwner string) (string, error) {
+	receta, err := s.ReadReceta(ctx, id)
 	if err != nil {
 		return "", err
 	}
 
-	oldOwner := asset.Owner
-	asset.Owner = newOwner
+	oldOwner := receta.Owner
+	receta.Owner = nuevoOwner
 
-	assetJSON, err := json.Marshal(asset)
+	recetaJSON, err := json.Marshal(receta)
 	if err != nil {
 		return "", err
 	}
 
-	err = ctx.GetStub().PutState(id, assetJSON)
+	err = ctx.GetStub().PutState(id, recetaJSON)
 	if err != nil {
 		return "", err
 	}
@@ -229,54 +179,48 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 	return oldOwner, nil
 }
 
-// GetAllAssets returns all assets found in world state
-func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface) ([]*Asset, error) {
-	// range query with empty string for startKey and endKey does an
-	// open-ended query of all assets in the chaincode namespace.
+func (s *SmartContract) GetAllRecetas(ctx contractapi.TransactionContextInterface) ([]*Receta, error) {
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, err
 	}
 	defer resultsIterator.Close()
 
-	var assets []*Asset
+	var recetas []*Receta
 	for resultsIterator.HasNext() {
 		queryResponse, err := resultsIterator.Next()
 		if err != nil {
 			return nil, err
 		}
 
-		var asset Asset
-		err = json.Unmarshal(queryResponse.Value, &asset)
+		var receta Receta
+		err = json.Unmarshal(queryResponse.Value, &receta)
 		if err != nil {
 			return nil, err
 		}
-		assets = append(assets, &asset)
+		recetas = append(recetas, &receta)
 	}
 
-	return assets, nil
+	return recetas, nil
 }
 
-// GetMultipleAssets devuelve múltiples activos basados en sus IDs
-func (s *SmartContract) GetMultipleAssets(ctx contractapi.TransactionContextInterface, assetIDs []string) ([]*Receta, error) {
-    var recetas []*Receta
-    
-    for _, id := range assetIDs {
-        assetJSON, err := ctx.GetStub().GetState(id)
-        if err != nil {
-            return nil, fmt.Errorf("failed to read from world state: %v", err)
-        }
-        if assetJSON == nil {
-            continue // o puedes devolver error si prefieres
-        }
-        
-        var receta Receta
-        err = json.Unmarshal(assetJSON, &receta)
-        if err != nil {
-            return nil, err
-        }
-        recetas = append(recetas, &receta)
-    }
-    
-    return recetas, nil
+func (s *SmartContract) GetMultipleRecetas(ctx contractapi.TransactionContextInterface, recetaIDs []string) ([]*Receta, error) {
+	var recetas []*Receta
+	for _, id := range recetaIDs {
+		recetaJSON, err := ctx.GetStub().GetState(id)
+		if err != nil {
+			return nil, fmt.Errorf("error al leer del ledger: %v", err)
+		}
+		if recetaJSON == nil {
+			continue
+		}
+
+		var receta Receta
+		err = json.Unmarshal(recetaJSON, &receta)
+		if err != nil {
+			return nil, err
+		}
+		recetas = append(recetas, &receta)
+	}
+	return recetas, nil
 }

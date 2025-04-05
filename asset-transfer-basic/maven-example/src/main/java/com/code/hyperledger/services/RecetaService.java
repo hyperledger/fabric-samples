@@ -13,18 +13,13 @@ import org.hyperledger.fabric.client.identity.*;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-
-import java.io.Console;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.cert.CertificateException;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -34,54 +29,41 @@ public class RecetaService {
     private static final String CHANNEL_NAME = System.getenv().getOrDefault("CHANNEL_NAME", "mychannel");
     private static final String CHAINCODE_NAME = System.getenv().getOrDefault("CHAINCODE_NAME", "basic");
 
-    // Path to crypto materials.
     private static final Path CRYPTO_PATH = Paths.get("../../test-network/organizations/peerOrganizations/org1.example.com");
-    // Path to user certificate.
-    private static final Path CERT_DIR_PATH = CRYPTO_PATH.resolve(Paths.get("users/User1@org1.example.com/msp/signcerts"));
-    // Path to user private key directory.
-    private static final Path KEY_DIR_PATH = CRYPTO_PATH.resolve(Paths.get("users/User1@org1.example.com/msp/keystore"));
-    // Path to peer tls certificate.
-    private static final Path TLS_CERT_PATH = CRYPTO_PATH.resolve(Paths.get("peers/peer0.org1.example.com/tls/ca.crt"));
+    private static final Path CERT_DIR_PATH = CRYPTO_PATH.resolve("users/User1@org1.example.com/msp/signcerts");
+    private static final Path KEY_DIR_PATH = CRYPTO_PATH.resolve("users/User1@org1.example.com/msp/keystore");
+    private static final Path TLS_CERT_PATH = CRYPTO_PATH.resolve("peers/peer0.org1.example.com/tls/ca.crt");
 
-    // Gateway peer end point.
     private static final String PEER_ENDPOINT = "localhost:7051";
     private static final String OVERRIDE_AUTH = "peer0.org1.example.com";
 
     private Contract contract;
-    //private final String assetId = "asset" + Instant.now().toEpochMilli();
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-
 
     private static Path getFirstFilePath(Path dirPath) throws IOException {
         try (var keyFiles = Files.list(dirPath)) {
             return keyFiles.findFirst().orElseThrow();
         }
     }
+
     @SneakyThrows
     @PostConstruct
     public void init() {
-
-        System.out.println("LLEGO ACA");
         var channel = newGrpcConnection();
 
-        var builder = Gateway.newInstance().identity(newIdentity()).signer(newSigner()).connection(channel)
-                // Default timeouts for different gRPC calls
+        var builder = Gateway.newInstance()
+                .identity(newIdentity())
+                .signer(newSigner())
+                .connection(channel)
                 .evaluateOptions(options -> options.withDeadlineAfter(5, TimeUnit.SECONDS))
                 .endorseOptions(options -> options.withDeadlineAfter(15, TimeUnit.SECONDS))
                 .submitOptions(options -> options.withDeadlineAfter(5, TimeUnit.SECONDS))
                 .commitStatusOptions(options -> options.withDeadlineAfter(1, TimeUnit.MINUTES));
 
         try (var gateway = builder.connect()) {
-            System.out.println("LLEGO ACA 2");
             this.setContract(gateway);
-            System.out.println("LLEGO ACA 3");
             this.initLedger();
-            System.out.println("LLEGO ACA 4");
-        } /*finally {
-            channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
-        }*/
-
+        }
     }
 
     private static ManagedChannel newGrpcConnection() throws IOException {
@@ -93,7 +75,7 @@ public class RecetaService {
                 .build();
     }
 
-    private  Identity newIdentity() throws IOException, CertificateException {
+    private Identity newIdentity() throws IOException, CertificateException {
         try (var certReader = Files.newBufferedReader(getFirstFilePath(CERT_DIR_PATH))) {
             var certificate = Identities.readX509Certificate(certReader);
             return new X509Identity(MSP_ID, certificate);
@@ -108,81 +90,54 @@ public class RecetaService {
     }
 
     private void setContract(final Gateway gateway) {
-        // Get a network instance representing the channel where the smart contract is
-        // deployed.
         var network = gateway.getNetwork(CHANNEL_NAME);
-
-        // Get the smart contract from the network.
         contract = network.getContract(CHAINCODE_NAME);
     }
 
     private void initLedger() throws EndorseException, SubmitException, CommitStatusException, CommitException {
-        System.out.println("\n--> Submit Transaction: InitLedger, function creates the initial set of assets on the ledger");
-
         contract.submitTransaction("InitLedger");
-
-        System.out.println("*** Transaction committed successfully");
     }
 
     public void cargarReceta(Receta receta) throws CommitStatusException, EndorseException, CommitException, SubmitException {
-        System.out.println("\n--> Submit Transaction: CreateAsset, creates new asset with all arguments");
-
-            contract.submitTransaction(
-                    "CreateAsset",
-                    receta.getId(),
-                    receta.getOwner(),
-                    receta.getPrescripcionAnteriorId(),
-                    receta.getStatus(),
-                    receta.getStatusChange(),
-                    receta.getPrioridad(),
-                    receta.getMedicacion(),
-                    receta.getRazon(),
-                    receta.getNotas(),
-                    receta.getPeriodoDeTratamiento(),
-                    receta.getInstruccionesTratamiento(),
-                    receta.getPeriodoDeValidez(),
-                    receta.getDniPaciente(),
-                    receta.getFechaDeAutorizacion(),
-                    Integer.toString(receta.getCantidad()),
-                    receta.getExpectedSupplyDuration()
-            );
-
-        System.out.println("*** Transaction committed successfully");
+        contract.submitTransaction(
+                "CreateReceta",
+                receta.getId(),
+                receta.getOwner(),
+                receta.getPrescripcionAnteriorId(),
+                receta.getStatus(),
+                receta.getStatusChange(),
+                receta.getPrioridad(),
+                receta.getMedicacion(),
+                receta.getRazon(),
+                receta.getNotas(),
+                receta.getPeriodoDeTratamiento(),
+                receta.getInstruccionesTratamiento(),
+                receta.getPeriodoDeValidez(),
+                receta.getDniPaciente(),
+                receta.getFechaDeAutorizacion(),
+                Integer.toString(receta.getCantidad()),
+                receta.getExpectedSupplyDuration()
+        );
     }
 
-    public Receta obtenerReceta(String assetId) throws GatewayException, IOException {
-        System.out.println("\n--> Evaluate Transaction: ReadAsset, function returns asset attributes");
-
-        System.out.println("assetId: " + assetId);
-        var evaluateResult = contract.evaluateTransaction("ReadAsset", assetId);
-        System.out.println("evaluate");
+    public Receta obtenerReceta(String recetaId) throws GatewayException, IOException {
+        var evaluateResult = contract.evaluateTransaction("ReadReceta", recetaId);
         ObjectMapper objectMapper = new ObjectMapper();
-        var receta = objectMapper.readValue(evaluateResult, Receta.class);
-        System.out.println("mapper:" + receta.getDniPaciente());
-        return receta;
+        return objectMapper.readValue(evaluateResult, Receta.class);
     }
 
-    public List<Receta> obtenerTodosLosAssets() throws GatewayException, IOException {
-        System.out.println("\n--> Evaluate Transaction: GetAllAssets");
-        
-        var evaluateResult = contract.evaluateTransaction("GetAllAssets");
+    public List<Receta> obtenerTodasLasRecetas() throws GatewayException, IOException {
+        var evaluateResult = contract.evaluateTransaction("GetAllRecetas");
         ObjectMapper objectMapper = new ObjectMapper();
-        
-        // Leer como array de Recetas
-        List<Receta> recetas = objectMapper.readValue(evaluateResult, 
-            objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
-        
-        return recetas;
+        return objectMapper.readValue(evaluateResult,
+                objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
     }
 
-    public List<Receta> obtenerRecetasPorIds(List<String> assetIds) throws GatewayException, IOException {
-        System.out.println("\n--> Evaluate Transaction: GetMultipleAssets");
-        
+    public List<Receta> obtenerRecetasPorIds(List<String> recetaIds) throws GatewayException, IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        String idsJson = objectMapper.writeValueAsString(assetIds);
-        
-        var evaluateResult = contract.evaluateTransaction("GetMultipleAssets", idsJson);
-        return objectMapper.readValue(evaluateResult, 
-            objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
+        String idsJson = objectMapper.writeValueAsString(recetaIds);
+        var evaluateResult = contract.evaluateTransaction("GetMultipleRecetas", idsJson);
+        return objectMapper.readValue(evaluateResult,
+                objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
     }
 }
