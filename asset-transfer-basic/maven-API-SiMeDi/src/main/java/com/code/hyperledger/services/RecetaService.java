@@ -141,3 +141,15 @@ public class RecetaService {
                 objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
     }
 }
+
+public List<Receta> obtenerRecetasPorDniYEstado(String dni, String estado) throws GatewayException, IOException {
+    if (dni == null || dni.isBlank() || estado == null || estado.isBlank()) {
+        throw new IllegalArgumentException("DNI y estado son obligatorios");
+    }
+
+    var evaluateResult = contract.evaluateTransaction("GetRecetasPorDniYEstado", dni, estado);
+    ObjectMapper objectMapper = new ObjectMapper();
+    return objectMapper.readValue(evaluateResult,
+            objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
+}
+

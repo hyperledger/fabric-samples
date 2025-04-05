@@ -1,4 +1,4 @@
-package com.code.hyperledger.coso;
+package com.code.hyperledger.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.code.hyperledger.coso;
+package com.code.hyperledger.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Receta {
     private String id;
+    private String identifier;
     private String owner;
     private String prescripcionAnteriorId;
     private String status;

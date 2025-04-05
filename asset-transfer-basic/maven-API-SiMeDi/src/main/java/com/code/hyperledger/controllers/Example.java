@@ -1,8 +1,9 @@
 package com.code.hyperledger.controllers;
 
-import com.code.hyperledger.coso.Receta;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.code.hyperledger.models.Receta;
 
 @RestController
 public class Example {

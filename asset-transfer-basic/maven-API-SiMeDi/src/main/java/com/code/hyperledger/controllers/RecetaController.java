@@ -1,9 +1,9 @@
 package com.code.hyperledger.controllers;
 
-import com.code.hyperledger.coso.Receta;
-import com.code.hyperledger.coso.RecetaDto;
-import com.code.hyperledger.coso.AssetIdDto;
 import com.code.hyperledger.Utils.Hashing;
+import com.code.hyperledger.models.AssetIdDto;
+import com.code.hyperledger.models.Receta;
+import com.code.hyperledger.models.RecetaDto;
 import com.code.hyperledger.services.RecetaService;
 import org.hyperledger.fabric.client.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +85,7 @@ public class RecetaController {
 
     private RecetaDto mapToDto(Receta receta) {
         RecetaDto dto = new RecetaDto();
+        dto.setIdentifier(receta.getIdentifier());
         dto.setOwner(receta.getOwner());
         dto.setPrescripcionAnteriorId(receta.getPrescripcionAnteriorId());
         dto.setStatus(receta.getStatus());

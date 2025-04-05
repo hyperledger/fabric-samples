@@ -13,6 +13,7 @@ type SmartContract struct {
 
 type Receta struct {
 	ID                       string `json:"id"`
+	Identificador			 string `json:"identificador"`
 	Owner                    string `json:"owner"`
 	PrescripcionAnteriorId   string `json:"prescripcionAnteriorId"`
 	Status                   string `json:"status"`
@@ -34,6 +35,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	recetas := []Receta{
 		{
 			ID:                       "receta1",
+			Identificador			  "rece1234"
 			Owner:                    "Tomoko",
 			PrescripcionAnteriorId:   "presc123",
 			Status:                   "active",
@@ -52,6 +54,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 		},
 		{
 			ID:                       "receta2",
+			Identificador             "rece1235"
 			Owner:                    "Alice",
 			PrescripcionAnteriorId:   "presc456",
 			Status:                   "completed",
@@ -223,4 +226,36 @@ func (s *SmartContract) GetMultipleRecetas(ctx contractapi.TransactionContextInt
 		recetas = append(recetas, &receta)
 	}
 	return recetas, nil
+}
+// TODO: adaptar los campos para que se tengan un identificar de usuarios ademas del DNI
+func (s *SmartContract) GetRecetasPorDniYEstado(ctx contractapi.TransactionContextInterface, dni string, estado string) ([]*Receta, error) {
+	if dni == "" || estado == "" {
+		return nil, fmt.Errorf("el dni y el estado son obligatorios")
+	}
+
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener datos del ledger: %v", err)
+	}
+	defer resultsIterator.Close()
+
+	var recetasFiltradas []*Receta
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var receta Receta
+		err = json.Unmarshal(queryResponse.Value, &receta)
+		if err != nil {
+			return nil, err
+		}
+
+		if receta.DniPaciente == dni && receta.Status == estado {
+			recetasFiltradas = append(recetasFiltradas, &receta)
+		}
+	}
+
+	return recetasFiltradas, nil
 }
