@@ -31,6 +31,22 @@ type Receta struct {
 	ExpectedSupplyDuration   string `json:"expectedSupplyDuration"`
 }
 
+type Vacuna struct {
+	ID                  string `json:"id"` // identificador único para el ledger
+	Identificador       string `json:"identificador"`
+	Status              string `json:"status"` // podés validarlo con enums si querés
+	StatusChange        string `json:"statusChange"` // como string (ISO8601)
+	StatusReason        string `json:"statusReason"`
+	VaccinateCode       string `json:"vaccinateCode"`
+	AdministradedProduct string `json:"administradedProduct"`
+	Manufacturer        string `json:"manufacturer"`
+	LotNumber           string `json:"lotNumber"`
+	ExpirationDate      string `json:"expirationDate"` // como string ISO8601
+	DniPaciente         string `json:"dniPaciente"`
+	Reactions           string `json:"reactions"` // puede ser un string o una estructura si querés después
+}
+
+
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	recetas := []Receta{
 		{
@@ -281,4 +297,87 @@ func (s *SmartContract) GetRecetasPorDniYEstado(ctx contractapi.TransactionConte
 	}
 
 	return recetasFiltradas, nil
+}
+
+func (s *SmartContract) CreateVacuna(ctx contractapi.TransactionContextInterface, vacuna Vacuna) error {
+	exists, err := s.VacunaExists(ctx, vacuna.ID)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return fmt.Errorf("la vacuna %s ya existe", vacuna.ID)
+	}
+
+	vacunaJSON, err := json.Marshal(vacuna)
+	if err != nil {
+		return err
+	}
+
+	return ctx.GetStub().PutState(vacuna.ID, vacunaJSON)
+}
+
+func (s *SmartContract) VacunaExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
+	vacunaJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return false, err
+	}
+	return vacunaJSON != nil, nil
+}
+
+unc (s *SmartContract) ReadVacuna(ctx contractapi.TransactionContextInterface, id string) (*Vacuna, error) {
+	vacunaJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return nil, fmt.Errorf("error al leer del ledger: %v", err)
+	}
+	if vacunaJSON == nil {
+		return nil, fmt.Errorf("la vacuna %s no existe", id)
+	}
+
+	var vacuna Vacuna
+	err = json.Unmarshal(vacunaJSON, &vacuna)
+	if err != nil {
+		return nil, err
+	}
+
+	return &vacuna, nil
+}
+
+func (s *SmartContract) GetVacunasPorDniYEstado(ctx contractapi.TransactionContextInterface, dni string, estado string) ([]*Vacuna, error) {
+	if dni == "" {
+		return nil, fmt.Errorf("el dni es obligatorio")
+	}
+
+	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener datos del ledger: %v", err)
+	}
+	defer resultsIterator.Close()
+
+	var vacunasFiltradas []*Vacuna
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var vacuna Vacuna
+		// Solo deserializamos si es posible (podría fallar si no es una vacuna)
+		if err := json.Unmarshal(queryResponse.Value, &vacuna); err != nil {
+			continue
+		}
+
+		// Validamos que tenga un DNI y coincida
+		if vacuna.DniPaciente != dni {
+			continue
+		}
+
+		// Si se pasó un estado, lo filtramos
+		if estado != "" && vacuna.Status != estado {
+			continue
+		}
+
+		vacunasFiltradas = append(vacunasFiltradas, &vacuna)
+	}
+
+	return vacunasFiltradas, nil
 }
