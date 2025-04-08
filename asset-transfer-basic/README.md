@@ -98,6 +98,12 @@ The Fabric test network is used to deploy and run this sample. Follow these step
      ./gradlew run
      ```
 
+     - To run the SiMeDi **Java** sample application:
+     ```shell
+     cd maven-API-SiMeDi
+      ./mvnw spring-boot:run
+     ```
+
 ## Clean up
 
 When you are finished, you can bring down the test network (from the `test-network` folder). The command will remove all the nodes of the test network, and delete any ledger data that you created.

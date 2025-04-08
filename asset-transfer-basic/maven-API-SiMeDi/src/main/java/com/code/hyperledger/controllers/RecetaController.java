@@ -96,8 +96,11 @@ public class RecetaController {
 
             recetaService.entregarReceta(id);
             return new ResponseEntity<>(HttpStatus.OK);
-        } catch (EndorseException | SubmitException | CommitStatusException | CommitException | IOException | GatewayException e) {
-            e.printStackTrace();
+        } catch (EndorseException | SubmitException | CommitStatusException | CommitException e) {
+            e.printStackTrace(); // o algún log específico
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (GatewayException e) {
+            e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

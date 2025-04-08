@@ -99,11 +99,17 @@ public class VacunaService {
         contract.submitTransaction(
                 "CreateVacuna",
                 vacuna.getId(),
-                vacuna.getNombre(),
-                vacuna.getLaboratorio(),
-                vacuna.getFechaAplicacion(),
+                vacuna.getIdentificador(),
+                vacuna.getStatus(),
+                vacuna.getStatusChange(),
+                vacuna.getStatusReason(),
+                vacuna.getVaccinateCode(),
+                vacuna.getAdministradedProduct(),
+                vacuna.getManufacturer(),
+                vacuna.getLotNumber(),
+                vacuna.getExpirationDate(),
                 vacuna.getDniPaciente(),
-                vacuna.getEstado()
+                vacuna.getReactions()
         );
     }
 

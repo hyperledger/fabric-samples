@@ -51,7 +51,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	recetas := []Receta{
 		{
 			ID:                       "receta1",
-			Identificador			  "rece1234"
+			Identificador:			  "rece1234",
 			Owner:                    "Tomoko",
 			PrescripcionAnteriorId:   "presc123",
 			Status:                   "active",
@@ -70,7 +70,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 		},
 		{
 			ID:                       "receta2",
-			Identificador             "rece1235"
+			Identificador:             "rece1235",
 			Owner:                    "Alice",
 			PrescripcionAnteriorId:   "presc456",
 			Status:                   "completed",
@@ -324,7 +324,7 @@ func (s *SmartContract) VacunaExists(ctx contractapi.TransactionContextInterface
 	return vacunaJSON != nil, nil
 }
 
-unc (s *SmartContract) ReadVacuna(ctx contractapi.TransactionContextInterface, id string) (*Vacuna, error) {
+func (s *SmartContract) ReadVacuna(ctx contractapi.TransactionContextInterface, id string) (*Vacuna, error) {
 	vacunaJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
 		return nil, fmt.Errorf("error al leer del ledger: %v", err)

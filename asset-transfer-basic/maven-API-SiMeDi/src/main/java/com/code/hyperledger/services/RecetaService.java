@@ -1,6 +1,6 @@
 package com.code.hyperledger.services;
 
-import com.code.hyperledger.coso.Receta;
+import com.code.hyperledger.models.Receta;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -17,9 +17,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Identity;
+import org.hyperledger.fabric.client.identity.Identity;
 import java.security.InvalidKeyException;
-import java.security.Signer;
+import org.hyperledger.fabric.client.identity.Signer;
 import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -144,20 +144,19 @@ public class RecetaService {
                 objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
     }
 
-}
-
     public void entregarReceta(String recetaId)
-            throws CommitStatusException, EndorseException, CommitException, SubmitException {
-        contract.submitTransaction("EntregarReceta", recetaId);
+        throws CommitStatusException, EndorseException, CommitException, SubmitException {
+    contract.submitTransaction("EntregarReceta", recetaId);
     }
 
-public List<Receta> obtenerRecetasPorDniYEstado(String dni, String estado) throws GatewayException, IOException {
-    if (dni == null || dni.isBlank() || estado == null || estado.isBlank()) {
-        throw new IllegalArgumentException("DNI y estado son obligatorios");
-    }
+    public List<Receta> obtenerRecetasPorDniYEstado(String dni, String estado) throws GatewayException, IOException {
+        if (dni == null || dni.isBlank() || estado == null || estado.isBlank()) {
+            throw new IllegalArgumentException("DNI y estado son obligatorios");
+        }
 
-    var evaluateResult = contract.evaluateTransaction("GetRecetasPorDniYEstado", dni, estado);
-    ObjectMapper objectMapper = new ObjectMapper();
-    return objectMapper.readValue(evaluateResult,
-            objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
+        var evaluateResult = contract.evaluateTransaction("GetRecetasPorDniYEstado", dni, estado);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(evaluateResult,
+                objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
+    }
 }
