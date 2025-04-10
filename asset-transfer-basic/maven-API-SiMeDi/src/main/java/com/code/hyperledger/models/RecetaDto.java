@@ -21,7 +21,7 @@ public class RecetaDto {
     private String periodoDeTratamiento;
     private String instruccionesTratamiento;
     private String periodoDeValidez;
-    private String dniPaciente;
+    private String patientDocumentNumber;
     //@JsonFormat(pattern = "yyyy-MM-dd")
     private String fechaDeAutorizacion;
     private int cantidad;

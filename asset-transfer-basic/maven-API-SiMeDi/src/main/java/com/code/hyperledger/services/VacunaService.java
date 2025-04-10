@@ -108,7 +108,7 @@ public class VacunaService {
                 vacuna.getManufacturer(),
                 vacuna.getLotNumber(),
                 vacuna.getExpirationDate(),
-                vacuna.getDniPaciente(),
+                vacuna.getPatientDocumentNumber(),
                 vacuna.getReactions()
         );
     }

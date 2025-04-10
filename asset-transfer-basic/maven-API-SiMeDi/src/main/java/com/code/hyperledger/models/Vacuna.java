@@ -19,7 +19,7 @@ public class Vacuna {
     private String manufacturer;
     private String lotNumber;
     private String expirationDate;
-    private String dniPaciente;
+    private String patientDocumentNumber;
     private String reactions;
 }
 

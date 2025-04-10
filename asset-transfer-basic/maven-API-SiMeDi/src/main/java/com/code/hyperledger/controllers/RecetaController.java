@@ -29,7 +29,7 @@ public class RecetaController {
         System.out.println("\n--> Submit Transaction: CrearReceta");
 
         String now = LocalDateTime.now().toString();
-        String dni = receta.getDniPaciente();
+        String dni = receta.getPatientDocumentNumber();
         String id = dni + now;
         String assetId = Hashing.sha256(id);
         receta.setId(assetId);
@@ -66,7 +66,7 @@ public class RecetaController {
         try {
             List<String> ids = requestBody.get("ids");
             if (ids == null || ids.isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
             }
 
             List<Receta> recetas = recetaService.obtenerRecetasPorIds(ids);
@@ -119,7 +119,7 @@ public class RecetaController {
         dto.setPeriodoDeTratamiento(receta.getPeriodoDeTratamiento());
         dto.setInstruccionesTratamiento(receta.getInstruccionesTratamiento());
         dto.setPeriodoDeValidez(receta.getPeriodoDeValidez());
-        dto.setDniPaciente(receta.getDniPaciente());
+        dto.setPatientDocumentNumber(receta.getPatientDocumentNumber());
         dto.setFechaDeAutorizacion(receta.getFechaDeAutorizacion());
         dto.setCantidad(receta.getCantidad());
         dto.setExpectedSupplyDuration(receta.getExpectedSupplyDuration());

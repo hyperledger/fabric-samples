@@ -27,7 +27,7 @@ public class VacunaController {
         System.out.println("\n--> Submit Transaction: CrearVacuna");
 
         String now = LocalDateTime.now().toString();
-        String dni = vacuna.getDniPaciente();
+        String dni = vacuna.getPatientDocumentNumber();
         String id = dni + now;
         String assetId = Hashing.sha256(id);
         vacuna.setId(assetId);

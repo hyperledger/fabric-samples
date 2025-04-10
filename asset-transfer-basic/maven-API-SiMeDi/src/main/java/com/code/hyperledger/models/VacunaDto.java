@@ -18,6 +18,6 @@ public class VacunaDto {
     private String manufacturer;
     private String lotNumber;
     private String expirationDate;
-    private String dniPaciente;
+    private String patientDocumentNumber;
     private String reactions;
 }

@@ -117,7 +117,7 @@ public class RecetaService {
                 receta.getPeriodoDeTratamiento(),
                 receta.getInstruccionesTratamiento(),
                 receta.getPeriodoDeValidez(),
-                receta.getDniPaciente(),
+                receta.getPatientDocumentNumber(),
                 receta.getFechaDeAutorizacion(),
                 Integer.toString(receta.getCantidad()),
                 receta.getExpectedSupplyDuration());

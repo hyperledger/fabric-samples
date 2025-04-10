@@ -25,7 +25,7 @@ type Receta struct {
 	PeriodoDeTratamiento     string `json:"periodoDeTratamiento"`
 	InstruccionesTratamiento string `json:"instruccionesTratamiento"`
 	PeriodoDeValidez         string `json:"periodoDeValidez"`
-	DniPaciente              string `json:"dniPaciente"`
+	PatientDocumentNumber    string `json:"patientDocumentNumber"`
 	FechaDeAutorizacion      string `json:"fechaDeAutorizacion"`
 	Cantidad                 string `json:"cantidad"`
 	ExpectedSupplyDuration   string `json:"expectedSupplyDuration"`
@@ -42,7 +42,7 @@ type Vacuna struct {
 	Manufacturer        string `json:"manufacturer"`
 	LotNumber           string `json:"lotNumber"`
 	ExpirationDate      string `json:"expirationDate"` // como string ISO8601
-	DniPaciente         string `json:"dniPaciente"`
+	PatientDocumentNumber  string `json:"patientDocumentNumber"`
 	Reactions           string `json:"reactions"` // puede ser un string o una estructura si querés después
 }
 
@@ -63,7 +63,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			PeriodoDeTratamiento:     "30 dias",
 			InstruccionesTratamiento: "una por dia",
 			PeriodoDeValidez:         "1 anio",
-			DniPaciente:              "12345678",
+			PatientDocumentNumber:    "12345678",
 			FechaDeAutorizacion:      "2024-01-01T09:00:00Z",
 			Cantidad:                 "5",
 			ExpectedSupplyDuration:   "2024-02-01T09:00:00Z",
@@ -82,7 +82,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			PeriodoDeTratamiento:     "60 dias",
 			InstruccionesTratamiento: "dos por dia",
 			PeriodoDeValidez:         "2 anios",
-			DniPaciente:              "87654321",
+			PatientDocumentNumber:    "87654321",
 			FechaDeAutorizacion:      "2024-01-10T10:00:00Z",
 			Cantidad:                 "10",
 			ExpectedSupplyDuration:   "2024-04-10T10:00:00Z",
@@ -291,7 +291,7 @@ func (s *SmartContract) GetRecetasPorDniYEstado(ctx contractapi.TransactionConte
 			return nil, err
 		}
 
-		if receta.DniPaciente == dni && receta.Status == estado {
+		if receta.PatientDocumentNumber == dni && receta.Status == estado {
 			recetasFiltradas = append(recetasFiltradas, &receta)
 		}
 	}
@@ -367,7 +367,7 @@ func (s *SmartContract) GetVacunasPorDniYEstado(ctx contractapi.TransactionConte
 		}
 
 		// Validamos que tenga un DNI y coincida
-		if vacuna.DniPaciente != dni {
+		if vacuna.PatientDocumentNumber != dni {
 			continue
 		}
 
