@@ -12,6 +12,8 @@
 
 createEnrollment() {
 
+  echo "createEnrollment $1 $2 $3 $4 $5 $6"
+
   local port=$1             # port of the CA used for creating the enrollment
   local username=$2         # username of the registered user on the CA 
   local password=$3         # password of the registered user on the CA
@@ -19,18 +21,26 @@ createEnrollment() {
   local component_dir=$5    # path of the component, this will be the directory where the artifacts will be created
   local tlscert=$6          # tls cert for connecting to the CA
 
+  set -x
+
   # Enroll the identity
-  fabric-ca-client enroll -d -u https://${username}:${password}@localhost:${port} --caname ca --mspdir "${component_dir}/msp" --tls.certfiles $tlscert
+
+  fabric-ca-client enroll -u https://${username}:${password}@localhost:${port} --caname ca --mspdir "${component_dir}/msp" --tls.certfiles $tlscert
+
   if [ $? -ne 0 ]; then
     echo "fabric-ca-client admin enroll failed, make sure CA service is available. Exiting..."
     exit 1
   fi
+
+  { set +x; } 2>/dev/null
 
   # Rename private key to mimic cryptogen
   find ${component_dir} -type f -name '*_sk'  | sed -e 'p;s/\(.*\)\/\(.*\)$/\1\/priv_sk/' | xargs -n2 mv -v
 
   # Rename the cacert to mimic cryptogen
   mv ${component_dir}/msp/cacerts/localhost-${port}-ca.pem ${component_dir}/msp/cacerts/ca.${orgname:+$orgname.}example.com-cert.pem
+
+  echo "\n\n"
 
 }
 
@@ -42,6 +52,8 @@ createEnrollment() {
 ######################################################################################
 
 createMSP() {
+
+  echo "createMSP $1 $2 $3"
 
   local caname=$1       # name of the ca (ordererca, org1ca, org2ca)
   local orgname=$2      # name of the org (org1, org2)  Ordering Org is blank
@@ -55,6 +67,8 @@ createMSP() {
   cp data_ca/${caname}/tlsca/ca-cert.pem ${org_dir}/msp/tlscacerts/tlsca.${orgname:+$orgname.}example.com-cert.pem
   awk -v cacert_name="ca.${orgname:+$orgname.}example.com-cert" '{gsub(/ca.example.com-cert/,cacert_name)}1' ca/config.yaml > ${org_dir}/msp/config.yaml
 
+  echo "\n\n"
+
 }
 
 ######################################################################################
@@ -66,6 +80,8 @@ createMSP() {
 ######################################################################################
 
 registerAndEnroll() {
+
+  echo "registerAndEnroll $1 $2 $3 $4 $5 $6 $7 $8"
 
   local port=$1              # port of the CA used for creating the enrollment
   local username=$2          # username of the user to register on the CA 
@@ -82,19 +98,23 @@ registerAndEnroll() {
     local attrs=""
   fi
 
+  set -x
+
   # Register the username
-  fabric-ca-client register -d -u https://localhost:${port} --id.name ${username} --id.secret ${password} --id.type ${type} --id.attrs "${attrs}" --caname ca --tls.certfiles $tlscert --mspdir "${org_dir}/ca/msp"
+  fabric-ca-client register -u https://localhost:${port} --id.name ${username} --id.secret ${password} --id.type ${type} --id.attrs "${attrs}" --caname ca --tls.certfiles $tlscert --mspdir "${org_dir}/ca/msp"
   if [ $? -ne 0 ]; then
     echo "fabric-ca-client register failed, make sure CA service is available. Exiting..."
     exit 1
   fi
 
   # Enroll the identity
-  fabric-ca-client enroll -d -u https://${username}:${password}@localhost:${port} --caname ca --mspdir "${component_dir}/msp" --tls.certfiles $tlscert
+  fabric-ca-client enroll -u https://${username}:${password}@localhost:${port} --caname ca --mspdir "${component_dir}/msp" --tls.certfiles $tlscert
   if [ $? -ne 0 ]; then
     echo "fabric-ca-client enroll failed, make sure CA service is available. Exiting..."
     exit 1
   fi
+
+  { set +x; } 2>/dev/null
 
   # Rename private key to mimic cryptogen
   find ${component_dir} -type f -name '*_sk'  | sed -e 'p;s/\(.*\)\/\(.*\)$/\1\/priv_sk/' | xargs -n2 mv -v
@@ -108,12 +128,16 @@ registerAndEnroll() {
   # If this is a peer or orderer type then create a TLS cert
   if [ "$type" = "peer" ] || [ "$type" = "orderer" ]; then
 
+    set -x
+
     # Enroll the TLS cert
-    fabric-ca-client enroll -d -u https://${username}:${password}@localhost:${port} --caname tlsca --mspdir "${component_dir}/tls" --tls.certfiles $tlscert --csr.hosts 'localhost,127.0.0.1'
+    fabric-ca-client enroll -u https://${username}:${password}@localhost:${port} --caname tlsca --mspdir "${component_dir}/tls" --tls.certfiles $tlscert --csr.hosts 'localhost,127.0.0.1'
     if [ $? -ne 0 ]; then
       echo "fabric-ca-client TLS enroll failed, make sure CA service is available. Exiting..."
       exit 1
     fi
+
+    { set +x; } 2>/dev/null
 
     # Rename private key to mimic cryptogen
     find ${component_dir} -type f -name '*_sk'  | sed -e 'p;s/\(.*\)\/\(.*\)$/\1\/priv_sk/' | xargs -n2 mv -v
@@ -127,6 +151,8 @@ registerAndEnroll() {
     mv ${component_dir}/tls/cacerts/localhost-${port}-tlsca.pem ${component_dir}/tls/cacerts/tlsca.${orgname:+$orgname.}example.com-cert.pem
 
   fi
+
+  echo "\n\n"
 
 }
 
