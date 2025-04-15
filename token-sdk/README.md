@@ -82,6 +82,7 @@ Prerequisites:
 
 - bash
 - golang 1.20+
+- build-essential
 - git
 - docker
 - docker-compose
@@ -115,7 +116,7 @@ Validate that the CA is at 1.5.7 by executing `fabric-ca-client version`.
 Install tokengen. Tokengen is a tool to create the configuration file for the token chaincode (once, when deploying the chaincode). It generates the public parameters that the network participants will use to generate their proofs, and it specifies the public identities of the issuer, auditor and CA for signature validation.
 
 ```bash
-go install github.com/hyperledger-labs/fabric-token-sdk/cmd/tokengen@v0.3.0
+CGO_ENABLED=1 go install github.com/hyperledger-labs/fabric-token-sdk/cmd/tokengen@v0.3.0
 ```
 
 ### Quick start
