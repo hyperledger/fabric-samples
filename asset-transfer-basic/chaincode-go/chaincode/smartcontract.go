@@ -13,7 +13,7 @@ type SmartContract struct {
 
 type Receta struct {
 	ID                       string `json:"id"`
-	Identificador			 string `json:"identificador"`
+	Identifier			     string `json:"identifier"`
 	Owner                    string `json:"owner"`
 	PrescripcionAnteriorId   string `json:"prescripcionAnteriorId"`
 	Status                   string `json:"status"`
@@ -51,7 +51,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	recetas := []Receta{
 		{
 			ID:                       "receta1",
-			Identificador:			  "rece1234",
+			Identifier:			      "rece1234",
 			Owner:                    "Tomoko",
 			PrescripcionAnteriorId:   "presc123",
 			Status:                   "active",
@@ -70,7 +70,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 		},
 		{
 			ID:                       "receta2",
-			Identificador:             "rece1235",
+			Identifier:               "rece1235",
 			Owner:                    "Alice",
 			PrescripcionAnteriorId:   "presc456",
 			Status:                   "completed",

@@ -5,6 +5,9 @@ import com.code.hyperledger.models.AssetIdDto;
 import com.code.hyperledger.models.Receta;
 import com.code.hyperledger.models.RecetaDto;
 import com.code.hyperledger.services.RecetaService;
+
+import main.java.com.code.hyperledger.models.RecetaRequestDto;
+
 import org.hyperledger.fabric.client.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,9 +20,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/recetas")
 public class RecetaController {
+
+    private static final Logger logger = LoggerFactory.getLogger(RecetaController.class);
 
     @Autowired
     private RecetaService recetaService;
@@ -27,37 +35,71 @@ public class RecetaController {
     @PostMapping("/crear")
     public ResponseEntity<AssetIdDto> crear(@RequestBody Receta receta) {
         System.out.println("\n--> Submit Transaction: CrearReceta");
-
+    
+        // Log para verificar los valores iniciales
+        System.out.println("Receta recibida: " + receta);
+    
         String now = LocalDateTime.now().toString();
         String dni = receta.getPatientDocumentNumber();
+        
+        // Log para ver el DNI y el timestamp
+        System.out.println("DNI del paciente: " + dni);
+        System.out.println("Timestamp actual: " + now);
+    
         String id = dni + now;
         String assetId = Hashing.sha256(id);
+    
+        // Log para ver el ID generado
+        System.out.println("ID generado para el asset: " + assetId);
+    
         receta.setId(assetId);
-
+    
         AssetIdDto assetIdDto = new AssetIdDto();
         assetIdDto.setDni(dni);
         assetIdDto.setTimeStamp(now);
-
+    
         try {
+            // Log antes de intentar cargar la receta
+            System.out.println("Intentando cargar la receta...");
+    
             recetaService.cargarReceta(receta);
+    
+            // Log después de que la receta fue cargada
+            System.out.println("Receta cargada correctamente.");
+    
             return new ResponseEntity<>(assetIdDto, HttpStatus.OK);
         } catch (CommitStatusException | EndorseException | CommitException | SubmitException e) {
+            // Log de error
+            System.err.println("Error al cargar la receta: " + e.getMessage());
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-    }
+    }    
 
     @PostMapping("/obtener")
-    public ResponseEntity<RecetaDto> find(@RequestBody Map<String, String> requestBody) {
+    public ResponseEntity<RecetaDto> find(@RequestBody RecetaRequestDto requestBody) {
+        logger.info("Received request to obtain receta with ID: {}", requestBody.getId());  // Log de entrada
+        
         try {
-            String id = requestBody.get("id");
+            String id = requestBody.getId();
+            logger.debug("Searching for receta with ID: {}", id);  // Log de búsqueda
+
             Receta receta = recetaService.obtenerReceta(id);
+            logger.debug("Receta found: {}", receta);  // Log cuando se encuentra la receta
 
             RecetaDto recetaDto = mapToDto(receta);
+            logger.info("Receta DTO created successfully for ID: {}", id);  // Log de éxito
+
             return new ResponseEntity<>(recetaDto, HttpStatus.OK);
-        } catch (IOException | GatewayException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            logger.error("IOException occurred while obtaining receta with ID: {}", requestBody.getId(), e);  // Log de excepción específica
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        } catch (GatewayException e) {
+            logger.error("GatewayException occurred while obtaining receta with ID: {}", requestBody.getId(), e);  // Log de excepción Gateway
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while obtaining receta with ID: {}", requestBody.getId(), e);  // Log de error inesperado
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

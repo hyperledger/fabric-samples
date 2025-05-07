@@ -11,7 +11,6 @@ public class Vacuna {
     private String id;
     private String identificador;
     private String status;
-    
     private String statusChange;
     private String statusReason;
     private String vaccinateCode;

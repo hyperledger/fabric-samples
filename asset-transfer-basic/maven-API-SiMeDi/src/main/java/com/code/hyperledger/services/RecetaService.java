@@ -11,16 +11,18 @@ import lombok.SneakyThrows;
 import org.hyperledger.fabric.client.*;
 import org.hyperledger.fabric.client.identity.*;
 import org.springframework.stereotype.Service;
+import org.hyperledger.fabric.client.identity.Identity;
+import org.hyperledger.fabric.client.identity.Signer;
+
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.hyperledger.fabric.client.identity.Identity;
 import java.security.InvalidKeyException;
-import org.hyperledger.fabric.client.identity.Signer;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -103,25 +105,18 @@ public class RecetaService {
 
     public void cargarReceta(Receta receta)
             throws CommitStatusException, EndorseException, CommitException, SubmitException {
-        contract.submitTransaction(
-                "CreateReceta",
-                receta.getId(),
-                receta.getOwner(),
-                receta.getPrescripcionAnteriorId(),
-                receta.getStatus(),
-                receta.getStatusChange(),
-                receta.getPrioridad(),
-                receta.getMedicacion(),
-                receta.getRazon(),
-                receta.getNotas(),
-                receta.getPeriodoDeTratamiento(),
-                receta.getInstruccionesTratamiento(),
-                receta.getPeriodoDeValidez(),
-                receta.getPatientDocumentNumber(),
-                receta.getFechaDeAutorizacion(),
-                Integer.toString(receta.getCantidad()),
-                receta.getExpectedSupplyDuration());
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String recetaJson = objectMapper.writeValueAsString(receta);
+
+            contract.submitTransaction("CreateReceta", recetaJson);
+            System.out.println("Receta creada correctamente");
+        } catch (Exception e) {
+            System.err.println("Error en submitTransaction: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
+
 
     public Receta obtenerReceta(String recetaId) throws GatewayException, IOException {
         var evaluateResult = contract.evaluateTransaction("ReadReceta", recetaId);
@@ -140,6 +135,12 @@ public class RecetaService {
         ObjectMapper objectMapper = new ObjectMapper();
         String idsJson = objectMapper.writeValueAsString(recetaIds);
         var evaluateResult = contract.evaluateTransaction("GetMultipleRecetas", idsJson);
+
+        if (evaluateResult == null || evaluateResult.length == 0) {
+            System.err.println("GetMultipleRecetas devolvió una respuesta vacía.");
+            return new ArrayList<>();
+        }
+
         return objectMapper.readValue(evaluateResult,
                 objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
     }
