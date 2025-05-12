@@ -9,7 +9,7 @@ In the current `test-network-k8s`, a Fabric network with three orderers managed 
 Since BFT Orderers are supported only in Fabric v3.0 and later, you must specify `3.0` or later for the `TEST_NETWORK_FABRIC_VERSION` environment variable. Additionally, set `TEST_NETWORK_ORDERER_TYPE` to `bft` to start the Fabric network and create a channel with BFT consensus type. For example:
 
 ```shell
-export TEST_NETWORK_FABRIC_VERSION=3.0
+export TEST_NETWORK_FABRIC_VERSION=3.1
 export TEST_NETWORK_ORDERER_TYPE=bft
 
 ./network kind
@@ -39,11 +39,11 @@ First, run the following command to verify that the environment variables are co
 ```shell
 $ ./network
 
-Fabric image versions: Peer (3.0.0), CA (1.5.13)
-Fabric binary versions: Peer (3.0.0), CA (1.5.13)
+Fabric image versions: Peer (3.1.1), CA (1.5.15)
+Fabric binary versions: Peer (3.1.1), CA (1.5.15)
 
 --- Fabric Information
-Fabric Version          : 3.0
+Fabric Version          : 3.1
 Fabric CA Version       : 1.5
 Container Registry      : hyperledger
 Network name            : test-network
