@@ -38,7 +38,7 @@ jobs:
         # Note: The default Fabric version for CI is currently the latest LTS (v2.5.x).
         # To test BFT Orderers, Fabric v3.x is explicitly specified here.
         with:
-          fabric-version: 3.1.0
+          fabric-version: 3.1.1
 
       - name: Run Test Network with BFT Orderers
         working-directory: test-network

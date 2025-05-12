@@ -17,7 +17,7 @@ function printHelp() {
     println
     println "    Flags:"
     println "    Used with \033[0;32mnetwork.sh prereq\033[0m:"
-    println "    -i     FabricVersion (default: '2.5.12')"
+    println "    -i     FabricVersion (default: '2.5.13')"
     println "    -cai   Fabric CA Version (default: '1.5.15')"
     println  
   elif [ "$USAGE" == "up" ]; then
@@ -159,7 +159,7 @@ function printHelp() {
     println
     println "    Flags:"
     println "    Used with \033[0;32mnetwork.sh prereq\033[0m"
-    println "    -i     FabricVersion (default: '2.5.12')"
+    println "    -i     FabricVersion (default: '2.5.13')"
     println "    -cai   Fabric CA Version (default: '1.5.15')"
     println
     println "    Used with \033[0;32mnetwork.sh up\033[0m, \033[0;32mnetwork.sh createChannel\033[0m:"
