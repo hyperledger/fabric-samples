@@ -146,7 +146,7 @@ public class VacunaController {
     
     private VacunaDto mapToDto(Vacuna vacuna) {
         VacunaDto dto = new VacunaDto();
-        dto.setIdentificador(vacuna.getIdentificador());
+        dto.setIdentificador(vacuna.getIdentifier());
         dto.setStatus(vacuna.getStatus());
         dto.setStatusChange(vacuna.getStatusChange());
         dto.setStatusReason(vacuna.getStatusReason());
