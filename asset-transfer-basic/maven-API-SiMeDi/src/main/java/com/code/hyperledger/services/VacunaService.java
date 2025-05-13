@@ -14,8 +14,6 @@ import com.code.hyperledger.models.VacunaDto;
 import org.hyperledger.fabric.client.*;
 import org.hyperledger.fabric.client.identity.*;
 import org.springframework.stereotype.Service;
-import org.hyperledger.fabric.client.identity.Signer;
-import org.hyperledger.fabric.client.identity.Identity;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -102,20 +100,17 @@ public class VacunaService {
 
     public void cargarVacuna(Vacuna vacuna)
             throws CommitStatusException, EndorseException, CommitException, SubmitException {
-        contract.submitTransaction(
-                "CreateVacuna",
-                vacuna.getId(),
-                vacuna.getIdentifier(),
-                vacuna.getStatus(),
-                vacuna.getStatusChange(),
-                vacuna.getStatusReason(),
-                vacuna.getVaccinateCode(),
-                vacuna.getAdministradedProduct(),
-                vacuna.getManufacturer(),
-                vacuna.getLotNumber(),
-                vacuna.getExpirationDate(),
-                vacuna.getPatientDocumentNumber(),
-                vacuna.getReactions());
+        try {
+            System.out.println("Vacuna recibida correctamente (Service)" + vacuna);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String vacunaJson = objectMapper.writeValueAsString(vacuna);
+
+            contract.submitTransaction("CreateVacuna", vacunaJson);
+            System.out.println("Vacuna creada correctamente (Service)" + vacunaJson);
+        } catch (Exception e) {
+            System.err.println("Error en submitTransaction: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public Vacuna obtenerVacuna(String vacunaId) throws GatewayException, IOException {

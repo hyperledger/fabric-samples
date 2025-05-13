@@ -61,7 +61,7 @@ public class VacunaController {
     
         try {
             // Log antes de intentar registrar la vacuna
-            System.out.println("Intentando registrar la vacuna...");
+            System.out.println("Intentando registrar la vacuna..." + vacuna);
     
             vacunaService.cargarVacuna(vacuna);
     
