@@ -117,7 +117,6 @@ public class RecetaService {
         }
     }
 
-
     public Receta obtenerReceta(String recetaId) throws GatewayException, IOException {
         var evaluateResult = contract.evaluateTransaction("ReadReceta", recetaId);
         ObjectMapper objectMapper = new ObjectMapper();

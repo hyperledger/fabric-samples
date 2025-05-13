@@ -342,6 +342,27 @@ func (s *SmartContract) ReadVacuna(ctx contractapi.TransactionContextInterface, 
 	return &vacuna, nil
 }
 
+func (s *SmartContract) GetMultipleVacunas(ctx contractapi.TransactionContextInterface, vacunaIDs []string) ([]*Vacuna, error) {
+	var vacunas []*Vacuna
+	for _, id := range vacunaIDs {
+		vacunaJSON, err := ctx.GetStub().GetState(id)
+		if err != nil {
+			return nil, fmt.Errorf("error al leer del ledger: %v", err)
+		}
+		if vacunaJSON == nil {
+			continue
+		}
+
+		var vacuna Vacuna
+		err = json.Unmarshal(vacunaJSON, &vacuna)
+		if err != nil {
+			return nil, err
+		}
+		vacunas = append(vacunas, &vacuna)
+	}
+	return vacunas, nil
+}
+
 func (s *SmartContract) GetVacunasPorDniYEstado(ctx contractapi.TransactionContextInterface, dni string, estado string) ([]*Vacuna, error) {
 	if dni == "" {
 		return nil, fmt.Errorf("el dni es obligatorio")

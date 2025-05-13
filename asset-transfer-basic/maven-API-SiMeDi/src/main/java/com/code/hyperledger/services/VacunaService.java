@@ -1,5 +1,6 @@
 package com.code.hyperledger.services;
 
+import com.code.hyperledger.models.Receta;
 import com.code.hyperledger.models.Vacuna;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -11,6 +12,8 @@ import lombok.SneakyThrows;
 import org.hyperledger.fabric.client.*;
 import org.hyperledger.fabric.client.identity.*;
 import org.springframework.stereotype.Service;
+import org.hyperledger.fabric.client.identity.Identity;
+import org.hyperledger.fabric.client.identity.Signer;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -19,6 +22,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -122,6 +126,20 @@ public class VacunaService {
     public List<Vacuna> obtenerTodasLasVacunas() throws GatewayException, IOException {
         var evaluateResult = contract.evaluateTransaction("GetAllVacunas");
         ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(evaluateResult,
+                objectMapper.getTypeFactory().constructCollectionType(List.class, Vacuna.class));
+    }
+
+    public List<Vacuna> obtenerVacunasPorIds(List<String> vacunaIds) throws GatewayException, IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String idsJson = objectMapper.writeValueAsString(vacunaIds);
+        var evaluateResult = contract.evaluateTransaction("GetMultipleVacunas", idsJson);
+
+        if (evaluateResult == null || evaluateResult.length == 0) {
+            System.err.println("GetMultipleVacunas devolvió una respuesta vacía.");
+            return new ArrayList<>();
+        }
+
         return objectMapper.readValue(evaluateResult,
                 objectMapper.getTypeFactory().constructCollectionType(List.class, Vacuna.class));
     }
