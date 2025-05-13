@@ -33,7 +33,7 @@ type Receta struct {
 
 type Vacuna struct {
 	ID                  string `json:"id"` // identificador único para el ledger
-	Identificador       string `json:"identificador"`
+	Identifier       	string `json:"identifier"`
 	Status              string `json:"status"` // podés validarlo con enums si querés
 	StatusChange        string `json:"statusChange"` // como string (ISO8601)
 	StatusReason        string `json:"statusReason"`

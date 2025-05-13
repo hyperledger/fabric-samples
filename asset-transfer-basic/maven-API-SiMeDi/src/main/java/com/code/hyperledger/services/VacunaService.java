@@ -9,18 +9,20 @@ import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
 import io.grpc.TlsChannelCredentials;
 import lombok.SneakyThrows;
+import main.java.com.code.hyperledger.models.VacunaDto;
+
 import org.hyperledger.fabric.client.*;
 import org.hyperledger.fabric.client.identity.*;
 import org.springframework.stereotype.Service;
-import org.hyperledger.fabric.client.identity.Identity;
-import org.hyperledger.fabric.client.identity.Signer;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Identity;
 import java.security.InvalidKeyException;
+import java.security.Signer;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,12 +100,12 @@ public class VacunaService {
         contract = network.getContract(CHAINCODE_NAME);
     }
 
-    public void registrarVacuna(Vacuna vacuna)
+    public void cargarVacuna(Vacuna vacuna)
             throws CommitStatusException, EndorseException, CommitException, SubmitException {
         contract.submitTransaction(
                 "CreateVacuna",
                 vacuna.getId(),
-                vacuna.getIdentificador(),
+                vacuna.getIdentifier(),
                 vacuna.getStatus(),
                 vacuna.getStatusChange(),
                 vacuna.getStatusReason(),
@@ -113,8 +115,7 @@ public class VacunaService {
                 vacuna.getLotNumber(),
                 vacuna.getExpirationDate(),
                 vacuna.getPatientDocumentNumber(),
-                vacuna.getReactions()
-        );
+                vacuna.getReactions());
     }
 
     public Vacuna obtenerVacuna(String vacunaId) throws GatewayException, IOException {

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Vacuna {
     private String id;
-    private String identificador;
+    private String identifier;
     private String status;
     private String statusChange;
     private String statusReason;
