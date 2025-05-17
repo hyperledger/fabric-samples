@@ -1,0 +1,108 @@
+# NIVIX HYBRID BLOCKCHAIN - IMPORTANT COMMANDS
+
+## NETWORK MANAGEMENT
+
+# Bring down any existing network
+./network.sh down
+
+# Start a fresh Fabric network
+./network.sh up
+
+# Create a channel named "mychannel"
+./network.sh createChannel
+
+# Bring down the network when done
+./network.sh down
+
+## CHAINCODE PREPARATION
+
+# Navigate to the chaincode directory
+cd /media/shubham/OS/for\ linux\ work/blockchain\ solana/hyperledger/fabric/fabric-samples/chaincode-nivix-kyc/go/nivix-kyc
+
+# Add required dependencies
+go get github.com/hyperledger/fabric-contract-api-go/contractapi
+go mod tidy
+
+# Prepare vendor directory
+go mod vendor
+
+## CHAINCODE DEPLOYMENT
+
+# Return to the test-network directory
+cd /media/shubham/OS/for\ linux\ work/blockchain\ solana/hyperledger/fabric/fabric-samples/test-network
+
+# Install jq (required by scripts)
+sudo apt-get update && sudo apt-get install -y jq
+
+# First deployment of chaincode
+./network.sh deployCC -ccn nivix-kyc -ccp ../chaincode-nivix-kyc/go/nivix-kyc -ccl go
+
+## PRIVATE COLLECTIONS SETUP
+
+# Set environment variables for Org1
+export PATH=${PWD}/../bin:$PATH
+export FABRIC_CFG_PATH=$PWD/../config/
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+export CORE_PEER_ADDRESS=localhost:7051
+
+# Approve chaincode with collections for Org1
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --channelID mychannel --name nivix-kyc --version 1.2 --package-id nivix-kyc_1.1:5ef7a3ff23f8d69ed809eb2863c129d83fa780069026d2615545b4136ae003bd --sequence 3 --collections-config "${PWD}/collections_config.json"
+
+# Set environment variables for Org2
+export CORE_PEER_LOCALMSPID="Org2MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
+export CORE_PEER_ADDRESS=localhost:9051
+
+# Approve chaincode with collections for Org2
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --channelID mychannel --name nivix-kyc --version 1.2 --package-id nivix-kyc_1.1:5ef7a3ff23f8d69ed809eb2863c129d83fa780069026d2615545b4136ae003bd --sequence 3 --collections-config "${PWD}/collections_config.json"
+
+# Reset to Org1 for commit
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+export CORE_PEER_ADDRESS=localhost:7051
+
+# Commit the chaincode definition with collections
+peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --channelID mychannel --name nivix-kyc --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" --version 1.2 --sequence 3 --collections-config "${PWD}/collections_config.json"
+
+## KYC OPERATIONS
+
+# Store KYC data for user1
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n nivix-kyc --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"StoreKYCData","Args":["user1", "Sol123456789", "John Doe", "true", "2025-05-17", "10", "a1b2c3d4e5f6"]}'
+
+# Store KYC data for user2
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n nivix-kyc --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"StoreKYCData","Args":["user2", "Sol987654321", "Jane Smith", "true", "2025-05-17", "5", "f6e5d4c3b2a1"]}'
+
+# Query KYC status for user1
+peer chaincode query -C mychannel -n nivix-kyc -c '{"function":"GetKYCStatus","Args":["Sol123456789"]}'
+
+# Query KYC status for user2
+peer chaincode query -C mychannel -n nivix-kyc -c '{"function":"GetKYCStatus","Args":["Sol987654321"]}'
+
+## TRANSACTION RECORDING
+
+# Record a transaction from Solana
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n nivix-kyc --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"RecordTransaction","Args":["tx123", "solSig456", "user1", "user2", "100.5", "USDC", "2025-05-17T17:36:00Z"]}'
+
+## CHANNEL EXAMINATION
+
+# List channels the peer has joined
+peer channel list
+
+# Get information about the channel
+peer channel getinfo -c mychannel
+
+## CHAINCODE EXAMINATION
+
+# List installed chaincodes
+peer lifecycle chaincode queryinstalled
+
+# Query committed chaincode definitions
+peer lifecycle chaincode querycommitted --channelID mychannel
+
+# Check specific chaincode commitment status
+peer lifecycle chaincode querycommitted --channelID mychannel --name nivix-kyc 
