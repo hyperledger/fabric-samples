@@ -12,7 +12,7 @@ public class RecetaDto {
     private String owner;
     private String prescripcionAnteriorId;
     private String status;
-    //@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    // @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private String statusChange;
     private String prioridad;
     private String medicacion;
@@ -22,9 +22,12 @@ public class RecetaDto {
     private String instruccionesTratamiento;
     private String periodoDeValidez;
     private String patientDocumentNumber;
-    //@JsonFormat(pattern = "yyyy-MM-dd")
+    // @JsonFormat(pattern = "yyyy-MM-dd")
     private String fechaDeAutorizacion;
     private String cantidad;
-    //@JsonFormat(pattern = "yyyy-MM-dd")
+    // @JsonFormat(pattern = "yyyy-MM-dd")
     private String expectedSupplyDuration;
+    private String practitioner;
+    private String practitionerDocumentNumber;
+    private String signature;
 }

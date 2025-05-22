@@ -20,4 +20,6 @@ public class VacunaDto {
     private String expirationDate;
     private String patientDocumentNumber;
     private String reactions;
+    private String practitioner;
+    private String practitionerDocumentNumber;
 }

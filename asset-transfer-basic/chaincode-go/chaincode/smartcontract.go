@@ -12,80 +12,90 @@ type SmartContract struct {
 }
 
 type Receta struct {
-	ID                       string `json:"id"`
-	Identifier			     string `json:"identifier"`
-	Owner                    string `json:"owner"`
-	PrescripcionAnteriorId   string `json:"prescripcionAnteriorId"`
-	Status                   string `json:"status"`
-	StatusChange             string `json:"statusChange"`
-	Prioridad                string `json:"prioridad"`
-	Medicacion               string `json:"medicacion"`
-	Razon                    string `json:"razon"`
-	Notas                    string `json:"notas"`
-	PeriodoDeTratamiento     string `json:"periodoDeTratamiento"`
-	InstruccionesTratamiento string `json:"instruccionesTratamiento"`
-	PeriodoDeValidez         string `json:"periodoDeValidez"`
-	PatientDocumentNumber    string `json:"patientDocumentNumber"`
-	FechaDeAutorizacion      string `json:"fechaDeAutorizacion"`
-	Cantidad                 string `json:"cantidad"`
-	ExpectedSupplyDuration   string `json:"expectedSupplyDuration"`
+	ID                         string `json:"id"`
+	Identifier                 string `json:"identifier"`
+	Owner                      string `json:"owner"`
+	PrescripcionAnteriorId     string `json:"prescripcionAnteriorId"`
+	Status                     string `json:"status"`
+	StatusChange               string `json:"statusChange"`
+	Prioridad                  string `json:"prioridad"`
+	Medicacion                 string `json:"medicacion"`
+	Razon                      string `json:"razon"`
+	Notas                      string `json:"notas"`
+	PeriodoDeTratamiento       string `json:"periodoDeTratamiento"`
+	InstruccionesTratamiento   string `json:"instruccionesTratamiento"`
+	PeriodoDeValidez           string `json:"periodoDeValidez"`
+	PatientDocumentNumber      string `json:"patientDocumentNumber"`
+	FechaDeAutorizacion        string `json:"fechaDeAutorizacion"`
+	Cantidad                   string `json:"cantidad"`
+	ExpectedSupplyDuration     string `json:"expectedSupplyDuration"`
+	Practitioner               string `json:"practitioner"`
+	PractitionerDocumentNumber string `json:"practitionerDocumentNumber"`
+	Signature                  string `json:"signature"`
 }
 
 type Vacuna struct {
-	ID                  string `json:"id"` // identificador único para el ledger
-	Identifier       	string `json:"identifier"`
-	Status              string `json:"status"` // podés validarlo con enums si querés
-	StatusChange        string `json:"statusChange"` // como string (ISO8601)
-	StatusReason        string `json:"statusReason"`
-	VaccinateCode       string `json:"vaccinateCode"`
-	AdministradedProduct string `json:"administradedProduct"`
-	Manufacturer        string `json:"manufacturer"`
-	LotNumber           string `json:"lotNumber"`
-	ExpirationDate      string `json:"expirationDate"` // como string ISO8601
-	PatientDocumentNumber  string `json:"patientDocumentNumber"`
-	Reactions           string `json:"reactions"` // puede ser un string o una estructura si querés después
+	ID                         string `json:"id"` // identificador único para el ledger
+	Identifier                 string `json:"identifier"`
+	Status                     string `json:"status"`       // podés validarlo con enums si querés
+	StatusChange               string `json:"statusChange"` // como string (ISO8601)
+	StatusReason               string `json:"statusReason"`
+	VaccinateCode              string `json:"vaccinateCode"`
+	AdministradedProduct       string `json:"administradedProduct"`
+	Manufacturer               string `json:"manufacturer"`
+	LotNumber                  string `json:"lotNumber"`
+	ExpirationDate             string `json:"expirationDate"` // como string ISO8601
+	PatientDocumentNumber      string `json:"patientDocumentNumber"`
+	Reactions                  string `json:"reactions"` // puede ser un string o una estructura si querés después
+	Practitioner               string `json:"practitioner"`
+	PractitionerDocumentNumber string `json:"practitionerDocumentNumber"`
 }
-
 
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	recetas := []Receta{
 		{
-			ID:                       "receta1",
-			Identifier:			      "rece1234",
-			Owner:                    "Tomoko",
-			PrescripcionAnteriorId:   "presc123",
-			Status:                   "active",
-			StatusChange:             "2024-01-15T10:00:00Z",
-			Prioridad:                "high",
-			Medicacion:               "medicacion1",
-			Razon:                    "razon1",
-			Notas:                    "algunas notas",
-			PeriodoDeTratamiento:     "30 dias",
-			InstruccionesTratamiento: "una por dia",
-			PeriodoDeValidez:         "1 anio",
-			PatientDocumentNumber:    "12345678",
-			FechaDeAutorizacion:      "2024-01-01T09:00:00Z",
-			Cantidad:                 "5",
-			ExpectedSupplyDuration:   "2024-02-01T09:00:00Z",
+			ID:                         "receta1",
+			Identifier:                 "rece1234",
+			Owner:                      "Tomoko",
+			PrescripcionAnteriorId:     "presc123",
+			Status:                     "active",
+			StatusChange:               "2024-01-15T10:00:00Z",
+			Prioridad:                  "high",
+			Medicacion:                 "medicacion1",
+			Razon:                      "razon1",
+			Notas:                      "algunas notas",
+			PeriodoDeTratamiento:       "30 dias",
+			InstruccionesTratamiento:   "una por dia",
+			PeriodoDeValidez:           "1 anio",
+			PatientDocumentNumber:      "12345678",
+			FechaDeAutorizacion:        "2024-01-01T09:00:00Z",
+			Cantidad:                   "5",
+			ExpectedSupplyDuration:     "2024-02-01T09:00:00Z",
+			Practitioner:               "practitioner",
+			PractitionerDocumentNumber: "123456789",
+			Signature:                  "signature",
 		},
 		{
-			ID:                       "receta2",
-			Identifier:               "rece1235",
-			Owner:                    "Alice",
-			PrescripcionAnteriorId:   "presc456",
-			Status:                   "completed",
-			StatusChange:             "2024-02-20T11:00:00Z",
-			Prioridad:                "medium",
-			Medicacion:               "medicacion2",
-			Razon:                    "razon2",
-			Notas:                    "otras notas",
-			PeriodoDeTratamiento:     "60 dias",
-			InstruccionesTratamiento: "dos por dia",
-			PeriodoDeValidez:         "2 anios",
-			PatientDocumentNumber:    "87654321",
-			FechaDeAutorizacion:      "2024-01-10T10:00:00Z",
-			Cantidad:                 "10",
-			ExpectedSupplyDuration:   "2024-04-10T10:00:00Z",
+			ID:                         "receta2",
+			Identifier:                 "rece1235",
+			Owner:                      "Alice",
+			PrescripcionAnteriorId:     "presc456",
+			Status:                     "completed",
+			StatusChange:               "2024-02-20T11:00:00Z",
+			Prioridad:                  "medium",
+			Medicacion:                 "medicacion2",
+			Razon:                      "razon2",
+			Notas:                      "otras notas",
+			PeriodoDeTratamiento:       "60 dias",
+			InstruccionesTratamiento:   "dos por dia",
+			PeriodoDeValidez:           "2 anios",
+			PatientDocumentNumber:      "87654321",
+			FechaDeAutorizacion:        "2024-01-10T10:00:00Z",
+			Cantidad:                   "10",
+			ExpectedSupplyDuration:     "2024-04-10T10:00:00Z",
+			Practitioner:               "practitioner",
+			PractitionerDocumentNumber: "123456789",
+			Signature:                  "signature",
 		},
 	}
 
@@ -121,6 +131,39 @@ func (s *SmartContract) CreateReceta(ctx contractapi.TransactionContextInterface
 	return ctx.GetStub().PutState(receta.ID, recetaJSON)
 }
 
+func (s *SmartContract) FirmarReceta(ctx contractapi.TransactionContextInterface, recetaID string, firma string) error {
+	exists, err := s.RecetaExists(ctx, recetaID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("la receta %s no existe", recetaID)
+	}
+	recetaJSON, err := ctx.GetStub().GetState(recetaID)
+	if err != nil {
+		return fmt.Errorf("error al obtener la receta: %v", err)
+	}
+	if recetaJSON == nil {
+		return fmt.Errorf("la receta %s no fue encontrada en el ledger", recetaID)
+	}
+	var receta Receta
+	if err := json.Unmarshal(recetaJSON, &receta); err != nil {
+		return fmt.Errorf("error al parsear la receta: %v", err)
+	}
+	if receta.Status != "draft" {
+		return fmt.Errorf("la receta %s no puede ser firmada porque no está en estado 'draft'", recetaID)
+	}
+	receta.Signature = firma
+	receta.Status = "active"
+	receta.StatusChange = "FIRMADA"
+	updatedRecetaJSON, err := json.Marshal(receta)
+	if err != nil {
+		return fmt.Errorf("error al serializar la receta firmada: %v", err)
+	}
+
+	return ctx.GetStub().PutState(recetaID, updatedRecetaJSON)
+}
+
 func (s *SmartContract) EntregarReceta(ctx contractapi.TransactionContextInterface, recetaID string) error {
 	exists, err := s.RecetaExists(ctx, recetaID)
 	if err != nil {
@@ -144,13 +187,12 @@ func (s *SmartContract) EntregarReceta(ctx contractapi.TransactionContextInterfa
 		return fmt.Errorf("error al parsear la receta actual: %v", err)
 	}
 
-	// Validar que el estado actual sea ACTIVO
-	if recetaActual.Status != "ACTIVO" {
-		return fmt.Errorf("solo se puede entregar la receta si está en estado 'ACTIVO'")
+	if recetaActual.Status != "active" {
+		return fmt.Errorf("solo se puede entregar la receta si está en estado 'active'")
 	}
 
 	// Cambiar el estado a ENTREGADO
-	recetaActual.Status = "ENTREGADO"
+	recetaActual.Status = "completed"
 
 	// Guardar la receta modificada
 	updatedRecetaJSON, err := json.Marshal(recetaActual)
@@ -260,12 +302,13 @@ func (s *SmartContract) GetMultipleRecetas(ctx contractapi.TransactionContextInt
 		var receta Receta
 		err = json.Unmarshal(recetaJSON, &receta)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error al parsear la receta con ID %s: %v", id, err)
 		}
 		recetas = append(recetas, &receta)
 	}
 	return recetas, nil
 }
+
 // TODO: adaptar los campos para que se tengan un identificar de usuarios ademas del DNI
 func (s *SmartContract) GetRecetasPorDniYEstado(ctx contractapi.TransactionContextInterface, dni string, estado string) ([]*Receta, error) {
 	if dni == "" || estado == "" {

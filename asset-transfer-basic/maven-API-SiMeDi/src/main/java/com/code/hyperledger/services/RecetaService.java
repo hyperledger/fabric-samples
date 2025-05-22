@@ -149,6 +149,11 @@ public class RecetaService {
     contract.submitTransaction("EntregarReceta", recetaId);
     }
 
+    public void firmarReceta(String recetaId, String signature)
+        throws CommitStatusException, EndorseException, CommitException, SubmitException {
+    contract.submitTransaction("FirmarReceta", recetaId, signature);
+    }
+
     public List<Receta> obtenerRecetasPorDniYEstado(String dni, String estado) throws GatewayException, IOException {
         if (dni == null || dni.isBlank() || estado == null || estado.isBlank()) {
             throw new IllegalArgumentException("DNI y estado son obligatorios");
