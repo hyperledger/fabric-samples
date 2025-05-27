@@ -8,11 +8,10 @@ import (
 	"log"
 
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
-	"github.com/hyperledger/fabric-samples/asset-transfer-basic/chaincode-go/chaincode"
 )
 
 func main() {
-	assetChaincode, err := contractapi.NewChaincode(&chaincode.SmartContract{})
+	assetChaincode, err := contractapi.NewChaincode(&SmartContract{})
 	if err != nil {
 		log.Panicf("Error creating asset-transfer-basic chaincode: %v", err)
 	}
