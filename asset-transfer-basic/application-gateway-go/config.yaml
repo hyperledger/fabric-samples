@@ -1,0 +1,6 @@
+server:
+  mode: debug
+
+log:
+  level: debug
+  path: ./logs/culture_platform.log
