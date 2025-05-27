@@ -54,17 +54,10 @@ func InitGWConnect() {
 	if err != nil {
 		panic(err)
 	}
-	// ./network.sh deployCC -ccn ledger -ccp /root/go/src/github.com/BennielAllan/fabric-samples/asset-transfer-ledger-queries/chaincode-go/ -ccl go
+	// ./network.sh deployCC -ccn ledger -ccp ../asset-transfer-basic/chaincode-go/ -ccl go
 	// Override default values for chaincode and channel name as they may differ in testing contexts.
 	chaincodeName := "ledger"
-	if ccname := os.Getenv("CHAINCODE_NAME"); ccname != "" {
-		chaincodeName = ccname
-	}
-
 	channelName := "mychannel"
-	if cname := os.Getenv("CHANNEL_NAME"); cname != "" {
-		channelName = cname
-	}
 
 	network := GateWay.GetNetwork(channelName)
 	Contract = network.GetContract(chaincodeName)
