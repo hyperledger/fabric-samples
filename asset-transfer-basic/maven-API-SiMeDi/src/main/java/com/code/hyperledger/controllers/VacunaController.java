@@ -157,8 +157,8 @@ public class VacunaController {
         dto.setExpirationDate(vacuna.getExpirationDate());
         dto.setPatientDocumentNumber(vacuna.getPatientDocumentNumber());
         dto.setReactions(vacuna.getReactions());
-                dto.setPractitioner(receta.getPractitioner());
-        dto.setPractitionerDocumentNumber(receta.getPractitionerDocumentNumber());
+        dto.setPractitioner(vacuna.getPractitioner());
+        dto.setPractitionerDocumentNumber(vacuna.getPractitionerDocumentNumber());
 
         return dto;
     }

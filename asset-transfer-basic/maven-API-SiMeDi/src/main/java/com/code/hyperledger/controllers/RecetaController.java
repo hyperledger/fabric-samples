@@ -198,7 +198,7 @@ public class RecetaController {
         dto.setExpectedSupplyDuration(receta.getExpectedSupplyDuration());
         dto.setPractitioner(receta.getPractitioner());
         dto.setPractitionerDocumentNumber(receta.getPractitionerDocumentNumber());
-        dto.setSignature(receta.setSignature());
+        dto.setSignature(receta.getSignature());
         return dto;
     }
 }
