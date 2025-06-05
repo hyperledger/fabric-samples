@@ -231,42 +231,37 @@ func (s *SmartContract) ReadReceta(ctx contractapi.TransactionContextInterface, 
 	return &receta, nil
 }
 
-func (s *SmartContract) DeleteReceta(ctx contractapi.TransactionContextInterface, id string) error {
-	exists, err := s.RecetaExists(ctx, id)
+func (s *SmartContract) DeleteReceta(ctx contractapi.TransactionContextInterface, recetaID string) error {
+	exists, err := s.RecetaExists(ctx, recetaID)
 	if err != nil {
 		return err
 	}
 	if !exists {
-		return fmt.Errorf("la receta %s no existe", id)
+		return fmt.Errorf("la receta %s no existe", recetaID)
 	}
-
-	// Obtener receta
-	recetaJSON, err := ctx.GetStub().GetState(id)
+	recetaJSON, err := ctx.GetStub().GetState(recetaID)
 	if err != nil {
 		return fmt.Errorf("error al obtener la receta: %v", err)
 	}
-
+	if recetaJSON == nil {
+		return fmt.Errorf("la receta %s no fue encontrada en el ledger", recetaID)
+	}
 	var receta Receta
-	err = json.Unmarshal(recetaJSON, &receta)
-	if err != nil {
-		return fmt.Errorf("error al deserializar la receta: %v", err)
+	if err := json.Unmarshal(recetaJSON, &receta); err != nil {
+		return fmt.Errorf("error al parsear la receta: %v", err)
+	}
+	if receta.Status != string(EstadoDraft) {
+		return fmt.Errorf("la receta %s no puede ser firmada porque no está en estado 'draft'", recetaID)
 	}
 
-	// Cambiar el estado a "cancelled"
 	receta.Status = string(EstadoCancelled)
 
-	// Volver a guardar la receta modificada
-	recetaActualizadaJSON, err := json.Marshal(receta)
+	updatedRecetaJSON, err := json.Marshal(receta)
 	if err != nil {
-		return fmt.Errorf("error al serializar la receta actualizada: %v", err)
+		return fmt.Errorf("error al serializar la receta firmada: %v", err)
 	}
 
-	err = ctx.GetStub().PutState(id, recetaActualizadaJSON)
-	if err != nil {
-		return fmt.Errorf("error al guardar la receta actualizada: %v", err)
-	}
-
-	return nil
+	return ctx.GetStub().PutState(recetaID, updatedRecetaJSON)
 }
 
 func (s *SmartContract) RecetaExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {

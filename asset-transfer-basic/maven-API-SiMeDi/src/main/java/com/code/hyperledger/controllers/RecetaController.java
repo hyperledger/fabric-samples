@@ -181,32 +181,22 @@ public class RecetaController {
     
     @PostMapping("/borrar")
     public ResponseEntity<RecetaDto> delete(@RequestBody Map<String, String> requestBody) {
-        logger.info("Received request to obtain receta with ID: {}", requestBody.get("id")); // Log de entrada
-
         try {
             String id = requestBody.get("id");
-            logger.debug("Searching for receta with ID: {}", id); // Log de búsqueda
+
+            if (id == null || id.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            System.out.println("\n--> Submit Transaction: BorrarReceta");
 
             recetaService.borrarReceta(id);
-            logger.debug("Receta deleted: {}", id); // Log cuando se encuentra la receta
-
             return new ResponseEntity<>(HttpStatus.OK);
-        } catch (IOException e) {
-            logger.error("IOException occurred while deleting receta with ID: {}", requestBody.get("id"), e); // Log de
-                                                                                                             // excepción
-                                                                                                             // específica
-            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        } catch (EndorseException | SubmitException | CommitStatusException | CommitException e) {
+            e.printStackTrace(); // o algún log específico
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (GatewayException e) {
-            logger.error("GatewayException occurred while deleting receta with ID: {}", requestBody.get("id"), e); // Log
-                                                                                                                  // de
-                                                                                                                  // excepción
-                                                                                                                  // Gateway
-            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-        } catch (Exception e) {
-            logger.error("Unexpected error occurred while deleting receta with ID: {}", requestBody.get("id"), e); // Log
-                                                                                                                  // de
-                                                                                                                  // error
-                                                                                                                  // inesperado
+            e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

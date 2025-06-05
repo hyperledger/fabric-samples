@@ -181,24 +181,16 @@ public class RecetaService {
         }
     }
 
-    public void borrarReceta(String recetaId) throws GatewayException, IOException {
+    public void borrarReceta(String recetaId)
+        throws CommitStatusException, EndorseException, CommitException, SubmitException {
         System.out.println("[INFO] Iniciando borrado de receta con ID: " + recetaId);
-
         try {
-            System.out.println("[DEBUG] Ejecutando transacción 'DeleteReceta' con ID: " + recetaId);
-            var evaluateResult = contract.evaluateTransaction("DeleteReceta", recetaId);
+            var evaluateResult = contract.submitTransaction("DeleteReceta", recetaId);
             System.out.println("[DEBUG] Resultado de transacción recibido: " + new String(evaluateResult));
-
             System.out.println("[INFO] Receta borrada exitosamente para ID: " + recetaId);
-
-        } catch (GatewayException e) {
-            System.err.println("[ERROR] GatewayException al borrar receta con ID: " + recetaId);
-            e.printStackTrace(System.err);
-            throw e;
         } catch (Exception e) {
-            System.err.println("[ERROR] Error inesperado al borrar receta con ID: " + recetaId);
-            e.printStackTrace(System.err);
-            throw new RuntimeException("Error inesperado al borrar la receta", e);
+            System.err.println("[ERROR] Error al borrar receta: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
