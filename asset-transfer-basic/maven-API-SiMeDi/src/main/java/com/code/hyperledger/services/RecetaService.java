@@ -11,9 +11,6 @@ import lombok.SneakyThrows;
 import org.hyperledger.fabric.client.*;
 import org.hyperledger.fabric.client.identity.*;
 import org.springframework.stereotype.Service;
-import org.hyperledger.fabric.client.identity.Identity;
-import org.hyperledger.fabric.client.identity.Signer;
-
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -118,9 +115,31 @@ public class RecetaService {
     }
 
     public Receta obtenerReceta(String recetaId) throws GatewayException, IOException {
-        var evaluateResult = contract.evaluateTransaction("ReadReceta", recetaId);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(evaluateResult, Receta.class);
+        System.out.println("[INFO] Iniciando obtención de receta con ID: " + recetaId);
+
+        try {
+            System.out.println("[DEBUG] Ejecutando transacción 'ReadReceta' con ID: " + recetaId);
+            var evaluateResult = contract.evaluateTransaction("ReadReceta", recetaId);
+            System.out.println("[DEBUG] Resultado de transacción recibido: " + new String(evaluateResult));
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            Receta receta = objectMapper.readValue(evaluateResult, Receta.class);
+            System.out.println("[INFO] Receta parseada exitosamente para ID: " + recetaId);
+
+            return receta;
+        } catch (GatewayException e) {
+            System.err.println("[ERROR] GatewayException al obtener receta con ID: " + recetaId);
+            e.printStackTrace(System.err);
+            throw e;
+        } catch (IOException e) {
+            System.err.println("[ERROR] IOException al parsear receta con ID: " + recetaId);
+            e.printStackTrace(System.err);
+            throw e;
+        } catch (Exception e) {
+            System.err.println("[ERROR] Error inesperado al obtener receta con ID: " + recetaId);
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Error inesperado al obtener la receta", e);
+        }
     }
 
     public List<Receta> obtenerTodasLasRecetas() throws GatewayException, IOException {
@@ -151,7 +170,36 @@ public class RecetaService {
 
     public void firmarReceta(String recetaId, String signature)
         throws CommitStatusException, EndorseException, CommitException, SubmitException {
-    contract.submitTransaction("FirmarReceta", recetaId, signature);
+        System.out.println("[INFO] Iniciando firma de receta con ID: " + recetaId);
+        try {
+            var evaluateResult = contract.submitTransaction("FirmarReceta", recetaId, signature);
+            System.out.println("[DEBUG] Resultado de transacción recibido: " + new String(evaluateResult));
+            System.out.println("[INFO] Receta firmada exitosamente para ID: " + recetaId);
+        } catch (Exception e) {
+            System.err.println("[ERROR] Error al firmar receta: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void borrarReceta(String recetaId) throws GatewayException, IOException {
+        System.out.println("[INFO] Iniciando borrado de receta con ID: " + recetaId);
+
+        try {
+            System.out.println("[DEBUG] Ejecutando transacción 'DeleteReceta' con ID: " + recetaId);
+            var evaluateResult = contract.evaluateTransaction("DeleteReceta", recetaId);
+            System.out.println("[DEBUG] Resultado de transacción recibido: " + new String(evaluateResult));
+
+            System.out.println("[INFO] Receta borrada exitosamente para ID: " + recetaId);
+
+        } catch (GatewayException e) {
+            System.err.println("[ERROR] GatewayException al borrar receta con ID: " + recetaId);
+            e.printStackTrace(System.err);
+            throw e;
+        } catch (Exception e) {
+            System.err.println("[ERROR] Error inesperado al borrar receta con ID: " + recetaId);
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Error inesperado al borrar la receta", e);
+        }
     }
 
     public List<Receta> obtenerRecetasPorDniYEstado(String dni, String estado) throws GatewayException, IOException {

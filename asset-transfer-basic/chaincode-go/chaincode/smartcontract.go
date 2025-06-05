@@ -51,6 +51,16 @@ type Vacuna struct {
 	PractitionerDocumentNumber string `json:"practitionerDocumentNumber"`
 }
 
+type Estado string
+const (
+	EstadoDraft     Estado = "draft"
+	EstadoActive    Estado = "active"
+	EstadoOnHold    Estado = "on_hold"
+	EstadoCancelled Estado = "cancelled"
+	EstadoCompleted Estado = "completed"
+	EstadoStoped    Estado = "stoped"
+)
+
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	recetas := []Receta{
 		{
@@ -150,11 +160,11 @@ func (s *SmartContract) FirmarReceta(ctx contractapi.TransactionContextInterface
 	if err := json.Unmarshal(recetaJSON, &receta); err != nil {
 		return fmt.Errorf("error al parsear la receta: %v", err)
 	}
-	if receta.Status != "draft" {
+	if receta.Status != Estado.Draft {
 		return fmt.Errorf("la receta %s no puede ser firmada porque no está en estado 'draft'", recetaID)
 	}
 	receta.Signature = firma
-	receta.Status = "active"
+	receta.Status = Estado.Active
 	receta.StatusChange = "FIRMADA"
 	updatedRecetaJSON, err := json.Marshal(receta)
 	if err != nil {
@@ -187,12 +197,12 @@ func (s *SmartContract) EntregarReceta(ctx contractapi.TransactionContextInterfa
 		return fmt.Errorf("error al parsear la receta actual: %v", err)
 	}
 
-	if recetaActual.Status != "active" {
+	if recetaActual.Status != Estado.Active {
 		return fmt.Errorf("solo se puede entregar la receta si está en estado 'active'")
 	}
 
 	// Cambiar el estado a ENTREGADO
-	recetaActual.Status = "completed"
+	recetaActual.Status = Estado.Completed
 
 	// Guardar la receta modificada
 	updatedRecetaJSON, err := json.Marshal(recetaActual)
@@ -230,7 +240,33 @@ func (s *SmartContract) DeleteReceta(ctx contractapi.TransactionContextInterface
 		return fmt.Errorf("la receta %s no existe", id)
 	}
 
-	return ctx.GetStub().DelState(id)
+	// Obtener receta
+	recetaJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return fmt.Errorf("error al obtener la receta: %v", err)
+	}
+
+	var receta Receta
+	err = json.Unmarshal(recetaJSON, &receta)
+	if err != nil {
+		return fmt.Errorf("error al deserializar la receta: %v", err)
+	}
+
+	// Cambiar el estado a "cancelled"
+	receta.Status = Estado.Cancelled
+
+	// Volver a guardar la receta modificada
+	recetaActualizadaJSON, err := json.Marshal(receta)
+	if err != nil {
+		return fmt.Errorf("error al serializar la receta actualizada: %v", err)
+	}
+
+	err = ctx.GetStub().PutState(id, recetaActualizadaJSON)
+	if err != nil {
+		return fmt.Errorf("error al guardar la receta actualizada: %v", err)
+	}
+
+	return nil
 }
 
 func (s *SmartContract) RecetaExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
@@ -277,11 +313,20 @@ func (s *SmartContract) GetAllRecetas(ctx contractapi.TransactionContextInterfac
 			return nil, err
 		}
 
+		if len(queryResponse.Value) == 0 {
+			continue // Ignorar valores vacíos
+		}
+
 		var receta Receta
 		err = json.Unmarshal(queryResponse.Value, &receta)
 		if err != nil {
-			return nil, err
+			continue // O podrías loggear el error si es útil
 		}
+
+		if receta.Status == status.Cancelled {
+			continue // Ignorar recetas canceladas
+		}
+
 		recetas = append(recetas, &receta)
 	}
 

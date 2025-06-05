@@ -178,6 +178,39 @@ public class RecetaController {
         }
     }
 
+    
+    @PostMapping("/borrar")
+    public ResponseEntity<RecetaDto> delete(@RequestBody Map<String, String> requestBody) {
+        logger.info("Received request to obtain receta with ID: {}", requestBody.get("id")); // Log de entrada
+
+        try {
+            String id = requestBody.get("id");
+            logger.debug("Searching for receta with ID: {}", id); // Log de búsqueda
+
+            recetaService.borrarReceta(id);
+            logger.debug("Receta deleted: {}", id); // Log cuando se encuentra la receta
+
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (IOException e) {
+            logger.error("IOException occurred while deleting receta with ID: {}", requestBody.get("id"), e); // Log de
+                                                                                                             // excepción
+                                                                                                             // específica
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        } catch (GatewayException e) {
+            logger.error("GatewayException occurred while deleting receta with ID: {}", requestBody.get("id"), e); // Log
+                                                                                                                  // de
+                                                                                                                  // excepción
+                                                                                                                  // Gateway
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred while deleting receta with ID: {}", requestBody.get("id"), e); // Log
+                                                                                                                  // de
+                                                                                                                  // error
+                                                                                                                  // inesperado
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     private RecetaDto mapToDto(Receta receta) {
         RecetaDto dto = new RecetaDto();
         dto.setIdentifier(receta.getIdentifier());
