@@ -3,6 +3,7 @@ package chaincode
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
@@ -344,6 +345,12 @@ func (s *SmartContract) GetMultipleRecetas(ctx contractapi.TransactionContextInt
 		if err != nil {
 			return nil, fmt.Errorf("error al parsear la receta con ID %s: %v", id, err)
 		}
+
+		status := strings.ToLower(strings.TrimSpace(receta.Status))
+		if status == string(EstadoCancelled) {
+			continue // Ignorar receta cancelada
+		}
+
 		recetas = append(recetas, &receta)
 	}
 	return recetas, nil
