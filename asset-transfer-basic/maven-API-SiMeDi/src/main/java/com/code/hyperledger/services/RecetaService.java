@@ -151,16 +151,30 @@ public class RecetaService {
 
     public List<Receta> obtenerRecetasPorIds(List<String> recetaIds) throws GatewayException, IOException {
         ObjectMapper objectMapper = new ObjectMapper();
+
+        // 🔍 Log de entrada
+        System.out.println("⏩ Solicitando recetas con IDs: " + recetaIds);
+
         String idsJson = objectMapper.writeValueAsString(recetaIds);
         var evaluateResult = contract.evaluateTransaction("GetMultipleRecetas", idsJson);
 
         if (evaluateResult == null || evaluateResult.length == 0) {
-            System.err.println("GetMultipleRecetas devolvió una respuesta vacía.");
+            System.err.println("⚠️ GetMultipleRecetas devolvió una respuesta vacía.");
             return new ArrayList<>();
         }
 
-        return objectMapper.readValue(evaluateResult,
-                objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
+        List<Receta> recetas = objectMapper.readValue(
+            evaluateResult,
+            objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class)
+        );
+
+        // ✅ Log de salida
+        System.out.println("✅ Recetas obtenidas del contrato:");
+        for (Receta receta : recetas) {
+            System.out.println(" - ID: " + receta.getId() + " | Estado: " + receta.getStatus());
+        }
+
+        return recetas;
     }
 
     public void entregarReceta(String recetaId)

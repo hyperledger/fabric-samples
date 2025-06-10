@@ -120,8 +120,14 @@ public class RecetaController {
             }
 
             List<Receta> recetas = recetaService.obtenerRecetasPorIds(ids);
-            List<RecetaDto> recetasDto = new ArrayList<>();
 
+            // 🔍 Log de los IDs obtenidos desde el service
+            System.out.println("Recetas obtenidas del service con los siguientes IDs:");
+            for (Receta receta : recetas) {
+                System.out.println(" - " + receta.getId());
+            }
+
+            List<RecetaDto> recetasDto = new ArrayList<>();
             for (Receta receta : recetas) {
                 recetasDto.add(mapToDto(receta));
             }
@@ -203,6 +209,7 @@ public class RecetaController {
 
     private RecetaDto mapToDto(Receta receta) {
         RecetaDto dto = new RecetaDto();
+        dto.setId(receta.getId());
         dto.setIdentifier(receta.getIdentifier());
         dto.setOwner(receta.getOwner());
         dto.setPrescripcionAnteriorId(receta.getPrescripcionAnteriorId());

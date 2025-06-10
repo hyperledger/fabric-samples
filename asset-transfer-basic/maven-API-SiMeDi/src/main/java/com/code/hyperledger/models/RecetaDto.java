@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RecetaDto {
+    private String id;
     private String identifier;
     private String owner;
     private String prescripcionAnteriorId;
