@@ -33,6 +33,7 @@ type Receta struct {
 	Practitioner               string `json:"practitioner"`
 	PractitionerDocumentNumber string `json:"practitionerDocumentNumber"`
 	Signature                  string `json:"signature"`
+	Matricula				   string `json:"matricula"`
 }
 
 type Vacuna struct {
@@ -50,6 +51,7 @@ type Vacuna struct {
 	Reactions                  string `json:"reactions"` // puede ser un string o una estructura si querés después
 	Practitioner               string `json:"practitioner"`
 	PractitionerDocumentNumber string `json:"practitionerDocumentNumber"`
+	Matricula				   string `json:"matricula"`
 }
 
 type Estado string
@@ -85,6 +87,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			Practitioner:               "practitioner",
 			PractitionerDocumentNumber: "123456789",
 			Signature:                  "signature",
+			Matricula:                  "matricula123",
 		},
 		{
 			ID:                         "receta2",
@@ -107,6 +110,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 			Practitioner:               "practitioner",
 			PractitionerDocumentNumber: "123456789",
 			Signature:                  "signature",
+			Matricula:                  "matricula456",
 		},
 	}
 

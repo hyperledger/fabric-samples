@@ -226,6 +226,7 @@ public class RecetaController {
         dto.setFechaDeAutorizacion(receta.getFechaDeAutorizacion());
         dto.setCantidad(receta.getCantidad());
         dto.setExpectedSupplyDuration(receta.getExpectedSupplyDuration());
+        dto.setMatricula(receta.getMatricula());
         dto.setPractitioner(receta.getPractitioner());
         dto.setPractitionerDocumentNumber(receta.getPractitionerDocumentNumber());
         dto.setSignature(receta.getSignature());
