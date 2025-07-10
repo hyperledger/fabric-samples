@@ -1,6 +1,7 @@
 package com.code.hyperledger.services;
 
 import com.code.hyperledger.models.Receta;
+import com.code.hyperledger.models.RecetaDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -8,6 +9,8 @@ import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
 import io.grpc.TlsChannelCredentials;
 import lombok.SneakyThrows;
+import main.java.com.code.hyperledger.models.ResultadoPaginado;
+
 import org.hyperledger.fabric.client.*;
 import org.hyperledger.fabric.client.identity.*;
 import org.springframework.stereotype.Service;
@@ -17,7 +20,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Identity;
 import java.security.InvalidKeyException;
+import java.security.Signer;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
@@ -152,24 +157,21 @@ public class RecetaService {
     public List<Receta> obtenerRecetasPorIds(List<String> recetaIds) throws GatewayException, IOException {
         ObjectMapper objectMapper = new ObjectMapper();
 
-        // 🔍 Log de entrada
-        System.out.println("⏩ Solicitando recetas con IDs: " + recetaIds);
+        System.out.println("Solicitando recetas con IDs: " + recetaIds);
 
         String idsJson = objectMapper.writeValueAsString(recetaIds);
         var evaluateResult = contract.evaluateTransaction("GetMultipleRecetas", idsJson);
 
         if (evaluateResult == null || evaluateResult.length == 0) {
-            System.err.println("⚠️ GetMultipleRecetas devolvió una respuesta vacía.");
+            System.err.println("GetMultipleRecetas devolvió una respuesta vacía.");
             return new ArrayList<>();
         }
 
         List<Receta> recetas = objectMapper.readValue(
-            evaluateResult,
-            objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class)
-        );
+                evaluateResult,
+                objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
 
-        // ✅ Log de salida
-        System.out.println("✅ Recetas obtenidas del contrato:");
+        System.out.println("Recetas obtenidas del contrato:");
         for (Receta receta : recetas) {
             System.out.println(" - ID: " + receta.getId() + " | Estado: " + receta.getStatus());
         }
@@ -178,12 +180,12 @@ public class RecetaService {
     }
 
     public void entregarReceta(String recetaId)
-        throws CommitStatusException, EndorseException, CommitException, SubmitException {
-    contract.submitTransaction("EntregarReceta", recetaId);
+            throws CommitStatusException, EndorseException, CommitException, SubmitException {
+        contract.submitTransaction("EntregarReceta", recetaId);
     }
 
     public void firmarReceta(String recetaId, String signature)
-        throws CommitStatusException, EndorseException, CommitException, SubmitException {
+            throws CommitStatusException, EndorseException, CommitException, SubmitException {
         System.out.println("[INFO] Iniciando firma de receta con ID: " + recetaId);
         try {
             var evaluateResult = contract.submitTransaction("FirmarReceta", recetaId, signature);
@@ -196,7 +198,7 @@ public class RecetaService {
     }
 
     public void borrarReceta(String recetaId)
-        throws CommitStatusException, EndorseException, CommitException, SubmitException {
+            throws CommitStatusException, EndorseException, CommitException, SubmitException {
         System.out.println("[INFO] Iniciando borrado de receta con ID: " + recetaId);
         try {
             var evaluateResult = contract.submitTransaction("DeleteReceta", recetaId);
@@ -208,14 +210,20 @@ public class RecetaService {
         }
     }
 
-    public List<Receta> obtenerRecetasPorDniYEstado(String dni, String estado) throws GatewayException, IOException {
+    public ResultadoPaginado<RecetaDto> obtenerRecetasPorDniYEstadoPaginado(
+            String dni, String estado, int pageSize, String bookmark) throws GatewayException, IOException {
+
         if (dni == null || dni.isBlank() || estado == null || estado.isBlank()) {
             throw new IllegalArgumentException("DNI y estado son obligatorios");
         }
 
-        var evaluateResult = contract.evaluateTransaction("GetRecetasPorDniYEstado", dni, estado);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(evaluateResult,
-                objectMapper.getTypeFactory().constructCollectionType(List.class, Receta.class));
+        var result = contract.evaluateTransaction("GetRecetasPorDniYEstado", dni, estado, String.valueOf(pageSize),
+                bookmark);
+
+        var type = new ObjectMapper()
+                .getTypeFactory()
+                .constructParametricType(ResultadoPaginado.class, RecetaDto.class);
+
+        return new ObjectMapper().readValue(result, type);
     }
 }
