@@ -120,9 +120,6 @@ public class RecetaController {
             }
 
             List<Receta> recetas = recetaService.obtenerRecetasPorIds(ids);
-
-            // 🔍 Log de los IDs obtenidos desde el service
-            System.out.println("Recetas obtenidas del service con los siguientes IDs:");
             for (Receta receta : recetas) {
                 System.out.println(" - " + receta.getId());
             }
@@ -132,8 +129,17 @@ public class RecetaController {
                 recetasDto.add(mapToDto(receta));
             }
 
+            System.out.println("Recetas obtenidas del service con los siguientes IDs:");
+
             return new ResponseEntity<>(recetasDto, HttpStatus.OK);
+
+            // 🔍 Log de los IDs obtenidos desde el service
+
         } catch (IOException | GatewayException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            System.err.println("Error en submitTransaction: " + e.getMessage());
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -156,6 +162,10 @@ public class RecetaController {
             e.printStackTrace(); // o algún log específico
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (GatewayException e) {
+            e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        catch (Exception e) {
             e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -182,9 +192,12 @@ public class RecetaController {
             e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        catch (Exception e) {
+            e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    
     @PostMapping("/borrar")
     public ResponseEntity<RecetaDto> delete(@RequestBody Map<String, String> requestBody) {
         try {
@@ -202,6 +215,10 @@ public class RecetaController {
             e.printStackTrace(); // o algún log específico
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (GatewayException e) {
+            e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        catch (Exception e) {
             e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

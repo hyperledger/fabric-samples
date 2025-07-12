@@ -4,6 +4,8 @@ package com.code.hyperledger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import com.code.hyperledger.config.FabricConfigProperties;
 import com.code.hyperledger.models.Receta;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -33,7 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-
+@EnableConfigurationProperties(FabricConfigProperties.class)
 @SpringBootApplication
 public class App {
 	/*private static final String MSP_ID = System.getenv().getOrDefault("MSP_ID", "Org1MSP");
