@@ -3,7 +3,7 @@ package com.code.hyperledger.services;
 import io.grpc.TlsChannelCredentials;
 import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
-import com.code.hyperledger.config.FabricConfigProperties;
+import com.code.hyperledger.configs.FabricConfigProperties;
 import com.code.hyperledger.models.Receta;
 import com.code.hyperledger.models.RecetaDto;
 //import com.code.hyperledger.models.ResultadoPaginado;

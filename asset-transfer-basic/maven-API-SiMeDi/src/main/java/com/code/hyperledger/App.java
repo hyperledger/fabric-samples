@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import com.code.hyperledger.config.FabricConfigProperties;
+import com.code.hyperledger.configs.FabricConfigProperties;
 import com.code.hyperledger.models.Receta;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
