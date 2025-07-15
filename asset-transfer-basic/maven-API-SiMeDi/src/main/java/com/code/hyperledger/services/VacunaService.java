@@ -1,6 +1,6 @@
 package com.code.hyperledger.services;
 
-import com.code.hyperledger.models.Receta;
+import com.code.hyperledger.configs.FabricConfigProperties;
 import com.code.hyperledger.models.Vacuna;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -9,17 +9,13 @@ import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
 import io.grpc.TlsChannelCredentials;
 import lombok.SneakyThrows;
-import com.code.hyperledger.models.VacunaDto;
-
 import org.hyperledger.fabric.client.*;
 import org.hyperledger.fabric.client.identity.*;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.security.InvalidKeyException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
@@ -29,23 +25,15 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class VacunaService {
 
-    private static final String MSP_ID = System.getenv().getOrDefault("MSP_ID", "Org1MSP");
-    private static final String CHANNEL_NAME = System.getenv().getOrDefault("CHANNEL_NAME", "mychannel");
-    private static final String CHAINCODE_NAME = System.getenv().getOrDefault("CHAINCODE_NAME", "basic");
-
-    private static final Path CRYPTO_PATH = Paths
-            .get("../../test-network/organizations/peerOrganizations/org1.example.com");
-    private static final Path CERT_DIR_PATH = CRYPTO_PATH.resolve("users/User1@org1.example.com/msp/signcerts");
-    private static final Path KEY_DIR_PATH = CRYPTO_PATH.resolve("users/User1@org1.example.com/msp/keystore");
-    private static final Path TLS_CERT_PATH = CRYPTO_PATH.resolve("peers/peer0.org1.example.com/tls/ca.crt");
-
-    private static final String PEER_ENDPOINT = "localhost:7051";
-    private static final String OVERRIDE_AUTH = "peer0.org1.example.com";
-
+    private final FabricConfigProperties config;
     private Contract contract;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    private static Path getFirstFilePath(Path dirPath) throws IOException {
+    public VacunaService(FabricConfigProperties config) {
+        this.config = config;
+    }
+
+    private Path getFirstFilePath(Path dirPath) throws IOException {
         try (var keyFiles = Files.list(dirPath)) {
             return keyFiles.findFirst().orElseThrow();
         }
@@ -70,33 +58,38 @@ public class VacunaService {
         }
     }
 
-    private static ManagedChannel newGrpcConnection() throws IOException {
+    private ManagedChannel newGrpcConnection() throws IOException {
+        Path tlsPath = Paths.get(config.getCryptoPath(), config.getTlsCertPath());
         var credentials = TlsChannelCredentials.newBuilder()
-                .trustManager(TLS_CERT_PATH.toFile())
+                .trustManager(tlsPath.toFile())
                 .build();
-        return Grpc.newChannelBuilder(PEER_ENDPOINT, credentials)
-                .overrideAuthority(OVERRIDE_AUTH)
+        return Grpc.newChannelBuilder(config.getPeerEndpoint(), credentials)
+                .overrideAuthority(config.getOverrideAuth())
                 .build();
     }
 
     private Identity newIdentity() throws IOException, CertificateException {
-        try (var certReader = Files.newBufferedReader(getFirstFilePath(CERT_DIR_PATH))) {
+        Path certPath = Paths.get(config.getCryptoPath(), config.getCertPath());
+        try (var certReader = Files.newBufferedReader(getFirstFilePath(certPath))) {
             var certificate = Identities.readX509Certificate(certReader);
-            return new X509Identity(MSP_ID, certificate);
+            return new X509Identity(config.getMspId(), certificate);
         }
     }
 
     private Signer newSigner() throws IOException, InvalidKeyException {
-        try (var keyReader = Files.newBufferedReader(getFirstFilePath(KEY_DIR_PATH))) {
+        Path keyPath = Paths.get(config.getCryptoPath(), config.getKeyPath());
+        try (var keyReader = Files.newBufferedReader(getFirstFilePath(keyPath))) {
             var privateKey = Identities.readPrivateKey(keyReader);
             return Signers.newPrivateKeySigner(privateKey);
         }
     }
 
     private void setContract(final Gateway gateway) {
-        var network = gateway.getNetwork(CHANNEL_NAME);
-        contract = network.getContract(CHAINCODE_NAME);
+        var network = gateway.getNetwork(config.getChannelName());
+        contract = network.getContract(config.getChaincodeName());
     }
+
+    // Todos los métodos siguientes permanecen idénticos...
 
     public void cargarVacuna(Vacuna vacuna)
             throws CommitStatusException, EndorseException, CommitException, SubmitException {

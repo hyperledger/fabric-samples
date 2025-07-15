@@ -98,7 +98,7 @@ public class RecetaService {
         var network = gateway.getNetwork(config.getChannelName());
         contract = network.getContract(config.getChaincodeName());
     }
-
+    // crea dos recetas default, borrar cuando no se necesite
     private void initLedger() throws EndorseException, SubmitException, CommitStatusException, CommitException {
         contract.submitTransaction("InitLedger");
     }
