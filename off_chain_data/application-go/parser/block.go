@@ -26,6 +26,10 @@ func (b *Block) Transactions() ([]*Transaction, error) {
 	return b.transactions()
 }
 
+func (b *Block) ToProto() *common.Block {
+	return b.block
+}
+
 func (b *Block) unmarshalTransactions() ([]*Transaction, error) {
 	envelopes, err := b.unmarshalEnvelopes()
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
+	"github.com/hyperledger/fabric-protos-go-apiv2/msp"
 	"github.com/hyperledger/fabric-protos-go-apiv2/peer"
 	"google.golang.org/protobuf/proto"
 )
@@ -12,6 +13,7 @@ type payload struct {
 	commonPayload *common.Payload
 	statusCode    int32
 	channelHeader *common.ChannelHeader
+	creator       *creatorIdentity
 }
 
 func parsePayload(commonPayload *common.Payload, statusCode int32) (*payload, error) {
@@ -19,7 +21,19 @@ func parsePayload(commonPayload *common.Payload, statusCode int32) (*payload, er
 	if err != nil {
 		return nil, err
 	}
-	return &payload{commonPayload, statusCode, channelHeader}, nil
+
+	creator, err := unmarshalCreator(commonPayload)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &payload{
+		commonPayload: commonPayload,
+		statusCode:    statusCode,
+		channelHeader: channelHeader,
+		creator:       &creatorIdentity{creator},
+	}
+	return result, nil
 }
 
 func unmarshalChannelHeaderFrom(commonPayload *common.Payload) (*common.ChannelHeader, error) {
@@ -27,6 +41,20 @@ func unmarshalChannelHeaderFrom(commonPayload *common.Payload) (*common.ChannelH
 	if err := proto.Unmarshal(commonPayload.GetHeader().GetChannelHeader(), result); err != nil {
 		return nil, err
 	}
+	return result, nil
+}
+
+func unmarshalCreator(commonPayload *common.Payload) (*msp.SerializedIdentity, error) {
+	signatureHeader := &common.SignatureHeader{}
+	if err := proto.Unmarshal(commonPayload.GetHeader().GetSignatureHeader(), signatureHeader); err != nil {
+		return nil, err
+	}
+
+	result := &msp.SerializedIdentity{}
+	if err := proto.Unmarshal(signatureHeader.GetCreator(), result); err != nil {
+		return nil, err
+	}
+
 	return result, nil
 }
 
@@ -49,4 +77,16 @@ func (p *payload) isEndorserTransaction() bool {
 
 func (p *payload) isValid() bool {
 	return p.statusCode == int32(peer.TxValidationCode_VALID)
+}
+
+type creatorIdentity struct {
+	creator *msp.SerializedIdentity
+}
+
+func (i *creatorIdentity) MspID() string {
+	return i.creator.GetMspid()
+}
+
+func (i *creatorIdentity) Credentials() []byte {
+	return i.creator.GetIdBytes()
 }

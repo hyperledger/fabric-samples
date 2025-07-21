@@ -27,6 +27,10 @@ func (p *NamespaceReadWriteSet) ReadWriteSet() (*kvrwset.KVRWSet, error) {
 	return p.readWriteSet()
 }
 
+func (p *NamespaceReadWriteSet) ToProto() *rwset.NsReadWriteSet {
+	return p.nsReadWriteSet
+}
+
 func (p *NamespaceReadWriteSet) unmarshalReadWriteSet() (*kvrwset.KVRWSet, error) {
 	result := &kvrwset.KVRWSet{}
 	if err := proto.Unmarshal(p.nsReadWriteSet.GetRwset(), result); err != nil {
