@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"github.com/hyperledger/fabric-gateway/pkg/identity"
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
 )
 
@@ -14,6 +15,10 @@ func newTransaction(payload *payload) *Transaction {
 
 func (t *Transaction) ChannelHeader() *common.ChannelHeader {
 	return t.payload.channelHeader
+}
+
+func (t *Transaction) Creator() identity.Identity {
+	return t.payload.creator
 }
 
 func (t *Transaction) NamespaceReadWriteSets() ([]*NamespaceReadWriteSet, error) {
@@ -36,4 +41,12 @@ func (t *Transaction) NamespaceReadWriteSets() ([]*NamespaceReadWriteSet, error)
 
 func (t *Transaction) IsValid() bool {
 	return t.payload.isValid()
+}
+
+func (t *Transaction) ToProto() *common.Payload {
+	return t.payload.commonPayload
+}
+
+func (t *Transaction) ValidationCode() int32 {
+	return t.payload.statusCode
 }
