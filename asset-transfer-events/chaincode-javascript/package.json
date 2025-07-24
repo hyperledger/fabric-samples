@@ -4,7 +4,7 @@
     "description": "Asset-Transfer-Events contract implemented in JavaScript",
     "main": "index.js",
     "engines": {
-        "node": ">=18"
+        "node": ">=20"
     },
     "scripts": {
         "lint": "eslint .",

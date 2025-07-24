@@ -1,4 +1,4 @@
-FROM node:18-alpine3.14 AS build
+FROM node:22-alpine AS build
 
 RUN apk add --no-cache g++ make python3 dumb-init
 
@@ -10,7 +10,7 @@ RUN npm ci
 RUN npm run build
 RUN npm prune --production
 
-FROM node:18-alpine3.14
+FROM node:22-alpine
 ENV NODE_ENV production
 WORKDIR /app
 

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "scripts": {
     "build": "tsc",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.12.2",
-    "@hyperledger/fabric-gateway": "^1.7.0",
+    "@hyperledger/fabric-gateway": "^1.8.0",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "express": "^4.21.0"

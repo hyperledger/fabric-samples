@@ -6,7 +6,7 @@ inputs:
     default: "1.23"
   node-version:
     description: Version of node
-    default: 18.x
+    default: 20.x
   java-version:
     description: Version of JDK
     default: 11.x

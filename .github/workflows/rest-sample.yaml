@@ -5,16 +5,16 @@ name: REST Sample 🐧
 run-name: ${{ github.actor }} is testing the REST Sample 🐧
 
 env:
-  NODE_VER: 18.x
+  NODE_VER: 20.x
 
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "release-2.5" ]
-    paths: [ "asset-transfer-basic/rest-api-typescript/**" ]
+    branches: ["main", "release-2.5"]
+    paths: ["asset-transfer-basic/rest-api-typescript/**"]
   pull_request:
-    branches: [ "main", "release-2.5" ]
-    paths: [ "asset-transfer-basic/rest-api-typescript/**" ]
+    branches: ["main", "release-2.5"]
+    paths: ["asset-transfer-basic/rest-api-typescript/**"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -31,8 +31,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VER }}
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
 
       - name: Install REST Sample Dependencies
         working-directory: asset-transfer-basic/rest-api-typescript

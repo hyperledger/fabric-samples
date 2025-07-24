@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.hyperledger.fabric:fabric-gateway:1.7.0'
+    implementation 'org.hyperledger.fabric:fabric-gateway:1.8.0'
     implementation platform('com.google.protobuf:protobuf-bom:4.28.2')
     implementation 'org.hyperledger.fabric:fabric-protos:0.3.4'
     implementation platform('io.grpc:grpc-bom:1.67.1')
