@@ -17,7 +17,7 @@ concurrency:
 
 env:
   GO_VER: "1.23"
-  NODE_VER: 18.x
+  NODE_VER: 20.x
   JAVA_VER: 11.x
 
 jobs:

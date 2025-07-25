@@ -4,7 +4,7 @@
     "description": "Asset Transfer Basic Application implemented in typeScript using fabric-gateway",
     "main": "dist/app.js",
     "engines": {
-        "node": ">=18"
+        "node": ">=20"
     },
     "scripts": {
         "build": "tsc",
@@ -19,7 +19,7 @@
     "license": "Apache-2.0",
     "dependencies": {
         "@grpc/grpc-js": "^1.12.2",
-        "@hyperledger/fabric-gateway": "^1.7.0",
+        "@hyperledger/fabric-gateway": "^1.8.0",
         "dotenv": "^16.4.5",
         "env-var": "^7.5.0",
         "js-yaml": "^4.1.0"

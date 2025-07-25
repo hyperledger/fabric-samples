@@ -3,7 +3,7 @@ description: Set up the Full Stack Asset Transfer Guide Dependencies
 inputs:
   node-version:
     description: Version of node
-    default: 18.x
+    default: 20.x
   just-version:
     description: Just Version
     default: "1.24.0"

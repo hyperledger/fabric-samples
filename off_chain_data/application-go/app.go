@@ -3,7 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"os"
+	"slices"
 	"strings"
 
 	"google.golang.org/grpc"
@@ -55,12 +57,6 @@ func printUsage() {
 }
 
 func availableCommands() string {
-	result := make([]string, len(allCommands))
-	i := 0
-	for command := range allCommands {
-		result[i] = command
-		i++
-	}
-
-	return strings.Join(result, ", ")
+	commandNames := slices.Collect(maps.Keys(allCommands))
+	return strings.Join(commandNames, ", ")
 }
