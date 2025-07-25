@@ -7,6 +7,7 @@
 # High-Throughput Network
 
 ## Purpose
+
 This network is used to understand how to properly design the chaincode data model when handling thousands of transactions per second which all
 update the same asset in the ledger. A naive implementation would use a single key to represent the data for the asset, and the chaincode would
 then attempt to update this key every time a transaction involving it comes in. However, when many transactions all come in at once, in the time
@@ -17,6 +18,7 @@ which are aggregated when the value must be retrieved. In this way, no single ro
 is considered.
 
 ## Use Case
+
 The primary use case for this chaincode data model design is for applications in which a particular asset has an associated amount that is
 frequently added to or removed from. For example, with a bank or credit card account, money is either paid to or paid out of it, and the amount
 of money in the account is the result of all of these additions and subtractions aggregated together. A typical person's bank account may not be
@@ -94,6 +96,7 @@ and assumed to be correct and at minimal risk to either company simply due to Am
 must be verified before approval and admittance to the chain.
 
 ## How
+
 This sample provides the chaincode and scripts required to run a high-throughput application on the Fabric test network.
 
 ### Start the network
@@ -101,11 +104,13 @@ This sample provides the chaincode and scripts required to run a high-throughput
 You can use the `startFabric.sh` script to create an instance of the Fabric test network with a single channel named `mychannel`. The script then deploys the `high-throughput` chaincode to the channel by installing it on the test network peers and committing the chaincode definition to the channel.
 
 Change back into the `high-throughput` directory in `fabic-samples`. Start the network and deploy the chaincode by issuing the following command:
+
 ```
 ./startFabric.sh
 ```
 
 If successful, you will see messages of the Fabric test network being created and the chaincode being deployed, followed by the execution time of the script:
+
 ```
 Total setup execution time : 81 secs ...
 ```
@@ -115,60 +120,71 @@ The `high-throughput` chaincode is now ready to receive invocations.
 ### Invoke the chaincode
 
 You can invoke the `high-througput` chaincode using a Go application in the `application-go` folder. The Go application will allow us to submit many transactions to the network concurrently. Navigate to the application:
+
 ```
 cd application-go
 ```
 
 #### Update
-The format for update is: `go run app.go update name value operation` where `name` is the name of the variable to update, `value` is the value to add to the variable, and `operation` is either `+` or `-` depending on what type of operation you'd like to add to the variable.
 
-Example: `go run app.go update myvar 100 +`
+The format for update is: `go run . update name value operation` where `name` is the name of the variable to update, `value` is the value to add to the variable, and `operation` is either `+` or `-` depending on what type of operation you'd like to add to the variable.
+
+Example: `go run . update myvar 100 +`
 
 #### Query
-You can query the value of a variable by running `go run app.go get name` where `name` is the name of the variable to get.
 
-Example: `go run app.go get myvar`
+You can query the value of a variable by running `go run . get name` where `name` is the name of the variable to get.
+
+Example: `go run . get myvar`
 
 #### Prune
+
 Pruning takes all the deltas generated for a variable and combines them all into a single row, deleting all previous rows. This helps cleanup the ledger when many updates have been performed.
 
-The format for pruning is: `go run app.go prune name` where `name` is the name of the variable to prune.
+The format for pruning is: `go run . prune name` where `name` is the name of the variable to prune.
 
-Example: `go run app.go prune myvar`
+Example: `go run . prune myvar`
 
 #### Delete
-The format for delete is: `go run app.go delete name` where `name` is the name of the variable to delete.
 
-Example: `go run app.go delete myvar`
+The format for delete is: `go run . delete name` where `name` is the name of the variable to delete.
+
+Example: `go run . delete myvar`
 
 ### Test the Network
 
-The application provides two methods that demonstrate the advantages of this system by submitting many concurrent transactions to the smart contract: `manyUpdates` and `manyUpdatesTraditional`. The first function accepts the same arguments as `update-invoke.sh` but runs the invocation 1000 times in parallel. The final value, therefore, should be the given update value * 1000.
+The application provides two methods that demonstrate the advantages of this system by submitting many concurrent transactions to the smart contract: `manyUpdates` and `manyUpdatesTraditional`. The first function accepts the same arguments as `update-invoke.sh` but runs the invocation 1000 times in parallel. The final value, therefore, should be the given update value \* 1000.
 
 The second function, `manyUpdatesTraditional`, submits 1000 transactions that attempt to update the same key in the world state 1000 times.
 
 Run the following command to create and update `testvar1` a 1000 times:
+
 ```
-go run app.go manyUpdates testvar1 100 +
+go run . manyUpdates testvar1 100 +
 ```
 
 The application will query the variable after submitting the transaction. The result should be `100000`.
 
 We will now see what happens when you try to run 1000 concurrent updates using a traditional transaction. Run the following command to create a variable named `testvar2`:
+
 ```
-go run app.go update testvar2 100 +
+go run . update testvar2 100 +
 ```
+
 The variable will have a value of 100:
+
 ```
 2020/10/27 18:01:45 Value of variable testvar2 :  100
 ```
 
 Now lets try to update `testvar2` 1000 times in parallel:
+
 ```
-go run app.go manyUpdatesTraditional testvar2 100 +
+go run . manyUpdatesTraditional testvar2 100 +
 ```
 
 When the program ends, you may see that none of the updates succeeded.
+
 ```
 2020/10/27 18:03:15 Final value of variable testvar2 :  100
 ```
@@ -176,7 +192,6 @@ When the program ends, you may see that none of the updates succeeded.
 The transactions failed because multiple transactions in each block updated the same key. Because of these transactions generated read/write conflicts, the transactions included in each block were rejected in the validation stage.
 
 You can can examine the peer logs to view the messages generated by the rejected blocks:
-
 
 ```
 docker logs peer0.org1.example.com
