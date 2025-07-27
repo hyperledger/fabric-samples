@@ -1,0 +1,9 @@
+
+{
+  "index": {
+    "fields": ["patientDocumentNumber", "status", "fechaDeAutorizacion"]
+  },
+  "ddoc": "recetas-index",
+  "name": "indexRecetas",
+  "type": "json"
+}
