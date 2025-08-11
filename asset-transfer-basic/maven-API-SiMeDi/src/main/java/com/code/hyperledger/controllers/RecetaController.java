@@ -5,6 +5,7 @@ import com.code.hyperledger.models.AssetIdDto;
 import com.code.hyperledger.models.Receta;
 import com.code.hyperledger.models.RecetaDto;
 import com.code.hyperledger.services.RecetaService;
+import main.java.com.code.hyperledger.models.ResultadoPaginado;
 
 import main.java.com.code.hyperledger.models.RecetaRequestDto;
 
@@ -164,8 +165,7 @@ public class RecetaController {
         } catch (GatewayException e) {
             e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -191,8 +191,7 @@ public class RecetaController {
         } catch (GatewayException e) {
             e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -217,11 +216,23 @@ public class RecetaController {
         } catch (GatewayException e) {
             e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @PostMapping("/obtener/paginado")
+    private ResponseEntity<ResultadoPaginado> obtenerPaginadoTest() {
+
+        try {
+            ResultadoPaginado recetas = recetaService.obtenerRecetasPorDniYEstadoPaginado("12345678", "active", 10, "");
+            return new ResponseEntity<>(recetas, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
     }
 
     private RecetaDto mapToDto(Receta receta) {

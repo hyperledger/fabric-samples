@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.SneakyThrows;
+import main.java.com.code.hyperledger.models.ResultadoPaginado;
+
 import org.hyperledger.fabric.client.*;
 import org.hyperledger.fabric.client.identity.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,7 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import com.fasterxml.jackson.databind.JavaType;
 
 @Service
 public class RecetaService {
@@ -98,6 +101,7 @@ public class RecetaService {
         var network = gateway.getNetwork(config.getChannelName());
         contract = network.getContract(config.getChaincodeName());
     }
+
     // crea dos recetas default, borrar cuando no se necesite
     private void initLedger() throws EndorseException, SubmitException, CommitStatusException, CommitException {
         contract.submitTransaction("InitLedger");
@@ -145,19 +149,22 @@ public class RecetaService {
         contract.submitTransaction("DeleteReceta", recetaId);
     }
 
-    /*
-     * public ResultadoPaginado<RecetaDto> obtenerRecetasPorDniYEstadoPaginado(
-     * String dni, String estado, int pageSize, String bookmark) throws Exception {
-     * 
-     * var result = contract.evaluateTransaction("GetRecetasPorDniYEstado", dni,
-     * estado,
-     * String.valueOf(pageSize), bookmark);
-     * 
-     * var type = new ObjectMapper()
-     * .getTypeFactory()
-     * .constructParametricType(ResultadoPaginado.class, RecetaDto.class);
-     * 
-     * return new ObjectMapper().readValue(result, type);
-     * }
-     */
+    public ResultadoPaginado<RecetaDto> obtenerRecetasPorDniYEstadoPaginado(
+            String dni, String estado, int pageSize, String bookmark) throws Exception {
+
+        byte[] result = contract.evaluateTransaction(
+                "GetRecetasPorDniYEstado",
+                dni,
+                estado,
+                String.valueOf(pageSize),
+                bookmark);
+
+        ObjectMapper mapper = new ObjectMapper();
+        JavaType tipo = mapper.getTypeFactory()
+                .constructParametricType(ResultadoPaginado.class, RecetaDto.class);
+        ResultadoPaginado<RecetaDto> resultado = mapper.readValue(json, tipo);
+
+        return mapper.readValue(result, type);
+    }
+
 }
