@@ -197,6 +197,11 @@ public class RecetaController {
         }
     }
 
+    @GetMapping("/todasTest")
+    public List<Receta> obtenerTodasTest() throws Exception {
+        return recetaService.obtenerTodasLasRecetas();
+    }
+
     @PostMapping("/borrar")
     public ResponseEntity<RecetaDto> delete(@RequestBody Map<String, String> requestBody) {
         try {

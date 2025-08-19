@@ -33,7 +33,7 @@ type Receta struct {
 	Practitioner               string `json:"practitioner"`
 	PractitionerDocumentNumber string `json:"practitionerDocumentNumber"`
 	Signature                  string `json:"signature"`
-	Matricula				   string `json:"matricula"`
+	Matricula                  string `json:"matricula"`
 }
 
 type Vacuna struct {
@@ -51,10 +51,11 @@ type Vacuna struct {
 	Reactions                  string `json:"reactions"` // puede ser un string o una estructura si querés después
 	Practitioner               string `json:"practitioner"`
 	PractitionerDocumentNumber string `json:"practitionerDocumentNumber"`
-	Matricula				   string `json:"matricula"`
+	Matricula                  string `json:"matricula"`
 }
 
 type Estado string
+
 const (
 	EstadoDraft     Estado = "draft"
 	EstadoActive    Estado = "active"
@@ -361,36 +362,73 @@ func (s *SmartContract) GetMultipleRecetas(ctx contractapi.TransactionContextInt
 }
 
 // TODO: adaptar los campos para que se tengan un identificar de usuarios ademas del DNI
-func (s *SmartContract) GetRecetasPorDniYEstado(ctx contractapi.TransactionContextInterface, dni string, estado string) ([]*Receta, error) {
+type ResultadoPaginado struct {
+	Recetas  []*Receta `json:"recetas"`
+	Bookmark string    `json:"bookmark"`
+}
+
+func (s *SmartContract) GetRecetasPorDniYEstadoPaginado(
+	ctx contractapi.TransactionContextInterface,
+	dni string,
+	estado string,
+	pageSize int32,
+	bookmark string,
+) (*ResultadoPaginado, error) {
+
 	if dni == "" || estado == "" {
 		return nil, fmt.Errorf("el dni y el estado son obligatorios")
 	}
 
-	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	// Creamos la query para CouchDB
+	query := map[string]interface{}{
+		"selector": map[string]interface{}{
+			"patientDocumentNumber": dni,
+			"status":                estado,
+		},
+		"limit": pageSize,
+	}
+
+	// Si hay bookmark, lo agregamos
+	if bookmark != "" {
+		query["bookmark"] = bookmark
+	}
+
+	queryBytes, err := json.Marshal(query)
 	if err != nil {
-		return nil, fmt.Errorf("error al obtener datos del ledger: %v", err)
+		return nil, fmt.Errorf("error al generar la query: %v", err)
+	}
+
+	resultsIterator, metadata, err := ctx.GetStub().GetQueryResultWithPagination(string(queryBytes), pageSize, bookmark)
+	if err != nil {
+		return nil, fmt.Errorf("error al ejecutar la query: %v", err)
 	}
 	defer resultsIterator.Close()
 
-	var recetasFiltradas []*Receta
+	var recetas []*Receta
 	for resultsIterator.HasNext() {
-		queryResponse, err := resultsIterator.Next()
-		if err != nil {
-			return nil, err
+		response, iterErr := resultsIterator.Next()
+		if iterErr != nil {
+			return nil, iterErr
 		}
 
 		var receta Receta
-		err = json.Unmarshal(queryResponse.Value, &receta)
-		if err != nil {
-			return nil, err
+		if err := json.Unmarshal(response.Value, &receta); err != nil {
+			return nil, fmt.Errorf("error al parsear receta: %v", err)
 		}
 
-		if receta.PatientDocumentNumber == dni && receta.Status == estado {
-			recetasFiltradas = append(recetasFiltradas, &receta)
-		}
+		recetas = append(recetas, &receta)
 	}
 
-	return recetasFiltradas, nil
+	if recetas == nil {
+		recetas = []*Receta{}
+	}
+
+	resultado := &ResultadoPaginado{
+		Recetas:  recetas,
+		Bookmark: metadata.Bookmark,
+	}
+
+	return resultado, nil
 }
 
 func (s *SmartContract) CreateVacuna(ctx contractapi.TransactionContextInterface, vacuna Vacuna) error {
