@@ -227,17 +227,21 @@ public class RecetaController {
         }
     }
 
-    @PostMapping("/obtener/paginado")
-    private ResponseEntity<ResultadoPaginado> obtenerPaginadoTest() {
+    @GetMapping("/obtener/paginado")
+    public ResponseEntity<ResultadoPaginado<RecetaDto>> obtenerRecetasPaginado(
+            @RequestParam String dni,
+            @RequestParam String estado,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "") String bookmark) {
 
         try {
-            ResultadoPaginado recetas = recetaService.obtenerRecetasPorDniYEstadoPaginado("12345678", "active", 10, "");
+            ResultadoPaginado<RecetaDto> recetas = recetaService
+                    .obtenerRecetasPorDniYEstadoPaginado(dni, estado, pageSize, bookmark);
             return new ResponseEntity<>(recetas, HttpStatus.OK);
         } catch (Exception e) {
-            e.printStackTrace(); // este bloque rara vez se ejecutaría si ya atrapás las anteriores
+            e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
     }
 
     private RecetaDto mapToDto(Receta receta) {
