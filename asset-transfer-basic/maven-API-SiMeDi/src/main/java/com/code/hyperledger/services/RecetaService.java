@@ -150,12 +150,13 @@ public class RecetaService {
     }
 
     public ResultadoPaginado<RecetaDto> obtenerRecetasPorDniYEstadoPaginado(
-            String dni, String estado, int pageSize, String bookmark) throws Exception {
-
+            String dni, List<String> estados, int pageSize, String bookmark) throws Exception {
+        String estadosJson = new ObjectMapper().writeValueAsString(estados);
+        System.out.println("Estados " + estadosJson);
         byte[] result = contract.evaluateTransaction(
-                "GetRecetasPorDniYEstadoPaginado",
+                "GetRecetasPorDniYEstadosPaginado",
                 dni,
-                estado,
+                estadosJson,
                 String.valueOf(pageSize),
                 bookmark);
 

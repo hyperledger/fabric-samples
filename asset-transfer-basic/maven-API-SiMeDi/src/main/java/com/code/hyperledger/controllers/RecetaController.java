@@ -230,13 +230,13 @@ public class RecetaController {
     @GetMapping("/obtener/paginado")
     public ResponseEntity<ResultadoPaginado<RecetaDto>> obtenerRecetasPaginado(
             @RequestParam String dni,
-            @RequestParam String estado,
+            @RequestParam List<String> estados,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "") String bookmark) {
-
+        System.out.println("Entro ");
         try {
             ResultadoPaginado<RecetaDto> recetas = recetaService
-                    .obtenerRecetasPorDniYEstadoPaginado(dni, estado, pageSize, bookmark);
+                    .obtenerRecetasPorDniYEstadoPaginado(dni, estados, pageSize, bookmark);
             return new ResponseEntity<>(recetas, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();

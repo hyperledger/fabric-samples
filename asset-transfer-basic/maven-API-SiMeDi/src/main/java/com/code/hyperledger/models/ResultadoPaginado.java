@@ -10,6 +10,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ResultadoPaginado<T> {
-    private List<T> recetas;
+    private List<T> componentes;
     private String bookmark;
 }
