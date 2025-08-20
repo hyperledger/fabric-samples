@@ -39,7 +39,11 @@ The Fabric test network is used to deploy and run this sample. Follow these step
 1. Create the test network and a channel (from the `test-network` folder).
 
    ```
-   ./network.sh up createChannel -c mychannel -ca
+   Standard:
+    ./network.sh up createChannel -c mychannel -ca
+   
+   CouchDb:
+    ./network.sh up createChannel -s couchdb
    ```
 
 1. Deploy one of the smart contract implementations (from the `test-network` folder).
@@ -59,7 +63,11 @@ The Fabric test network is used to deploy and run this sample. Follow these step
    - To deploy the **Go** chaincode implementation:
 
      ```shell
+     Standard:
      ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-go/ -ccl go
+     
+     CouchDb:
+     ./network.sh deployCC -ccn basic -ccv 1.0 -ccp ../asset-transfer-basic/chaincode-go -ccl go
      ```
 
    - To deploy the **Java** chaincode implementation:
