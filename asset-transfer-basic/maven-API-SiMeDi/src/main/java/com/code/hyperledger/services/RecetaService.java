@@ -152,15 +152,13 @@ public class RecetaService {
     public ResultadoPaginado<RecetaDto> obtenerRecetasPorDniYEstadoPaginado(
             String dni, List<String> estados, int pageSize, String bookmark) throws Exception {
         String estadosJson = new ObjectMapper().writeValueAsString(estados);
-        System.out.println("Estados " + estadosJson);
+
         byte[] result = contract.evaluateTransaction(
                 "GetRecetasPorDniYEstadosPaginado",
                 dni,
                 estadosJson,
                 String.valueOf(pageSize),
                 bookmark);
-
-        System.out.println("Respuesta del chaincode (JSON): " + new String(result));
         ObjectMapper mapper = new ObjectMapper();
         JavaType tipo = mapper.getTypeFactory()
                 .constructParametricType(ResultadoPaginado.class, RecetaDto.class);

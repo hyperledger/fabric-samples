@@ -94,12 +94,10 @@ public class VacunaService {
     public void cargarVacuna(Vacuna vacuna)
             throws CommitStatusException, EndorseException, CommitException, SubmitException {
         try {
-            System.out.println("Vacuna recibida correctamente (Service)" + vacuna);
             ObjectMapper objectMapper = new ObjectMapper();
             String vacunaJson = objectMapper.writeValueAsString(vacuna);
 
             contract.submitTransaction("CreateVacuna", vacunaJson);
-            System.out.println("Vacuna creada correctamente (Service)" + vacunaJson);
         } catch (Exception e) {
             System.err.println("Error en submitTransaction: " + e.getMessage());
             e.printStackTrace();
@@ -125,7 +123,6 @@ public class VacunaService {
         var evaluateResult = contract.evaluateTransaction("GetMultipleVacunas", idsJson);
 
         if (evaluateResult == null || evaluateResult.length == 0) {
-            System.err.println("GetMultipleVacunas devolvió una respuesta vacía.");
             return new ArrayList<>();
         }
 
