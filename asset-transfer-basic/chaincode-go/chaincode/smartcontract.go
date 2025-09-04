@@ -469,6 +469,65 @@ func (s *SmartContract) GetMultipleVacunas(ctx contractapi.TransactionContextInt
 	return vacunas, nil
 }
 
+type ResultadoPaginadoVacunas struct {
+	Vacunas  []*Vacuna `json:"componentes"`
+	Bookmark string    `json:"bookmark"`
+}
+
+func (s *SmartContract) GetVacunasPorDniPaginado(
+	ctx contractapi.TransactionContextInterface,
+	dni string,
+	pageSize int32,
+	bookmark string,
+) (*ResultadoPaginadoVacunas, error) {
+
+	if dni == "" {
+		return nil, fmt.Errorf("el dni es obligatorio")
+	}
+
+	query := map[string]interface{}{
+		"selector": map[string]interface{}{
+			"patientDocumentNumber": dni,
+		},
+		// primero probamos sin use_index
+		//	"use_index": []string{"vacunas-index", "indexVacunas"},
+		"limit": pageSize,
+	}
+	if bookmark != "" {
+		query["bookmark"] = bookmark
+	}
+	queryBytes, err := json.Marshal(query)
+	if err != nil {
+		return nil, fmt.Errorf("error al generar la query: %v", err)
+	}
+	resultsIterator, metadata, err := ctx.GetStub().GetQueryResultWithPagination(string(queryBytes), pageSize, bookmark)
+	if err != nil {
+		return nil, fmt.Errorf("error al ejecutar la query: %v", err)
+	}
+	defer resultsIterator.Close()
+	var vacunas []*Vacuna
+	for resultsIterator.HasNext() {
+		response, iterErr := resultsIterator.Next()
+		if iterErr != nil {
+			return nil, iterErr
+		}
+		var vacuna Vacuna
+		if err := json.Unmarshal(response.Value, &vacuna); err != nil {
+			return nil, fmt.Errorf("error al parsear vacuna: %v", err)
+		}
+		vacunas = append(vacunas, &vacuna)
+	}
+	if vacunas == nil {
+		vacunas = []*Vacuna{}
+	}
+	resultado := &ResultadoPaginadoVacunas{
+		Vacunas:  vacunas,
+		Bookmark: metadata.Bookmark,
+	}
+
+	return resultado, nil
+}
+
 func (s *SmartContract) GetVacunasPorDniYEstado(ctx contractapi.TransactionContextInterface, dni string, estado string) ([]*Vacuna, error) {
 	if dni == "" {
 		return nil, fmt.Errorf("el dni es obligatorio")
