@@ -28,7 +28,7 @@ createNetwork
 print "Initializing Java application"
 pushd ../asset-transfer-ledger-queries/application-java
 print "Executing Gradle Run"
-gradle run
+./gradlew run
 popd
 stopNetwork
 
