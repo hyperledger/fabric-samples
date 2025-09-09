@@ -35,7 +35,7 @@ jobs:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VER }}
       - run: ci/scripts/lint-typescript.sh
@@ -44,7 +44,7 @@ jobs:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VER }}
       - run: ci/scripts/lint-javascript.sh
