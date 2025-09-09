@@ -16,7 +16,7 @@ jobs:
   ansible:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Full Stack Runtime
         uses: ./.github/actions/fsat-setup
       - run: just test-ansible
@@ -25,7 +25,7 @@ jobs:
   appdev:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Full Stack Runtime
         uses: ./.github/actions/fsat-setup
       - run: just test-appdev
@@ -34,7 +34,7 @@ jobs:
   chaincode:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Full Stack Runtime
         uses: ./.github/actions/fsat-setup
       - run: just test-chaincode
@@ -43,7 +43,7 @@ jobs:
   cloud:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Full Stack Runtime
         uses: ./.github/actions/fsat-setup
       - run: just test-cloud
@@ -52,7 +52,7 @@ jobs:
   console:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Full Stack Runtime
         uses: ./.github/actions/fsat-setup
       - run: just test-console
