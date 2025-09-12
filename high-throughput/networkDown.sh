@@ -11,7 +11,3 @@ set -ex
 pushd ../test-network
 ./network.sh down
 popd
-
-
-rm -rf application-go/wallet/
-rm -rf application-go/keystore/
