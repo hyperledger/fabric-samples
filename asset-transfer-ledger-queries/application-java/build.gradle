@@ -30,7 +30,7 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClassName = 'application.java.App'
+    mainClass = 'application.java.App'
 }
 
 // task for running the app after building dependencies

@@ -3,7 +3,7 @@
  */
 
 plugins {
-    id 'com.gradleup.shadow' version '8.3.5'
+    id 'com.gradleup.shadow' version '9.2.2'
     id 'application'
     id 'checkstyle'
     id 'jacoco'
@@ -25,10 +25,8 @@ repositories {
     }
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
+compileJava {
+    options.release = 11
 }
 
 application {
@@ -75,6 +73,8 @@ shadowJar {
     archiveBaseName = 'chaincode'
     archiveVersion = ''
     archiveClassifier = ''
+
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     mergeServiceFiles()
 
     manifest {
