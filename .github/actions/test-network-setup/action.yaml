@@ -9,7 +9,7 @@ inputs:
     default: 20.x
   java-version:
     description: Version of JDK
-    default: 11.x
+    default: 25.x
   fabric-version:
     description: Version of Hyperledger Fabric
     default: 2.5.13

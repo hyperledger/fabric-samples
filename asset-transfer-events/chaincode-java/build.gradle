@@ -3,7 +3,7 @@
  */
 
 plugins {
-    id 'com.gradleup.shadow' version '8.3.5'
+    id 'com.gradleup.shadow' version '9.2.2'
     id 'application'
     id 'checkstyle'
     id 'jacoco'
@@ -15,7 +15,6 @@ version '1.0-SNAPSHOT'
 dependencies {
     implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.5.+'
     implementation 'org.json:json:+'
-    testImplementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.5.+'
 }
 
 repositories {
@@ -25,14 +24,12 @@ repositories {
     }
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
+compileJava {
+    options.release = 11
 }
 
 application {
-    mainClassName =  'org.hyperledger.fabric.contract.ContractRouter'
+    mainClass = 'org.hyperledger.fabric.contract.ContractRouter'
 }
 
 
@@ -53,12 +50,12 @@ jacocoTestReport {
     dependsOn test
 }
 
-mainClassName = 'org.hyperledger.fabric.contract.ContractRouter'
-
 shadowJar {
     archiveBaseName = 'chaincode'
     archiveVersion = ''
     archiveClassifier = ''
+
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     mergeServiceFiles()
 
     manifest {
