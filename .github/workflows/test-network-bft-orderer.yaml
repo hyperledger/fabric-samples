@@ -7,9 +7,9 @@ run-name: ${{ github.actor }} is running the Test Network with BFT Orderer tests
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -38,7 +38,7 @@ jobs:
         # Note: The default Fabric version for CI is currently the latest LTS (v2.5.x).
         # To test BFT Orderers, Fabric v3.x is explicitly specified here.
         with:
-          fabric-version: 3.1.1
+          fabric-version: 3.1.3
 
       - name: Run Test Network with BFT Orderers
         working-directory: test-network

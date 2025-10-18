@@ -3,16 +3,16 @@ description: Set up the Test Network Runtime
 inputs:
   go-version:
     description: Version of go
-    default: "1.23"
+    default: stable
   node-version:
     description: Version of node
-    default: 20.x
+    default: "lts/*"
   java-version:
     description: Version of JDK
     default: 25.x
   fabric-version:
     description: Version of Hyperledger Fabric
-    default: 2.5.13
+    default: 2.5.14
   ca-version:
     description: Version of Hyperledger Fabric CA
     default: 1.5.15
@@ -20,18 +20,18 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       with:
         go-version: ${{ inputs.go-version }}
         cache-dependency-path: "**/go.sum"
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v6
       with:
         node-version: ${{ inputs.node-version }}
         cache: "npm"
         cache-dependency-path: "**/package-lock.json"
 
-    - uses: actions/setup-java@v4
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: ${{ inputs.java-version }}

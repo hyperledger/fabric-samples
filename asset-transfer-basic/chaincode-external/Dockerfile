@@ -2,10 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-ARG GO_VER=1.23
-ARG ALPINE_VER=3.21
-
-FROM golang:${GO_VER}-alpine${ALPINE_VER}
+FROM golang:alpine
 
 WORKDIR /go/src/github.com/hyperledger/fabric-samples/asset-transfer-basic/chaincode-external
 COPY . .

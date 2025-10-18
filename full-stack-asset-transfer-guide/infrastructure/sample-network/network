@@ -33,7 +33,7 @@ function context() {
   export ${name}="${!override_name:-${default_value}}"
 }
 
-context FABRIC_VERSION            2.5.13
+context FABRIC_VERSION            2.5.14
 context FABRIC_CA_VERSION         1.5.15
 
 context CLUSTER_RUNTIME           kind                  # or k3s for Rancher
@@ -82,7 +82,7 @@ context PEER_IMAGE_LABEL          0.11.0 # When using k8s-fabric-peer in Fabric 
 context ORDERER_IMAGE             ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer
 context ORDERER_IMAGE_LABEL       ${FABRIC_VERSION}
 context OPERATOR_IMAGE            ghcr.io/hyperledger-labs/fabric-operator
-context OPERATOR_IMAGE_LABEL      1.0.4
+context OPERATOR_IMAGE_LABEL      latest
 context INIT_IMAGE                registry.access.redhat.com/ubi8/ubi-minimal
 context INIT_IMAGE_LABEL          latest
 context GRPCWEB_IMAGE             ghcr.io/hyperledger-labs/grpc-web

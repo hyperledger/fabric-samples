@@ -5,7 +5,7 @@ name: REST Sample 🐧
 run-name: ${{ github.actor }} is testing the REST Sample 🐧
 
 env:
-  NODE_VER: 20.x
+  NODE_VER: "lts/*"
 
 on:
   workflow_dispatch:
@@ -28,7 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VER }}
           cache: "npm"

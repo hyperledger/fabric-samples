@@ -2,7 +2,7 @@
 
 write_files:
   - path: /config/provision-root.sh
-    permissions: '0744'
+    permissions: "0744"
     content: |
       #!/usr/bin/env bash
       set -ex
@@ -33,8 +33,8 @@ write_files:
       # Install k9s
       K9S_VERSION=0.25.3
       if [ ! -x "/usr/local/bin/k9s" ]; then
-        curl --fail --silent --show-error -L "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_x86_64.tar.gz" -o "/tmp/k9s_Linux_x86_64.tar.gz"
-        tar -zxf "/tmp/k9s_Linux_x86_64.tar.gz" -C /usr/local/bin k9s
+        curl --fail --silent --show-error -L "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz" -o "/tmp/k9s_Linux_amd64.tar.gz"
+        tar -zxf "/tmp/k9s_Linux_amd64.tar.gz" -C /usr/local/bin k9s
         chown root:root /usr/local/bin/k9s
         chmod 755 /usr/local/bin/k9s
       fi

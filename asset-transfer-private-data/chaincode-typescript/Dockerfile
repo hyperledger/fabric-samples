@@ -1,7 +1,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-FROM node:22 AS builder
+FROM node:lts AS builder
 
 WORKDIR /usr/src/app
 
@@ -11,7 +11,7 @@ ENV npm_config_cache=/usr/src/app
 RUN npm ci && npm run package
 
 
-FROM node:22 AS production
+FROM node:lts AS production
 ARG CC_SERVER_PORT
 
 # Setup tini to work better handle signals
