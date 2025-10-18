@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Test the network
         working-directory: test-network-k8s
         run: ../ci/scripts/run-k8s-test-network-basic.sh
@@ -32,7 +32,7 @@ jobs:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Test the network
         working-directory: test-network-k8s
         run: ../ci/scripts/run-k8s-test-network-basic.sh
@@ -44,7 +44,7 @@ jobs:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Test the network
         working-directory: test-network-k8s
         run: ../ci/scripts/run-k8s-test-network-basic.sh
@@ -57,7 +57,7 @@ jobs:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Test the network
         working-directory: test-network-k8s
         run: ../ci/scripts/run-k8s-test-network-basic.sh
@@ -76,7 +76,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' || github.event.pull_request.base.ref == 'main' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Test the network
         working-directory: test-network-k8s
         run: ../ci/scripts/run-k8s-test-network-basic.sh
