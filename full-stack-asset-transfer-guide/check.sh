@@ -78,12 +78,12 @@ then
       echo "curl --fail --silent --show-error -L https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Darwin_arm64.tar.gz -o /tmp/k9s_Darwin_arm64.tar.gz"
       echo "tar -zxf /tmp/k9s_Darwin_arm64.tar.gz -C /usr/local/bin k9s"
     else
-      echo "curl --fail --silent --show-error -L https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Darwin_x86_64.tar.gz -o /tmp/k9s_Darwin_x86_64.tar.gz"
-      echo "tar -zxf /tmp/k9s_Darwin_x86_64.tar.gz -C /usr/local/bin k9s"
+      echo "curl --fail --silent --show-error -L https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Darwin_amd64.tar.gz -o /tmp/k9s_Darwin_amd64.tar.gz"
+      echo "tar -zxf /tmp/k9s_Darwin_amd64.tar.gz -C /usr/local/bin k9s"
     fi
   else
-    echo "curl --fail --silent --show-error -L https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_x86_64.tar.gz -o /tmp/k9s_Linux_x86_64.tar.gz"
-    echo "tar -zxf /tmp/k9s_Linux_x86_64.tar.gz -C /usr/local/bin k9s"
+    echo "curl --fail --silent --show-error -L https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz -o /tmp/k9s_Linux_amd64.tar.gz"
+    echo "tar -zxf /tmp/k9s_Linux_amd64.tar.gz -C /usr/local/bin k9s"
   fi
   echo "sudo chown root /usr/local/bin/k9s"
   echo "sudo chmod 755 /usr/local/bin/k9s"
