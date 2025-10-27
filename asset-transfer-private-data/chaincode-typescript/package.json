@@ -27,8 +27,8 @@
     "dependencies": {
         "fabric-contract-api": "~2.5",
         "fabric-shim": "~2.5",
-        "json-stringify-deterministic": "^1.0.0",
-        "sort-keys-recursive": "^2.1.0"
+        "json-stringify-deterministic": "^1.0.12",
+        "sort-keys-recursive": "^2.1.10"
     },
     "devDependencies": {
         "@types/node": "^18.19.33",

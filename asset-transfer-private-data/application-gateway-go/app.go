@@ -162,11 +162,11 @@ func createAssets(contract *client.Contract) {
 	fmt.Printf("\n--> Submit Transaction: CreateAsset, ID: %s\n", assetID1)
 
 	type assetTransientInput struct {
-		ObjectType     string
-		AssetID        string
-		Color          string
-		Size           uint8
-		AppraisedValue uint16
+		ObjectType     string `json:"objectType"`
+		AssetID        string `json:"assetID"`
+		Color          string `json:"color"`
+		Size           uint8  `json:"size"`
+		AppraisedValue uint16 `json:"appraisedValue"`
 	}
 
 	asset1Data := assetTransientInput{
@@ -300,7 +300,9 @@ func transferAsset(contract *client.Contract, assetID string) (err error) {
 func deleteAsset(contract *client.Contract, assetID string) (err error) {
 	fmt.Printf("\n--> Submit Transaction: DeleteAsset, ID: %s\n", assetID)
 
-	dataForDelete := struct{ AssetID string }{assetID}
+	dataForDelete := struct {
+		AssetID string `json:"assetID"`
+	}{assetID}
 
 	if _, err = contract.Submit(
 		"DeleteAsset",
@@ -318,7 +320,9 @@ func deleteAsset(contract *client.Contract, assetID string) (err error) {
 func purgeAsset(contract *client.Contract, assetID string) (err error) {
 	fmt.Printf("\n--> Submit Transaction: PurgeAsset, ID: %s\n", assetID)
 
-	dataForPurge := struct{ AssetID string }{assetID}
+	dataForPurge := struct {
+		AssetID string `json:"assetID"`
+	}{assetID}
 
 	if _, err = contract.Submit(
 		"PurgeAsset",
