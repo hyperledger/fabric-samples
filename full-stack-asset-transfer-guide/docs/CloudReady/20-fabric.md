@@ -89,7 +89,7 @@ We can then tail the org1-peer1 log in a terminal window so that we can see proo
 kubectl logs -f org1-peer1-79df64f8d8-7m9mt peer
 ```
 
-Now that you know how to use kubectl, let's learn the shortcut! You can easily monitor all of the the pods in the [k9s utility](https://k9scli.io/topics/install/). If you haven't started k9s yet, start it in a new terminal:
+Now that you know how to use kubectl, let's learn the shortcut! You can easily monitor all of the pods in the [k9s utility](https://k9scli.io/topics/install/). If you haven't started k9s yet, start it in a new terminal:
 
 ```shell
 k9s -n test-network

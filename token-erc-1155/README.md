@@ -21,7 +21,7 @@ The following required functions of ERC-1155 are implemented:
 
 Note: The "safe" prefix is omitted from "TransferFrom" in the implementation because the prefix is related to some issue about backwards compatibility with older smart contracts in Ethereum.
 
-Note: TransferFrom is used to send a single token type between two users. BatchTransferFrom is used to send multiple tokens between two users. So, BatchTransferFrom is a more general form of TransferFrom. Ethereum defined two functions instead of one because this reduces gas costs. Since there is no gas cost in Fabric, implementing these two functions is unnecessary. Nevertheless, both of them are implemented to to conform the ERC-1155 standard.
+Note: TransferFrom is used to send a single token type between two users. BatchTransferFrom is used to send multiple tokens between two users. So, BatchTransferFrom is a more general form of TransferFrom. Ethereum defined two functions instead of one because this reduces gas costs. Since there is no gas cost in Fabric, implementing these two functions is unnecessary. Nevertheless, both of them are implemented to conform the ERC-1155 standard.
 
 ## Additional Functions Implemented
 
