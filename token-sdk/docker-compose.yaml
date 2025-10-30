@@ -1,5 +1,3 @@
-version: '3.7'
-
 # fabric_test is the name of the fabric-samples test network.
 # By connecting to it, we can reach the peers at their DNS names
 # (e.g. peer0.org1.example.com).
@@ -44,7 +42,7 @@ services:
     ports:
       - 9100:9000
     expose:
-      - 9101  
+      - 9101
     networks:
       - test
     depends_on:
@@ -92,10 +90,10 @@ services:
         condition: service_healthy
 
   swagger-ui:
-      image: swaggerapi/swagger-ui
-      ports:
-          - '8080:8080'
-      environment:
-          - URL=/swagger.yaml
-      volumes:
-          - ./swagger.yaml:/usr/share/nginx/html/swagger.yaml
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8080:8080"
+    environment:
+      - URL=/swagger.yaml
+    volumes:
+      - ./swagger.yaml:/usr/share/nginx/html/swagger.yaml

@@ -1,5 +1,3 @@
-version: '3.7'
-
 volumes:
   orderer.example.com:
   orderer2.example.com:
