@@ -3,8 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-version: '3.7'
-
 volumes:
   orderer.example.com:
   peer0.org1.example.com:

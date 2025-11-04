@@ -3,14 +3,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-version: '3.7'
-
 networks:
   test:
     name: fabric_test
 
 services:
-
   peer0.org3.example.com:
     container_name: peer0.org3.example.com
     image: hyperledger/fabric-peer:latest
