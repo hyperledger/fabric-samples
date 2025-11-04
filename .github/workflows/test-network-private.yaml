@@ -7,9 +7,9 @@ run-name: ${{ github.actor }} is running the Test Network Private tests 🔒
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "release-2.5" ]
+    branches: ["main", "release-2.5"]
   pull_request:
-    branches: [ "main", "release-2.5" ]
+    branches: ["main", "release-2.5"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -22,6 +22,8 @@ jobs:
       matrix:
         chaincode-language:
           - go
+          - java
+          - typescript
         chaincode-name:
           - private
     steps:
