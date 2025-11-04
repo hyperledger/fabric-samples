@@ -19,12 +19,12 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.hyperledger.fabric:fabric-gateway:1.8.0'
-    implementation platform('com.google.protobuf:protobuf-bom:4.28.2')
-    implementation platform('io.grpc:grpc-bom:1.67.1')
+    implementation 'org.hyperledger.fabric:fabric-gateway:1.10.0'
+    implementation platform('com.google.protobuf:protobuf-bom:4.33.0')
+    implementation platform('io.grpc:grpc-bom:1.76.0')
     compileOnly 'io.grpc:grpc-api'
     runtimeOnly 'io.grpc:grpc-netty-shaded'
-    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'com.google.code.gson:gson:2.13.2'
 }
 
 compileJava {

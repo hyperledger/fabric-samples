@@ -20,7 +20,6 @@ import (
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"github.com/hyperledger/fabric-gateway/pkg/hash"
 	"github.com/hyperledger/fabric-gateway/pkg/identity"
-	"github.com/hyperledger/fabric-protos-go-apiv2/gateway"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
@@ -248,41 +247,21 @@ func exampleErrorHandling(contract *client.Contract) {
 
 	fmt.Println("*** Successfully caught the error:")
 
-	var endorseErr *client.EndorseError
-	var submitErr *client.SubmitError
 	var commitStatusErr *client.CommitStatusError
-	var commitErr *client.CommitError
+	var transactionErr *client.TransactionError
 
-	if errors.As(err, &endorseErr) {
-		fmt.Printf("Endorse error for transaction %s with gRPC status %v: %s\n", endorseErr.TransactionID, status.Code(endorseErr), endorseErr)
-	} else if errors.As(err, &submitErr) {
-		fmt.Printf("Submit error for transaction %s with gRPC status %v: %s\n", submitErr.TransactionID, status.Code(submitErr), submitErr)
-	} else if errors.As(err, &commitStatusErr) {
+	if errors.As(err, &commitStatusErr) {
 		if errors.Is(err, context.DeadlineExceeded) {
-			fmt.Printf("Timeout waiting for transaction %s commit status: %s", commitStatusErr.TransactionID, commitStatusErr)
+			fmt.Printf("Timeout waiting for transaction %s commit status: %s\n", commitStatusErr.TransactionID, commitStatusErr)
 		} else {
 			fmt.Printf("Error obtaining commit status for transaction %s with gRPC status %v: %s\n", commitStatusErr.TransactionID, status.Code(commitStatusErr), commitStatusErr)
 		}
-	} else if errors.As(err, &commitErr) {
-		fmt.Printf("Transaction %s failed to commit with status %d: %s\n", commitErr.TransactionID, int32(commitErr.Code), err)
+	} else if errors.As(err, &transactionErr) {
+		// The error could be an EndorseError, SubmitError or CommitError.
+		fmt.Println(err)
+		fmt.Printf("TransactionID: %s\n", transactionErr.TransactionID)
 	} else {
 		panic(fmt.Errorf("unexpected error type %T: %w", err, err))
-	}
-
-	// Any error that originates from a peer or orderer node external to the gateway will have its details
-	// embedded within the gRPC status error. The following code shows how to extract that.
-	statusErr := status.Convert(err)
-
-	details := statusErr.Details()
-	if len(details) > 0 {
-		fmt.Println("Error Details:")
-
-		for _, detail := range details {
-			switch detail := detail.(type) {
-			case *gateway.ErrorDetail:
-				fmt.Printf("- address: %s; mspId: %s; message: %s\n", detail.Address, detail.MspId, detail.Message)
-			}
-		}
 	}
 }
 
