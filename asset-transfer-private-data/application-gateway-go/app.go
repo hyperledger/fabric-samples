@@ -11,13 +11,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"github.com/hyperledger/fabric-gateway/pkg/hash"
-	"github.com/hyperledger/fabric-protos-go-apiv2/gateway"
-	"google.golang.org/grpc/status"
 )
 
 type transient = map[string][]byte
@@ -98,7 +95,7 @@ func main() {
 	if err == nil {
 		doFail("TransferAsset transaction succeeded when it was expected to fail")
 	}
-	fmt.Printf("*** Received expected error: %+v\n", errorWithDetails(err))
+	fmt.Printf("*** Received expected error: %+v\n", err)
 
 	fmt.Println("\n~~~~~~~~~~~~~~~~ As Org2 Client ~~~~~~~~~~~~~~~~")
 
@@ -115,7 +112,7 @@ func main() {
 
 	// Transfer asset to Org2.
 	if err := transferAsset(contractOrg1, assetID1); err != nil {
-		doFail(fmt.Sprintf("TransferAsset transaction failed when it was expected to succeed: %+v\n", errorWithDetails(err)))
+		doFail(fmt.Sprintf("TransferAsset transaction failed when it was expected to succeed: %+v\n", err))
 	}
 
 	// Again ReadAsset: results will show that the buyer identity now owns the asset.
@@ -140,19 +137,19 @@ func main() {
 	if err == nil {
 		doFail("DeleteAsset transaction succeeded when it was expected to fail")
 	}
-	fmt.Printf("*** Received expected error: %+v\n", errorWithDetails(err))
+	fmt.Printf("*** Received expected error: %+v\n", err)
 
 	fmt.Println("\n~~~~~~~~~~~~~~~~ As Org1 Client ~~~~~~~~~~~~~~~~")
 
 	// Delete AssetID2 as Org1.
 	if err := deleteAsset(contractOrg1, assetID2); err != nil {
-		doFail(fmt.Sprintf("DeleteAsset transaction failed when it was expected to succeed: %+v\n", errorWithDetails(err)))
+		doFail(fmt.Sprintf("DeleteAsset transaction failed when it was expected to succeed: %+v\n", err))
 	}
 
 	// Trigger a purge of the private data for the asset.
 	// The previous delete is optional if purge is used.
 	if err := purgeAsset(contractOrg1, assetID2); err != nil {
-		doFail(fmt.Sprintf("PurgeAsset transaction failed when it was expected to succeed: %+v\n", errorWithDetails(err)))
+		doFail(fmt.Sprintf("PurgeAsset transaction failed when it was expected to succeed: %+v\n", err))
 	}
 }
 
@@ -379,24 +376,4 @@ func formatJSON(data []byte) string {
 		panic(fmt.Errorf("failed to parse JSON: %w", err))
 	}
 	return result.String()
-}
-
-func errorWithDetails(err error) error {
-	var buf strings.Builder
-
-	statusErr := status.Convert(err)
-	errDetails := statusErr.Details()
-	if len(errDetails) > 0 {
-		buf.WriteString("\nError Details:")
-
-		for _, errDetail := range errDetails {
-			if detail, ok := errDetail.(*gateway.ErrorDetail); ok {
-				buf.WriteString(fmt.Sprintf("\n- address: %s", detail.GetAddress()))
-				buf.WriteString(fmt.Sprintf("\n- mspID: %s", detail.GetMspId()))
-				buf.WriteString(fmt.Sprintf("\n- message: %s\n", detail.GetMessage()))
-			}
-		}
-	}
-
-	return fmt.Errorf("%w%s", err, buf.String())
 }

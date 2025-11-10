@@ -18,8 +18,8 @@
     "author": "Hyperledger",
     "license": "Apache-2.0",
     "dependencies": {
-        "@grpc/grpc-js": "^1.12.2",
-        "@hyperledger/fabric-gateway": "^1.8.0",
+        "@grpc/grpc-js": "^1.14.0",
+        "@hyperledger/fabric-gateway": "^1.10.0",
         "@hyperledger/fabric-protos": "^0.3.4"
     },
     "devDependencies": {
