@@ -26,14 +26,14 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: stable
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: go install golang.org/x/tools/cmd/goimports@latest
       - run: ci/scripts/lint-go.sh
 
   typescript:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VER }}
@@ -42,7 +42,7 @@ jobs:
   javascript:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VER }}
@@ -51,7 +51,7 @@ jobs:
   java:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -61,5 +61,5 @@ jobs:
   shell:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: ci/scripts/lint-shell.sh
