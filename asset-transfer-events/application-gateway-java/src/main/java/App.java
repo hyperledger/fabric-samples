@@ -169,7 +169,7 @@ public final class App implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         executor.shutdownNow();
     }
 }
