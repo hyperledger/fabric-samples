@@ -83,7 +83,7 @@ public final class AssetTransferTest {
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             // do nothing
         }
 
