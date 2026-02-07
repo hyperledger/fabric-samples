@@ -8,10 +8,10 @@
         "declarationMap": true,
         "sourceMap": true,
         "outDir": "dist",
-        "strict": true,
         "noUnusedLocals": true,
         "noImplicitReturns": true,
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,
+        "isolatedModules": true
     },
     "include": ["src/"]
 }

@@ -21,7 +21,7 @@ set -eo pipefail
 set -x
 
 KIND_CLUSTER_NAME=kind
-KIND_CLUSTER_IMAGE=${KIND_CLUSTER_IMAGE:-kindest/node:v1.28.0}        # Important! k8s v1.25.0 brings breaking changes.
+KIND_CLUSTER_IMAGE=${KIND_CLUSTER_IMAGE:-kindest/node:v1.35.1}        # Important! k8s v1.25.0 brings breaking changes.
 KIND_API_SERVER_ADDRESS=${KIND_API_SERVER_ADDRESS:-127.0.0.1}
 KIND_API_SERVER_PORT=${KIND_API_SERVER_PORT:-8888}
 CONTAINER_REGISTRY_NAME=${CONTAINER_REGISTRY_NAME:-kind-registry}
@@ -78,14 +78,27 @@ networking:
 # create a cluster with the local registry enabled in containerd
 containerdConfigPatches:
 - |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${CONTAINER_REGISTRY_PORT}"]
-    endpoint = ["http://${CONTAINER_REGISTRY_NAME}:${CONTAINER_REGISTRY_PORT}"]
+  [plugins."io.containerd.grpc.v1.cri".registry]
+    config_path = "/etc/containerd/certs.d"
+
 EOF
+
+  # Configure registry for containerd 2.x using config_path mode
+  for node in $(kind get nodes --name $KIND_CLUSTER_NAME);
+  do
+    docker exec "$node" mkdir -p "/etc/containerd/certs.d/localhost:${CONTAINER_REGISTRY_PORT}"
+    docker exec "$node" sh -c "cat > /etc/containerd/certs.d/localhost:${CONTAINER_REGISTRY_PORT}/hosts.toml <<EOT
+server = \"http://localhost:${CONTAINER_REGISTRY_PORT}\"
+
+[host.\"http://${CONTAINER_REGISTRY_NAME}:${CONTAINER_REGISTRY_PORT}\"]
+  capabilities = [\"pull\", \"resolve\", \"push\"]
+EOT"
+  done
 
   #
   # Work around a bug in KIND where DNS is not always resolved correctly on machines with IPv6
   #
-  for node in $(kind get nodes);
+  for node in $(kind get nodes --name $KIND_CLUSTER_NAME);
   do
       docker exec "$node" sysctl net.ipv4.conf.all.route_localnet=1;
   done

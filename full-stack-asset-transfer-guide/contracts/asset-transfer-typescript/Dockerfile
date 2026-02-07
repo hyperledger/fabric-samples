@@ -12,7 +12,7 @@ RUN npm install
 RUN npm run build && npm shrinkwrap
 
 
-FROM node:lts as prod-builder
+FROM node:lts AS prod-builder
 WORKDIR /usr/src/app
 COPY --chown=node:node --from=builder /usr/src/app/dist ./dist
 COPY --chown=node:node --from=builder /usr/src/app/package.json ./

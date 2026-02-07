@@ -34,7 +34,7 @@ function context() {
 }
 
 context FABRIC_VERSION            2.5.14
-context FABRIC_CA_VERSION         1.5.15
+context FABRIC_CA_VERSION         1.5.17
 
 context CLUSTER_RUNTIME           kind                  # or k3s for Rancher
 context CONTAINER_CLI             docker                # or nerdctl for containerd
@@ -78,7 +78,7 @@ context CA_IMAGE_LABEL            ${FABRIC_CA_VERSION}
 #context PEER_IMAGE                ${FABRIC_CONTAINER_REGISTRY}/fabric-peer
 #context PEER_IMAGE_LABEL          ${FABRIC_VERSION}
 context PEER_IMAGE                ghcr.io/hyperledger-labs/fabric-builder-k8s/k8s-fabric-peer
-context PEER_IMAGE_LABEL          0.11.0 # When using k8s-fabric-peer in Fabric v2.5+, 0.11.0+ should be specified
+context PEER_IMAGE_LABEL          0.15.1 # When using k8s-fabric-peer in Fabric v2.5+, 0.11.0+ should be specified
 context ORDERER_IMAGE             ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer
 context ORDERER_IMAGE_LABEL       ${FABRIC_VERSION}
 context OPERATOR_IMAGE            ghcr.io/hyperledger-labs/fabric-operator
@@ -91,7 +91,7 @@ context COUCHDB_IMAGE             couchdb
 context COUCHDB_IMAGE_LABEL       3.4.2
 context CONSOLE_IMAGE             ghcr.io/hyperledger-labs/fabric-console
 context CONSOLE_IMAGE_LABEL       latest
-context DEPLOYER_IMAGE            ghcr.io/ibm-blockchain/fabric-deployer
+context DEPLOYER_IMAGE            ghcr.io/hyperledger-labs/fabric-deployer
 context DEPLOYER_IMAGE_LABEL      latest-amd64
 
 export FABRIC_OPERATOR_IMAGE=${OPERATOR_IMAGE}:${OPERATOR_IMAGE_LABEL}
