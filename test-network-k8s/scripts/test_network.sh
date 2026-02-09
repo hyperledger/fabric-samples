@@ -74,10 +74,16 @@ function create_node_local_MSP() {
   export FABRIC_CA_CLIENT_HOME=/var/hyperledger/fabric-ca-client
   export FABRIC_CA_CLIENT_TLS_CERTFILES=/var/hyperledger/fabric/config/tls/ca.crt
 
+  # Enroll from inside the CA pod. Must specify port 443 explicitly.
+  # CA server listens on port 443, but fabric-ca-client defaults to 7054 when port is omitted in the URL.
   fabric-ca-client enroll \
-    --url https://${id_name}:${id_secret}@${ca_name} \
+    --url https://${id_name}:${id_secret}@${ca_name}:443 \
     --csr.hosts ${csr_hosts} \
     --mspdir /var/hyperledger/fabric/organizations/${node_type}Organizations/${org}.example.com/${node_type}s/${id_name}.${org}.example.com/msp
+
+  # Copy CA cert to expected filename (fabric-ca-client saves it as <hostname>-<port>.pem)
+  cp /var/hyperledger/fabric/organizations/${node_type}Organizations/${org}.example.com/${node_type}s/${id_name}.${org}.example.com/msp/cacerts/*.pem \
+     /var/hyperledger/fabric/organizations/${node_type}Organizations/${org}.example.com/${node_type}s/${id_name}.${org}.example.com/msp/cacerts/${org}-ca.pem
 
   # Create local MSP config.yaml
   echo "NodeOUs:
