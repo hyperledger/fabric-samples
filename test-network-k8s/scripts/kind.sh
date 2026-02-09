@@ -43,16 +43,32 @@ nodes:
 #networking:
 #  kubeProxyMode: "ipvs"
 
-# create a cluster with the local registry enabled in containerd
+# Create a cluster with the local registry enabled in containerd.
+# KIND v0.27.0+ uses containerd 2.x, which requires config_path mode
+# instead of the deprecated registry.mirrors configuration.
+# See: https://github.com/kubernetes-sigs/kind/releases/tag/v0.27.0
+# See: https://github.com/containerd/containerd/blob/main/docs/hosts.md
 containerdConfigPatches:
 - |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${reg_port}"]
-    endpoint = ["http://${reg_name}:${reg_port}"]
+  [plugins."io.containerd.grpc.v1.cri".registry]
+    config_path = "/etc/containerd/certs.d"
 
 EOF
 
+  # Configure registry for containerd 2.x using config_path mode
+  for node in $(kind get nodes --name $CLUSTER_NAME);
+  do
+    docker exec "$node" mkdir -p "/etc/containerd/certs.d/localhost:${reg_port}"
+    docker exec "$node" sh -c "cat > /etc/containerd/certs.d/localhost:${reg_port}/hosts.toml <<EOT
+server = \"http://localhost:${reg_port}\"
+
+[host.\"http://${reg_name}:${reg_port}\"]
+  capabilities = [\"pull\", \"resolve\", \"push\"]
+EOT"
+  done
+
   # workaround for https://github.com/hyperledger/fabric-samples/issues/550 - pods can not resolve external DNS
-  for node in $(kind get nodes);
+  for node in $(kind get nodes --name $CLUSTER_NAME);
   do
     docker exec "$node" sysctl net.ipv4.conf.all.route_localnet=1;
   done
