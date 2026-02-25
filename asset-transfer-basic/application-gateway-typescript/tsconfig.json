@@ -1,5 +1,5 @@
 {
-    "extends": "@tsconfig/node18/tsconfig.json",
+    "extends": "@tsconfig/node20/tsconfig.json",
     "compilerOptions": {
         "outDir": "dist",
         "declaration": true,
@@ -10,6 +10,6 @@
         "noUncheckedIndexedAccess": true,
         "forceConsistentCasingInFileNames": true
     },
-    "include": ["./src/**/*"],
-    "exclude": ["./src/**/*.spec.ts"]
+    "include": ["src/"],
+    "exclude": ["**/*.spec.*"]
 }

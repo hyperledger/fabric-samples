@@ -1,7 +1,8 @@
 import js from '@eslint/js';
+import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(js.configs.recommended, ...tseslint.configs.strictTypeChecked, {
+export default defineConfig(js.configs.recommended, ...tseslint.configs.strictTypeChecked, {
     languageOptions: {
         ecmaVersion: 2023,
         sourceType: 'module',

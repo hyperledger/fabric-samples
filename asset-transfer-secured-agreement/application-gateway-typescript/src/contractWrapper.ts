@@ -5,7 +5,7 @@
  */
 import { Contract } from '@hyperledger/fabric-gateway';
 import { TextDecoder } from 'util';
-import { GREEN, parse, RED, RESET } from './utils';
+import { GREEN, RED, RESET } from './utils';
 import crypto from 'crypto';
 import { mspIdOrg2 } from './connect';
 
@@ -92,15 +92,15 @@ export class ContractWrapper {
         const resultBytes = await this.#contract.evaluateTransaction('ReadAsset', assetKey);
 
         const result = this.#utf8Decoder.decode(resultBytes);
-        if (result.length !== 0) {
-            const json = parse<AssetJSON>(result);
-            if (json.ownerOrg === ownerOrg) {
-                console.log(`*** Result from ${this.#org} - asset ${json.assetID} owned by ${json.ownerOrg} DESC: ${json.publicDescription}`);
-            } else {
-                console.log(`${RED}*** Failed owner check from ${this.#org} - asset ${json.assetID} owned by ${json.ownerOrg} DESC:${json.publicDescription}.${RESET}`);
-            }
-        } else {
+        if (!result) {
             throw new Error('No Asset Found');
+        }
+
+        const json = JSON.parse(result) as AssetJSON;
+        if (json.ownerOrg === ownerOrg) {
+            console.log(`*** Result from ${this.#org} - asset ${json.assetID} owned by ${json.ownerOrg} DESC: ${json.publicDescription}`);
+        } else {
+            console.log(`${RED}*** Failed owner check from ${this.#org} - asset ${json.assetID} owned by ${json.ownerOrg} DESC:${json.publicDescription}.${RESET}`);
         }
     }
 
@@ -113,7 +113,7 @@ export class ContractWrapper {
         const resultBytes = await this.#contract.evaluateTransaction('GetAssetPrivateProperties', assetKey);
 
         const resultString = this.#utf8Decoder.decode(resultBytes);
-        const json = parse<AssetPropertiesJSON>(resultString);
+        const json = JSON.parse(resultString) as AssetPropertiesJSON;
         const result: AssetProperties = {
             color: json.color,
             size: json.size,
@@ -167,15 +167,15 @@ export class ContractWrapper {
         });
 
         const resultString = this.#utf8Decoder.decode(resultBytes);
-        if (resultString.length !== 0) {
-            const json = parse<AssetPropertiesJSON>(resultString);
-            if (typeof json === 'object') {
-                console.log(`*** Success VerifyAssetProperties, private information about asset ${assetId} has been verified by ${this.#org}`);
-            } else {
-                console.log(`*** Failed: VerifyAssetProperties, private information about asset ${assetId} has not been verified by ${this.#org}`);
-            }
-        } else {
+        if (!resultString) {
             throw new Error(`Private information about asset ${assetId} has not been verified by ${this.#org}`);
+        }
+
+        const json = JSON.parse(resultString) as AssetPropertiesJSON;
+        if (typeof json === 'object') {
+            console.log(`*** Success VerifyAssetProperties, private information about asset ${assetId} has been verified by ${this.#org}`);
+        } else {
+            console.log(`*** Failed: VerifyAssetProperties, private information about asset ${assetId} has not been verified by ${this.#org}`);
         }
     }
 
@@ -217,7 +217,7 @@ export class ContractWrapper {
         const resultBytes = await this.#contract.evaluateTransaction('GetAssetSalesPrice', assetKey);
 
         const resultString = this.#utf8Decoder.decode(resultBytes);
-        const json = parse<AssetPriceJSON>(resultString);
+        const json = JSON.parse(resultString) as AssetPriceJSON;
 
         const result: AssetPrice =  {
             assetId: json.assetID,
@@ -238,7 +238,7 @@ export class ContractWrapper {
         const resultBytes = await this.#contract.evaluateTransaction('GetAssetBidPrice', assetKey);
 
         const resultString = this.#utf8Decoder.decode(resultBytes);
-        const json = parse<AssetPriceJSON>(resultString);
+        const json = JSON.parse(resultString) as AssetPriceJSON;
         const result: AssetPrice = {
             assetId: json.assetID,
             price: json.price,

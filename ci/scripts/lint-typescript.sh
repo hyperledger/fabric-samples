@@ -8,7 +8,7 @@ function print() {
 	echo -e "${GREEN}${1}${NC}"
 }
 
-dirs=("$(find . -name "*-typescript" -type d -not -path '*/.*')")
+dirs=("$(find . \( -name '.?*' -o -name 'node_modules' \) -prune -o -type d -name '*-typescript' -print)")
 for dir in $dirs; do
   print "Linting $dir"
   pushd $dir

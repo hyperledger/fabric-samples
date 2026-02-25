@@ -465,9 +465,7 @@ export class AssetTransfer extends Contract {
         const b64ID = ctx.clientIdentity.getID();
 
         // base64.StdEncoding.DecodeString(b64ID);
-        const decodeID = Buffer.from(b64ID, 'base64').toString('binary');
-
-        return String(decodeID);
+        return Buffer.from(b64ID, 'base64').toString('binary');
     }
     // verifyClientOrgMatchesPeerOrg is an internal function used verify client org id and matches peer org id.
     public verifyClientOrgMatchesPeerOrg(ctx: Context): void {

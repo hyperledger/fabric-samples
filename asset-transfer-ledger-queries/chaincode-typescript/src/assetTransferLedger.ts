@@ -335,7 +335,7 @@ export class AssetTransferContract extends Contract {
             const nanos = historyRecord.timestamp.nanos;
 
             const secondsNumber =
-                typeof seconds === 'number' ? seconds : Number(seconds.low);
+                typeof seconds === 'number' ? seconds : seconds.low;
             const timestamp = new Date(secondsNumber * 1000 + nanos / 1e6);
             results.push({
                 txId: historyRecord.txId,
@@ -355,7 +355,7 @@ export class AssetTransferContract extends Contract {
     @Returns('boolean')
     public async AssetExists(ctx: Context, assetID: string): Promise<boolean> {
         const assetBytes = await ctx.stub.getState(assetID);
-        return !!(assetBytes.length > 0);
+        return assetBytes.length > 0;
     }
 
     // InitLedger creates the initial set of assets in the ledger.
@@ -436,7 +436,8 @@ export class AssetTransferContract extends Contract {
             let record: Asset;
             try {
                 record = JSON.parse(strValue) as Asset;
-            } catch (err) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            } catch (err) { 
                 record = {} as Asset;
             }
             allResults.push(record);

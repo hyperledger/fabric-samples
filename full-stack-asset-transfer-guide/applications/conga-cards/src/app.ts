@@ -13,6 +13,11 @@ import { ExpectedError } from './expectedError';
 
 async function main(): Promise<void> {
     const commandName = process.argv[2];
+    if (!commandName) {
+        printUsage();
+        throw new Error('No command specified');
+    }
+
     const args = process.argv.slice(3);
 
     const command = commands[commandName];
@@ -44,7 +49,7 @@ function printUsage(): void {
     console.log(`\t${Object.keys(commands).sort().join('\n\t')}`);
 }
 
-main().catch(error => {
+main().catch((error: unknown) => {
     if (error instanceof ExpectedError) {
         console.log(error);
     } else {

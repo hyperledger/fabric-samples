@@ -10,7 +10,7 @@ This project is based on the [trader-typescript](../trader-typescript) sample Ga
 
 ## Prerequisites
 
-The client application requires Node.js 16 or later.
+The client application requires Node.js 20 or later.
 
 ## Set up
 
