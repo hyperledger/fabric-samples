@@ -6,16 +6,16 @@ inputs:
     default: "lts/*"
   just-version:
     description: Just Version
-    default: "1.43.0"
+    default: "1.46.0"
   k9s-version:
     description: k9s Version
-    default: v0.50.15
+    default: v0.50.18
   fabric-version:
     description: Version of Hyperledger Fabric
     default: "2.5.14"
   ca-version:
     description: Version of Hyperledger Fabric CA
-    default: "1.5.15"
+    default: "1.5.17"
 
 runs:
   using: "composite"

@@ -7,10 +7,10 @@ import { ChaincodeEvent, checkpointers, Gateway } from '@hyperledger/fabric-gate
 import * as path from 'path';
 import { CHAINCODE_NAME, CHANNEL_NAME } from '../config';
 import { Asset } from '../contract';
-import { assertDefined } from '../utils';
+import { assertDefined, randomElement } from '../utils';
 import { TextDecoder } from 'util';
+import axios from 'axios'
 
-const axios = require('axios');
 const utf8Decoder = new TextDecoder();
 
 const checkpointFile = path.resolve(process.env.CHECKPOINT_FILE ?? 'checkpoint.json');
@@ -33,7 +33,7 @@ export default async function main(gateway: Gateway): Promise<void> {
     const checkpointer = await checkpointers.file(checkpointFile);
 
     console.log(`Connecting to #discord webhook ${webhookURL}`);
-    console.log(`Starting event discording from block ${checkpointer.getBlockNumber() ?? startBlock}`);
+    console.log(`Starting event discording from block ${String(checkpointer.getBlockNumber() ?? startBlock)}`);
     console.log('Last processed transaction ID within block:', checkpointer.getTransactionId());
 
     const events = await network.getChaincodeEvents(CHAINCODE_NAME, {
@@ -58,7 +58,7 @@ export default async function main(gateway: Gateway): Promise<void> {
 }
 
 // Relay a quick message to the discord webhook to indicate the transaction has been processed.
-async function discord(webhookURL: string, event: ChaincodeEvent): Promise<void> {
+function discord(webhookURL: string, event: ChaincodeEvent): Promise<void> {
 
     const asset = parseJson(event.payload);
     console.log(`\n<-- Chaincode event received: ${event.eventName}: `, asset);
@@ -66,11 +66,11 @@ async function discord(webhookURL: string, event: ChaincodeEvent): Promise<void>
     // const message = boringLogMessage(event, asset);
     const message = splashyShoutMessage(event, asset);
 
-    deliverMessage(webhookURL, message);
+    return deliverMessage(webhookURL, message);
 }
 
 // Send an event to a discord webhook.
-async function deliverMessage(webhookURL: string, message: any): Promise<void> {
+async function deliverMessage(webhookURL: string, message: object): Promise<void> {
     console.log('--> Sending to discord webhook: ' + webhookURL);
     console.log(JSON.stringify(message));
 
@@ -82,7 +82,8 @@ async function deliverMessage(webhookURL: string, message: any): Promise<void> {
     }
 }
 
-function boringLogMessage(event: ChaincodeEvent, asset: Asset): any {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function boringLogMessage(event: ChaincodeEvent, asset: Asset): object {
     const owner = ownerNickname(asset);
     const text = format(event, asset, owner);
 
@@ -93,9 +94,9 @@ function boringLogMessage(event: ChaincodeEvent, asset: Asset): any {
     }
 }
 
-function splashyShoutMessage(event: ChaincodeEvent, asset: Asset): any {
+function splashyShoutMessage(event: ChaincodeEvent, asset: Asset): object {
 
-    const owner:any = JSON.parse(asset.Owner);
+    const owner = JSON.parse(asset.Owner) as Owner;
 
     if (event.eventName == 'CreateAsset') {
         return {
@@ -104,7 +105,7 @@ function splashyShoutMessage(event: ChaincodeEvent, asset: Asset): any {
             content: `${bold(owner.user)} has caught a wild ${bold(asset.ID)}!` + getRandomEmoji(),
             embeds: [
                 {
-                    title: `${owner.org}`,
+                    title: owner.org,
                     image: {
                         // an actual conga comic (sometimes png and sometimes jpg)
                         // url: `https://congacomic.github.io/assets/img/blockheight-${offset}.png`
@@ -140,7 +141,7 @@ function format(event: ChaincodeEvent, asset: Asset, owner: string): string {
 
 function parseJson(jsonBytes: Uint8Array): Asset {
     const json = utf8Decoder.decode(jsonBytes);
-    return JSON.parse(json);
+    return JSON.parse(json) as Asset;
 }
 
 function quote(s: string): string {
@@ -160,7 +161,7 @@ function snippet(s: string) {
 }
 
 function ownerNickname(asset: Asset): string {
-    const owner:any = JSON.parse(asset.Owner);
+    const owner = JSON.parse(asset.Owner) as Owner;
 
     return `${owner.org}, ${owner.user}`;
 }
@@ -169,7 +170,10 @@ function ownerNickname(asset: Asset): string {
 // Simple method that returns a random emoji from list
 function getRandomEmoji(): string {
   const emojiList = ['😭','😄','😌','🤓','😎','😤','🤖','😶‍🌫', '🌏','📸','💿','👋','🌊','✨'];
-  return emojiList[Math.floor(Math.random() * emojiList.length)];
+  return randomElement(emojiList)
 }
 
-
+interface Owner {
+    user: string;
+    org: string;
+}
