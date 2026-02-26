@@ -240,7 +240,7 @@ function getSimulatedFailureCount(): number {
     const value = process.env.SIMULATED_FAILURE_COUNT ?? '0';
     const count = Math.floor(Number(value));
     if (isNaN(count) || count < 0) {
-        throw new Error(`Invalid SIMULATED_FAILURE_COUNT value: ${String(value)}`);
+        throw new Error(`Invalid SIMULATED_FAILURE_COUNT value: ${value}`);
     }
 
     return count;

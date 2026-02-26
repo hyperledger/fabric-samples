@@ -14,7 +14,7 @@ const utf8Decoder = new TextDecoder();
  */
 export function randomElement<T>(values: T[]): T {
     const result = values[randomInt(values.length)];
-    return assertDefined(result, `Missing element in {String(values)}`);
+    return assertDefined(result, `Missing element in ${String(values)}`);
 }
 
 /**
