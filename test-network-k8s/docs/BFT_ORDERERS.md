@@ -39,8 +39,8 @@ First, run the following command to verify that the environment variables are co
 ```shell
 $ ./network
 
-Fabric image versions: Peer (3.1.1), CA (1.5.15)
-Fabric binary versions: Peer (3.1.1), CA (1.5.15)
+Fabric image versions: Peer (3.1.4), CA (1.5.15)
+Fabric binary versions: Peer (3.1.4), CA (1.5.15)
 
 --- Fabric Information
 Fabric Version          : 3.1

@@ -27,7 +27,7 @@ write_files:
       # set -o pipefail
 
       if [ -z $1 ]; then
-        HLF_VERSION=2.5.14
+        HLF_VERSION=2.5.15
       else
         HLF_VERSION=$1
       fi
