@@ -25,7 +25,7 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 	if exists {
-		return fmt.Errorf("the asset %s already exists", id)
+		return fmt.Errorf("The asset %s already exists", id)
 	}
 
 	ownerID, err := clientIdentifier(ctx, owner)
@@ -96,7 +96,7 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("only owner can update assets")
+		return fmt.Errorf("Only owner can update assets")
 	}
 
 	// Owner is intentionally preserved; use TransferAsset to change owner.
@@ -141,7 +141,7 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("only owner can delete assets")
+		return fmt.Errorf("Only owner can delete assets")
 	}
 
 	if err := ctx.GetStub().DelState(id); err != nil {
@@ -180,7 +180,7 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("only owner can transfer assets")
+		return fmt.Errorf("Only owner can transfer assets")
 	}
 
 	newOwnerID := OwnerIdentifier{Org: newOwnerOrg, User: newOwner}
@@ -241,7 +241,7 @@ func readAsset(ctx contractapi.TransactionContextInterface, id string) ([]byte, 
 		return nil, fmt.Errorf("failed to read from world state: %v", err)
 	}
 	if assetBytes == nil {
-		return nil, fmt.Errorf("sorry, asset %s has not been created", id)
+		return nil, fmt.Errorf("Sorry, asset %s has not been created", id)
 	}
 
 	return assetBytes, nil
