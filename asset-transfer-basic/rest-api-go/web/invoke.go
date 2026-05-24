@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -18,6 +19,22 @@ func (setup *OrgSetup) Invoke(w http.ResponseWriter, r *http.Request) {
 	channelID := r.FormValue("channelid")
 	function := r.FormValue("function")
 	args := r.Form["args"]
+
+	if len(args) == 1 {
+		var parsed []string
+		err := json.Unmarshal([]byte(args[0]), &parsed)
+		if err == nil {
+			args = parsed
+		} else {
+			fmt.Printf("Warning: failed to parse args as JSON: %s\n", err)
+		}
+	}
+
+	if len(args) == 0 {
+		fmt.Fprintf(w, "Error: args is empty")
+		return
+	}
+
 	fmt.Printf("channel: %s, chaincode: %s, function: %s, args: %s\n", channelID, chainCodeName, function, args)
 	network := setup.Gateway.GetNetwork(channelID)
 	contract := network.GetContract(chainCodeName)
