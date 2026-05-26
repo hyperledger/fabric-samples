@@ -1,0 +1,20 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "@tsconfig/node20/tsconfig.json",
+    "compilerOptions": {
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "noUnusedLocals": false,
+        "noImplicitReturns": true,
+        "noUncheckedIndexedAccess": true
+    },
+    "include": [
+        "src/"
+    ],
+    "exclude": [
+        "**/*.spec.*"
+    ]
+}

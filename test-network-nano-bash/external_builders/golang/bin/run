@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+set -xeuo pipefail
+exec 1>&2
+BUILD_OUTPUT_DIR="$1"
+RUN_METADATA_DIR="$2"
+
+LOG_DIRECTORY=${PWD}/logs
+
+#######################################
+# Export environment variables and extract certificate files from chaincode.json
+# Globals:
+#   None
+# Arguments:
+#   METADATA_DIR: Location of the chaincode.json file
+# Returns:
+#   None
+#######################################
+function process_chaincode_metadata_json {
+    local METADATA_DIR=${RUN_METADATA_DIR}
+
+    CORE_CHAINCODE_ID_NAME="$(jq -r .chaincode_id "$METADATA_DIR/chaincode.json")"
+    CORE_PEER_ADDRESS="$(jq -r .peer_address "$METADATA_DIR/chaincode.json")"
+    CORE_PEER_LOCALMSPID="$(jq -r .mspid "$METADATA_DIR/chaincode.json")"
+    export CORE_CHAINCODE_ID_NAME
+    export CORE_PEER_ADDRESS
+    export CORE_PEER_LOCALMSPID
+
+    if [ -z "$(jq -r .client_cert "$METADATA_DIR/chaincode.json")" ]; then
+        CORE_PEER_TLS_ENABLED="false"
+        export CORE_PEER_TLS_ENABLED
+    else
+        CORE_PEER_TLS_ENABLED="true"
+        CORE_TLS_CLIENT_CERT_FILE="$BUILD_OUTPUT_DIR/client.crt"
+        CORE_TLS_CLIENT_KEY_FILE="$BUILD_OUTPUT_DIR/client.key"
+        CORE_PEER_TLS_ROOTCERT_FILE="$BUILD_OUTPUT_DIR/root.crt"
+        export CORE_PEER_TLS_ENABLED
+        export CORE_TLS_CLIENT_CERT_FILE
+        export CORE_TLS_CLIENT_KEY_FILE
+        export CORE_PEER_TLS_ROOTCERT_FILE
+
+        jq -r .client_cert "$METADATA_DIR/chaincode.json" >"$CORE_TLS_CLIENT_CERT_FILE"
+        jq -r .client_key "$METADATA_DIR/chaincode.json" >"$CORE_TLS_CLIENT_KEY_FILE"
+        jq -r .root_cert "$METADATA_DIR/chaincode.json" >"$CORE_PEER_TLS_ROOTCERT_FILE"
+    fi
+}
+
+# extract the required environment variables
+process_chaincode_metadata_json
+
+# output for debug purposes
+env | grep CORE | sort
+
+exec "${BUILD_OUTPUT_DIR}/chaincode" -peer.address="${CORE_PEER_ADDRESS}" > ${LOG_DIRECTORY}/${CORE_CHAINCODE_ID_NAME}.log 2>&1

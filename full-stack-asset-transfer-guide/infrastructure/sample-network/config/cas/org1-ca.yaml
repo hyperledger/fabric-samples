@@ -1,0 +1,128 @@
+#
+# Copyright contributors to the Hyperledger Fabric Operator project
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+# 	  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+apiVersion: ibp.com/v1beta1
+kind: IBPCA
+metadata:
+  name: org1-ca
+spec:
+  action:
+    renew: {}
+  configoverride:
+    ca:
+      affiliations:
+        org1:
+          - department1
+          - department2
+        org2:
+          - department1
+      registry:
+        identities:
+          - name: rcaadmin
+            pass: rcaadminpw
+            type: client
+            attrs:
+              hf.Registrar.Roles: "*"
+              hf.Registrar.DelegateRoles: "*"
+              hf.Revoker: true
+              hf.IntermediateCA: true
+              hf.GenCRL: true
+              hf.Registrar.Attributes: "*"
+              hf.AffiliationMgr: true
+          - name: peer1
+            pass: peer1pw
+            type: peer
+          - name: peer2
+            pass: peer2pw
+            type: peer
+          - name: org1admin
+            pass: org1adminpw
+            type: admin
+      debug: true
+      signing:
+        default:
+          expiry: 87600h0m0s
+    tlsca:
+      affiliations:
+        org1:
+          - department1
+          - department2
+        org2:
+          - department1
+      registry:
+        identities:
+          - name: admin
+            pass: adminpw
+            type: client # todo: shouldn't this be an admin?
+            attrs:
+              hf.Registrar.Roles: "*"
+              hf.Registrar.DelegateRoles: "*"
+              hf.Revoker: true
+              hf.IntermediateCA: true
+              hf.GenCRL: true
+              hf.Registrar.Attributes: "*"
+              hf.AffiliationMgr: true
+          - name: peer1
+            pass: peer1pw
+            type: peer
+          - name: peer2
+            pass: peer2pw
+            type: peer
+          - name: org1admin
+            pass: org1adminpw
+            type: admin
+      debug: true
+      signing:
+        default:
+          expiry: 87600h0m0s
+  customNames:
+    pvc: {}
+  domain: "${INGRESS_DOMAIN}"
+  images:
+    caImage: ${CA_IMAGE}
+    caTag: ${CA_IMAGE_LABEL}
+    caInitImage: ${INIT_IMAGE}
+    caInitTag: ${INIT_IMAGE_LABEL}
+  ingress:
+    class: ""
+    tlsSecretName: ""
+  license:
+    accept: true
+  replicas: 1
+  resources:
+    ca:
+      limits:
+        cpu: 100m
+        memory: 200M
+      requests:
+        cpu: 10m
+        memory: 10M
+    init:
+      limits:
+        cpu: 100m
+        memory: 200M
+      requests:
+        cpu: 10m
+        memory: 10M
+  service:
+    type: ClusterIP
+  storage:
+    ca:
+      class: "${STORAGE_CLASS}"
+      size: 100M
+  version: ${FABRIC_CA_VERSION}

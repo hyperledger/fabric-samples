@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+set -euo pipefail
+exec 1>&2
+CHAINCODE_SOURCE_DIR="$1"
+# CHAINCODE_METADATA_DIR="$2"
+BUILD_OUTPUT_DIR="$3"
+cd "${CHAINCODE_SOURCE_DIR}/src"
+tar cf - . | (cd "${BUILD_OUTPUT_DIR}" && tar xf -)
+cd "${BUILD_OUTPUT_DIR}"
+if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
+    npm ci --only=production
+else
+    npm install --production
+fi

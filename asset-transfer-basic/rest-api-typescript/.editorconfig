@@ -1,0 +1,3 @@
+[*.ts]
+indent_size = 4
+quote_type = single

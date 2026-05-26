@@ -1,0 +1,13 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+- name: Deploy Opensource Console
+  hosts: localhost
+  vars_files:
+    - /_cfg/operator-console-vars.yml
+  vars:
+    state: present
+    wait_timeout: 3600
+  roles:
+    - hyperledger.fabric_ansible_collection.fabric_console

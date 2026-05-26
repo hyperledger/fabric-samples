@@ -1,0 +1,39 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+- name: Join the channel
+  hosts: localhost
+  vars: 
+    wallet: "/_cfg"
+  vars_files:
+    - /_cfg/fabric-common-vars.yml
+    - /_cfg/fabric-org1-vars.yml
+  tasks:
+    - name: Fetch the genesis block for the channel
+      ibm.blockchain_platform.channel_block:
+        api_endpoint: "{{ api_endpoint }}"
+        api_authtype: "{{ api_authtype }}"
+        api_key: "{{ api_key }}"
+        api_secret: "{{ api_secret | default(omit) }}"
+        api_token_endpoint: "{{ api_token_endpoint | default(omit) }}"
+        operation: fetch
+        ordering_service: "{{ ordering_service_name }}"
+        identity: "{{ wallet }}/{{ org1_name }} Admin.json"
+        msp_id: "{{ org1_msp_id }}"
+        name: "{{ channel_name }}"
+        target: "0"
+        path: channel_genesis_block.bin
+
+    - name: Join the peer to the channel
+      ibm.blockchain_platform.peer_channel:
+        api_endpoint: "{{ api_endpoint }}"
+        api_authtype: "{{ api_authtype }}"
+        api_key: "{{ api_key }}"
+        api_secret: "{{ api_secret | default(omit) }}"
+        api_token_endpoint: "{{ api_token_endpoint | default(omit) }}"
+        operation: join
+        peer: "{{ org1_peer_name }}"
+        identity: "{{ wallet }}/{{ org1_name }} Admin.json"
+        msp_id: "{{ org1_msp_id }}"
+        path: channel_genesis_block.bin

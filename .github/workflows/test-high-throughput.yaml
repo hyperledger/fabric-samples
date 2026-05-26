@@ -1,0 +1,49 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+name: Test High Throughput
+run-name: ${{ github.actor }} is running the High Throughput tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main", "release-2.5"]
+  pull_request:
+    branches: ["main", "release-2.5"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  basic:
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up test network runtime
+        uses: ./.github/actions/test-network-setup
+
+      - name: Start Fabric
+        working-directory: high-throughput
+        run: ./startFabric.sh
+
+      - name: Test High Throughput
+        working-directory: high-throughput/application-go
+        run: |
+          go run . manyUpdates testvar1 100 +
+          go run . prune testvar1
+          go run . get testvar1
+          go run . update testvar1 100 +
+          go run . get testvar1
+          go run . delete testvar1
+          go run . manyUpdatesTraditional testvar2 100 +
+          go run . getstandard testvar2
+          go run . updatestandard testvar2 100 +
+          go run . getstandard testvar2
+          go run . delstandard testvar2
+
+      - name: Stop Fabric
+        working-directory: high-throughput
+        run: ./networkDown.sh

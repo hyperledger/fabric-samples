@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+BLD="$1"
+RELEASE="$2"
+
+if [ -d "$BLD/metadata" ]; then
+   cp -a "$BLD/metadata/"* "$RELEASE/"
+fi
+
+#external chaincodes expect artifacts to be placed under "$RELEASE"/chaincode/server
+if [ -f $BLD/connection.json ]; then
+   mkdir -p "$RELEASE"/chaincode/server
+   cp $BLD/connection.json "$RELEASE"/chaincode/server
+
+   #if tls_required is true, copy TLS files (using above example, the fully qualified path for these fils would be "$RELEASE"/chaincode/server/tls)
+
+   exit 0
+fi
+
+exit 1

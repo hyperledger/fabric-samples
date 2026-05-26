@@ -1,0 +1,7 @@
+channel-artifacts/
+crypto-config/
+data/
+data_ca/
+logs/
+*.gz
+chaincode-external/

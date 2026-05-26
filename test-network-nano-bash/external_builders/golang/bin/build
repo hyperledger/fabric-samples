@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+set -euo pipefail
+exec 1>&2
+CHAINCODE_SOURCE_DIR="$1"
+CHAINCODE_METADATA_DIR="$2"
+BUILD_OUTPUT_DIR="$3"
+GO_PACKAGE_PATH="$(jq -r .path "${CHAINCODE_METADATA_DIR}/metadata.json")"
+if [ -f "${CHAINCODE_SOURCE_DIR}/src/go.mod" ]; then
+    cd "${CHAINCODE_SOURCE_DIR}/src"
+    CGO_ENABLED=0 go build -v -o "${BUILD_OUTPUT_DIR}/chaincode" "${GO_PACKAGE_PATH}"
+else
+    CGO_ENABLED=0 GOPATH="${CHAINCODE_SOURCE_DIR}" GO111MODULE=off go build -v  -o "${BUILD_OUTPUT_DIR}/chaincode" "${GO_PACKAGE_PATH}"
+fi

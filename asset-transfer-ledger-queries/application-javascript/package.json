@@ -1,0 +1,23 @@
+{
+    "name": "asset-transfer-ledger-queries",
+    "version": "1.0.0",
+    "description": "Asset transfer ledger queries application implemented in JavaScript",
+    "engines": {
+        "node": ">=12",
+        "npm": ">=5"
+    },
+    "engineStrict": true,
+    "author": "Hyperledger",
+    "license": "Apache-2.0",
+    "scripts": {
+        "run": "node app.js",
+        "lint": "eslint *.js"
+    },
+    "dependencies": {
+        "fabric-ca-client": "^2.2.19",
+        "fabric-network": "^2.2.19"
+    },
+    "devDependencies": {
+        "eslint": "^7.32.0"
+    }
+}

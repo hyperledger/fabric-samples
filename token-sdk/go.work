@@ -1,0 +1,8 @@
+go 1.23.0
+
+use (
+	./auditor
+	./e2e
+	./issuer
+	./owner
+)

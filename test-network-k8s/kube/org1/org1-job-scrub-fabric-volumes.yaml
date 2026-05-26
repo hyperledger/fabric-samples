@@ -1,0 +1,32 @@
+#
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-scrub-fabric-volumes
+spec:
+  backoffLimit: 0
+  completions: 1
+  template:
+    metadata:
+      name: job-scrub-fabric-volumes
+    spec:
+      restartPolicy: "Never"
+      containers:
+        - name: main
+          image: busybox:latest
+          command:
+            - sh
+            - -c
+            - "rm -rvf /mnt/fabric-*/*"
+          volumeMounts:
+            - name: fabric-org1-volume
+              mountPath: /mnt/fabric-org1
+      volumes:
+        - name: fabric-org1-volume
+          persistentVolumeClaim:
+            claimName: fabric-org1

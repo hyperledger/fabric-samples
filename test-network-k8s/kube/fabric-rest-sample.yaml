@@ -1,0 +1,261 @@
+#
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fabric-rest-sample-config-example
+data:
+  HLF_CONNECTION_PROFILE_ORG1: |
+    {
+        "name": "Org1",
+        "version": "1.0.0",
+        "client": {
+            "organization": "Org1",
+            "connection": {
+                "timeout": {
+                    "peer": {
+                        "endorser": "500"
+                    }
+                }
+            }
+        },
+        "organizations": {
+            "Org1": {
+                "mspid": "Org1MSP",
+                "peers": [
+                    "org1-peers"
+                ],
+                "certificateAuthorities": [
+                    "org1-ca"
+                ]
+            }
+        },
+        "peers": {
+            "org1-peers": {
+                "url": "grpcs://org1-peer-gateway-svc:7051",
+                "tlsCACerts": {
+                    "pem": "-----BEGIN CERTIFICATE-----\\nMIICvzCCAmWgAwIBAgIULJGws7jbEY6ruSgDuvi9L7VphvIwCgYIKoZIzj0EAwIw\\naDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQK\\nEwtIeXBlcmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMt\\nY2Etc2VydmVyMB4XDTIxMDkyMDE2MDkwMFoXDTIyMDkyMDE2MTQwMFowYDELMAkG\\nA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQKEwtIeXBl\\ncmxlZGdlcjENMAsGA1UECxMEcGVlcjETMBEGA1UEAxMKb3JnMS1wZWVyMTBZMBMG\\nByqGSM49AgEGCCqGSM49AwEHA0IABL9e3GZBf1MeoObGxwSHkcgDEjMo+/13Qc4u\\nfSG2MKrveHBIEA4MRkHNqd+sTjoz0/1B15y2n+RiPo8uJvlyC/CjgfQwgfEwDgYD\\nVR0PAQH/BAQDAgOoMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAMBgNV\\nHRMBAf8EAjAAMB0GA1UdDgQWBBSeytspiXlEzMAsnF9/wxqc9fydETAfBgNVHSME\\nGDAWgBQwru1VH0OwH3dxfPdD8w74ZIlLRzAVBgNVHREEDjAMggpvcmcxLXBlZXIx\\nMFsGCCoDBAUGBwgBBE97ImF0dHJzIjp7ImhmLkFmZmlsaWF0aW9uIjoiIiwiaGYu\\nRW5yb2xsbWVudElEIjoib3JnMS1wZWVyMSIsImhmLlR5cGUiOiJwZWVyIn19MAoG\\nCCqGSM49BAMCA0gAMEUCIQDJEjPxceCfXU5B/emrHE4JbEzrZKxLVViBWCNMsHiR\\nFgIgY+8jsvr3rlBPkpRhl8CtT2DgaP7iWvovtMYsPKhLAqk=\\n-----END CERTIFICATE-----\\n"
+                  },
+                "grpcOptions": {
+                    "grpc-wait-for-ready-timeout": 100000,
+                    "ssl-target-name-override": "org1-peer-gateway-svc",
+                    "hostnameOverride": "org1-peer-gateway-svc"
+                }
+            }
+        },
+        "certificateAuthorities": {
+            "org1-ca": {
+                "url": "https://org1-ca",
+                "caName": "org1-ca",
+                "tlsCACerts": {
+                    "pem": "TODO"
+                },
+                "httpOptions": {
+                    "verify": "false"
+                }
+            }
+        }
+    }
+  HLF_CERTIFICATE_ORG1: |
+    -----BEGIN CERTIFICATE-----
+    MIIC2DCCAn6gAwIBAgIUTfcXDyxCS+2EQnznfjERUo4Vri8wCgYIKoZIzj0EAwIw
+    aDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQK
+    EwtIeXBlcmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMt
+    Y2Etc2VydmVyMB4XDTIxMDkyMDExNDEwMFoXDTIyMDkyMDExNDYwMFowYTELMAkG
+    A1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQKEwtIeXBl
+    cmxlZGdlcjEOMAwGA1UECxMFYWRtaW4xEzARBgNVBAMTCm9yZzEtYWRtaW4wWTAT
+    BgcqhkjOPQIBBggqhkjOPQMBBwNCAAT8zvJEg3FgJ5iUA5GO+n/j48bL83STpz7N
+    TqejWIZNVTraxE4fjT6traKiswme7gT2NY9Jl0Dj4tbif9l2I9+Oo4IBCzCCAQcw
+    DgYDVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFO1zWPynvyER
+    n9ml6XV5VvC9tIjTMB8GA1UdIwQYMBaAFPbIrI+lh8KayoRpW1YStWMhzJZSMCcG
+    A1UdEQQgMB6CHG9yZzEtdGxzLWNhLTg1NjdiOTg5OWYtdzU3amYwfgYIKgMEBQYH
+    CAEEcnsiYXR0cnMiOnsiYWJhYy5pbml0IjoidHJ1ZSIsImFkbWluIjoidHJ1ZSIs
+    ImhmLkFmZmlsaWF0aW9uIjoiIiwiaGYuRW5yb2xsbWVudElEIjoib3JnMS1hZG1p
+    biIsImhmLlR5cGUiOiJhZG1pbiJ9fTAKBggqhkjOPQQDAgNIADBFAiEAv99I2J9t
+    WtOmIzpYix8OFl4Z+ZGRHtay83ux//sZP+MCID02hFqnNpOL/ggGFaDVpVQ/eu0t
+    KTfVxZEMyZnJtAhp
+    -----END CERTIFICATE-----
+  HLF_PRIVATE_KEY_ORG1: |
+    -----BEGIN PRIVATE KEY-----
+    MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg7Lb+jwZqhxT3x0lT
+    FpU0QSmioptgfv8TI2RP5Mjp9UKhRANCAAT8zvJEg3FgJ5iUA5GO+n/j48bL83ST
+    pz7NTqejWIZNVTraxE4fjT6traKiswme7gT2NY9Jl0Dj4tbif9l2I9+O
+    -----END PRIVATE KEY-----
+  HLF_CONNECTION_PROFILE_ORG2: |
+    {
+        "name": "Org2",
+        "version": "1.0.0",
+        "client": {
+            "organization": "Org2",
+            "connection": {
+                "timeout": {
+                    "peer": {
+                        "endorser": "300"
+                    }
+                }
+            }
+        },
+        "organizations": {
+            "Org2": {
+                "mspid": "Org2MSP",
+                "peers": [
+                    "org2-peers"
+                ],
+                "certificateAuthorities": [
+                    "org2-ca"
+                ]
+            }
+        },
+        "peers": {
+            "org2-peers": {
+                "url": "org2-peer-gateway-svc:7051",
+                "tlsCACerts": {
+                    "pem": "-----BEGIN CERTIFICATE-----\\nMIICKDCCAc6gAwIBAgIUJJ4wGOSCfw8XOOIx29o67wBpFB4wCgYIKoZIzj0EAwIw\\naDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQK\\nEwtIeXBlcmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMt\\nY2Etc2VydmVyMB4XDTIxMDkyMDExNDEwMFoXDTM2MDkxNjExNDEwMFowaDELMAkG\\nA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQKEwtIeXBl\\ncmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMtY2Etc2Vy\\ndmVyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEyzGJLZX6pe59QAIBacjfzU4I\\nHezBYLyEu4ySpFx4xwxNLE4BWqLhB1VaOuenSQATM8pmSAy7i1830oM9elKWK6NW\\nMFQwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYE\\nFEoAAhmjq/3M8CFPc7N8SL53erL5MA8GA1UdEQQIMAaHBH8AAAEwCgYIKoZIzj0E\\nAwIDSAAwRQIhAJQ5PJOT4Gg8oiBU2KthMPkZqOLeu3Li4S3yBpLFgbsgAiB960P2\\nXPMu3HLoNXrktYOL9JzWlGyYRSPAnkap5Bsj0w==\\n-----END CERTIFICATE-----\\n"
+                },
+                "grpcOptions": {
+                    "ssl-target-name-override": "org2-peer-gateway-svc",
+                    "hostnameOverride": "org2-peer-gateway-svc"
+                }
+            }
+        },
+        "certificateAuthorities": {
+            "org2-ca": {
+                "url": "https://org2-ca",
+                "caName": "org2-ca",
+                "tlsCACerts": {
+                    "pem": ["-----BEGIN CERTIFICATE-----\\nMIICKDCCAc6gAwIBAgIUJAF4fQK1KsnvdaUjau462D/5HPYwCgYIKoZIzj0EAwIw\\naDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQK\\nEwtIeXBlcmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMt\\nY2Etc2VydmVyMB4XDTIxMDkxOTExMTcwMFoXDTM2MDkxNTExMTcwMFowaDELMAkG\\nA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQKEwtIeXBl\\ncmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMtY2Etc2Vy\\ndmVyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8bLvzagP3YANMGHVomZoGCQD\\nRgM3SenagZQ4IWqNQJSV3yTxzdgAWnPhwc+B/HdAOvAq2Oz54FmiSL9dAJoivqNW\\nMFQwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYE\\nFDdBAwT47jtbj48aXdMfRvMPbD5tMA8GA1UdEQQIMAaHBH8AAAEwCgYIKoZIzj0E\\nAwIDSAAwRQIhAITSk4lYWqu12jZkR94aNoKT36ctaeKHuRvXs7m2qaHSAiAtUPO7\\nXlHtI9SDTRvI4DNSb2O7y7+B3WxVeCx50fivDw==\\n-----END CERTIFICATE-----\\n"]
+                },
+                "httpOptions": {
+                    "verify": "false"
+                }
+            }
+        }
+    }
+  HLF_CERTIFICATE_ORG2: |
+    -----BEGIN CERTIFICATE-----
+    MIIC2DCCAn6gAwIBAgIUY/B19uAV6H5zK4bgqF/BcYC79eEwCgYIKoZIzj0EAwIw
+    aDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQK
+    EwtIeXBlcmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMt
+    Y2Etc2VydmVyMB4XDTIxMDkyMDExNDEwMFoXDTIyMDkyMDExNDYwMFowYTELMAkG
+    A1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQKEwtIeXBl
+    cmxlZGdlcjEOMAwGA1UECxMFYWRtaW4xEzARBgNVBAMTCm9yZzItYWRtaW4wWTAT
+    BgcqhkjOPQIBBggqhkjOPQMBBwNCAARKTC+25gFIgbLQgSQSec3DaUJOZS6aHBAi
+    0bmArVbMOxLUBT/W42ycXzfFJ9c0UAEZecDu8jxgBfEGWcbeWWMXo4IBCzCCAQcw
+    DgYDVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFGIXcrVhcyJ9
+    WTH2zgc9/RdE1hJsMB8GA1UdIwQYMBaAFFS96ExY5RWOcsODBAfXZe+FQIq0MCcG
+    A1UdEQQgMB6CHG9yZzItdGxzLWNhLTY5Yzg1Zjg5YmMtNzIyZ2cwfgYIKgMEBQYH
+    CAEEcnsiYXR0cnMiOnsiYWJhYy5pbml0IjoidHJ1ZSIsImFkbWluIjoidHJ1ZSIs
+    ImhmLkFmZmlsaWF0aW9uIjoiIiwiaGYuRW5yb2xsbWVudElEIjoib3JnMi1hZG1p
+    biIsImhmLlR5cGUiOiJhZG1pbiJ9fTAKBggqhkjOPQQDAgNIADBFAiEAhrXwM7Ng
+    IGxgF8irY7NbkQp1xqphy3tv6JbK6HPF+O8CIELMkzOclVK2rRC1K5PF99G7Cmmm
+    KsVw31cJcV4NTDI7
+    -----END CERTIFICATE-----
+  HLF_PRIVATE_KEY_ORG2: |
+    -----BEGIN PRIVATE KEY-----
+    MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgPJgLniT9EqcaUNbi
+    F3EqGyBP9LDg1baXR/5dV6xedt+hRANCAARKTC+25gFIgbLQgSQSec3DaUJOZS6a
+    HBAi0bmArVbMOxLUBT/W42ycXzfFJ9c0UAEZecDu8jxgBfEGWcbeWWMX
+    -----END PRIVATE KEY-----
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fabric-rest-sample
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fabric-rest-sample
+  template:
+    metadata:
+      labels:
+        app: fabric-rest-sample
+    spec:
+      containers:
+        - name: main
+          image: ghcr.io/hyperledger/fabric-rest-sample
+          imagePullPolicy: IfNotPresent 
+          env: 
+            - name: LOG_LEVEL
+              value: debug
+            - name: HFC_LOGGING
+              value: '{ "debug": "console" }'
+            - name: PORT
+              value: "3000"
+            - name: RETRY_DELAY
+              value: "3000"
+            - name: MAX_RETRY_COUNT
+              value: "5"
+            - name: HLF_COMMIT_TIMEOUT
+              value: "3000"
+            - name: HLF_ENDORSE_TIMEOUT
+              value: "30"
+            - name: REDIS_HOST
+              value: "localhost"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: ORG1_APIKEY
+              value: "97834158-3224-4CE7-95F9-A148C886653E"
+            - name: ORG2_APIKEY
+              value: "BC42E734-062D-4AEE-A591-5973CB763430"
+            - name: AS_LOCAL_HOST
+              value: "false"
+            - name: HLF_CHAINCODE_NAME
+              value: "asset-transfer-basic"
+#            - name: REDIS_USERNAME
+#              value: redisuser
+#            - name: REDIS_PASSWORD
+#              value: redispasword
+
+          envFrom:
+            - configMapRef:
+                name: fabric-rest-sample-config
+          ports:
+            - containerPort: 3000
+        - name: redis
+          image: redis:6.2.5
+          ports:
+            - containerPort: 6379
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fabric-rest-sample
+spec:
+  ports:
+    - name: http
+      port: 3000
+      protocol: TCP
+  selector:
+    app: fabric-rest-sample
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: 60s
+  labels:
+    app: fabric-rest-sample
+  name: fabric-rest-sample
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: fabric-rest-sample.${DOMAIN}
+      http:
+        paths:
+          - backend:
+              service:
+                name: fabric-rest-sample
+                port:
+                  name: http
+            path: /
+            pathType: ImplementationSpecific
+

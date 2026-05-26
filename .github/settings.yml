@@ -1,0 +1,14 @@
+repository:
+  name: fabric-samples
+  description: Samples for Hyperledger Fabric
+  homepage: https://lf-hyperledger.atlassian.net/wiki/spaces/fabric
+  default_branch: main
+  has_downloads: true
+  has_issues: true
+  has_projects: false
+  has_wiki: false
+  archived: false
+  private: false
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: true

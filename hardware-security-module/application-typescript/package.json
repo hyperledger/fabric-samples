@@ -1,0 +1,32 @@
+{
+    "name": "gateway-hsm-sample",
+    "version": "0.0.1",
+    "description": "",
+    "main": "dist/hsm-sample.js",
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "build": "tsc",
+        "prepare": "npm run build",
+        "clean": "rimraf dist",
+        "lint": "eslint src",
+        "start": "SOFTHSM2_CONF=\"${SOFTHSM2_CONF:-${HOME}/softhsm2.conf}\" node dist/hsm-sample.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "@grpc/grpc-js": "^1.14.0",
+        "@hyperledger/fabric-gateway": "^1.10.0"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@tsconfig/node20": "^20.1.9",
+        "@types/node": "^20.19.33",
+        "eslint": "^10.0.2",
+        "rimraf": "^5.0.1",
+        "typescript": "~5.8",
+        "typescript-eslint": "^8.56.1"
+    }
+}

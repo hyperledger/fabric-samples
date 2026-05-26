@@ -1,0 +1,89 @@
+// Demo file for use with REST Client for Visual Studio Code
+// See https://github.com/Huachao/vscode-restclient
+// 
+// Edit the values below to match your environment if required
+@hostname = localhost
+@port = {{$dotenv PORT}}
+@baseUrl = http://{{hostname}}:{{port}}
+@apiUrl = {{baseUrl}}/api
+@api-key = {{$dotenv ORG1_APIKEY}}
+
+### Check the server is ready
+
+GET {{baseUrl}}/ready HTTP/1.1
+
+### Check the server is still live
+
+GET {{baseUrl}}/live HTTP/1.1
+
+### Get all assets
+
+GET {{apiUrl}}/assets HTTP/1.1
+X-Api-Key: {{api-key}}
+
+### Check if asset exists
+
+OPTIONS {{apiUrl}}/assets/asset7 HTTP/1.1
+X-Api-Key: {{api-key}}
+
+### Create asset
+
+POST {{apiUrl}}/assets HTTP/1.1
+content-type: application/json
+X-Api-Key: {{api-key}}
+
+{
+    "ID": "asset7",
+    "Color": "red",
+    "Size": 42,
+    "Owner": "Jean",
+    "AppraisedValue": 101
+}
+
+### Read job status
+
+GET {{apiUrl}}/jobs/__job_id__ HTTP/1.1
+X-Api-Key: {{api-key}}
+
+### Read transaction status
+
+GET {{apiUrl}}/transactions/__transaction_id__ HTTP/1.1
+X-Api-Key: {{api-key}}
+
+### Read asset
+
+GET {{apiUrl}}/assets/asset7 HTTP/1.1
+X-Api-Key: {{api-key}}
+
+### Update asset
+
+PUT {{apiUrl}}/assets/asset7 HTTP/1.1
+content-type: application/json
+X-Api-Key: {{api-key}}
+
+{
+    "ID": "asset7",
+    "Color": "red",
+    "Size": 11,
+    "Owner": "Jean",
+    "AppraisedValue": 101
+}
+
+### Transfer asset
+
+PATCH {{apiUrl}}/assets/asset7 HTTP/1.1
+content-type: application/json
+X-Api-Key: {{api-key}}
+
+[
+    {
+        "op": "replace",
+        "path": "/Owner",
+        "value": "Ashleigh"
+    }
+]
+
+### Delete asset
+
+DELETE {{apiUrl}}/assets/asset7 HTTP/1.1
+X-Api-Key: {{api-key}}

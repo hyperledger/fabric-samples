@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+set -xeuo pipefail
+exec 1>&2
+
+BUILD_OUTPUT_DIR="$1"
+RUN_METADATA_DIR="$2"
+
+LOG_DIRECTORY=${PWD}/logs
+
+cd "${BUILD_OUTPUT_DIR}"
+ls -lart
+
+# extract the id, mspid, and peer address
+CORE_CHAINCODE_ID_NAME="$(jq -r .chaincode_id "${RUN_METADATA_DIR}/chaincode.json")"
+CORE_PEER_LOCALMSPID="$(jq -r .mspid "${RUN_METADATA_DIR}/chaincode.json")"
+CORE_PEER_ADDRESS="$(jq -r .peer_address "${RUN_METADATA_DIR}/chaincode.json")"
+export CORE_CHAINCODE_ID_NAME CORE_PEER_LOCALMSPID CORE_PEER_ADDRESS
+
+# process the TLS options if needed
+if [ -z "$(jq -r .client_cert "$RUN_METADATA_DIR/chaincode.json")" ]; then
+    CORE_PEER_TLS_ENABLED="false"
+    export CORE_PEER_TLS_ENABLED
+else
+    
+    export CORE_PEER_TLS_ENABLED="true"
+    export CORE_TLS_CLIENT_CERT_FILE="$BUILD_OUTPUT_DIR/client-pem.crt"
+    export CORE_TLS_CLIENT_KEY_FILE="$BUILD_OUTPUT_DIR/client-pem.key"
+    export CORE_TLS_CLIENT_CERT_PATH="$BUILD_OUTPUT_DIR/client.crt"
+    export CORE_TLS_CLIENT_KEY_PATH="$BUILD_OUTPUT_DIR/client.key"
+    
+    export CORE_PEER_TLS_ROOTCERT_FILE="$BUILD_OUTPUT_DIR/root.crt"
+
+    jq -r .client_cert "$RUN_METADATA_DIR/chaincode.json" > "$CORE_TLS_CLIENT_CERT_FILE"
+    jq -r .client_key  "$RUN_METADATA_DIR/chaincode.json" > "$CORE_TLS_CLIENT_KEY_FILE"
+    jq -r .root_cert   "$RUN_METADATA_DIR/chaincode.json" > "$CORE_PEER_TLS_ROOTCERT_FILE"
+
+    if [ "${OSTYPE}" == "linux-gnu" ]; then
+        base64 -w 0 "${CORE_TLS_CLIENT_CERT_FILE}" > "${CORE_TLS_CLIENT_CERT_PATH}"
+        base64 -w 0 "${CORE_TLS_CLIENT_KEY_FILE}" > "${CORE_TLS_CLIENT_KEY_PATH}"
+    elif [[ "${OSTYPE}" == "darwin"* ]]; then
+        base64 -i "${CORE_TLS_CLIENT_CERT_FILE}" > "${CORE_TLS_CLIENT_CERT_PATH}"
+        base64 -i "${CORE_TLS_CLIENT_KEY_FILE}" > "${CORE_TLS_CLIENT_KEY_PATH}"
+    else
+	      echo "OS "${OS}" not supported"
+	      exit 1
+    fi
+
+    ls -lart "$BUILD_OUTPUT_DIR"
+fi
+
+# output for debug purposes
+env | grep CORE | sort
+
+# run the chaincode
+exec npm start -- --peer.address="${CORE_PEER_ADDRESS}" > ${LOG_DIRECTORY}/${CORE_CHAINCODE_ID_NAME}.log 2>&1

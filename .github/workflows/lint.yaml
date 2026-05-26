@@ -1,0 +1,65 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+name: Lint 🎉
+run-name: ${{ github.actor }} is linting fabric-samples 🎉
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main", "release-2.5"]
+  pull_request:
+    branches: ["main", "release-2.5"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VER: "lts/*"
+  JAVA_VER: 25.x
+
+jobs:
+  go:
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
+    steps:
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - uses: actions/checkout@v6
+      - run: go install golang.org/x/tools/cmd/goimports@latest
+      - run: ci/scripts/lint-go.sh
+
+  typescript:
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VER }}
+      - run: ci/scripts/lint-typescript.sh
+
+  javascript:
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VER }}
+      - run: ci/scripts/lint-javascript.sh
+
+  java:
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VER }}
+      - run: ci/scripts/lint-java.sh
+
+  shell:
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: ci/scripts/lint-shell.sh

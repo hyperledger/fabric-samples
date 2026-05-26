@@ -1,0 +1,39 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+name: Test Network Basic 🔎
+run-name: ${{ github.actor }} is running the Test Network Basic tests 🔎
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main", "release-2.5" ]
+  pull_request:
+    branches: [ "main", "release-2.5" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  basic:
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
+    strategy:
+      matrix:
+        chaincode-language:
+          - go
+          - javascript
+          - typescript
+          - java
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up the test network runtime
+        uses: ./.github/actions/test-network-setup
+
+      - name: Run Test Network Basic
+        working-directory: test-network
+        run: ../ci/scripts/run-test-network-basic.sh
+        env:
+          CHAINCODE_LANGUAGE: ${{ matrix.chaincode-language }}

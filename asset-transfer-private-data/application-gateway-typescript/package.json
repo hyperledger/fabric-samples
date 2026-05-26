@@ -1,0 +1,33 @@
+{
+    "name": "asset-transfer-private-data",
+    "version": "1.0.0",
+    "description": "Asset transfer private data application implemented in typeScript using fabric-gateway",
+    "main": "dist/index.js",
+    "typings": "dist/index.d.ts",
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "build": "tsc",
+        "build:watch": "tsc -w",
+        "lint": "eslint src",
+        "prepare": "npm run build",
+        "pretest": "npm run lint",
+        "start": "node dist/app.js"
+    },
+    "engineStrict": true,
+    "author": "Hyperledger",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "@grpc/grpc-js": "^1.14.0",
+        "@hyperledger/fabric-gateway": "^1.10.0"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@tsconfig/node20": "^20.1.9",
+        "@types/node": "^20.19.33",
+        "eslint": "^10.0.2",
+        "typescript": "~5.8",
+        "typescript-eslint": "^8.56.1"
+    }
+}

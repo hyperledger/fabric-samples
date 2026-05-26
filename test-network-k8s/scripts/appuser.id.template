@@ -1,0 +1,9 @@
+{
+    "credentials": {
+        "certificate": "${CERTIFICATE}",
+        "privateKey": "${PRIVATE_KEY}"
+    },
+    "mspId": "${MSPID}",
+    "type": "X.509",
+    "version": 1
+}

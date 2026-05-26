@@ -1,0 +1,3 @@
+*.tar.gz
+*.tgz
+crypto/*.pem

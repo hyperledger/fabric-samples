@@ -1,0 +1,58 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+name: REST Sample 🐧
+run-name: ${{ github.actor }} is testing the REST Sample 🐧
+
+env:
+  NODE_VER: "lts/*"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main", "release-2.5"]
+    paths: ["asset-transfer-basic/rest-api-typescript/**"]
+  pull_request:
+    branches: ["main", "release-2.5"]
+    paths: ["asset-transfer-basic/rest-api-typescript/**"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-sample:
+    runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VER }}
+          cache: "npm"
+          cache-dependency-path: "**/package-lock.json"
+
+      - name: Install REST Sample Dependencies
+        working-directory: asset-transfer-basic/rest-api-typescript
+        run: npm install
+
+      - name: Build REST Sample Application
+        run: npm run build
+        working-directory: asset-transfer-basic/rest-api-typescript
+
+      - name: Test REST Sample Application
+        run: npm test
+        working-directory: asset-transfer-basic/rest-api-typescript
+
+      - name: Build REST Sample Docker Image
+        run: docker build -t ghcr.io/hyperledger/fabric-rest-sample .
+        working-directory: asset-transfer-basic/rest-api-typescript
+
+      - name: Publish REST Sample Docker Image
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/hyperledger/fabric-rest-sample:latest
+        working-directory: asset-transfer-basic/rest-api-typescript

@@ -1,0 +1,13 @@
+{
+    "extends": "@tsconfig/node18/tsconfig.json",
+    "compilerOptions": {
+        "outDir": "dist", //change the output directory
+        "resolveJsonModule": true //to import out json database
+    },
+    "include": [
+        "src/**/*.ts" //which kind of files to compile
+    ],
+    "exclude": [
+        "node_modules" //which files or directories to ignore
+    ]
+}
