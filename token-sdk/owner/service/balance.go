@@ -16,7 +16,7 @@ import (
 
 // SERVICE
 type BalanceByWallet map[string]ValueByTokenType
-type ValueByTokenType map[string]int64
+type ValueByTokenType map[string]uint64
 
 // GetAllBalances returns a map of all wallets with their balances per token type
 func (s TokenService) GetAllBalances() (walletBalance BalanceByWallet, err error) {
@@ -58,12 +58,12 @@ func (s TokenService) GetBalance(wallet string, tokenType string) (typeVal Value
 	}
 	// Add the value of all unspent tokens in the wallet
 	for _, token := range unspentTokens.Tokens {
-		val, err := strconv.ParseInt(token.Quantity, 0, 64)
-		if err != nil {
-			return typeVal, errors.Wrap(err, "Error parsing token "+token.Id.String())
-		}
-		typeVal[token.Type] += val
-	}
+    val, err := strconv.ParseUint(token.Quantity, 10, 64)
+    if err != nil {
+        return typeVal, errors.Wrapf(err, "failed parsing token quantity for asset %s", token.Id.String())
+    }
+    typeVal[token.Type] += val
+}
 
 	return
 }
