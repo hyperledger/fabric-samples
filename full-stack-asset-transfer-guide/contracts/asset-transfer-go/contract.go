@@ -281,7 +281,7 @@ func clientCommonName(ctx contractapi.TransactionContextInterface) (string, erro
 	return matches[1], nil
 }
 
-func ownerIdentifier(user string, org string) ownerIdentifier {
+func newOwnerIdentifier(user string, org string) ownerIdentifier {
 	return ownerIdentifier{Org: org, User: user}
 }
 
