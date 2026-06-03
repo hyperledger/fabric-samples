@@ -61,7 +61,7 @@ export WORKSHOP_INGRESS_DOMAIN=localho.st
 export WORKSHOP_NAMESPACE=test-network
 
 
-# Create a Kubernetes cluster in Docker, configure an Nginx ingress, and docker container registry
+# Create a Kubernetes cluster in Docker, configure a Traefik ingress, and docker container registry
 just kind
 
 # KIND will set the current kube client context in ~/.kube/config
@@ -86,12 +86,11 @@ just check-kube
 [[ ${WORKSHOP_INGRESS_DOMAIN+x} ]] || exit 1
 [[ ${WORKSHOP_NAMESPACE+x}      ]] || exit 1
 
-# check Nginx ingress
-kubectl -n ingress-nginx get all
-kubectl -n ingress-nginx get deployment.apps/ingress-nginx-controller
+# check Traefik ingress
+kubectl -n traefik get all
+kubectl -n traefik get deployment.apps/traefik
 
 curl http://${WORKSHOP_INGRESS_DOMAIN}
-curl --insecure https://${WORKSHOP_INGRESS_DOMAIN}:443
 
 # Install operator CRDs
 kubectl apply -k https://github.com/hyperledger-labs/fabric-operator.git/config/crd

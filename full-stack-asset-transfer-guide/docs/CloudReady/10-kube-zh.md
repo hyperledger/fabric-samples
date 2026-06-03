@@ -7,7 +7,7 @@
 Fabric云原生部署，所有的组件直接在工作站上运行，在这个步骤中，您将会配置：
 - 一个本地[kind](https://kind.sigs.k8s.io) 集群，来运行k8s.
 
-- 一个本地[Ingress controller](https://github.com/kubernetes/ingress-nginx), 将k8s集群的路由设置到 `*.localho.st` 这个虚拟域名上.
+- 一个本地[Ingress controller](https://traefik.io/), 将k8s集群的路由设置到 `*.localho.st` 这个虚拟域名上.
 
 - 一个本地[Container Registry](https://docs.docker.com/registry/insecure/), 允许您上传智能合约的docker镜像。
 

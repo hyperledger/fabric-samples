@@ -48,12 +48,12 @@ external_repo_endpoint  := env_var_or_default("WORKSHOP_EXTERNAL_REPO",     "loc
 cluster_type    := env_var_or_default("WORKSHOP_CLUSTER_TYPE",       "k8s")
 
 
-# Start a local KIND cluster with nginx, localhost:5000 registry, and *.localho.st alias in kube DNS
+# Start a local KIND cluster with Traefik, localhost:5000 registry, and *.localho.st alias in kube DNS
 kind: unkind
     #!/usr/bin/env bash
     set -e -o pipefail
 
-    infrastructure/kind_with_nginx.sh {{cluster_name}}
+    infrastructure/kind_with_traefik.sh {{cluster_name}}
     ls -lart ~/.kube/config
     chmod o+r ~/.kube/config
 
@@ -71,16 +71,16 @@ unkind:
         docker rm kind-registry
     fi
 
-# Bring up the nginx ingress controller on the target k8s cluster
-nginx:
+# Bring up the Traefik ingress controller on the target k8s cluster
+traefik:
     #!/usr/bin/env bash
-    kubectl apply -k https://github.com/hyperledger-labs/fabric-operator.git/config/ingress/{{ cluster_runtime }}
+    kubectl apply -f infrastructure/kind_console_ingress/templates/ingress/traefik-controller.yaml
 
     sleep 20
 
-    kubectl wait --namespace ingress-nginx \
+    kubectl wait --namespace traefik \
       --for=condition=ready pod \
-      --selector=app.kubernetes.io/component=controller \
+      --selector=app=traefik \
       --timeout=3m
 
 # Just start the operator

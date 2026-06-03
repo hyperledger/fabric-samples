@@ -8,7 +8,7 @@ With cloud-native Fabric, all the components can run directly on your developmen
 
 - A local [kind](https://kind.sigs.k8s.io) cluster, running Kubernetes in Docker.
 
-- A local [Ingress controller](https://github.com/kubernetes/ingress-nginx), routing traffic into the cluster at the `*.localho.st` virtual DNS domain.
+- A local [Ingress controller](https://traefik.io/), routing traffic into the cluster at the `*.localho.st` virtual DNS domain.
 
 - A local [Container Registry](https://docs.docker.com/registry/insecure/), allowing you to upload chaincode Docker images to the cluster.
 

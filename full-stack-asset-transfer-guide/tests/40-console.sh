@@ -53,7 +53,7 @@ export WORKSHOP_INGRESS_DOMAIN=localho.st
 export WORKSHOP_NAMESPACE=fabricinfra
 
 
-# Create a Kubernetes cluster in Docker, configure an Nginx ingress, and docker container registry
+# Create a Kubernetes cluster in Docker, configure a Traefik ingress, and docker container registry
 just kind
 
 # KIND will set the current kube client context in ~/.kube/config
@@ -82,7 +82,7 @@ kubectl -n ${WORKSHOP_NAMESPACE} get deployment fabric-operator
 # Console running?
 kubectl -n ${WORKSHOP_NAMESPACE} get deployment hlf-console
 
-# Console listening at the Nginx ingress?
-curl --fail --insecure https://${WORKSHOP_NAMESPACE}-hlf-console-console.${WORKSHOP_INGRESS_DOMAIN}/
+# Console listening at the Traefik ingress?
+curl --fail http://${WORKSHOP_NAMESPACE}-hlf-console-console.${WORKSHOP_INGRESS_DOMAIN}/
 
 

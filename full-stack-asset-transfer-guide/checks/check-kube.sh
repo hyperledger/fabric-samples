@@ -14,11 +14,10 @@ function cluster_info() {
   kubectl cluster-info &>/dev/null
 }
 
-function nginx() {
-  kubectl -n ingress-nginx get all  &>/dev/null
-  kubectl -n ingress-nginx get deployment.apps/ingress-nginx-controller  &>/dev/null
+function ingress() {
+  kubectl -n traefik get all  &>/dev/null
+  kubectl -n traefik get deployment.apps/traefik  &>/dev/null
   curl http://${WORKSHOP_INGRESS_DOMAIN} &>/dev/null
-  curl --insecure https://${WORKSHOP_INGRESS_DOMAIN}:443   &>/dev/null
 }
 
 function container_registry() {
@@ -30,7 +29,7 @@ must_declare WORKSHOP_INGRESS_DOMAIN
 must_declare WORKSHOP_NAMESPACE
 
 check cluster_info        "k8s API controller is running"
-check nginx               "Nginx ingress is running at https://${WORKSHOP_INGRESS_DOMAIN}"
+check ingress             "Traefik ingress is running at http://${WORKSHOP_INGRESS_DOMAIN}"
 
 if [ x"${WORKSHOP_CLUSTER_RUNTIME}" == x"kind" ]; then
   check container_registry  "Container registry is running at ${WORKSHOP_INGRESS_DOMAIN}:5000"

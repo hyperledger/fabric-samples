@@ -45,8 +45,7 @@ kind: Ingress
 metadata:
   name: rest-api
   annotations:
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: 60s
-    # nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    # proxy settings handled by Traefik
   # labels:
   #   app: rest-api
   #   app.kubernetes.io/instance: fabricpeer
@@ -55,7 +54,7 @@ metadata:
   #   creator: fabric
   #   orgname: Org1MSP
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   rules:
     - host: restapi.localho.st
       http:

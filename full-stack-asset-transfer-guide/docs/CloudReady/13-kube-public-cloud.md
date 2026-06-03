@@ -87,7 +87,7 @@ just nginx
 ### IKS 
 ```shell
 
-export INGRESS_IPADDR=$(kubectl -n ingress-nginx get svc/ingress-nginx-controller -o json | jq -r '.status.loadBalancer.ingress[0].ip')
+export INGRESS_IPADDR=$(kubectl -n traefik get svc/traefik -o json | jq -r '.status.loadBalancer.ingress[0].ip')
 export WORKSHOP_INGRESS_DOMAIN=$(echo $INGRESS_IPADDR | tr -s '.' '-').nip.io
 
 ```
@@ -95,7 +95,7 @@ export WORKSHOP_INGRESS_DOMAIN=$(echo $INGRESS_IPADDR | tr -s '.' '-').nip.io
 ### EKS 
 ```shell
 
-export INGRESS_HOSTNAME=$(kubectl -n ingress-nginx get svc/ingress-nginx-controller -o json  | jq -r '.status.loadBalancer.ingress[0].hostname')
+export INGRESS_HOSTNAME=$(kubectl -n traefik get svc/traefik -o json  | jq -r '.status.loadBalancer.ingress[0].hostname')
 export INGRESS_IPADDR=$(dig $INGRESS_HOSTNAME +short)
 export WORKSHOP_INGRESS_DOMAIN=$(echo $INGRESS_IPADDR | tr -s '.' '-').nip.io
 
@@ -103,7 +103,7 @@ export WORKSHOP_INGRESS_DOMAIN=$(echo $INGRESS_IPADDR | tr -s '.' '-').nip.io
 ### Digital ocean 
 ```shell
 
-export INGRESS_HOSTNAME=$(kubectl -n ingress-nginx get svc/ingress-nginx-controller -o json  | jq -r '.status.loadBalancer.ingress[0].ip')
+export INGRESS_HOSTNAME=$(kubectl -n traefik get svc/traefik -o json  | jq -r '.status.loadBalancer.ingress[0].ip')
 export WORKSHOP_INGRESS_DOMAIN=$(echo $INGRESS_HOSTNAME | tr -s '.' '-').nip.io
 
 ```

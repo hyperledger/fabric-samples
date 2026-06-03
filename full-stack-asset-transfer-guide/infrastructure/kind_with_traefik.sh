@@ -8,7 +8,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at:
 #
-# 	  http://www.apache.org/licenses/LICENSE-2.0
+#	  http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,36 +21,30 @@ set -eo pipefail
 set -x
 
 KIND_CLUSTER_NAME=kind
-KIND_CLUSTER_IMAGE=${KIND_CLUSTER_IMAGE:-kindest/node:v1.28.0}        # Important! k8s v1.25.0 brings breaking changes.
+KIND_CLUSTER_IMAGE=${KIND_CLUSTER_IMAGE:-kindest/node:v1.28.0}
 KIND_API_SERVER_ADDRESS=${KIND_API_SERVER_ADDRESS:-127.0.0.1}
 KIND_API_SERVER_PORT=${KIND_API_SERVER_PORT:-8888}
 CONTAINER_REGISTRY_NAME=${CONTAINER_REGISTRY_NAME:-kind-registry}
 CONTAINER_REGISTRY_ADDRESS=${CONTAINER_REGISTRY_ADDRESS:-127.0.0.1}
 CONTAINER_REGISTRY_PORT=${CONTAINER_REGISTRY_PORT:-5000}
 
-function kind_with_nginx() {
+function kind_with_traefik() {
 
   delete_cluster
 
   create_cluster
 
-  start_nginx
+  start_traefik
 
   apply_coredns_override
 
   launch_docker_registry
 }
 
-#
-# Delete a kind cluster if it exists
-#
 function delete_cluster() {
   kind delete cluster --name $KIND_CLUSTER_NAME
 }
 
-#
-# Create a local KIND cluster
-#
 function create_cluster() {
   cat << EOF | kind create cluster --name $KIND_CLUSTER_NAME --image $KIND_CLUSTER_IMAGE --config=-
 ---
@@ -75,28 +69,19 @@ networking:
   apiServerAddress: ${KIND_API_SERVER_ADDRESS}
   apiServerPort: ${KIND_API_SERVER_PORT}
 
-# create a cluster with the local registry enabled in containerd
 containerdConfigPatches:
 - |-
   [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${CONTAINER_REGISTRY_PORT}"]
     endpoint = ["http://${CONTAINER_REGISTRY_NAME}:${CONTAINER_REGISTRY_PORT}"]
 EOF
 
-  #
-  # Work around a bug in KIND where DNS is not always resolved correctly on machines with IPv6
-  #
   for node in $(kind get nodes);
   do
       docker exec "$node" sysctl net.ipv4.conf.all.route_localnet=1;
   done
 }
 
-#
-# Install an Nginx ingress controller bound to port 80 and 443.
-# ssl_passthrough mode is enabled for TLS termination at the Fabric node enpdoints.
-#
-function start_nginx() {
-  # apply local Traefik manifest
+function start_traefik() {
   kubectl apply -f infrastructure/kind_console_ingress/templates/ingress/traefik-controller.yaml
 
   sleep 20
@@ -107,12 +92,6 @@ function start_nginx() {
       --timeout=3m
 }
 
-#
-# Override Core DNS with a wildcard matcher for the "*.localho.st" domain, binding to the
-# IP address of the Nginx ingress controller on the kubernetes internal network.  Effectively this
-# "steals" the domain name for *.localho.st, directing traffic to the Nginx load balancer, rather
-# than to the loopback interface at 127.0.0.1.
-#
 function apply_coredns_override() {
   CLUSTER_IP=$(kubectl -n traefik get svc traefik -o json | jq -r .spec.clusterIP)
 
@@ -156,8 +135,6 @@ EOF
 }
 
 function launch_docker_registry() {
-  
-  # create registry container unless it already exists
   running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)"
   if [ "${running}" != 'true' ]; then
     docker run  \
@@ -168,12 +145,8 @@ function launch_docker_registry() {
       registry:2
   fi
 
-  # connect the registry to the cluster network
-  # (the network may already be connected)
   docker network connect "kind" "${CONTAINER_REGISTRY_NAME}" || true
 
-  # Document the local registry
-  # https://github.com/kubernetes/enhancements/tree/master/keps/sig-cluster-lifecycle/generic/1755-communicating-a-local-registry
   cat <<EOF | kubectl apply -f -
 ---
 apiVersion: v1
@@ -186,7 +159,6 @@ data:
     host: "localhost:${CONTAINER_REGISTRY_PORT}"
     help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
 EOF
-  
 }
 
-kind_with_nginx
+kind_with_traefik

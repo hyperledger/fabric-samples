@@ -8,7 +8,7 @@
       register: resultingress
 
     - name: Wait for the ingress
-      command: kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=2m
+      command: kubectl wait --namespace traefik --for=condition=ready pod --selector=app=traefik --timeout=2m
       changed_when: false
 
     # Override the cluster DNS with a local override to refer pods to the HOST interface
@@ -17,8 +17,8 @@
       k8s_info:
         api_version: v1
         kind: service
-        namespace: ingress-nginx
-        name: "ingress-nginx-controller"
+        namespace: traefik
+        name: "traefik"
       register: ingress_info
 
     - name: Applying CoreDNS overrides for ingress domain
@@ -33,5 +33,5 @@
     - name: Rollout the CoreDNS
       shell: |
         kubectl -n kube-system rollout restart deployment/coredns
-        kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=2m
+        kubectl wait --namespace traefik --for=condition=ready pod --selector=app=traefik --timeout=2m
       changed_when: false

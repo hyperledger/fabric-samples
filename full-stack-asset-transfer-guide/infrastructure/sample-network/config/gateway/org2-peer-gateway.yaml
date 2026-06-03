@@ -49,8 +49,7 @@ kind: Ingress
 metadata:
   name: org2-peer-gateway
   annotations:
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: 60s
-    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    # proxy settings handled by Traefik
   labels:
     app: org2-peer-gateway
     app.kubernetes.io/instance: fabricpeer
@@ -59,7 +58,7 @@ metadata:
     creator: fabric
     orgname: Org2MSP
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   rules:
     - host: test-network-org2-peer-gateway.${WORKSHOP_INGRESS_DOMAIN}
       http:

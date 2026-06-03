@@ -41,7 +41,7 @@ Check the Ingress controllers domain
 
 For IKS:
 ```shell
-export INGRESS_IPADDR=$(kubectl -n ingress-nginx get svc/ingress-nginx-controller -o json | jq -r '.status.loadBalancer.ingress[0].ip')
+export INGRESS_IPADDR=$(kubectl -n traefik get svc/traefik -o json | jq -r '.status.loadBalancer.ingress[0].ip')
 export WORKSHOP_INGRESS_DOMAIN=$(echo $INGRESS_IPADDR | tr -s '.' '-').nip.io
 ```
 
