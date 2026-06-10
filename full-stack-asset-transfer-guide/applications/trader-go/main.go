@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"os"
 	"sort"
+
+	"trader-go/commands"
 )
 
 func main() {
 	if err := run(); err != nil {
-		var expectedErr *ExpectedError
+		var expectedErr *commands.ExpectedError
 		if errors.As(err, &expectedErr) {
 			fmt.Println(err)
 		} else {
@@ -29,7 +31,7 @@ func run() error {
 	commandName := args[0]
 	commandArgs := args[1:]
 
-	command, ok := commands[commandName]
+	command, ok := commands.Commands[commandName]
 	if !ok {
 		printUsage()
 		return fmt.Errorf("unknown command: %s", commandName)
@@ -51,8 +53,8 @@ func run() error {
 }
 
 func printUsage() {
-	names := make([]string, 0, len(commands))
-	for name := range commands {
+	names := make([]string, 0, len(commands.Commands))
+	for name := range commands.Commands {
 		names = append(names, name)
 	}
 	sort.Strings(names)

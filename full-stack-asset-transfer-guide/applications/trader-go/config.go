@@ -25,20 +25,6 @@ func tlsCertPath() string {
 	return os.Getenv("TLS_CERT")
 }
 
-func channelName() string {
-	if v := os.Getenv("CHANNEL_NAME"); v != "" {
-		return v
-	}
-	return "mychannel"
-}
-
-func chaincodeName() string {
-	if v := os.Getenv("CHAINCODE_NAME"); v != "" {
-		return v
-	}
-	return "asset-transfer"
-}
-
 func hostAlias() string {
 	return os.Getenv("HOST_ALIAS")
 }
