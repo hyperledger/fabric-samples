@@ -429,6 +429,25 @@ function queryChaincode() {
 
 }
 
+function renewCerts(){
+    . ./organizations/fabric-ca/reEnroll.sh
+
+    rm "${PWD}"/organizations/fabric-ca/ordererOrg/tls-cert.pem
+    docker restart ca_orderer
+    sleep 10
+    reEnrollOrderer
+
+    rm "${PWD}"/organizations/fabric-ca/org1/tls-cert.pem
+    docker restart ca_org1
+    sleep 10
+    reEnrollOrg1
+
+    rm "${PWD}"/organizations/fabric-ca/org2/tls-cert.pem
+    docker restart ca_org2
+    sleep 10
+    reEnrollOrg2
+}
+
 
 # Tear down running network
 function networkDown() {
@@ -678,6 +697,8 @@ elif [ "$MODE" == "cc" ] && [ "$SUBCOMMAND" == "invoke" ]; then
   invokeChaincode
 elif [ "$MODE" == "cc" ] && [ "$SUBCOMMAND" == "query" ]; then
   queryChaincode
+elif [ "$MODE" == "renewCerts" ]; then
+  renewCerts
 else
   printHelp
   exit 1
