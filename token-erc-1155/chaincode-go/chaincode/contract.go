@@ -9,6 +9,7 @@ package chaincode
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
 	"sort"
 	"strconv"
 	"strings"
@@ -949,6 +950,8 @@ func removeBalance(ctx contractapi.TransactionContextInterface, sender string, i
 		}
 		defer balanceIterator.Close()
 
+		var deferredDeletions = []func() error{}
+
 		// Iterate over keys that store balances and add them to partialBalance until
 		// either the necessary amount is reached or the keys ended
 		for balanceIterator.HasNext() && partialBalance < neededAmount {
@@ -972,45 +975,62 @@ func removeBalance(ctx contractapi.TransactionContextInterface, sender string, i
 				selfRecipientKeyNeedsToBeRemoved = true
 				selfRecipientKey = queryResponse.Key
 			} else {
-				err = ctx.GetStub().DelState(queryResponse.Key)
-				if err != nil {
-					return fmt.Errorf("failed to delete the state of %v: %v", queryResponse.Key, err)
-				}
+				deferredDeletions = append(deferredDeletions, deferredDelete(ctx, queryResponse))
 			}
 		}
 
 		if partialBalance < neededAmount {
 			return fmt.Errorf("sender has insufficient funds for token %v, needed funds: %v, available fund: %v", tokenId, neededAmount, partialBalance)
-		} else if partialBalance > neededAmount {
-			// Send the remainder back to the sender
-			remainder, err := sub(partialBalance, neededAmount)
-			if err != nil {
-				return err
-			}
-
-			if selfRecipientKeyNeedsToBeRemoved {
-				// Set balance for the key that has the same address for sender and recipient
-				err = setBalance(ctx, sender, sender, tokenId, remainder)
-				if err != nil {
-					return err
-				}
-			} else {
-				err = addBalance(ctx, sender, sender, tokenId, remainder)
-				if err != nil {
-					return err
-				}
-			}
-
 		} else {
-			// Delete self recipient key
-			err = ctx.GetStub().DelState(selfRecipientKey)
-			if err != nil {
-				return fmt.Errorf("failed to delete the state of %v: %v", selfRecipientKey, err)
+			// enough token funds have been found to perform the update
+			// now we can delete the token entries to supply updated token balances
+			for _, deleteFn := range deferredDeletions {
+				err := deleteFn()
+				if err != nil {
+					return err
+				}
+			}
+			if partialBalance > neededAmount {
+				// Send the remainder back to the sender
+				remainder, err := sub(partialBalance, neededAmount)
+				if err != nil {
+					return err
+				}
+
+				if selfRecipientKeyNeedsToBeRemoved {
+					// Set balance for the key that has the same address for sender and recipient
+					err = setBalance(ctx, sender, sender, tokenId, remainder)
+					if err != nil {
+						return err
+					}
+				} else {
+					err = addBalance(ctx, sender, sender, tokenId, remainder)
+					if err != nil {
+						return err
+					}
+				}
+
+			} else {
+				// Delete self recipient key
+				err = ctx.GetStub().DelState(selfRecipientKey)
+				if err != nil {
+					return fmt.Errorf("failed to delete the state of %v: %v", selfRecipientKey, err)
+				}
 			}
 		}
 	}
 
 	return nil
+}
+
+func deferredDelete(ctx contractapi.TransactionContextInterface, queryResponse *queryresult.KV) func() error {
+	return func() error {
+		err := ctx.GetStub().DelState(queryResponse.Key)
+		if err != nil {
+			return fmt.Errorf("failed to delete the state of %v: %v", queryResponse.Key, err)
+		}
+		return nil
+	}
 }
 
 func emitTransferSingle(ctx contractapi.TransactionContextInterface, transferSingleEvent TransferSingle) error {
