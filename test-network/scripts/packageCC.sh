@@ -51,8 +51,18 @@ elif [ "$CC_SRC_LANGUAGE" = "java" ]; then
   infoln "Compiling Java code..."
   pushd $CC_SRC_PATH
   ./gradlew installDist
+  res=$?
   popd
+  verifyResult $res "Java compilation failed"
   successln "Finished compiling Java code"
+
+  # Copy META-INF to the distribution directory if it exists
+  if [ -d "$CC_SRC_PATH/src/main/resources/META-INF" ]; then
+    cp -r "$CC_SRC_PATH/src/main/resources/META-INF" "$CC_SRC_PATH/build/install/$CC_NAME/"
+  elif [ -d "$CC_SRC_PATH/META-INF" ]; then
+    cp -r "$CC_SRC_PATH/META-INF" "$CC_SRC_PATH/build/install/$CC_NAME/"
+  fi
+
   CC_SRC_PATH=$CC_SRC_PATH/build/install/$CC_NAME
 
 elif [ "$CC_SRC_LANGUAGE" = "javascript" ]; then
@@ -65,7 +75,9 @@ elif [ "$CC_SRC_LANGUAGE" = "typescript" ]; then
   pushd $CC_SRC_PATH
   npm install
   npm run build
+  res=$?
   popd
+  verifyResult $res "TypeScript compilation failed"
   successln "Finished compiling TypeScript code into JavaScript"
 
 else
@@ -90,7 +102,11 @@ packageChaincode() {
   res=$?
   { set +x; } 2>/dev/null
   cat log.txt
-  PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid ${CC_NAME}.tar.gz)
+  if [ ${CC_PACKAGE_ONLY} = true ] ; then
+    PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid packagedChaincode/${CC_NAME}_${CC_VERSION}.tar.gz)
+  else
+    PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid ${CC_NAME}.tar.gz)
+  fi
   verifyResult $res "Chaincode packaging has failed"
   successln "Chaincode is packaged"
 }
