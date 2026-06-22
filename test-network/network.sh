@@ -678,6 +678,9 @@ elif [ "$MODE" == "cc" ] && [ "$SUBCOMMAND" == "invoke" ]; then
   invokeChaincode
 elif [ "$MODE" == "cc" ] && [ "$SUBCOMMAND" == "query" ]; then
   queryChaincode
+elif [ "$MODE" == "renew" ]; then
+  infoln "Renewing certificates"
+  ./scripts/renewCerts.sh
 else
   printHelp
   exit 1
