@@ -29,12 +29,16 @@ spec:
     couchdbTag: ${COUCHDB_IMAGE_LABEL}
   networkinfo:
     domain: "${CONSOLE_DOMAIN}"
+  usetags: true
+  version: 1.0.0
+  connectionString: http://${CONSOLE_USERNAME}:${CONSOLE_PASSWORD}@localhost:5984
   storage:
     console:
       class: "${STORAGE_CLASS}"
       size: 5Gi
-  usetags: true
-  version: 1.0.0
+    couchdb:
+      class: "${STORAGE_CLASS}"
+      size: 5Gi
   resources:
     init:
       limits:
