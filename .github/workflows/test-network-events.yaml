@@ -28,7 +28,7 @@ jobs:
           - events
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up the test network runtime
         uses: ./.github/actions/test-network-setup
