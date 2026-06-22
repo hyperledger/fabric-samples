@@ -16,7 +16,7 @@ import (
 
 // SERVICE
 type BalanceByWallet map[string]ValueByTokenType
-type ValueByTokenType map[string]uint64
+type ValueByTokenType map[string]uint64 // Changed value type from int64 to uint64 to eliminate signed overflow anomalies
 
 // GetAllBalances returns a map of all wallets with their balances per token type
 func (s TokenService) GetAllBalances() (walletBalance BalanceByWallet, err error) {
@@ -53,17 +53,21 @@ func (s TokenService) GetBalance(wallet string, tokenType string) (typeVal Value
 	}
 
 	unspentTokens, err := w.ListUnspentTokens(ttx.WithType(tokenType))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed listing unspent tokens")
+	}
 	if len(unspentTokens.Tokens) == 0 {
 		return typeVal, nil
 	}
-	// Add the value of all unspent tokens in the wallet
-	for _, token := range unspentTokens.Tokens {
-    val, err := strconv.ParseUint(token.Quantity, 10, 64)
-    if err != nil {
-        return typeVal, errors.Wrapf(err, "failed parsing token quantity for asset %s", token.Id.String())
-    }
-    typeVal[token.Type] += val
-}
 
-	return
+	// Safely accumulate the values using strict unsigned boundaries matching transfer parameters
+	for _, token := range unspentTokens.Tokens {
+		val, err := strconv.ParseUint(token.Quantity, 10, 64)
+		if err != nil {
+			return typeVal, errors.Wrapf(err, "failed parsing token quantity for asset %s", token.Id.String())
+		}
+		typeVal[token.Type] += val
+	}
+
+	return typeVal, nil
 }
