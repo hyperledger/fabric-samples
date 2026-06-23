@@ -57,6 +57,7 @@
         "@types/node": "^20.19.33",
         "eslint": "^10.0.2",
         "typescript": "~5.8",
-        "typescript-eslint": "^8.56.1"
+        "typescript-eslint": "^8.56.1",
+        "vitest": "^4.0.18"
     }
 }
