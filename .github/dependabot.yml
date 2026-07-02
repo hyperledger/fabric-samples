@@ -4,3 +4,87 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    groups:
+      github-actions:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      github-actions-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directories:
+      - "**"
+    schedule:
+      interval: weekly
+    groups:
+      gomod:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      gomod-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: "npm"
+    directories:
+      - "**"
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      npm-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker"
+    directories:
+      - "**"
+    schedule:
+      interval: weekly
+    groups:
+      docker:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      docker-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: "maven"
+    directories:
+      - "**"
+    schedule:
+      interval: weekly
+    groups:
+      maven:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      maven-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gradle"
+    directories:
+      - "**"
+    schedule:
+      interval: weekly
+    groups:
+      gradle:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      gradle-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
