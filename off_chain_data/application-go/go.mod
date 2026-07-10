@@ -1,6 +1,6 @@
 module offchaindata
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/google/uuid v1.6.0
@@ -12,8 +12,8 @@ require (
 
 require (
 	github.com/miekg/pkcs11 v1.1.1 // indirect
-	golang.org/x/net v0.42.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
 )
