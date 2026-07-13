@@ -65,11 +65,11 @@ func assertReadWriteSet(
 	if err != nil {
 		t.Fatal("unexpected error:", err)
 	}
-	if len(actualKVRWSet.Writes) != 1 {
-		t.Fatal("expected 1 write, got", len(actualKVRWSet.Writes))
+	if len(actualKVRWSet.GetWrites()) != 1 {
+		t.Fatal("expected 1 write, got", len(actualKVRWSet.GetWrites()))
 	}
 
-	actualWrite := actualKVRWSet.Writes[0]
+	actualWrite := actualKVRWSet.GetWrites()[0]
 	if actualWrite.GetKey() != expectedAsset.ID {
 		t.Errorf("expected key %s, got %s", expectedAsset.ID, actualWrite.GetKey())
 	}

@@ -21,20 +21,22 @@ func (setup *OrgSetup) Invoke(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("channel: %s, chaincode: %s, function: %s, args: %s\n", channelID, chainCodeName, function, args)
 	network := setup.Gateway.GetNetwork(channelID)
 	contract := network.GetContract(chainCodeName)
-	txn_proposal, err := contract.NewProposal(function, client.WithArguments(args...))
+	txnProposal, err := contract.NewProposal(function, client.WithArguments(args...))
 	if err != nil {
 		fmt.Fprintf(w, "Error creating txn proposal: %s", err)
 		return
 	}
-	txn_endorsed, err := txn_proposal.Endorse()
+	txnEndorsed, err := txnProposal.Endorse()
 	if err != nil {
 		fmt.Fprintf(w, "Error endorsing txn: %s", err)
 		return
 	}
-	txn_committed, err := txn_endorsed.Submit()
+	txnCommitted, err := txnEndorsed.Submit()
 	if err != nil {
 		fmt.Fprintf(w, "Error submitting transaction: %s", err)
 		return
 	}
-	fmt.Fprintf(w, "Transaction ID : %s Response: %s", txn_committed.TransactionID(), txn_endorsed.Result())
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	//nolint:gosec // response is chaincode output written as text/plain
+	fmt.Fprintf(w, "Transaction ID : %s Response: %s", txnCommitted.TransactionID(), txnEndorsed.Result())
 }

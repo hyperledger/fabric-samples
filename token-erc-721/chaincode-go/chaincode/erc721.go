@@ -4,9 +4,9 @@
 
 package chaincode
 
-// Define structs to be used by chaincode
+// Nft defines the non-fungible token struct used by chaincode.
 type Nft struct {
-	TokenId  string `json:"tokenId"`
+	TokenID  string `json:"tokenId"`
 	Owner    string `json:"owner"`
 	TokenURI string `json:"tokenURI"`
 	Approved string `json:"approved"`
@@ -21,5 +21,5 @@ type Approval struct {
 type Transfer struct {
 	From    string `json:"from"`
 	To      string `json:"to"`
-	TokenId string `json:"tokenId"`
+	TokenID string `json:"tokenId"`
 }
