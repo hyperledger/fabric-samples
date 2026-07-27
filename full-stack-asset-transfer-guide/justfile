@@ -101,7 +101,7 @@ operator-crds: check-kube
 ###############################################################################
 
 # Run e2e tests of all scenarios
-test: test-chaincode test-appdev test-cloud # test-ansible
+test: test-chaincode test-appdev test-appdev-go test-cloud # test-ansible
 
 # Run an e2e test of the SmartContractDev scenario
 test-chaincode:
@@ -110,6 +110,10 @@ test-chaincode:
 # Run an e2e test of the ApplicationDev scenario
 test-appdev:
     tests/10-appdev-e2e.sh
+
+# Run an e2e test of the ApplicationDev Go scenario
+test-appdev-go:
+    tests/10-appdev-e2e-go.sh
 
 # Run an e2e test of the CloudNative scenario
 test-cloud:
