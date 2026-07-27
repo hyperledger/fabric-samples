@@ -34,9 +34,9 @@ jobs:
   appdev-go:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: full-stack-asset-transfer-guide/applications/trader-go/go.mod
       - name: Set up Full Stack Runtime
