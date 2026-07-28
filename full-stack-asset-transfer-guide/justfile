@@ -101,7 +101,7 @@ operator-crds: check-kube
 ###############################################################################
 
 # Run e2e tests of all scenarios
-test: test-chaincode test-appdev test-cloud # test-ansible
+test: test-chaincode test-appdev-typescript test-appdev-go test-cloud # test-ansible
 
 # Run an e2e test of the SmartContractDev scenario
 test-chaincode:
