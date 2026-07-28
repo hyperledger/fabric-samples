@@ -37,7 +37,7 @@ just microfab
 #
 source "${WORKSHOP_PATH}/_cfg/uf/org1admin.env"
 
-just debugcc
+just debugcc-go
 
 
 cd "${WORKSHOP_PATH}/contracts/asset-transfer-go"
