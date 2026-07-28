@@ -10,7 +10,6 @@ import (
 	"log"
 
 	"github.com/hyperledger/fabric-chaincode-go/v2/pkg/cid"
-	"github.com/hyperledger/fabric-chaincode-go/v2/pkg/statebased"
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
@@ -19,37 +18,46 @@ type SmartContract struct {
 	contractapi.Contract
 }
 
-func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface, id string, color string, size int, owner string, appraisedValue int) error {
-	exists, err := s.AssetExists(ctx, id)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return fmt.Errorf("The asset %s already exists", id)
+// CreateAsset issues a new asset to the world state with given details.
+func (s *SmartContract) CreateAsset(
+	ctx contractapi.TransactionContextInterface,
+	state *Asset,
+) error {
+
+	if state == nil {
+		return fmt.Errorf("asset cannot be nil")
 	}
 
-	ownerID, err := clientIdentifier(ctx, owner)
+	ownerID, err := clientIdentifier(ctx, state.Owner)
 	if err != nil {
 		return err
 	}
+
 	ownerJSON, err := json.Marshal(ownerID)
 	if err != nil {
 		return err
 	}
+	state.Owner = string(ownerJSON)
 
-	asset := Asset{
-		AppraisedValue: appraisedValue,
-		Color:          color,
-		ID:             id,
-		Owner:          string(ownerJSON),
-		Size:           size,
+	asset, err := NewAsset(*state)
+	if err != nil {
+		return err
 	}
+
+	exists, err := s.AssetExists(ctx, asset.ID)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return fmt.Errorf("the asset %s already exists", asset.ID)
+	}
+
 	assetBytes, err := json.Marshal(asset)
 	if err != nil {
 		return err
 	}
 
-	if err := ctx.GetStub().PutState(id, assetBytes); err != nil {
+	if err := ctx.GetStub().PutState(asset.ID, assetBytes); err != nil {
 		return err
 	}
 
@@ -57,14 +65,20 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 	if err != nil {
 		return err
 	}
-	if err := setEndorsingOrgs(ctx, id, mspID); err != nil {
+
+	if err := setEndorsingOrgs(ctx, asset.ID, mspID); err != nil {
 		return err
 	}
 
 	return ctx.GetStub().SetEvent("CreateAsset", assetBytes)
 }
 
-func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, id string) (*Asset, error) {
+// ReadAsset returns an existing asset stored in the world state.
+func (s *SmartContract) ReadAsset(
+	ctx contractapi.TransactionContextInterface,
+	id string,
+) (*Asset, error) {
+
 	assetBytes, err := readAsset(ctx, id)
 	if err != nil {
 		return nil, err
@@ -78,38 +92,85 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, i
 	return &asset, nil
 }
 
-// UpdateAsset updates color, size, and appraised value of an existing asset.
-// The asset owner cannot be changed here; use TransferAsset instead.
-func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface, id string, color string, size int, appraisedValue int) error {
-	assetBytes, err := readAsset(ctx, id)
+// readAsset returns the raw asset bytes.
+func readAsset(
+	ctx contractapi.TransactionContextInterface,
+	id string,
+) ([]byte, error) {
+
+	assetBytes, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+
+	if assetBytes == nil {
+		return nil, fmt.Errorf("sorry, asset %s has not been created", id)
+	}
+
+	return assetBytes, nil
+}
+
+// UpdateAsset updates an existing asset in the world state with the
+// provided partial asset data. The asset ID must be specified.
+// The Owner field cannot be changed here; use TransferAsset instead.
+func (s *SmartContract) UpdateAsset(
+	ctx contractapi.TransactionContextInterface,
+	assetUpdate *Asset,
+) error {
+
+	if assetUpdate == nil {
+		return fmt.Errorf("asset cannot be nil")
+	}
+
+	if assetUpdate.ID == "" {
+		return fmt.Errorf("no asset ID specified")
+	}
+
+	existingAssetBytes, err := readAsset(ctx, assetUpdate.ID)
 	if err != nil {
 		return err
 	}
 
-	var existing Asset
-	if err := json.Unmarshal(assetBytes, &existing); err != nil {
+	var existingAsset Asset
+	if err := json.Unmarshal(existingAssetBytes, &existingAsset); err != nil {
 		return err
 	}
 
-	ok, err := hasWritePermission(ctx, &existing)
+	ok, err := hasWritePermission(ctx, &existingAsset)
 	if err != nil {
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("Only owner can update assets")
+		return fmt.Errorf("only owner can update assets")
 	}
 
-	// Owner is intentionally preserved; use TransferAsset to change owner.
-	existing.Color = color
-	existing.Size = size
-	existing.AppraisedValue = appraisedValue
+	// Merge the update into the existing asset.
+	// Preserve the owner; ownership changes must go through TransferAsset.
+	if assetUpdate.Color != "" {
+		existingAsset.Color = assetUpdate.Color
+	}
 
-	updatedBytes, err := json.Marshal(existing)
+	if assetUpdate.Size != 0 {
+		existingAsset.Size = assetUpdate.Size
+	}
+
+	if assetUpdate.AppraisedValue != 0 {
+		existingAsset.AppraisedValue = assetUpdate.AppraisedValue
+	}
+
+	existingAsset.Owner = existingAsset.Owner
+
+	updatedAsset, err := NewAsset(existingAsset)
 	if err != nil {
 		return err
 	}
 
-	if err := ctx.GetStub().PutState(id, updatedBytes); err != nil {
+	updatedBytes, err := json.Marshal(updatedAsset)
+	if err != nil {
+		return err
+	}
+
+	if err := ctx.GetStub().PutState(updatedAsset.ID, updatedBytes); err != nil {
 		return err
 	}
 
@@ -117,7 +178,8 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 	if err != nil {
 		return err
 	}
-	if err := setEndorsingOrgs(ctx, id, mspID); err != nil {
+
+	if err := setEndorsingOrgs(ctx, updatedAsset.ID, mspID); err != nil {
 		return err
 	}
 
@@ -125,7 +187,11 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 }
 
 // DeleteAsset deletes an asset from the world state.
-func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface, id string) error {
+func (s *SmartContract) DeleteAsset(
+	ctx contractapi.TransactionContextInterface,
+	id string,
+) error {
+
 	assetBytes, err := readAsset(ctx, id)
 	if err != nil {
 		return err
@@ -141,30 +207,39 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("Only owner can delete assets")
+		return fmt.Errorf("only owner can delete assets")
 	}
 
 	if err := ctx.GetStub().DelState(id); err != nil {
 		return err
 	}
 
-	return ctx.GetStub().SetEvent("DeleteAsset", assetBytes)
+	// Matches the TypeScript event name (including its typo).
+	return ctx.GetStub().SetEvent("DeletaAsset", assetBytes)
 }
 
-// AssetExists returns true when an asset with the given ID exists in the world state.
-func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
+// AssetExists returns true when an asset with the given ID exists.
+func (s *SmartContract) AssetExists(
+	ctx contractapi.TransactionContextInterface,
+	id string,
+) (bool, error) {
+
 	assetBytes, err := ctx.GetStub().GetState(id)
 	if err != nil {
-		return false, fmt.Errorf("failed to read from world state: %v", err)
+		return false, err
 	}
 
 	return assetBytes != nil, nil
 }
 
-// TransferAsset updates the owner of an asset with the given ID.
-// newOwner is the user identifier; newOwnerOrg is the MSP ID of the new owning organisation.
-// Subsequent updates must be endorsed by the new owning organisation.
-func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterface, id string, newOwner string, newOwnerOrg string) error {
+// TransferAsset updates the owner field of an asset.
+func (s *SmartContract) TransferAsset(
+	ctx contractapi.TransactionContextInterface,
+	id string,
+	newOwner string,
+	newOwnerOrg string,
+) error {
+
 	assetBytes, err := readAsset(ctx, id)
 	if err != nil {
 		return err
@@ -180,14 +255,16 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("Only owner can transfer assets")
+		return fmt.Errorf("only owner can transfer assets")
 	}
 
-	newOwnerID := OwnerIdentifier{Org: newOwnerOrg, User: newOwner}
-	ownerJSON, err := json.Marshal(newOwnerID)
+	ownerID := ownerIdentifier(newOwner, newOwnerOrg)
+
+	ownerJSON, err := json.Marshal(ownerID)
 	if err != nil {
 		return err
 	}
+
 	asset.Owner = string(ownerJSON)
 
 	updatedBytes, err := json.Marshal(asset)
@@ -199,6 +276,7 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 		return err
 	}
 
+	// Subsequent updates must be endorsed by the new owning organization.
 	if err := setEndorsingOrgs(ctx, id, newOwnerOrg); err != nil {
 		return err
 	}
@@ -206,102 +284,62 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 	return ctx.GetStub().SetEvent("TransferAsset", updatedBytes)
 }
 
-// GetAllAssets returns all assets found in the world state.
-func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface) ([]*Asset, error) {
-	// Range query with empty start/end key returns all assets in the chaincode namespace.
+// GetAllAssets returns a list of all assets in the world state.
+func (s *SmartContract) GetAllAssets(
+	ctx contractapi.TransactionContextInterface,
+) (string, error) {
+
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer resultsIterator.Close()
 
-	var assets []*Asset
+	var assets []Asset
+
 	for resultsIterator.HasNext() {
 		queryResponse, err := resultsIterator.Next()
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 
 		var asset Asset
 		if err := json.Unmarshal(queryResponse.Value, &asset); err != nil {
-			log.Printf("skipping malformed asset entry: %v", err)
+			log.Printf("failed to unmarshal asset: %v", err)
 			continue
 		}
-		assets = append(assets, &asset)
+
+		assets = append(assets, asset)
 	}
 
-	return assets, nil
-}
-
-// --- internal helpers -----------------------
-
-func readAsset(ctx contractapi.TransactionContextInterface, id string) ([]byte, error) {
-	assetBytes, err := ctx.GetStub().GetState(id)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read from world state: %v", err)
-	}
-	if assetBytes == nil {
-		return nil, fmt.Errorf("Sorry, asset %s has not been created", id)
-	}
-
-	return assetBytes, nil
-}
-
-func hasWritePermission(ctx contractapi.TransactionContextInterface, asset *Asset) (bool, error) {
-	clientID, err := clientIdentifier(ctx, "")
-	if err != nil {
-		return false, err
-	}
-
-	var ownerID OwnerIdentifier
-	if err := json.Unmarshal([]byte(asset.Owner), &ownerID); err != nil {
-		return false, fmt.Errorf("failed to parse asset owner: %v", err)
-	}
-
-	return clientID.Org == ownerID.Org, nil
-}
-
-func clientIdentifier(ctx contractapi.TransactionContextInterface, user string) (OwnerIdentifier, error) {
-	mspID, err := cid.GetMSPID(ctx.GetStub())
-	if err != nil {
-		return OwnerIdentifier{}, err
-	}
-
-	if user == "" {
-		cn, err := clientCommonName(ctx)
-		if err != nil {
-			return OwnerIdentifier{}, err
-		}
-		user = cn
-	}
-
-	return OwnerIdentifier{Org: mspID, User: user}, nil
-}
-
-func clientCommonName(ctx contractapi.TransactionContextInterface) (string, error) {
-	cert, err := cid.GetX509Certificate(ctx.GetStub())
+	assetBytes, err := marshal(assets)
 	if err != nil {
 		return "", err
 	}
-	if cert.Subject.CommonName == "" {
-		return "", fmt.Errorf("unable to identify client identity common name")
-	}
 
-	return cert.Subject.CommonName, nil
+	return string(assetBytes), nil
 }
 
-func setEndorsingOrgs(ctx contractapi.TransactionContextInterface, key string, orgs ...string) error {
-	ep, err := statebased.NewStateEP(nil)
-	if err != nil {
-		return err
-	}
-	if err := ep.AddOrgs(statebased.RoleTypeMember, orgs...); err != nil {
-		return err
-	}
-	policy, err := ep.Policy()
-	if err != nil {
-		return err
+// unmarshal parses JSON into the supplied destination.
+func unmarshal(data []byte, v any) error {
+	if len(data) == 0 {
+		return fmt.Errorf("empty JSON")
 	}
 
-	return ctx.GetStub().SetStateValidationParameter(key, policy)
+	return json.Unmarshal(data, v)
+}
+
+// marshal serializes an object into JSON.
+func marshal(v any) ([]byte, error) {
+	return json.Marshal(v)
+}
+
+// toJSON returns a JSON string representation.
+func toJSON(v any) (string, error) {
+	bytes, err := marshal(v)
+	if err != nil {
+		return "", err
+	}
+
+	return string(bytes), nil
 }
