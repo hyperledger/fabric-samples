@@ -158,8 +158,6 @@ func (s *SmartContract) UpdateAsset(
 		existingAsset.AppraisedValue = assetUpdate.AppraisedValue
 	}
 
-	existingAsset.Owner = existingAsset.Owner
-
 	updatedAsset, err := NewAsset(existingAsset)
 	if err != nil {
 		return err
