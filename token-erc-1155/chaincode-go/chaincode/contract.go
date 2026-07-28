@@ -1113,9 +1113,9 @@ func sortedKeysToID(m map[ToID]uint64) []ToID {
 	// Sort the slice first according to ID if equal then sort by recipient ("To" field)
 	sort.Slice(keys, func(i, j int) bool {
 		if keys[i].ID != keys[j].ID {
-			return keys[i].To < keys[j].To
+			return keys[i].ID < keys[j].ID
 		}
-		return keys[i].ID < keys[j].ID
+		return keys[i].To < keys[j].To
 	})
 	return keys
 }

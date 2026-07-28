@@ -35,7 +35,7 @@ context CLUSTER_RUNTIME               kind                  # or k3s for Rancher
 context CONTAINER_CLI                 docker                # or nerdctl for containerd
 context CONTAINER_NAMESPACE           ""                    # or "--namespace k8s.io" for containerd / nerdctl
 
-context FABRIC_CONTAINER_REGISTRY     hyperledger
+context FABRIC_CONTAINER_REGISTRY     ghcr.io/hyperledger
 context FABRIC_PEER_IMAGE             ${FABRIC_CONTAINER_REGISTRY}/fabric-peer:${FABRIC_VERSION}
 context COUCHDB_VERSION               3.4.2
 context NETWORK_NAME                  test-network

@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Test the network
         id: run-test
         working-directory: test-network-k8s
@@ -30,7 +30,7 @@ jobs:
           CHAINCODE_LANGUAGE: java
       - name: Upload failure logs
         if: ${{ failure() && steps.run-test.conclusion == 'failure' }}
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: test-network-k8s/network-debug.log
@@ -39,7 +39,7 @@ jobs:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Test the network
         id: run-test
         working-directory: test-network-k8s
@@ -49,7 +49,7 @@ jobs:
           CHAINCODE_LANGUAGE: external
       - name: Upload failure logs
         if: ${{ failure() && steps.run-test.conclusion == 'failure' }}
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: test-network-k8s/network-debug.log
@@ -58,7 +58,7 @@ jobs:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Test the network
         id: run-test
         working-directory: test-network-k8s
@@ -69,7 +69,7 @@ jobs:
           CHAINCODE_BUILDER: k8s
       - name: Upload failure logs
         if: ${{ failure() && steps.run-test.conclusion == 'failure' }}
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: test-network-k8s/network-debug.log
@@ -78,7 +78,7 @@ jobs:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Test the network
         id: run-test
         working-directory: test-network-k8s
@@ -92,7 +92,7 @@ jobs:
           CHAINCODE_BUILDER: k8s
       - name: Upload failure logs
         if: ${{ failure() && steps.run-test.conclusion == 'failure' }}
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: test-network-k8s/network-debug.log
@@ -104,7 +104,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' || github.event.pull_request.base.ref == 'main' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Test the network
         id: run-test
         working-directory: test-network-k8s
@@ -118,7 +118,7 @@ jobs:
           ORDERER_TYPE: bft
       - name: Upload failure logs
         if: ${{ failure() && steps.run-test.conclusion == 'failure' }}
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: test-network-k8s/network-debug.log
