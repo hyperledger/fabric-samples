@@ -1,11 +1,8 @@
 package main
 
 import (
-	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
-	"strings"
 
 	"github.com/hyperledger/fabric-chaincode-go/v2/pkg/cid"
 	"github.com/hyperledger/fabric-chaincode-go/v2/pkg/statebased"
@@ -60,35 +57,22 @@ func clientIdentifier(
 		User: user,
 	}, nil
 }
-
-// clientCommonName extracts the certificate Common Name.
 func clientCommonName(
 	ctx contractapi.TransactionContextInterface,
 ) (string, error) {
 
-	id, err := cid.GetID(ctx.GetStub())
+	c, err := cid.New(ctx.GetStub())
 	if err != nil {
 		return "", err
 	}
 
-	// Fabric IDs look like:
-	// x509::base64(cert)::base64(ca)
-
-	parts := strings.Split(id, "::")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("invalid client identity")
-	}
-
-	certPEM := []byte(parts[1])
-
-	block, _ := pem.Decode(certPEM)
-	if block == nil {
-		return "", fmt.Errorf("failed to decode certificate")
-	}
-
-	cert, err := x509.ParseCertificate(block.Bytes)
+	cert, err := c.GetX509Certificate()
 	if err != nil {
 		return "", err
+	}
+
+	if cert == nil {
+		return "", fmt.Errorf("client certificate not found")
 	}
 
 	return cert.Subject.CommonName, nil
