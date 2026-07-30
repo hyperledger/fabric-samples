@@ -42,7 +42,10 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       # - /cgroup:/cgroup:ro
     ports:
-      - 8080:8080
+      # Host-side port only -- the vet-records API defaults to 8080 on the
+      # host. Prometheus still reaches cadvisor via the container network
+      # (cadvisor:8080, see prometheus.yml), unaffected by this remapping.
+      - 8081:8080
     restart: always
 
   node-exporter:

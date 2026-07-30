@@ -55,9 +55,12 @@ createChannel() {
 		sleep $DELAY
 		set -x
     . scripts/orderer.sh ${CHANNEL_NAME}> /dev/null 2>&1
+    # orderer2/orderer3 always join now that the default (non-BFT) network runs a
+    # 3-node Raft ordering service, not just a single orderer.example.com; only
+    # orderer4 (BFT's 4th node) stays gated behind the -bft flag.
+    . scripts/orderer2.sh ${CHANNEL_NAME}> /dev/null 2>&1
+    . scripts/orderer3.sh ${CHANNEL_NAME}> /dev/null 2>&1
     if [ $bft_true -eq 1 ]; then
-      . scripts/orderer2.sh ${CHANNEL_NAME}> /dev/null 2>&1
-      . scripts/orderer3.sh ${CHANNEL_NAME}> /dev/null 2>&1
       . scripts/orderer4.sh ${CHANNEL_NAME}> /dev/null 2>&1
     fi
 		res=$?

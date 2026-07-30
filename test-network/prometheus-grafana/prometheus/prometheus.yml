@@ -10,12 +10,28 @@ scrape_configs:
   - job_name: "orderer"
     static_configs:
       - targets: ["orderer.example.com:9443"]
+  - job_name: "orderer2"
+    static_configs:
+      - targets: ["orderer2.example.com:9446"]
+  - job_name: "orderer3"
+    static_configs:
+      - targets: ["orderer3.example.com:9447"]
   - job_name: "peer0_org1"
     static_configs:
       - targets: ["peer0.org1.example.com:9444"]
   - job_name: "peer0_org2"
     static_configs:
       - targets: ["peer0.org2.example.com:9445"]
+  - job_name: "vetrecords-api"
+    metrics_path: /actuator/prometheus
+    basic_auth:
+      username: clinic
+      password: clinicpw
+    static_configs:
+      # Runs as a bare JVM process on the host, not a container on this
+      # network, so it needs Docker Desktop's host.docker.internal rather
+      # than a container DNS name.
+      - targets: ["host.docker.internal:8080"]
   - job_name: cadvisor
     scrape_interval: 5s
     static_configs:
