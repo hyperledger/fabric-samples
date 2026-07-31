@@ -93,7 +93,7 @@ func setupStub() (*MockContext, *MockStub) {
 	balancePrefix := "balance"
 	approvalPrefix := "approval"
 	nftPrefix := "nft"
-	mockTokenId := "101"
+	mockTokenID := "101"
 	anyString := mock.AnythingOfType("string")
 	anyUint8Slice := mock.AnythingOfType("[]uint8")
 	nftStr := "{\"tokenId\":\"101\",\"owner\":\"" + owner + "\",\"tokenURI\":\"https://example.com/nft101.json\",\"approved\":\"" + operator + "\"}"
@@ -105,13 +105,13 @@ func setupStub() (*MockContext, *MockStub) {
 	ms.On("GetStateByPartialCompositeKey", balancePrefix, []string{owner}).Return(iterator, nil)
 	ms.On("GetStateByPartialCompositeKey", nftPrefix, []string{}).Return(iterator, nil)
 
-	ms.On("CreateCompositeKey", nftPrefix, []string{mockTokenId}).Return("nft101", nil)
+	ms.On("CreateCompositeKey", nftPrefix, []string{mockTokenID}).Return("nft101", nil)
 	ms.On("CreateCompositeKey", nftPrefix, []string{"102"}).Return("nft102", nil)
 	ms.On("CreateCompositeKey", approvalPrefix, []string{owner, owner}).Return(approvalPrefix+owner+owner, nil)
 	ms.On("CreateCompositeKey", approvalPrefix, []string{owner, operator}).Return(approvalPrefix+owner+operator, nil)
-	ms.On("CreateCompositeKey", balancePrefix, []string{owner, mockTokenId}).Return(balancePrefix+owner+mockTokenId, nil)
-	ms.On("CreateCompositeKey", balancePrefix, []string{operator, mockTokenId}).Return(balancePrefix+operator+mockTokenId, nil)
-	ms.On("CreateCompositeKey", balancePrefix, []string{owner, "102"}).Return(balancePrefix+owner+mockTokenId, nil)
+	ms.On("CreateCompositeKey", balancePrefix, []string{owner, mockTokenID}).Return(balancePrefix+owner+mockTokenID, nil)
+	ms.On("CreateCompositeKey", balancePrefix, []string{operator, mockTokenID}).Return(balancePrefix+operator+mockTokenID, nil)
+	ms.On("CreateCompositeKey", balancePrefix, []string{owner, "102"}).Return(balancePrefix+owner+mockTokenID, nil)
 
 	ms.On("GetState", "nft101").Return([]byte(nftStr), nil)
 	ms.On("GetState", "nft102").Return([]uint8{}, nil)
@@ -166,8 +166,8 @@ func TestOwnerOf(t *testing.T) {
 	ctx, _ := setupStub()
 	c := new(TokenERC721Contract)
 
-	owner, _ := c.OwnerOf(ctx, "101")
-	assert.Equal(t, owner, owner)
+	actual, _ := c.OwnerOf(ctx, "101")
+	assert.Equal(t, owner, actual)
 
 }
 
@@ -176,7 +176,7 @@ func TestApprove(t *testing.T) {
 	c := new(TokenERC721Contract)
 
 	approved, _ := c.Approve(ctx, "", "101")
-	assert.Equal(t, true, approved)
+	assert.True(t, approved)
 
 }
 
@@ -185,7 +185,7 @@ func TestSetApprovalForAll(t *testing.T) {
 	c := new(TokenERC721Contract)
 
 	appAll, _ := c.SetApprovalForAll(ctx, operator, true)
-	assert.Equal(t, true, appAll)
+	assert.True(t, appAll)
 
 }
 
@@ -194,7 +194,7 @@ func TestIsApprovedForAll(t *testing.T) {
 	c := new(TokenERC721Contract)
 
 	isApp, _ := c.SetApprovalForAll(ctx, operator, true)
-	assert.Equal(t, true, isApp)
+	assert.True(t, isApp)
 
 }
 
@@ -212,7 +212,7 @@ func TestTransferFrom(t *testing.T) {
 
 	transfer, _ := c.TransferFrom(ctx, owner, operator, "101")
 
-	assert.Equal(t, true, transfer)
+	assert.True(t, transfer)
 }
 
 func TestName(t *testing.T) {
@@ -247,7 +247,7 @@ func TestInitialize(t *testing.T) {
 	c := new(TokenERC721Contract)
 
 	option, _ := c.Initialize(ctx, "someName", "someSymbol")
-	assert.Equal(t, true, option)
+	assert.True(t, option)
 }
 
 func TestMintWithTokenURI(t *testing.T) {
@@ -258,7 +258,7 @@ func TestMintWithTokenURI(t *testing.T) {
 
 	nft := new(Nft)
 	nft.Owner = owner
-	nft.TokenId = "102"
+	nft.TokenID = "102"
 	nft.TokenURI = "https://example.com/nft102.json"
 
 	assert.Equal(t, nft.Owner, mint.Owner)
@@ -271,7 +271,7 @@ func TestBurn(t *testing.T) {
 	c := new(TokenERC721Contract)
 
 	burn, _ := c.Burn(ctx, "101")
-	assert.Equal(t, true, burn)
+	assert.True(t, burn)
 }
 
 func TestClientAccoundId(t *testing.T) {

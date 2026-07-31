@@ -18,7 +18,7 @@ func (s *SmartContract) QueryAuction(ctx contractapi.TransactionContextInterface
 
 	auctionJSON, err := ctx.GetStub().GetState(auctionID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get auction object %v: %v", auctionID, err)
+		return nil, fmt.Errorf("failed to get auction object %v: %w", auctionID, err)
 	}
 	if auctionJSON == nil {
 		return nil, errors.New("auction does not exist")
@@ -38,27 +38,27 @@ func (s *SmartContract) QueryBid(ctx contractapi.TransactionContextInterface, au
 
 	err := verifyClientOrgMatchesPeerOrg(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get implicit collection name: %v", err)
+		return nil, fmt.Errorf("failed to get implicit collection name: %w", err)
 	}
 
 	clientID, err := s.GetSubmittingClientIdentity(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get client identity %v", err)
+		return nil, fmt.Errorf("failed to get client identity %w", err)
 	}
 
 	collection, err := getCollectionName(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get implicit collection name: %v", err)
+		return nil, fmt.Errorf("failed to get implicit collection name: %w", err)
 	}
 
 	bidKey, err := ctx.GetStub().CreateCompositeKey(bidKeyType, []string{auctionID, txID})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create composite key: %v", err)
+		return nil, fmt.Errorf("failed to create composite key: %w", err)
 	}
 
 	bidJSON, err := ctx.GetStub().GetPrivateData(collection, bidKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get bid %v: %v", bidKey, err)
+		return nil, fmt.Errorf("failed to get bid %v: %w", bidKey, err)
 	}
 	if bidJSON == nil {
 		return nil, fmt.Errorf("bid %v does not exist", bidKey)
@@ -84,7 +84,7 @@ func checkForHigherBid(ctx contractapi.TransactionContextInterface, auctionPrice
 	// Get MSP ID of peer org
 	peerMSPID, err := shim.GetMSPID()
 	if err != nil {
-		return fmt.Errorf("failed getting the peer's MSPID: %v", err)
+		return fmt.Errorf("failed getting the peer's MSPID: %w", err)
 	}
 
 	var error error
@@ -104,7 +104,7 @@ func checkForHigherBid(ctx contractapi.TransactionContextInterface, auctionPrice
 
 				bidJSON, err := ctx.GetStub().GetPrivateData(collection, bidKey)
 				if err != nil {
-					return fmt.Errorf("failed to get bid %v: %v", bidKey, err)
+					return fmt.Errorf("failed to get bid %v: %w", bidKey, err)
 				}
 				if bidJSON == nil {
 					return fmt.Errorf("bid %v does not exist", bidKey)
@@ -117,14 +117,14 @@ func checkForHigherBid(ctx contractapi.TransactionContextInterface, auctionPrice
 				}
 
 				if bid.Price > auctionPrice {
-					error = fmt.Errorf("cannot close auction, bidder has a higher price: %v", err)
+					error = fmt.Errorf("cannot close auction, bidder has a higher price: %w", err)
 				}
 
 			} else {
 
 				Hash, err := ctx.GetStub().GetPrivateDataHash(collection, bidKey)
 				if err != nil {
-					return fmt.Errorf("failed to read bid hash from collection: %v", err)
+					return fmt.Errorf("failed to read bid hash from collection: %w", err)
 				}
 				if Hash == nil {
 					return fmt.Errorf("bid hash does not exist: %s", bidKey)

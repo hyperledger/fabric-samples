@@ -71,14 +71,6 @@ func newIdentity() *identity.X509Identity {
 	return id
 }
 
-func loadCertificate(filename string) (*x509.Certificate, error) {
-	certificatePEM, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read certificate file: %w", err)
-	}
-	return identity.CertificateFromPEM(certificatePEM)
-}
-
 // newSign creates a function that generates a digital signature from a message digest using a private key.
 func newSign() identity.Sign {
 	privateKeyPEM, err := readFirstFile(keyPath)

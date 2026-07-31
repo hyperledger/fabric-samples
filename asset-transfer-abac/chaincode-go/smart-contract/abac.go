@@ -3,6 +3,7 @@ package abac
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
@@ -31,7 +32,7 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 
 	err := ctx.GetClientIdentity().AssertAttributeValue("abac.creator", "true")
 	if err != nil {
-		return fmt.Errorf("submitting client not authorized to create asset, does not have abac.creator role")
+		return errors.New("submitting client not authorized to create asset, does not have abac.creator role")
 	}
 
 	exists, err := s.AssetExists(ctx, id)
@@ -77,7 +78,7 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 	}
 
 	if clientID != asset.Owner {
-		return fmt.Errorf("submitting client not authorized to update asset, does not own asset")
+		return errors.New("submitting client not authorized to update asset, does not own asset")
 	}
 
 	asset.Color = newColor
@@ -106,7 +107,7 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface,
 	}
 
 	if clientID != asset.Owner {
-		return fmt.Errorf("submitting client not authorized to update asset, does not own asset")
+		return errors.New("submitting client not authorized to update asset, does not own asset")
 	}
 
 	return ctx.GetStub().DelState(id)
@@ -126,7 +127,7 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 	}
 
 	if clientID != asset.Owner {
-		return fmt.Errorf("submitting client not authorized to update asset, does not own asset")
+		return errors.New("submitting client not authorized to update asset, does not own asset")
 	}
 
 	asset.Owner = newOwner
@@ -143,7 +144,7 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, i
 
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read from world state: %v", err)
+		return nil, fmt.Errorf("failed to read from world state: %w", err)
 	}
 	if assetJSON == nil {
 		return nil, fmt.Errorf("the asset %s does not exist", id)
@@ -176,7 +177,7 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 		}
 
 		var asset Asset
-		err = json.Unmarshal(queryResponse.Value, &asset)
+		err = json.Unmarshal(queryResponse.GetValue(), &asset)
 		if err != nil {
 			return nil, err
 		}
@@ -191,7 +192,7 @@ func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface,
 
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
-		return false, fmt.Errorf("failed to read from world state: %v", err)
+		return false, fmt.Errorf("failed to read from world state: %w", err)
 	}
 
 	return assetJSON != nil, nil
@@ -204,11 +205,11 @@ func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionC
 
 	b64ID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		return "", fmt.Errorf("Failed to read clientID: %v", err)
+		return "", fmt.Errorf("failed to read clientID: %w", err)
 	}
 	decodeID, err := base64.StdEncoding.DecodeString(b64ID)
 	if err != nil {
-		return "", fmt.Errorf("failed to base64 decode clientID: %v", err)
+		return "", fmt.Errorf("failed to base64 decode clientID: %w", err)
 	}
 	return string(decodeID), nil
 }

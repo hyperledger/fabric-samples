@@ -21,5 +21,7 @@ func (setup OrgSetup) Query(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Error: %s", err)
 		return
 	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	//nolint:gosec // response is chaincode output written as text/plain
 	fmt.Fprintf(w, "Response: %s", evaluateResponse)
 }

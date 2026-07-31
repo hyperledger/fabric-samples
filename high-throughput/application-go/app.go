@@ -15,8 +15,6 @@ import (
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"github.com/hyperledger/fabric-gateway/pkg/hash"
-	gatewaypb "github.com/hyperledger/fabric-protos-go-apiv2/gateway"
-	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -81,7 +79,7 @@ func main() {
 		manyUpdates(contract, "UpdateStandard", variableName, change, sign)
 		getStandard(contract, variableName)
 	default:
-		log.Fatalln("Unkown function:", function)
+		log.Fatalln("Unknown function:", function)
 	}
 }
 
@@ -153,23 +151,7 @@ func manyUpdates(contract *client.Contract, function, variableName, change, sign
 }
 
 func failOnError(err error) {
-	if err == nil {
-		return
+	if err != nil {
+		log.Fatalf("error: %v", err)
 	}
-
-	details := status.Convert(err).Details()
-	if len(details) > 0 {
-		log.Println("Error Details:")
-
-		for _, detail := range details {
-			switch detail := detail.(type) {
-			case *gatewaypb.ErrorDetail:
-				log.Printf("- address: %s\n  mspId: %s\n  message: %s\n", detail.Address, detail.MspId, detail.Message)
-			default:
-				log.Printf("- %s", detail)
-			}
-		}
-	}
-
-	log.Fatalf("error: %v", err)
 }

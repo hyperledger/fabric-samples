@@ -22,7 +22,7 @@ func transact(clientConnection grpc.ClientConnInterface) error {
 		return err
 	}
 	defer func() {
-		gateway.Close()
+		_ = gateway.Close()
 		fmt.Println("Gateway closed.")
 	}()
 
@@ -81,7 +81,7 @@ func (t *transactApp) transact() error {
 	fmt.Println("Created asset", anAsset.ID)
 
 	// Transfer randomly 1 in 2 assets to a new owner.
-	if rand.N(2) == 0 {
+	if rand.N(2) == 0 { //nolint:gosec // non-security use
 		newOwner := differentElement(owners, anAsset.Owner)
 		oldOwner, err := t.smartContract.TransferAsset(anAsset.ID, newOwner)
 		if err != nil {
@@ -91,7 +91,7 @@ func (t *transactApp) transact() error {
 	}
 
 	// Delete randomly 1 in 4 created assets.
-	if rand.N(4) == 0 {
+	if rand.N(4) == 0 { //nolint:gosec // non-security use
 		if err := t.smartContract.DeleteAsset(anAsset.ID); err != nil {
 			return err
 		}
@@ -110,15 +110,15 @@ func newAsset() (atb.Asset, error) {
 	return atb.Asset{
 		ID:             id.String(),
 		Color:          randomElement([]string{"red", "green", "blue"}),
-		Size:           uint64(rand.N(10) + 1),
+		Size:           uint64(rand.N(10) + 1), //nolint:gosec // non-security use
 		Owner:          randomElement(owners),
-		AppraisedValue: uint64(rand.N(1000) + 1),
+		AppraisedValue: uint64(rand.N(1000) + 1), //nolint:gosec // non-security use
 	}, nil
 }
 
 // Pick a random element from an array.
 func randomElement(values []string) string {
-	return values[rand.N(len(values))]
+	return values[rand.N(len(values))] //nolint:gosec // non-security use
 }
 
 // Pick a random element from an array, excluding the current value.

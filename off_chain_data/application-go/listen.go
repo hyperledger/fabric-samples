@@ -23,7 +23,7 @@ func listen(clientConnection grpc.ClientConnInterface) error {
 		return err
 	}
 	defer func() {
-		gateway.Close()
+		_ = gateway.Close()
 		fmt.Println("Gateway closed.")
 	}()
 
@@ -33,7 +33,7 @@ func listen(clientConnection grpc.ClientConnInterface) error {
 		return err
 	}
 	defer func() {
-		checkpointer.Close()
+		_ = checkpointer.Close()
 		fmt.Println("Checkpointer closed.")
 	}()
 	fmt.Println("Start event listening from block", checkpointer.BlockNumber())

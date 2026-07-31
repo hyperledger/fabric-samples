@@ -57,7 +57,7 @@ func newGrpcConnection(tlsCertPath, peerEndpoint, peerName string) *grpc.ClientC
 }
 
 // newIdentity creates a client identity for this Gateway connection using an X.509 certificate.
-func newIdentity(certDirectoryPath, mspId string) *identity.X509Identity {
+func newIdentity(certDirectoryPath, mspID string) *identity.X509Identity {
 	certificatePEM, err := readFirstFile(certDirectoryPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to read certificate file: %w", err))
@@ -68,7 +68,7 @@ func newIdentity(certDirectoryPath, mspId string) *identity.X509Identity {
 		panic(err)
 	}
 
-	id, err := identity.NewX509Identity(mspId, certificate)
+	id, err := identity.NewX509Identity(mspID, certificate)
 	if err != nil {
 		panic(err)
 	}

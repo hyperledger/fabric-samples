@@ -42,7 +42,9 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 
-	ctx.GetStub().SetEvent("CreateAsset", assetJSON)
+	if err = ctx.GetStub().SetEvent("CreateAsset", assetJSON); err != nil {
+		return fmt.Errorf("failed to set event: %w", err)
+	}
 	return ctx.GetStub().PutState(id, assetJSON)
 }
 
@@ -94,7 +96,9 @@ func (s *SmartContract) UpdateAsset(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 
-	ctx.GetStub().SetEvent("UpdateAsset", assetJSON)
+	if err = ctx.GetStub().SetEvent("UpdateAsset", assetJSON); err != nil {
+		return fmt.Errorf("failed to set event: %w", err)
+	}
 	return ctx.GetStub().PutState(id, assetJSON)
 }
 
@@ -105,7 +109,9 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface,
 		return err
 	}
 
-	ctx.GetStub().SetEvent("DeleteAsset", assetJSON)
+	if err = ctx.GetStub().SetEvent("DeleteAsset", assetJSON); err != nil {
+		return fmt.Errorf("failed to set event: %w", err)
+	}
 	return ctx.GetStub().DelState(id)
 }
 
@@ -124,7 +130,9 @@ func (s *SmartContract) TransferAsset(ctx contractapi.TransactionContextInterfac
 		return "", err
 	}
 
-	ctx.GetStub().SetEvent("TransferAsset", assetJSON)
+	if err = ctx.GetStub().SetEvent("TransferAsset", assetJSON); err != nil {
+		return "", fmt.Errorf("failed to set event: %w", err)
+	}
 	err = ctx.GetStub().PutState(id, assetJSON)
 	if err != nil {
 		return "", err
