@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 )
@@ -10,7 +10,7 @@ import (
 // Arguments: <assetId> <ownerName> <ownerMspId>
 func cmdTransfer(gw *client.Gateway, args []string) error {
 	if len(args) < 3 {
-		return fmt.Errorf("arguments: <assetId> <ownerName> <ownerMspId>")
+		return errors.New("arguments: <assetId> <ownerName> <ownerMspId>")
 	}
 
 	network := gw.GetNetwork(channelName())

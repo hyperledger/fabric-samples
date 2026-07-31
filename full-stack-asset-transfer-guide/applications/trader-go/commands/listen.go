@@ -57,7 +57,6 @@ func cmdListen(gw *client.Gateway, _ []string) error {
 		if simulatedFailureCount > 0 {
 			eventCount++
 			if eventCount >= simulatedFailureCount {
-				eventCount = 0
 				return &ExpectedError{Message: "Simulated write failure"}
 			}
 		}
