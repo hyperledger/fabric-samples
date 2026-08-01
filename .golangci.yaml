@@ -1,0 +1,44 @@
+version: "2"
+run:
+  build-tags:
+    - pkcs11
+linters:
+  default: none
+  enable:
+    - errcheck
+    - errname
+    - errorlint
+    - gosec
+    - govet
+    - ineffassign
+    - misspell
+    - nolintlint
+    - perfsprint
+    - protogetter
+    - staticcheck
+    - testifylint
+    - unused
+    - usetesting
+  settings:
+    staticcheck:
+      checks:
+        - all
+  exclusions:
+    generated: strict
+    warn-unused: true
+    presets:
+      - std-error-handling
+      - common-false-positives
+    rules:
+      - text: "^G706:"
+        linters:
+          - gosec
+      - text: "^ST1000:"
+        linters:
+          - staticcheck
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: strict

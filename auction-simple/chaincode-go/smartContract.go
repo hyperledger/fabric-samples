@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
-	"github.com/hyperledger/fabric-samples/auction/chaincode-go/smart-contract"
+	auction "github.com/hyperledger/fabric-samples/auction/chaincode-go/smart-contract"
 )
 
 func main() {

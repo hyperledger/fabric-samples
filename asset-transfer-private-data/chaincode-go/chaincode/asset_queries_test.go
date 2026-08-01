@@ -7,7 +7,7 @@ package chaincode_test
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/ledger/queryresult"
@@ -28,8 +28,8 @@ func TestReadAsset(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, assetBytes)
 
-	chaincodeStub.GetPrivateDataReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	assetBytes, err = assetTransferCC.ReadAsset(transactionContext, "id1")
+	chaincodeStub.GetPrivateDataReturns(nil, errors.New("unable to retrieve asset"))
+	_, err = assetTransferCC.ReadAsset(transactionContext, "id1")
 	require.EqualError(t, err, "failed to read asset: unable to retrieve asset")
 
 	testAsset := &chaincode.Asset{
@@ -37,7 +37,7 @@ func TestReadAsset(t *testing.T) {
 		Type:  "testfulasset",
 		Color: "gray",
 		Size:  7,
-		Owner: myOrg1Clientid,
+		Owner: myOrg1ClientID,
 	}
 	setReturnPrivateDataInStub(t, chaincodeStub, testAsset)
 	assetRead, err := assetTransferCC.ReadAsset(transactionContext, "id1")
@@ -54,8 +54,8 @@ func TestReadAssetPrivateDetails(t *testing.T) {
 	require.Nil(t, assetBytes)
 
 	// read from the collection with no access
-	chaincodeStub.GetPrivateDataReturns(nil, fmt.Errorf("collection not found"))
-	assetBytes, err = assetTransferCC.ReadAssetPrivateDetails(transactionContext, myOrg2PrivCollection, "id1")
+	chaincodeStub.GetPrivateDataReturns(nil, errors.New("collection not found"))
+	_, err = assetTransferCC.ReadAssetPrivateDetails(transactionContext, myOrg2PrivCollection, "id1")
 	require.EqualError(t, err, "failed to read asset details: collection not found")
 
 	returnPrivData := &chaincode.AssetPrivateDetails{
@@ -77,10 +77,10 @@ func TestReadTransferAgreement(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, assetBytes)
 
-	chaincodeStub.GetPrivateDataReturns([]byte(myOrg2Clientid), nil)
+	chaincodeStub.GetPrivateDataReturns([]byte(myOrg2ClientID), nil)
 	expectedData := &chaincode.TransferAgreement{
 		ID:      "id1",
-		BuyerID: myOrg2Clientid,
+		BuyerID: myOrg2ClientID,
 	}
 	dataRead, err := assetTransferCC.ReadTransferAgreement(transactionContext, "id1")
 	require.NoError(t, err)
@@ -106,7 +106,7 @@ func TestQueryAssetByOwner(t *testing.T) {
 	require.Equal(t, []*chaincode.Asset{asset}, assets)
 
 	iterator.HasNextReturns(true)
-	iterator.NextReturns(nil, fmt.Errorf("failed retrieving next item"))
+	iterator.NextReturns(nil, errors.New("failed retrieving next item"))
 	assets, err = assetTransferCC.QueryAssetByOwner(transactionContext, "valuableasset", "user1")
 	require.EqualError(t, err, "failed retrieving next item")
 	require.Nil(t, assets)
@@ -128,7 +128,7 @@ func TestQueryAssets(t *testing.T) {
 	iterator = &mocks.StateQueryIterator{}
 	chaincodeStub.GetPrivateDataQueryResultReturns(iterator, nil)
 	iterator.HasNextReturns(true)
-	iterator.NextReturns(nil, fmt.Errorf("failed retrieving next item"))
+	iterator.NextReturns(nil, errors.New("failed retrieving next item"))
 	assets, err = assetTransferCC.QueryAssets(transactionContext, "querystr")
 	require.EqualError(t, err, "failed retrieving next item")
 	require.Nil(t, assets)
@@ -163,7 +163,7 @@ func TestGetAssetByRange(t *testing.T) {
 	iterator = &mocks.StateQueryIterator{}
 	chaincodeStub.GetPrivateDataByRangeReturns(iterator, nil)
 	iterator.HasNextReturns(true)
-	iterator.NextReturns(nil, fmt.Errorf("failed retrieving next item"))
+	iterator.NextReturns(nil, errors.New("failed retrieving next item"))
 	assets, err = assetTransferCC.GetAssetByRange(transactionContext, "st", "end")
 	require.EqualError(t, err, "failed retrieving next item")
 	require.Nil(t, assets)

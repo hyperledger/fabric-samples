@@ -42,7 +42,7 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 
 		err = ctx.GetStub().PutState(asset.ID, assetJSON)
 		if err != nil {
-			return fmt.Errorf("failed to put to world state. %v", err)
+			return fmt.Errorf("failed to put to world state. %w", err)
 		}
 	}
 
@@ -78,7 +78,7 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, id string) (*Asset, error) {
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read from world state: %v", err)
+		return nil, fmt.Errorf("failed to read from world state: %w", err)
 	}
 	if assetJSON == nil {
 		return nil, fmt.Errorf("the asset %s does not exist", id)
@@ -136,7 +136,7 @@ func (s *SmartContract) DeleteAsset(ctx contractapi.TransactionContextInterface,
 func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
 	assetJSON, err := ctx.GetStub().GetState(id)
 	if err != nil {
-		return false, fmt.Errorf("failed to read from world state: %v", err)
+		return false, fmt.Errorf("failed to read from world state: %w", err)
 	}
 
 	return assetJSON != nil, nil
@@ -183,7 +183,7 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 		}
 
 		var asset Asset
-		err = json.Unmarshal(queryResponse.Value, &asset)
+		err = json.Unmarshal(queryResponse.GetValue(), &asset)
 		if err != nil {
 			return nil, err
 		}

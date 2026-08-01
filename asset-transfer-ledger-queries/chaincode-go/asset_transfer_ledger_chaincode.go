@@ -98,7 +98,7 @@ type Asset struct {
 // HistoryQueryResult structure used for returning result of history query
 type HistoryQueryResult struct {
 	Record    *Asset    `json:"record"`
-	TxId      string    `json:"txId"`
+	TxID      string    `json:"txId"`
 	Timestamp time.Time `json:"timestamp"`
 	IsDelete  bool      `json:"isDelete"`
 }
@@ -114,7 +114,7 @@ type PaginatedQueryResult struct {
 func (t *SimpleChaincode) CreateAsset(ctx contractapi.TransactionContextInterface, assetID, color string, size int, owner string, appraisedValue int) error {
 	exists, err := t.AssetExists(ctx, assetID)
 	if err != nil {
-		return fmt.Errorf("failed to get asset: %v", err)
+		return fmt.Errorf("failed to get asset: %w", err)
 	}
 	if exists {
 		return fmt.Errorf("asset already exists: %s", assetID)
@@ -157,7 +157,7 @@ func (t *SimpleChaincode) CreateAsset(ctx contractapi.TransactionContextInterfac
 func (t *SimpleChaincode) ReadAsset(ctx contractapi.TransactionContextInterface, assetID string) (*Asset, error) {
 	assetBytes, err := ctx.GetStub().GetState(assetID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get asset %s: %v", assetID, err)
+		return nil, fmt.Errorf("failed to get asset %s: %w", assetID, err)
 	}
 	if assetBytes == nil {
 		return nil, fmt.Errorf("asset %s does not exist", assetID)
@@ -181,7 +181,7 @@ func (t *SimpleChaincode) DeleteAsset(ctx contractapi.TransactionContextInterfac
 
 	err = ctx.GetStub().DelState(assetID)
 	if err != nil {
-		return fmt.Errorf("failed to delete asset %s: %v", assetID, err)
+		return fmt.Errorf("failed to delete asset %s: %w", assetID, err)
 	}
 
 	colorNameIndexKey, err := ctx.GetStub().CreateCompositeKey(index, []string{asset.Color, asset.ID})
@@ -218,7 +218,7 @@ func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorI
 			return nil, err
 		}
 		var asset Asset
-		err = json.Unmarshal(queryResult.Value, &asset)
+		err = json.Unmarshal(queryResult.GetValue(), &asset)
 		if err != nil {
 			return nil, err
 		}
@@ -267,7 +267,7 @@ func (t *SimpleChaincode) TransferAssetByColor(ctx contractapi.TransactionContex
 			return err
 		}
 
-		_, compositeKeyParts, err := ctx.GetStub().SplitCompositeKey(responseRange.Key)
+		_, compositeKeyParts, err := ctx.GetStub().SplitCompositeKey(responseRange.GetKey())
 		if err != nil {
 			return err
 		}
@@ -285,7 +285,7 @@ func (t *SimpleChaincode) TransferAssetByColor(ctx contractapi.TransactionContex
 			}
 			err = ctx.GetStub().PutState(returnedAssetID, assetBytes)
 			if err != nil {
-				return fmt.Errorf("transfer failed for asset %s: %v", returnedAssetID, err)
+				return fmt.Errorf("transfer failed for asset %s: %w", returnedAssetID, err)
 			}
 		}
 	}
@@ -332,7 +332,7 @@ func getQueryResultForQueryString(ctx contractapi.TransactionContextInterface, q
 // Example: Pagination with Range Query
 func (t *SimpleChaincode) GetAssetsByRangeWithPagination(ctx contractapi.TransactionContextInterface, startKey string, endKey string, pageSize int, bookmark string) (*PaginatedQueryResult, error) {
 
-	resultsIterator, responseMetadata, err := ctx.GetStub().GetStateByRangeWithPagination(startKey, endKey, int32(pageSize), bookmark)
+	resultsIterator, responseMetadata, err := ctx.GetStub().GetStateByRangeWithPagination(startKey, endKey, int32(pageSize), bookmark) //nolint:gosec // page size is expected to be within int32 range
 	if err != nil {
 		return nil, err
 	}
@@ -345,8 +345,8 @@ func (t *SimpleChaincode) GetAssetsByRangeWithPagination(ctx contractapi.Transac
 
 	return &PaginatedQueryResult{
 		Records:             assets,
-		FetchedRecordsCount: responseMetadata.FetchedRecordsCount,
-		Bookmark:            responseMetadata.Bookmark,
+		FetchedRecordsCount: responseMetadata.GetFetchedRecordsCount(),
+		Bookmark:            responseMetadata.GetBookmark(),
 	}, nil
 }
 
@@ -360,7 +360,7 @@ func (t *SimpleChaincode) GetAssetsByRangeWithPagination(ctx contractapi.Transac
 // Example: Pagination with Ad hoc Rich Query
 func (t *SimpleChaincode) QueryAssetsWithPagination(ctx contractapi.TransactionContextInterface, queryString string, pageSize int, bookmark string) (*PaginatedQueryResult, error) {
 
-	return getQueryResultForQueryStringWithPagination(ctx, queryString, int32(pageSize), bookmark)
+	return getQueryResultForQueryStringWithPagination(ctx, queryString, int32(pageSize), bookmark) //nolint:gosec // page size is expected to be within int32 range
 }
 
 // getQueryResultForQueryStringWithPagination executes the passed in query string with
@@ -380,8 +380,8 @@ func getQueryResultForQueryStringWithPagination(ctx contractapi.TransactionConte
 
 	return &PaginatedQueryResult{
 		Records:             assets,
-		FetchedRecordsCount: responseMetadata.FetchedRecordsCount,
-		Bookmark:            responseMetadata.Bookmark,
+		FetchedRecordsCount: responseMetadata.GetFetchedRecordsCount(),
+		Bookmark:            responseMetadata.GetBookmark(),
 	}, nil
 }
 
@@ -403,8 +403,8 @@ func (t *SimpleChaincode) GetAssetHistory(ctx contractapi.TransactionContextInte
 		}
 
 		var asset Asset
-		if len(response.Value) > 0 {
-			err = json.Unmarshal(response.Value, &asset)
+		if len(response.GetValue()) > 0 {
+			err = json.Unmarshal(response.GetValue(), &asset)
 			if err != nil {
 				return nil, err
 			}
@@ -415,10 +415,10 @@ func (t *SimpleChaincode) GetAssetHistory(ctx contractapi.TransactionContextInte
 		}
 
 		record := HistoryQueryResult{
-			TxId:      response.TxId,
-			Timestamp: response.Timestamp.AsTime(),
+			TxID:      response.GetTxId(),
+			Timestamp: response.GetTimestamp().AsTime(),
 			Record:    &asset,
-			IsDelete:  response.IsDelete,
+			IsDelete:  response.GetIsDelete(),
 		}
 		records = append(records, record)
 	}
@@ -430,7 +430,7 @@ func (t *SimpleChaincode) GetAssetHistory(ctx contractapi.TransactionContextInte
 func (t *SimpleChaincode) AssetExists(ctx contractapi.TransactionContextInterface, assetID string) (bool, error) {
 	assetBytes, err := ctx.GetStub().GetState(assetID)
 	if err != nil {
-		return false, fmt.Errorf("failed to read asset %s from world state. %v", assetID, err)
+		return false, fmt.Errorf("failed to read asset %s from world state. %w", assetID, err)
 	}
 
 	return assetBytes != nil, nil

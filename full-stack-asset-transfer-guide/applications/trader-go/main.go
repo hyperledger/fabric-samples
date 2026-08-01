@@ -25,7 +25,7 @@ func run() error {
 	args := os.Args[1:]
 	if len(args) == 0 {
 		printUsage()
-		return fmt.Errorf("no command specified")
+		return errors.New("no command specified")
 	}
 
 	commandName := args[0]

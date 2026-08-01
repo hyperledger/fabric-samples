@@ -49,16 +49,14 @@ type SmartContract struct {
 	contractapi.Contract
 }
 
-/**
- * Updates the ledger to include a new delta for a particular variable. If this is the first time
- * this variable is being added to the ledger, then its initial value is assumed to be 0. The arguments
- * to give in the args array are as follows:
- *	- args[0] -> name of the variable
- *	- args[1] -> new delta (float)
- *	- args[2] -> operation (currently supported are addition "+" and subtraction "-")
- *
- * Returns a response indicating success or failure with a message.
- */
+// Update updates the ledger to include a new delta for a particular variable. If this is the first time
+// this variable is being added to the ledger, then its initial value is assumed to be 0. The arguments
+// to give in the args array are as follows:
+//   - args[0] -> name of the variable
+//   - args[1] -> new delta (float)
+//   - args[2] -> operation (currently supported are addition "+" and subtraction "-")
+//
+// Returns a response indicating success or failure with a message.
 func (s *SmartContract) Update(ctx contractapi.TransactionContextInterface, name string, delta string, op string) (string, error) {
 	_, err := strconv.ParseFloat(delta, 64)
 	if err != nil {
@@ -89,14 +87,12 @@ func (s *SmartContract) Update(ctx contractapi.TransactionContextInterface, name
 	return fmt.Sprintf("Successfully added %s%s to %s", op, delta, name), nil
 }
 
-/**
- * Retrieves the aggregate value of a variable in the ledger. Gets all delta rows for the variable
- * and computes the final value from all deltas. The args array for the invocation must contain the
- * following argument:
- *	- args[0] -> The name of the variable to get the value of
- *
- * Returns a response indicating success or failure with a message
- */
+// Get retrieves the aggregate value of a variable in the ledger. Gets all delta rows for the variable
+// and computes the final value from all deltas. The args array for the invocation must contain the
+// following argument:
+//   - args[0] -> The name of the variable to get the value of
+//
+// Returns a response indicating success or failure with a message.
 func (s *SmartContract) Get(ctx contractapi.TransactionContextInterface, name string) (string, error) {
 	// Get all deltas for the variable
 	deltaResultsIterator, deltaErr := ctx.GetStub().GetStateByPartialCompositeKey("varName~op~value~txID", []string{name})
@@ -120,7 +116,7 @@ func (s *SmartContract) Get(ctx contractapi.TransactionContextInterface, name st
 		}
 
 		// Split the composite key into its component parts
-		_, keyParts, splitKeyErr := ctx.GetStub().SplitCompositeKey(responseRange.Key)
+		_, keyParts, splitKeyErr := ctx.GetStub().SplitCompositeKey(responseRange.GetKey())
 		if splitKeyErr != nil {
 			return "", splitKeyErr
 		}
@@ -148,14 +144,12 @@ func (s *SmartContract) Get(ctx contractapi.TransactionContextInterface, name st
 	return strconv.FormatFloat(finalVal, 'f', -1, 64), nil
 }
 
-/**
- * Prunes a variable by deleting all of its delta rows while computing the final value. Once all rows
- * have been processed and deleted, a single new row is added which defines a delta containing the final
- * computed value of the variable. The args array contains the following argument:
- *	- args[0] -> The name of the variable to prune
- *
- * Returns a response indicating success or failure with a message
- */
+// Prune prunes a variable by deleting all of its delta rows while computing the final value. Once all rows
+// have been processed and deleted, a single new row is added which defines a delta containing the final
+// computed value of the variable. The args array contains the following argument:
+//   - args[0] -> The name of the variable to prune
+//
+// Returns a response indicating success or failure with a message.
 func (s *SmartContract) Prune(ctx contractapi.TransactionContextInterface, name string) (string, error) {
 	// Get all delta rows for the variable
 	deltaResultsIterator, deltaErr := ctx.GetStub().GetStateByPartialCompositeKey("varName~op~value~txID", []string{name})
@@ -180,7 +174,7 @@ func (s *SmartContract) Prune(ctx contractapi.TransactionContextInterface, name 
 		}
 
 		// Split the key into its composite parts
-		_, keyParts, splitKeyErr := ctx.GetStub().SplitCompositeKey(responseRange.Key)
+		_, keyParts, splitKeyErr := ctx.GetStub().SplitCompositeKey(responseRange.GetKey())
 		if splitKeyErr != nil {
 			return "", splitKeyErr
 		}
@@ -196,7 +190,7 @@ func (s *SmartContract) Prune(ctx contractapi.TransactionContextInterface, name 
 		}
 
 		// Delete the row from the ledger
-		deltaRowDelErr := ctx.GetStub().DelState(responseRange.Key)
+		deltaRowDelErr := ctx.GetStub().DelState(responseRange.GetKey())
 		if deltaRowDelErr != nil {
 			return "", fmt.Errorf("could not delete delta row: %w", deltaRowDelErr)
 		}
@@ -220,13 +214,11 @@ func (s *SmartContract) Prune(ctx contractapi.TransactionContextInterface, name 
 	return fmt.Sprintf("Successfully pruned variable %s, final value is %f, %d rows pruned", name, finalVal, i), nil
 }
 
-/**
- * Deletes all rows associated with an aggregate variable from the ledger. The args array
- * contains the following argument:
- *	- args[0] -> The name of the variable to delete
- *
- * Returns a response indicating success or failure with a message
- */
+// Delete deletes all rows associated with an aggregate variable from the ledger. The args array
+// contains the following argument:
+//   - args[0] -> The name of the variable to delete
+//
+// Returns a response indicating success or failure with a message.
 func (s *SmartContract) Delete(ctx contractapi.TransactionContextInterface, name string) (string, error) {
 	// Delete all delta rows
 	deltaResultsIterator, deltaErr := ctx.GetStub().GetStateByPartialCompositeKey("varName~op~value~txID", []string{name})
@@ -248,7 +240,7 @@ func (s *SmartContract) Delete(ctx contractapi.TransactionContextInterface, name
 			return "", fmt.Errorf("could not retrieve next delta row: %w", nextErr)
 		}
 
-		deltaRowDelErr := ctx.GetStub().DelState(responseRange.Key)
+		deltaRowDelErr := ctx.GetStub().DelState(responseRange.GetKey())
 		if deltaRowDelErr != nil {
 			return "", fmt.Errorf("could not delete delta row: %w", deltaRowDelErr)
 		}
@@ -257,9 +249,7 @@ func (s *SmartContract) Delete(ctx contractapi.TransactionContextInterface, name
 	return fmt.Sprintf("Deleted %s, %d rows removed", name, i), nil
 }
 
-/**
- * All functions below this are for testing traditional editing of a single row
- */
+// UpdateStandard is for testing traditional editing of a single row.
 func (s *SmartContract) UpdateStandard(ctx contractapi.TransactionContextInterface, name string, delta string, operation string) (float64, error) {
 	deltaValue, err := strconv.ParseFloat(delta, 64)
 	if err != nil {

@@ -12,15 +12,13 @@ package main
 import (
 	"bytes"
 	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
 	"errors"
-	"os"
-
-	"crypto/x509"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
@@ -38,7 +36,7 @@ const (
 )
 
 var now = time.Now()
-var assetId = fmt.Sprintf("asset%d", now.Unix()*1e3+int64(now.Nanosecond())/1e6)
+var assetID = fmt.Sprintf("asset%d", now.Unix()*1e3+int64(now.Nanosecond())/1e6)
 
 func main() {
 	fmt.Println("Running the GO HSM Sample")
@@ -61,7 +59,7 @@ func main() {
 	id := newIdentity(certificatePEM)
 	ski := getSKI(certificatePEM)
 	hsmSign, hsmSignClose := newHSMSign(hsmSignerFactory, ski)
-	defer hsmSignClose()
+	defer func() { _ = hsmSignClose() }()
 
 	// Create a Gateway connection for a specific client identity
 	gateway, err := client.Connect(id, client.WithSign(hsmSign), client.WithHash(hash.SHA256),
@@ -95,7 +93,7 @@ func exampleTransaction(gateway *client.Gateway) {
 
 	fmt.Printf("Submit Transaction: CreateAsset, creates new asset with ID, Color, Size, Owner and AppraisedValue arguments \n")
 
-	_, err := contract.SubmitTransaction("CreateAsset", assetId, "yellow", "5", "Tom", "1300")
+	_, err := contract.SubmitTransaction("CreateAsset", assetID, "yellow", "5", "Tom", "1300")
 	if err != nil {
 		panic(fmt.Errorf("failed to submit transaction: %w", err))
 	}
@@ -104,7 +102,7 @@ func exampleTransaction(gateway *client.Gateway) {
 
 	fmt.Printf("Evaluate Transaction: ReadAsset, function returns asset attributes\n")
 
-	evaluateResult, err := contract.EvaluateTransaction("ReadAsset", assetId)
+	evaluateResult, err := contract.EvaluateTransaction("ReadAsset", assetID)
 	if err != nil {
 		panic(fmt.Errorf("failed to evaluate transaction: %w", err))
 	}
@@ -181,7 +179,11 @@ func getSKI(certPEM []byte) []byte {
 }
 
 func skiForKey(pk *ecdsa.PublicKey) []byte {
-	ski := sha256.Sum256(elliptic.Marshal(pk.Curve, pk.X, pk.Y))
+	ecdhKey, err := pk.ECDH()
+	if err != nil {
+		panic(fmt.Errorf("failed to convert ECDSA key to ECDH: %w", err))
+	}
+	ski := sha256.Sum256(ecdhKey.Bytes())
 	return ski[:]
 }
 
@@ -199,7 +201,7 @@ func findSoftHSMLibrary() string {
 		libraryLocations = append(libraryLocations, pkcs11lib)
 	}
 	for _, libraryLocation := range libraryLocations {
-		if _, err := os.Stat(libraryLocation); !errors.Is(err, os.ErrNotExist) {
+		if _, err := os.Stat(libraryLocation); !errors.Is(err, os.ErrNotExist) { //nolint:gosec // G703: path is from a fixed allowlist, not user input
 			return libraryLocation
 		}
 	}

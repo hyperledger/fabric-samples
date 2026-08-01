@@ -19,11 +19,11 @@ func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionC
 
 	b64ID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		return "", fmt.Errorf("failed to read clientID: %v", err)
+		return "", fmt.Errorf("failed to read clientID: %w", err)
 	}
 	decodeID, err := base64.StdEncoding.DecodeString(b64ID)
 	if err != nil {
-		return "", fmt.Errorf("failed to base64 decode clientID: %v", err)
+		return "", fmt.Errorf("failed to base64 decode clientID: %w", err)
 	}
 	return string(decodeID), nil
 }
@@ -34,7 +34,7 @@ func getCollectionName(ctx contractapi.TransactionContextInterface) (string, err
 	// Get the MSP ID of submitting client identity
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
-		return "", fmt.Errorf("failed to get verified MSPID: %v", err)
+		return "", fmt.Errorf("failed to get verified MSPID: %w", err)
 	}
 
 	// Create the collection name
@@ -48,11 +48,11 @@ func verifyClientOrgMatchesPeerOrg(ctx contractapi.TransactionContextInterface) 
 
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
-		return fmt.Errorf("failed getting the client's MSPID: %v", err)
+		return fmt.Errorf("failed getting the client's MSPID: %w", err)
 	}
 	peerMSPID, err := shim.GetMSPID()
 	if err != nil {
-		return fmt.Errorf("failed getting the peer's MSPID: %v", err)
+		return fmt.Errorf("failed getting the peer's MSPID: %w", err)
 	}
 
 	if clientMSPID != peerMSPID {
@@ -71,12 +71,12 @@ func contains(sli []string, str string) bool {
 	return false
 }
 
-func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, assetId string, mspids []string, auditor bool) error {
+func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, assetID string, mspIDs []string, auditor bool) error {
 
-	principals := make([]*msp.MSPPrincipal, len(mspids))
-	participantSigsPolicy := make([]*common.SignaturePolicy, len(mspids))
+	principals := make([]*msp.MSPPrincipal, len(mspIDs))
+	participantSigsPolicy := make([]*common.SignaturePolicy, len(mspIDs))
 
-	for i, id := range mspids {
+	for i, id := range mspIDs {
 		principal, err := proto.Marshal(
 			&msp.MSPRole{
 				Role:          msp.MSPRole_PEER,
@@ -105,7 +105,7 @@ func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, 
 			Rule: &common.SignaturePolicy{
 				Type: &common.SignaturePolicy_NOutOf_{
 					NOutOf: &common.SignaturePolicy_NOutOf{
-						N:     int32(len(mspids)),
+						N:     int32(len(mspIDs)), //nolint:gosec // length is expected to be within int32 range
 						Rules: participantSigsPolicy,
 					},
 				},
@@ -117,9 +117,9 @@ func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, 
 		if err != nil {
 			return err
 		}
-		err = ctx.GetStub().SetStateValidationParameter(assetId, spBytes)
+		err = ctx.GetStub().SetStateValidationParameter(assetID, spBytes)
 		if err != nil {
-			return fmt.Errorf("failed to set validation parameter on auction: %v", err)
+			return fmt.Errorf("failed to set validation parameter on auction: %w", err)
 		}
 	} else {
 
@@ -145,7 +145,7 @@ func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, 
 		auditorPolicies := make([]*common.SignaturePolicy, 2)
 		auditorPolicies[0] = &common.SignaturePolicy{
 			Type: &common.SignaturePolicy_SignedBy{
-				SignedBy: int32(len(principals) - 1),
+				SignedBy: int32(len(principals) - 1), //nolint:gosec // length is expected to be within int32 range
 			},
 		}
 		auditorPolicies[1] = &common.SignaturePolicy{
@@ -157,7 +157,7 @@ func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, 
 			},
 		}
 
-		// For two organizations, the auditor policy below is equivilent to
+		// For two organizations, the auditor policy below is equivalent to
 		// AND(auditor, OR(Org1, Org2))
 		policies := make([]*common.SignaturePolicy, 2)
 		policies[0] = &common.SignaturePolicy{
@@ -172,14 +172,14 @@ func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, 
 		policies[1] = &common.SignaturePolicy{
 			Type: &common.SignaturePolicy_NOutOf_{
 				NOutOf: &common.SignaturePolicy_NOutOf{
-					N:     int32(len(mspids)),
+					N:     int32(len(mspIDs)), //nolint:gosec // length is expected to be within int32 range
 					Rules: participantSigsPolicy,
 				},
 			},
 		}
 		// Either the auditor policy or the participant policy can update
 		// the auction. For example, for two organizations, the full policy would be
-		// equivilent to OR(AND(Org1, Org2),AND(auditor, OR(Org1, Org2)))
+		// equivalent to OR(AND(Org1, Org2),AND(auditor, OR(Org1, Org2)))
 		policy := &common.SignaturePolicyEnvelope{
 			Version: 0,
 			Rule: &common.SignaturePolicy{
@@ -196,9 +196,9 @@ func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, 
 		if err != nil {
 			return err
 		}
-		err = ctx.GetStub().SetStateValidationParameter(assetId, spBytes)
+		err = ctx.GetStub().SetStateValidationParameter(assetID, spBytes)
 		if err != nil {
-			return fmt.Errorf("failed to set validation parameter on auction: %v", err)
+			return fmt.Errorf("failed to set validation parameter on auction: %w", err)
 		}
 	}
 	return nil

@@ -121,7 +121,7 @@ func main() {
 	// Confirm that transfer removed the private details from the Org1 collection.
 	org1ReadSuccess := readAssetPrivateDetails(contractOrg1, assetID1, org1PrivateCollectionName)
 	if org1ReadSuccess {
-		doFail(fmt.Sprintf("Asset private data still exists in %s", org1PrivateCollectionName))
+		doFail("Asset private data still exists in " + org1PrivateCollectionName)
 	}
 
 	fmt.Println("\n~~~~~~~~~~~~~~~~ As Org2 Client ~~~~~~~~~~~~~~~~")
@@ -129,7 +129,7 @@ func main() {
 	// Org2 can read asset private details: Org2 is owner, and private details exist in new owner's Collection.
 	org2ReadSuccess := readAssetPrivateDetails(contractOrg2, assetID1, org2PrivateCollectionName)
 	if !org2ReadSuccess {
-		doFail(fmt.Sprintf("Asset private data not found in %s", org2PrivateCollectionName))
+		doFail("Asset private data not found in " + org2PrivateCollectionName)
 	}
 
 	fmt.Println("\nAttempt DeleteAsset using non-owner organization")

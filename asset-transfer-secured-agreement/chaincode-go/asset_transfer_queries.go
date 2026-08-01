@@ -15,7 +15,7 @@ import (
 // QueryResult structure used for handling result of query
 type QueryResult struct {
 	Record    *Asset
-	TxId      string    `json:"txId"`
+	TxID      string    `json:"txId"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
@@ -30,7 +30,7 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, a
 	// Since only public data is accessed in this function, no access control is required
 	assetJSON, err := ctx.GetStub().GetState(assetID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read from world state: %v", err)
+		return nil, fmt.Errorf("failed to read from world state: %w", err)
 	}
 	if assetJSON == nil {
 		return nil, fmt.Errorf("%s does not exist", assetID)
@@ -54,7 +54,7 @@ func (s *SmartContract) GetAssetPrivateProperties(ctx contractapi.TransactionCon
 
 	immutableProperties, err := ctx.GetStub().GetPrivateData(collection, assetID)
 	if err != nil {
-		return "", fmt.Errorf("failed to read asset private properties from client org's collection: %v", err)
+		return "", fmt.Errorf("failed to read asset private properties from client org's collection: %w", err)
 	}
 	if immutableProperties == nil {
 		return "", fmt.Errorf("asset private details does not exist in client org's collection: %s", assetID)
@@ -83,12 +83,12 @@ func getAssetPrice(ctx contractapi.TransactionContextInterface, assetID string, 
 
 	assetPriceKey, err := ctx.GetStub().CreateCompositeKey(priceType, []string{assetID})
 	if err != nil {
-		return "", fmt.Errorf("failed to create composite key: %v", err)
+		return "", fmt.Errorf("failed to create composite key: %w", err)
 	}
 
 	price, err := ctx.GetStub().GetPrivateData(collection, assetPriceKey)
 	if err != nil {
-		return "", fmt.Errorf("failed to read asset price from implicit private data collection: %v", err)
+		return "", fmt.Errorf("failed to read asset price from implicit private data collection: %w", err)
 	}
 	if price == nil {
 		return "", fmt.Errorf("asset price does not exist: %s", assetID)
@@ -116,7 +116,7 @@ func queryAgreementsByType(ctx contractapi.TransactionContextInterface, agreeTyp
 	// Query for any object type starting with `agreeType`
 	agreementsIterator, err := ctx.GetStub().GetPrivateDataByPartialCompositeKey(collection, agreeType, []string{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to read from private data collection: %v", err)
+		return nil, fmt.Errorf("failed to read from private data collection: %w", err)
 	}
 	defer agreementsIterator.Close()
 
@@ -128,7 +128,7 @@ func queryAgreementsByType(ctx contractapi.TransactionContextInterface, agreeTyp
 		}
 
 		var agreement Agreement
-		err = json.Unmarshal(resp.Value, &agreement)
+		err = json.Unmarshal(resp.GetValue(), &agreement)
 		if err != nil {
 			return nil, err
 		}
@@ -155,14 +155,14 @@ func (s *SmartContract) QueryAssetHistory(ctx contractapi.TransactionContextInte
 		}
 
 		var asset *Asset
-		err = json.Unmarshal(response.Value, &asset)
+		err = json.Unmarshal(response.GetValue(), &asset)
 		if err != nil {
 			return nil, err
 		}
 
 		record := QueryResult{
-			TxId:      response.TxId,
-			Timestamp: response.Timestamp.AsTime(),
+			TxID:      response.GetTxId(),
+			Timestamp: response.GetTimestamp().AsTime(),
 			Record:    asset,
 		}
 		results = append(results, record)

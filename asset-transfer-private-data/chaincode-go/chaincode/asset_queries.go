@@ -20,7 +20,7 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, a
 	log.Printf("ReadAsset: collection %v, ID %v", assetCollection, assetID)
 	assetJSON, err := ctx.GetStub().GetPrivateData(assetCollection, assetID) //get the asset from chaincode state
 	if err != nil {
-		return nil, fmt.Errorf("failed to read asset: %v", err)
+		return nil, fmt.Errorf("failed to read asset: %w", err)
 	}
 
 	// No Asset found, return empty response
@@ -32,7 +32,7 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, a
 	var asset *Asset
 	err = json.Unmarshal(assetJSON, &asset)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 
 	return asset, nil
@@ -44,7 +44,7 @@ func (s *SmartContract) ReadAssetPrivateDetails(ctx contractapi.TransactionConte
 	log.Printf("ReadAssetPrivateDetails: collection %v, ID %v", collection, assetID)
 	assetDetailsJSON, err := ctx.GetStub().GetPrivateData(collection, assetID) // Get the asset from chaincode state
 	if err != nil {
-		return nil, fmt.Errorf("failed to read asset details: %v", err)
+		return nil, fmt.Errorf("failed to read asset details: %w", err)
 	}
 	if assetDetailsJSON == nil {
 		log.Printf("AssetPrivateDetails for %v does not exist in collection %v", assetID, collection)
@@ -54,7 +54,7 @@ func (s *SmartContract) ReadAssetPrivateDetails(ctx contractapi.TransactionConte
 	var assetDetails *AssetPrivateDetails
 	err = json.Unmarshal(assetDetailsJSON, &assetDetails)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 
 	return assetDetails, nil
@@ -66,12 +66,12 @@ func (s *SmartContract) ReadTransferAgreement(ctx contractapi.TransactionContext
 	// composite key for TransferAgreement of this asset
 	transferAgreeKey, err := ctx.GetStub().CreateCompositeKey(transferAgreementObjectType, []string{assetID})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create composite key: %v", err)
+		return nil, fmt.Errorf("failed to create composite key: %w", err)
 	}
 
 	buyerIdentity, err := ctx.GetStub().GetPrivateData(assetCollection, transferAgreeKey) // Get the identity from collection
 	if err != nil {
-		return nil, fmt.Errorf("failed to read TransferAgreement: %v", err)
+		return nil, fmt.Errorf("failed to read TransferAgreement: %w", err)
 	}
 	if buyerIdentity == nil {
 		log.Printf("TransferAgreement for %v does not exist", assetID)
@@ -104,9 +104,9 @@ func (s *SmartContract) GetAssetByRange(ctx contractapi.TransactionContextInterf
 		}
 
 		var asset *Asset
-		err = json.Unmarshal(response.Value, &asset)
+		err = json.Unmarshal(response.GetValue(), &asset)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal JSON: %v", err)
+			return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
 
 		results = append(results, asset)
@@ -179,9 +179,9 @@ func (s *SmartContract) getQueryResultForQueryString(ctx contractapi.Transaction
 		}
 		var asset *Asset
 
-		err = json.Unmarshal(response.Value, &asset)
+		err = json.Unmarshal(response.GetValue(), &asset)
 		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal JSON: %v", err)
+			return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
 		}
 
 		results = append(results, asset)

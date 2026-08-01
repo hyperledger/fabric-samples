@@ -17,11 +17,11 @@ func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionC
 
 	b64ID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		return "", fmt.Errorf("failed to read clientID: %v", err)
+		return "", fmt.Errorf("failed to read clientID: %w", err)
 	}
 	decodeID, err := base64.StdEncoding.DecodeString(b64ID)
 	if err != nil {
-		return "", fmt.Errorf("failed to base64 decode clientID: %v", err)
+		return "", fmt.Errorf("failed to base64 decode clientID: %w", err)
 	}
 	return string(decodeID), nil
 }
@@ -35,15 +35,15 @@ func setAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, 
 	}
 	err = endorsementPolicy.AddOrgs(statebased.RoleTypePeer, orgToEndorse)
 	if err != nil {
-		return fmt.Errorf("failed to add org to endorsement policy: %v", err)
+		return fmt.Errorf("failed to add org to endorsement policy: %w", err)
 	}
 	policy, err := endorsementPolicy.Policy()
 	if err != nil {
-		return fmt.Errorf("failed to create endorsement policy bytes from org: %v", err)
+		return fmt.Errorf("failed to create endorsement policy bytes from org: %w", err)
 	}
 	err = ctx.GetStub().SetStateValidationParameter(auctionID, policy)
 	if err != nil {
-		return fmt.Errorf("failed to set validation parameter on auction: %v", err)
+		return fmt.Errorf("failed to set validation parameter on auction: %w", err)
 	}
 
 	return nil
@@ -64,15 +64,15 @@ func addAssetStateBasedEndorsement(ctx contractapi.TransactionContextInterface, 
 
 	err = newEndorsementPolicy.AddOrgs(statebased.RoleTypePeer, orgToEndorse)
 	if err != nil {
-		return fmt.Errorf("failed to add org to endorsement policy: %v", err)
+		return fmt.Errorf("failed to add org to endorsement policy: %w", err)
 	}
 	policy, err := newEndorsementPolicy.Policy()
 	if err != nil {
-		return fmt.Errorf("failed to create endorsement policy bytes from org: %v", err)
+		return fmt.Errorf("failed to create endorsement policy bytes from org: %w", err)
 	}
 	err = ctx.GetStub().SetStateValidationParameter(auctionID, policy)
 	if err != nil {
-		return fmt.Errorf("failed to set validation parameter on auction: %v", err)
+		return fmt.Errorf("failed to set validation parameter on auction: %w", err)
 	}
 
 	return nil
@@ -84,7 +84,7 @@ func getCollectionName(ctx contractapi.TransactionContextInterface) (string, err
 	// Get the MSP ID of submitting client identity
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
-		return "", fmt.Errorf("failed to get verified MSPID: %v", err)
+		return "", fmt.Errorf("failed to get verified MSPID: %w", err)
 	}
 
 	// Create the collection name
@@ -97,11 +97,11 @@ func getCollectionName(ctx contractapi.TransactionContextInterface) (string, err
 func verifyClientOrgMatchesPeerOrg(ctx contractapi.TransactionContextInterface) error {
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
-		return fmt.Errorf("failed getting the client's MSPID: %v", err)
+		return fmt.Errorf("failed getting the client's MSPID: %w", err)
 	}
 	peerMSPID, err := shim.GetMSPID()
 	if err != nil {
-		return fmt.Errorf("failed getting the peer's MSPID: %v", err)
+		return fmt.Errorf("failed getting the peer's MSPID: %w", err)
 	}
 
 	if clientMSPID != peerMSPID {

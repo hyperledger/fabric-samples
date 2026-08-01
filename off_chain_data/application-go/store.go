@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 )
 
 var errExpected = errors.New("expected error: simulated write failure")
@@ -49,28 +50,29 @@ func (ocs *offChainStore) simulateFailureIfRequired() error {
 }
 
 func (ocs *offChainStore) marshal(writes []write) (string, error) {
-	var marshaledWrites string
+	var sb strings.Builder
 	for _, write := range writes {
 		marshaled, err := json.Marshal(write)
 		if err != nil {
 			return "", err
 		}
 
-		marshaledWrites += string(marshaled) + "\n"
+		sb.Write(marshaled)
+		sb.WriteByte('\n')
 	}
 
-	return marshaledWrites, nil
+	return sb.String(), nil
 }
 
 func (ocs *offChainStore) persist(marshaledWrites string) error {
-	f, err := os.OpenFile(ocs.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(ocs.path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}
 
 	if _, writeErr := f.Write([]byte(marshaledWrites)); writeErr != nil {
 		if closeErr := f.Close(); closeErr != nil {
-			return fmt.Errorf("write error: %v, close error: %v", writeErr, closeErr)
+			return fmt.Errorf("write error: %w, close error: %w", writeErr, closeErr)
 		}
 
 		return writeErr
