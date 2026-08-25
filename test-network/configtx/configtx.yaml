@@ -38,6 +38,8 @@ Organizations:
         Rule: "OR('OrdererMSP.admin')"
     OrdererEndpoints:
       - orderer.example.com:7050
+      - orderer2.example.com:7052
+      - orderer3.example.com:7056
   - &Org1
     # DefaultOrg defines the organization which is used in the sampleconfig
     # of the fabric.git development environment
@@ -61,29 +63,6 @@ Organizations:
       Endorsement:
         Type: Signature
         Rule: "OR('Org1MSP.peer')"
-  - &Org2
-    # DefaultOrg defines the organization which is used in the sampleconfig
-    # of the fabric.git development environment
-    Name: Org2MSP
-    # ID to load the MSP definition as
-    ID: Org2MSP
-    MSPDir: ../organizations/peerOrganizations/org2.example.com/msp
-    # Policies defines the set of policies at this level of the config tree
-    # For organization policies, their canonical path is usually
-    #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
-    Policies:
-      Readers:
-        Type: Signature
-        Rule: "OR('Org2MSP.admin', 'Org2MSP.peer', 'Org2MSP.client')"
-      Writers:
-        Type: Signature
-        Rule: "OR('Org2MSP.admin', 'Org2MSP.client')"
-      Admins:
-        Type: Signature
-        Rule: "OR('Org2MSP.admin')"
-      Endorsement:
-        Type: Signature
-        Rule: "OR('Org2MSP.peer')"
 ################################################################################
 #
 #   SECTION: Capabilities
@@ -184,6 +163,8 @@ Orderer: &OrdererDefaults
   # to include the OrdererEndpoints item in your org definition
   Addresses:
     - orderer.example.com:7050
+    - orderer2.example.com:7052
+    - orderer3.example.com:7056
   # Batch Timeout: The amount of time to wait before creating a batch
   BatchTimeout: 2s
   # Batch Size: Controls the number of messages batched into a block
@@ -268,6 +249,16 @@ Profiles:
             Port: 7050
             ClientTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
             ServerTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+
+          - Host: orderer2.example.com
+            Port: 7052
+            ClientTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+            ServerTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+
+          - Host: orderer3.example.com
+            Port: 7056
+            ClientTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+            ServerTLSCert: ../organizations/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
       Organizations:
         - *OrdererOrg
       Capabilities: *OrdererCapabilities
@@ -275,5 +266,4 @@ Profiles:
       <<: *ApplicationDefaults
       Organizations:
         - *Org1
-        - *Org2
       Capabilities: *ApplicationCapabilities

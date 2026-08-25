@@ -55,11 +55,8 @@ createChannel() {
 		sleep $DELAY
 		set -x
     . scripts/orderer.sh ${CHANNEL_NAME}> /dev/null 2>&1
-    if [ $bft_true -eq 1 ]; then
-      . scripts/orderer2.sh ${CHANNEL_NAME}> /dev/null 2>&1
-      . scripts/orderer3.sh ${CHANNEL_NAME}> /dev/null 2>&1
-      . scripts/orderer4.sh ${CHANNEL_NAME}> /dev/null 2>&1
-    fi
+	. scripts/orderer2.sh ${CHANNEL_NAME}> /dev/null 2>&1
+	. scripts/orderer3.sh ${CHANNEL_NAME}> /dev/null 2>&1
 		res=$?
 		{ set +x; } 2>/dev/null
 		let rc=$res
@@ -72,8 +69,9 @@ createChannel() {
 # joinChannel ORG
 joinChannel() {
   ORG=$1
+  PEER=$2
   FABRIC_CFG_PATH=$PWD/../config/
-  setGlobals $ORG
+  setGlobals $ORG $PEER
 	local rc=1
 	local COUNTER=1
 	## Sometimes Join takes time, hence retry
@@ -87,9 +85,8 @@ joinChannel() {
 		COUNTER=$(expr $COUNTER + 1)
 	done
 	cat log.txt
-	verifyResult $res "After $MAX_RETRY attempts, peer0.org${ORG} has failed to join channel '$CHANNEL_NAME' "
+	verifyResult $res "After $MAX_RETRY attempts, peer${PEER}.org${ORG} has failed to join channel '$CHANNEL_NAME' "
 }
-
 setAnchorPeer() {
   ORG=$1
   . scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME 
@@ -113,15 +110,14 @@ createChannel $BFT
 successln "Channel '$CHANNEL_NAME' created"
 
 ## Join all the peers to the channel
-infoln "Joining org1 peer to the channel..."
-joinChannel 1
-infoln "Joining org2 peer to the channel..."
-joinChannel 2
+infoln "Joining org1 peer0 to the channel..."
+joinChannel 1 0
+
+infoln "Joining org1 peer1 to the channel..."
+joinChannel 1 1
 
 ## Set the anchor peers for each org in the channel
 infoln "Setting anchor peer for org1..."
 setAnchorPeer 1
-infoln "Setting anchor peer for org2..."
-setAnchorPeer 2
 
 successln "Channel '$CHANNEL_NAME' joined"
