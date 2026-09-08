@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/hyperledger/fabric-gateway v1.10.0
-	google.golang.org/grpc v1.82.1
+	google.golang.org/grpc v1.83.1
 )
 
 require (
