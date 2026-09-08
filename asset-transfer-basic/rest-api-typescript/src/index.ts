@@ -13,19 +13,14 @@ import {
     getContracts,
     getNetwork,
 } from './fabric';
-import {
-    initJobQueue,
-    initJobQueueScheduler,
-    initJobQueueWorker,
-} from './jobs';
+import { initJobQueue, initJobQueueWorker } from './jobs';
 import { logger } from './logger';
 import { createServer } from './server';
 import { isMaxmemoryPolicyNoeviction } from './redis';
-import { Queue, QueueScheduler, Worker } from 'bullmq';
+import { Queue, Worker } from 'bullmq';
 
 let jobQueue: Queue | undefined;
 let jobQueueWorker: Worker | undefined;
-let jobQueueScheduler: QueueScheduler | undefined;
 
 async function main() {
     logger.info('Checking Redis config');
@@ -65,10 +60,6 @@ async function main() {
     logger.info('Initialising submit job queue');
     jobQueue = initJobQueue();
     jobQueueWorker = initJobQueueWorker(app);
-    if (config.submitJobQueueScheduler === true) {
-        logger.info('Initialising submit job queue scheduler');
-        jobQueueScheduler = initJobQueueScheduler();
-    }
     app.locals.jobq = jobQueue;
 
     logger.info('Starting REST server');
@@ -79,11 +70,6 @@ async function main() {
 
 main().catch(async (err) => {
     logger.error({ err }, 'Unxepected error');
-
-    if (jobQueueScheduler != undefined) {
-        logger.debug('Closing job queue scheduler');
-        await jobQueueScheduler.close();
-    }
 
     if (jobQueueWorker != undefined) {
         logger.debug('Closing job queue worker');

@@ -192,28 +192,6 @@ describe('Config values', () => {
         });
     });
 
-    describe('submitJobQueueScheduler', () => {
-        it('defaults to "true"', () => {
-            const config = require('./config');
-            expect(config.submitJobQueueScheduler).toBe(true);
-        });
-
-        it('can be configured using the "SUBMIT_JOB_QUEUE_SCHEDULER" environment variable', () => {
-            process.env.SUBMIT_JOB_QUEUE_SCHEDULER = 'false';
-            const config = require('./config');
-            expect(config.submitJobQueueScheduler).toBe(false);
-        });
-
-        it('throws an error when the "SUBMIT_JOB_QUEUE_SCHEDULER" environment variable has an invalid boolean value', () => {
-            process.env.SUBMIT_JOB_QUEUE_SCHEDULER = '11';
-            expect(() => {
-                require('./config');
-            }).toThrow(
-                'env-var: "SUBMIT_JOB_QUEUE_SCHEDULER" should be either "true", "false", "TRUE", or "FALSE". An example of a valid value would be: true'
-            );
-        });
-    });
-
     describe('asLocalhost', () => {
         it('defaults to "true"', () => {
             const config = require('./config');
