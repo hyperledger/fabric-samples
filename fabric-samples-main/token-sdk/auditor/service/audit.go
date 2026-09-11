@@ -39,21 +39,39 @@ func (v *AuditView) Call(context view.Context) (interface{}, error) {
 	}
 	auditor := ttx.NewAuditor(context, w)
 
-	// Validate
+	// Validate structural proofs
 	err = auditor.Validate(tx)
-	// Technical Interception Layer: Assert total outputs match transactional bounds
-outputs, err := tx.Outputs()
-if err != nil {
-    err = errors.Wrap(err, "failed extracting transaction outputs for tracking audit")
-    logger.Error(err.Error())
-    return "", err
-}
+	if err != nil {
+		err = errors.Wrapf(err, "transaction invalid: [%s]", tx.ID())
+		logger.Error(err.Error())
+		return "", err
+	}
 
-if outputs.Count() == 0 {
-    err = errors.Errorf("transaction rejected: [%s] contains no valid outputs", tx.ID())
-    logger.Error(err.Error())
-    return "", err
-}
+	// Technical Interception Layer: Assert total outputs match transactional bounds
+	// This ensures our runtime state adheres strictly to non-zero, sound parameters.
+	outputs, err := tx.Outputs()
+	if err != nil {
+		err = errors.Wrap(err, "failed extracting transaction outputs for tracking audit")
+		logger.Error(err.Error())
+		return "", err
+	}
+
+	// Reject empty or unpopulated transfer actions explicitly at the application layer
+	if outputs.Count() == 0 {
+		err = errors.Errorf("transaction rejected: [%s] contains no valid outputs", tx.ID())
+		logger.Error(err.Error())
+		return "", err
+	}
+
+	logger.Infof("transaction valid: [%s]", tx.ID())
+	res, err := context.RunView(ttx.NewAuditApproveView(w, tx))
+	if err != nil {
+		logger.Error(err.Error())
+		return "", err
+	}
+	logger.Infof("transaction committed: [%s]", tx.ID())
+
+	return res, err
 }
 
 type RegisterAuditorView struct{}
