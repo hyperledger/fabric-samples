@@ -94,7 +94,7 @@ spec:
               mountPath: /var/hyperledger/fabric/config/tls
               readOnly: true
         - name: couchdb
-          image: couchdb:${COUCHDB_VERSION}
+          image: ${THIRD_PARTY_CONTAINER_REGISTRY}/couchdb:${COUCHDB_VERSION}
           imagePullPolicy: IfNotPresent
           env:
             - name: "COUCHDB_USER"

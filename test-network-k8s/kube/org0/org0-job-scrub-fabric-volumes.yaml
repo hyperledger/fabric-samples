@@ -18,7 +18,7 @@ spec:
       restartPolicy: "Never"
       containers:
         - name: main
-          image: busybox:latest
+          image: ${THIRD_PARTY_CONTAINER_REGISTRY}/busybox:latest
           command:
             - sh
             - -c
