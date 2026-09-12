@@ -22,13 +22,13 @@ jobs:
       - run: just test-ansible
         working-directory: full-stack-asset-transfer-guide
 
-  appdev:
+  appdev-typescript:
     runs-on: ${{ github.repository == 'hyperledger/fabric-samples' && 'fabric-ubuntu-22.04' || 'ubuntu-22.04' }}
     steps:
       - uses: actions/checkout@v7
       - name: Set up Full Stack Runtime
         uses: ./.github/actions/fsat-setup
-      - run: just test-appdev
+      - run: just test-appdev-typescript
         working-directory: full-stack-asset-transfer-guide
 
   appdev-go:
@@ -36,9 +36,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@v5
         with:
-          go-version-file: full-stack-asset-transfer-guide/applications/trader-go/go.mod
+          go-version-file: full-stack-asset-transfer-guide/contracts/asset-transfer-go/go.mod
       - name: Set up Full Stack Runtime
         uses: ./.github/actions/fsat-setup
       - run: just test-appdev-go

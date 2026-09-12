@@ -101,15 +101,15 @@ operator-crds: check-kube
 ###############################################################################
 
 # Run e2e tests of all scenarios
-test: test-chaincode test-appdev test-appdev-go test-cloud # test-ansible
+test: test-chaincode test-appdev-typescript test-appdev-go test-cloud # test-ansible
 
 # Run an e2e test of the SmartContractDev scenario
 test-chaincode:
     tests/00-chaincode-e2e.sh
 
 # Run an e2e test of the ApplicationDev scenario
-test-appdev:
-    tests/10-appdev-e2e.sh
+test-appdev-typescript:
+    tests/10-appdev-typescript-e2e.sh
 
 # Run an e2e test of the ApplicationDev Go scenario
 test-appdev-go:
@@ -209,7 +209,7 @@ microfab: microfab-down
     echo
     echo 'source $WORKSHOP_PATH/_cfg/uf/org1admin.env'
 
-# Creates a chaincode package and install/approve/commit
+# Creates a chaincode package (TypeScript) and install/approve/commit
 debugcc:
     #!/usr/bin/env bash
     set -e -o pipefail
@@ -217,6 +217,47 @@ debugcc:
     export CFG=$CWDIR/_cfg/uf
 
     pushd $CWDIR/contracts/asset-transfer-typescript
+
+    # this is the ip address the peer will use to talk to the CHAINCODE_ID
+    # remember this is relative from where the peer is running.
+    export CHAINCODE_SERVER_ADDRESS=host.docker.internal:9999
+    export CHAINCODE_ID=$(weft chaincode package caas --path . --label asset-transfer --address ${CHAINCODE_SERVER_ADDRESS} --archive asset-transfer.tgz --quiet)
+    export CORE_PEER_LOCALMSPID=org1MSP
+    export CORE_PEER_MSPCONFIGPATH=$CFG/_msp/org1/org1admin/msp
+    export CORE_PEER_ADDRESS=org1peer-api.127-0-0-1.nip.io:8080
+    export CORE_PEER_CLIENT_CONNTIMEOUT=15s
+    export CORE_PEER_DELIVERYCLIENT_CONNTIMEOUT=15s
+    export ORDERER_ENDPOINT=orderer-api.127-0-0-1.nip.io:8080
+
+    echo "CHAINCODE_ID=${CHAINCODE_ID}"
+
+    set -x && peer lifecycle chaincode install asset-transfer.tgz &&     { set +x; } 2>/dev/null
+    echo
+    set -x && peer lifecycle chaincode approveformyorg --channelID mychannel -o $ORDERER_ENDPOINT --name asset-transfer -v 0 --package-id $CHAINCODE_ID --sequence 1 --connTimeout 15s && { set +x; } 2>/dev/null
+    echo
+    set -x && peer lifecycle chaincode commit --channelID mychannel -o $ORDERER_ENDPOINT --name asset-transfer -v 0 --sequence 1  --connTimeout 15s && { set +x; } 2>/dev/null
+    echo
+    set -x && peer lifecycle chaincode querycommitted --channelID=mychannel && { set +x; } 2>/dev/null
+    echo
+    popd
+
+    cat << CC_EOF >> $CFG/org1admin.env
+    export CHAINCODE_SERVER_ADDRESS=0.0.0.0:9999
+    export CHAINCODE_ID=${CHAINCODE_ID}
+    CC_EOF
+
+    echo "Added CHAINCODE_ID and CHAINCODE_SERVER_ADDRESS to org1admin.env"
+    echo
+    echo '   source $WORKSHOP_PATH/_cfg/uf/org1admin.env'
+
+# Creates a Go chaincode package and install/approve/commit
+debugcc-go:
+    #!/usr/bin/env bash
+    set -e -o pipefail
+
+    export CFG=$CWDIR/_cfg/uf
+
+    pushd $CWDIR/contracts/asset-transfer-go
 
     # this is the ip address the peer will use to talk to the CHAINCODE_ID
     # remember this is relative from where the peer is running.
