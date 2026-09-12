@@ -11,4 +11,3 @@ services:
   peer0.org2.example.com:
     volumes:
       - ./podman/peercfg:/etc/hyperledger/peercfg
-
