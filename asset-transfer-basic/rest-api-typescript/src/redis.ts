@@ -28,10 +28,12 @@ export const isMaxmemoryPolicyNoeviction = async (): Promise<boolean> => {
     try {
         redis = new IORedis(redisOptions);
 
-        const maxmemoryPolicyConfig = await (redis as Redis).config(
+        // ioredis 5 types the CONFIG GET reply as unknown.  Over RESP2 it is
+        // a flat array of alternating parameter names and values.
+        const maxmemoryPolicyConfig = (await redis.config(
             'GET',
             'maxmemory-policy'
-        );
+        )) as string[];
         logger.debug({ maxmemoryPolicyConfig }, 'Got maxmemory-policy config');
 
         if (

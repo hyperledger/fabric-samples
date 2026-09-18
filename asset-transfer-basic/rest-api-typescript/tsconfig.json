@@ -3,7 +3,8 @@
   "extends": "@tsconfig/node12/tsconfig.json",
   "compilerOptions": {
     "sourceMap": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "types": ["node", "jest"]
   },
   "include": [
     "src/"

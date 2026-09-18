@@ -91,17 +91,6 @@ export const maxFailedSubmitJobs = env
     .asIntPositive();
 
 /**
- * Whether to initialise a scheduler for the submit job queue
- * There must be at least on queue scheduler to handle retries and you may want
- * more than one for redundancy
- */
-export const submitJobQueueScheduler = env
-    .get('SUBMIT_JOB_QUEUE_SCHEDULER')
-    .default('true')
-    .example('true')
-    .asBoolStrict();
-
-/**
  * Whether to convert discovered host addresses to be 'localhost'
  * This should be set to 'true' when running a docker composed fabric network on the
  * local system, e.g. using the test network; otherwise should it should be 'false'

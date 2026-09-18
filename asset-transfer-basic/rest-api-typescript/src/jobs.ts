@@ -5,7 +5,7 @@
  * retry support for failing jobs
  */
 
-import { ConnectionOptions, Job, Queue, QueueScheduler, Worker } from 'bullmq';
+import { ConnectionOptions, Job, Queue, Worker } from 'bullmq';
 import { Application } from 'express';
 import { Contract, Transaction } from 'fabric-network';
 import * as config from './config';
@@ -75,6 +75,10 @@ export const initJobQueue = (): Queue => {
 /**
  * Set up a worker to process submit jobs on the queue, using the
  * processSubmitTransactionJob function below
+ *
+ * The worker also manages stalled and delayed jobs, which is what makes
+ * retries with backoff work.  Before BullMQ v2 that was the job of a separate
+ * QueueScheduler, which no longer exists.
  */
 export const initJobQueueWorker = (app: Application): Worker => {
     const worker = new Worker<JobData, JobResult>(
@@ -210,23 +214,6 @@ export const processSubmitTransactionJob = async (
 };
 
 /**
- * Set up a scheduler for the submit job queue
- *
- * This manages stalled and delayed jobs and is required for retries with backoff
- */
-export const initJobQueueScheduler = (): QueueScheduler => {
-    const queueScheduler = new QueueScheduler(config.JOB_QUEUE_NAME, {
-        connection,
-    });
-
-    queueScheduler.on('failed', (jobId, failedReason) => {
-        logger.error({ jobId, failedReason }, 'Queue sceduler failure');
-    });
-
-    return queueScheduler;
-};
-
-/**
  * Helper to add a new submit transaction job to the queue
  */
 export const addSubmitTransactionJob = async (
@@ -271,7 +258,8 @@ export const updateJobData = async (
         newData.transactionState = undefined;
     }
 
-    await job.update(newData);
+    // BullMQ v5 renamed Job.update to Job.updateData
+    await job.updateData(newData);
 };
 
 /**

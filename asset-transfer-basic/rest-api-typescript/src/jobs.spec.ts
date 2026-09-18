@@ -176,8 +176,8 @@ describe('updateJobData', () => {
 
         await updateJobData(mockJob, mockTransaction);
 
-        expect(mockJob.update).toBeCalledTimes(1);
-        expect(mockJob.update).toBeCalledWith({
+        expect(mockJob.updateData).toBeCalledTimes(1);
+        expect(mockJob.updateData).toBeCalledWith({
             transactionIds: ['txn1', 'txn2'],
             transactionState: mockSavedState,
         });
@@ -186,8 +186,8 @@ describe('updateJobData', () => {
     it('removes the serialized state from the job data if a transaction is not specified', async () => {
         await updateJobData(mockJob, undefined);
 
-        expect(mockJob.update).toBeCalledTimes(1);
-        expect(mockJob.update).toBeCalledWith({
+        expect(mockJob.updateData).toBeCalledTimes(1);
+        expect(mockJob.updateData).toBeCalledWith({
             transactionIds: ['txn1'],
             transactionState: undefined,
         });
