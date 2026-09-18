@@ -53,7 +53,7 @@ context INGRESS_DOMAIN            localho.st
 context COREDNS_DOMAIN_OVERRIDE   true
 context LOG_FILE                  network.log
 context DEBUG_FILE                network-debug.log
-context LOG_ERROR_LINES           1
+context LOG_ERROR_LINES           200
 context USE_LOCAL_REGISTRY        true
 context LOCAL_REGISTRY_NAME       kind-registry
 context LOCAL_REGISTRY_PORT       5000
