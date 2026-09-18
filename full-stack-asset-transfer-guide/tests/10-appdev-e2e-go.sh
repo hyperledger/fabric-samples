@@ -36,13 +36,13 @@ trap exitHook SIGINT SIGTERM EXIT
 just microfab
 
 source "${WORKSHOP_PATH}/_cfg/uf/org1admin.env"
-just debugcc
+just debugcc-go
 
 source "${WORKSHOP_PATH}/_cfg/uf/org1admin.env"
-cd "${WORKSHOP_PATH}/contracts/asset-transfer-typescript"
-npm install
-npm run build
-node_modules/.bin/fabric-chaincode-node server --chaincode-address="${CHAINCODE_SERVER_ADDRESS}" --chaincode-id="${CHAINCODE_ID}" &
+cd "${WORKSHOP_PATH}/contracts/asset-transfer-go"
+CORE_CHAINCODE_ID_NAME="${CHAINCODE_ID}" \
+CORE_CHAINCODE_SERVER_ADDRESS="${CHAINCODE_SERVER_ADDRESS}" \
+go run ./src &
 CHAINCODE_PID=$!
 
 sleep 5
