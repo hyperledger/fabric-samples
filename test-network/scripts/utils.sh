@@ -198,6 +198,7 @@ function printHelp() {
     println "   network.sh createChannel -c channelName"
     println "   network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ -ccl javascript"
     println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
+    println "   network.sh renewCerts"
     println
     println " NOTE: Default settings can be changed in network.config"
   fi
