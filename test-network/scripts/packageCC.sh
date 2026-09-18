@@ -90,7 +90,11 @@ packageChaincode() {
   res=$?
   { set +x; } 2>/dev/null
   cat log.txt
-  PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid ${CC_NAME}.tar.gz)
+  if [ ${CC_PACKAGE_ONLY} = true ] ; then
+    PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid packagedChaincode/${CC_NAME}_${CC_VERSION}.tar.gz)
+  else
+    PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid ${CC_NAME}.tar.gz)
+  fi
   verifyResult $res "Chaincode packaging has failed"
   successln "Chaincode is packaged"
 }
