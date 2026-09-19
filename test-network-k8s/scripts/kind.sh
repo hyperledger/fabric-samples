@@ -82,10 +82,10 @@ function kind_load_docker_images() {
   kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-ca:$FABRIC_CA_VERSION
   kind load docker-image ${FABRIC_CONTAINER_REGISTRY}/fabric-orderer:$FABRIC_VERSION
   kind load docker-image ${FABRIC_PEER_IMAGE}
-  kind load docker-image couchdb:$COUCHDB_VERSION
+  kind load docker-image ${THIRD_PARTY_CONTAINER_REGISTRY}/couchdb:$COUCHDB_VERSION
 
   kind load docker-image ghcr.io/hyperledger/fabric-rest-sample:latest
-  kind load docker-image redis:6.2.5
+  kind load docker-image ${THIRD_PARTY_CONTAINER_REGISTRY}/redis:6.2.5
 
   pop_fn
 }
@@ -105,7 +105,7 @@ function launch_docker_registry() {
       --restart always \
       --name    "${reg_name}" \
       --publish "${reg_interface}:${reg_port}:5000" \
-      registry:2
+      ${THIRD_PARTY_CONTAINER_REGISTRY}/registry:2
   fi
 
   # connect the registry to the cluster network

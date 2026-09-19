@@ -6,6 +6,9 @@
 #
 set -euo pipefail
 
+# TODO delete me
+export THIRD_PARTY_CONTAINER_REGISTRY=quay.io/lib
+
 # Test matrix parameters
 export CONTAINER_CLI=${CONTAINER_CLI:-docker}
 export CLIENT_LANGUAGE=${CLIENT_LANGUAGE:-typescript}
