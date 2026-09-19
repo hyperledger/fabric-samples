@@ -143,8 +143,15 @@ function printHelp() {
     println "   network.sh cc invoke -c channel1 -ccic '{\"Args\":[\"CreateAsset\",\"asset1\",\"red\",\"10\",\"fred\",\"500\"]}'"
     println "   network.sh cc query -c channel1 -ccqc '{\"Args\":[\"ReadAsset\",\"asset1\"]}'"
     println
+    println
     println " NOTE: Default settings can be changed in network.config"
     println
+  elif [ "$USAGE" == "renew" ]; then
+    println "Usage: "
+    println "  network.sh \033[0;32mrenew\033[0m"
+    println
+    println "    Example:"
+    println "      network.sh renew"
   else
     println "Usage: "
     println "  network.sh <Mode> [Flags]"
@@ -156,6 +163,7 @@ function printHelp() {
     println "      \033[0;32mdeployCC\033[0m - Deploy a chaincode to a channel (defaults to asset-transfer-basic)"
     println "      \033[0;32mcc\033[0m - chaincode functions, use \"network.sh cc -h\" for options"
     println "      \033[0;32mdown\033[0m - Bring down the network"
+    println "      \033[0;32mrenew\033[0m - Renew certificates for the network"
     println
     println "    Flags:"
     println "    Used with \033[0;32mnetwork.sh prereq\033[0m"
