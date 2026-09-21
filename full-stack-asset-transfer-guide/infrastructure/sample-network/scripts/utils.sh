@@ -95,7 +95,18 @@ function wait_for_deployment() {
   local name=$1
   push_fn "Waiting for deployment $name"
 
-  kubectl -n $NS rollout status deploy $name
+  if ! kubectl -n $NS rollout status deploy $name; then
+    local selector=$(kubectl -n $NS get deploy $name -o json | jq -r '.spec.selector.matchLabels | to_entries | map("\(.key)=\(.value)") | join(",")')
+    echo "----- deploy/$name did not become ready - diagnostics follow -----"
+    kubectl -n $NS describe deploy $name || true
+    kubectl -n $NS get pods -l "$selector" -o wide || true
+    kubectl -n $NS describe pods -l "$selector" || true
+    kubectl -n $NS logs -l "$selector" --all-containers --tail=200 --previous || true
+    kubectl -n $NS logs -l "$selector" --all-containers --tail=200 || true
+    echo "----- end diagnostics for deploy/$name -----"
+    pop_fn 1
+    return 1
+  fi
 
   pop_fn
 }
