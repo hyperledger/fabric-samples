@@ -67,6 +67,12 @@ You can use the test network script to deploy the smart contract to the channel 
 ./network.sh deployCC -ccn sbe -ccp ../asset-transfer-sbe/chaincode-typescript/ -ccl typescript
 ```
 
+> **Note on the Python implementation:** a Python implementation of this sample is provided in the `chaincode-python` folder and can be deployed as a chaincode-as-a-service:
+> ```
+> ./network.sh deployCCAAS -ccn sbe -ccp ../asset-transfer-sbe/chaincode-python
+> ```
+> The `fabric-chaincode-python` shim does not yet expose `setStateValidationParameter`, so the Python implementation does not apply key-level endorsement policies to the assets. The key-level endorsement policy scenario demonstrated in the rest of this tutorial therefore requires the TypeScript or Java implementation.
+
 Set the following environment variables to interact with the network as a user from Org1:
 
 ```

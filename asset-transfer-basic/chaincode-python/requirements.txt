@@ -1,0 +1,4 @@
+# Python chaincode dependencies for the asset-transfer-basic sample.
+# Install with: pip install -r requirements.txt
+
+fabric-chaincode-python>=2.5.3

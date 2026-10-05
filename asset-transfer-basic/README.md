@@ -62,12 +62,19 @@ The Fabric test network is used to deploy and run this sample. Follow these step
      ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-go/ -ccl go
      ```
 
-   - To deploy the **Java** chaincode implementation:
-     ```shell
-     ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-java/ -ccl java
-     ```
+    - To deploy the **Java** chaincode implementation:
+      ```shell
+      ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-java/ -ccl java
+      ```
 
-1. Run the application (from the `asset-transfer-basic` folder).
+    - To deploy the **Python** chaincode implementation, which runs as a
+      [chaincode-as-a-service](../../test-network/CHAINCODE_AS_A_SERVICE_TUTORIAL.md):
+
+      ```shell
+      ./network.sh deployCCAAS -ccn basic -ccp ../asset-transfer-basic/chaincode-python
+      ```
+
+ 1. Run the application (from the `asset-transfer-basic` folder).
 
    - To run the **TypeScript** sample application:
 
