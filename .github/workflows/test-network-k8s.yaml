@@ -30,7 +30,7 @@ jobs:
           CHAINCODE_LANGUAGE: java
       - name: Upload failure logs
         if: ${{ failure() && steps.run-test.conclusion == 'failure' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ github.job }}-logs
           path: test-network-k8s/network-debug.log
@@ -49,7 +49,7 @@ jobs:
           CHAINCODE_LANGUAGE: external
       - name: Upload failure logs
         if: ${{ failure() && steps.run-test.conclusion == 'failure' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ github.job }}-logs
           path: test-network-k8s/network-debug.log
@@ -69,7 +69,7 @@ jobs:
           CHAINCODE_BUILDER: k8s
       - name: Upload failure logs
         if: ${{ failure() && steps.run-test.conclusion == 'failure' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ github.job }}-logs
           path: test-network-k8s/network-debug.log
@@ -92,7 +92,7 @@ jobs:
           CHAINCODE_BUILDER: k8s
       - name: Upload failure logs
         if: ${{ failure() && steps.run-test.conclusion == 'failure' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ github.job }}-logs
           path: test-network-k8s/network-debug.log
@@ -118,7 +118,7 @@ jobs:
           ORDERER_TYPE: bft
       - name: Upload failure logs
         if: ${{ failure() && steps.run-test.conclusion == 'failure' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ github.job }}-logs
           path: test-network-k8s/network-debug.log
