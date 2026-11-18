@@ -158,7 +158,7 @@ The asset value is now 300:
 {"ID":"asset1","Value":300,"Owner":"Org2User1","OwnerOrg":"Org2MSP"}
 ```
 
-Note that the transaction to update the asset was submitted by a user from Org1, even though the asset was owned by Org2. The transfer enabled by the SBE smart contract is a simple scenario meant only to demonstrate the use of state-based endorsement policies. The smart contract can use access control to specify that an asset can only be updated by its owner. Private data collections can also be used to ensure that transfers need to be endorsed by the owner and recipient of the transfer, instead of just the asset owner. For a more realistic example of an asset transfer scenario, see the [Secured asset transfer in Fabric](https://hyperledger-fabric.readthedocs.io/en/master/secured_asset_transfer/secured_private_asset_transfer_tutorial.html) tutorial.
+Note that the transaction to update the asset was submitted by a user from Org1, even though the asset was owned by Org2. The transfer enabled by the SBE smart contract is a simple scenario meant only to demonstrate the use of state-based endorsement policies. The smart contract can use access control to specify that an asset can only be updated by its owner. Private data collections can also be used to ensure that transfers need to be endorsed by the owner and recipient of the transfer, instead of just the asset owner. For a more realistic example of an asset transfer scenario, see the [Secured asset transfer in Fabric](https://hyperledger-fabric.readthedocs.io/en/latest/secured_asset_transfer/secured_private_asset_transfer_tutorial.html) tutorial.
 
 ## Clean up
 
